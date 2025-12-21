@@ -17,7 +17,7 @@ class Environment {
         return 'https://staging-api.discountbuddy.com';
       case development:
       default:
-        return 'https://dev-api.discountbuddy.com';
+        return 'http://10.174.83.186:8000';
     }
   }
 
@@ -28,7 +28,7 @@ class Environment {
   static const String apiVersion = 'v1';
 
   // Get full API URL
-  static String get apiUrl => '$baseUrl/api/$apiVersion';
+  static String get apiUrl => '$baseUrl/api';
 
   // App Configuration
   static const String appName = 'DiscountBuddy';

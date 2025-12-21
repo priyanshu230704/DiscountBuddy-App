@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import '../models/user.dart';
 import '../utils/constants.dart';
 import '../widgets/blurred_ellipse_background.dart';
+import '../providers/auth_provider.dart';
+import '../services/wallet_service.dart';
+import '../models/wallet.dart';
+import 'auth/login_page.dart';
 
 /// Profile/Settings page
 class ProfilePage extends StatefulWidget {
@@ -12,23 +15,60 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  final User _user = User(
-    id: '1',
-    name: 'John Doe',
-    email: 'john@example.com',
-    membership: Membership(
-      membershipId: 'MEM123456',
-      tier: 'premium',
-      startDate: DateTime.now().subtract(const Duration(days: 30)),
-      expiryDate: DateTime.now().add(const Duration(days: 335)),
-      status: 'active',
-    ),
-    totalSavings: 245.50,
-    restaurantsVisited: 12,
-  );
+  final WalletService _walletService = WalletService();
+  Wallet? _wallet;
+  bool _isLoadingWallet = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadWallet();
+  }
+
+  Future<void> _loadWallet() async {
+    if (!AuthProvider().isAuthenticated) {
+      return;
+    }
+
+    setState(() {
+      _isLoadingWallet = true;
+    });
+
+    try {
+      final wallet = await _walletService.getWallet();
+      if (mounted) {
+        setState(() {
+          _wallet = wallet;
+          _isLoadingWallet = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingWallet = false;
+        });
+      }
+    }
+  }
+
+  String _getInitials(String name) {
+    if (name.isEmpty) return '?';
+    final parts = name.trim().split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    } else if (parts.length == 1 && parts[0].isNotEmpty) {
+      return parts[0].substring(0, parts[0].length > 1 ? 2 : 1).toUpperCase();
+    }
+    return name[0].toUpperCase();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final user = AuthProvider().user;
+    final displayName = user?.username ?? 'Guest';
+    final email = user?.email ?? '';
+    final initials = _getInitials(displayName);
+    final walletBalance = _wallet?.balance ?? '0.00';
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
       body: Stack(
@@ -79,7 +119,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         radius: 50,
                         backgroundColor: const Color(0xFF3E25F6),
                         child: Text(
-                          _user.name[0].toUpperCase(),
+                          initials,
                           style: const TextStyle(
                             fontSize: 36,
                             fontWeight: FontWeight.bold,
@@ -89,21 +129,48 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       const SizedBox(height: AppConstants.paddingMedium),
                       Text(
-                        _user.name,
+                        displayName,
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
                       ),
-                      const SizedBox(height: AppConstants.paddingSmall),
-                      Text(
-                        _user.email,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
+                      if (email.isNotEmpty) ...[
+                        const SizedBox(height: AppConstants.paddingSmall),
+                        Text(
+                          email,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
                         ),
-                      ),
+                      ],
+                      if (user?.profile?.role != null) ...[
+                        const SizedBox(height: AppConstants.paddingSmall),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF3E25F6).withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: const Color(0xFF3E25F6),
+                              width: 1,
+                            ),
+                          ),
+                          child: Text(
+                            user!.profile!.role.toUpperCase(),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF3E25F6),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -117,18 +184,26 @@ class _ProfilePageState extends State<ProfilePage> {
                     children: [
                       Expanded(
                         child: _buildStatCard(
-                          'Total Savings',
-                          '£${_user.totalSavings.toStringAsFixed(2)}',
-                          Icons.savings,
-                          Colors.green,
+                          'Wallet Balance',
+                          _isLoadingWallet
+                              ? 'Loading...'
+                              : '£$walletBalance',
+                          Icons.account_balance_wallet,
+                          const Color(0xFF3E25F6),
                         ),
                       ),
                       const SizedBox(width: AppConstants.paddingMedium),
                       Expanded(
                         child: _buildStatCard(
-                          'Restaurants',
-                          '${_user.restaurantsVisited}',
-                          Icons.restaurant,
+                          'Account Type',
+                          user?.isMerchant == true
+                              ? 'Merchant'
+                              : user?.isCustomer == true
+                                  ? 'Customer'
+                                  : 'Guest',
+                          user?.isMerchant == true
+                              ? Icons.store
+                              : Icons.person,
                           Colors.blue,
                         ),
                       ),
@@ -201,8 +276,50 @@ class _ProfilePageState extends State<ProfilePage> {
                   child: SizedBox(
                     width: double.infinity,
                     child: OutlinedButton(
-                      onPressed: () {
-                        // Handle logout
+                      onPressed: () async {
+                        // Show confirmation dialog
+                        final shouldLogout = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            backgroundColor: const Color(0xFF1E1E1E),
+                            title: const Text(
+                              'Logout',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            content: const Text(
+                              'Are you sure you want to logout?',
+                              style: TextStyle(color: Colors.white70),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: Colors.red,
+                                ),
+                                child: const Text('Logout'),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (shouldLogout == true) {
+                          // Perform logout using auth provider
+                          await AuthProvider().logout();
+                          
+                          // Navigate to login page
+                          if (context.mounted) {
+                            Navigator.of(context).pushAndRemoveUntil(
+                              MaterialPageRoute(
+                                builder: (context) => const LoginPage(),
+                              ),
+                              (route) => false,
+                            );
+                          }
+                        }
                       },
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.red,

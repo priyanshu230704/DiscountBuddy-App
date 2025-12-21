@@ -24,21 +24,28 @@ class ApiService {
   // HTTP Client
   final http.Client _client = http.Client();
 
-  // Base headers
-  Map<String, String> get _headers => {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-      };
+  // Base headers - store as instance variable to persist auth token
+  final Map<String, String> _headers = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  };
+
+  String? _authToken;
 
   /// Add authorization token to headers
   void setAuthToken(String token) {
+    _authToken = token;
     _headers['Authorization'] = 'Bearer $token';
   }
 
   /// Remove authorization token from headers
   void removeAuthToken() {
+    _authToken = null;
     _headers.remove('Authorization');
   }
+
+  /// Get current auth token
+  String? get authToken => _authToken;
 
   /// Add custom header
   void addHeader(String key, String value) {
@@ -48,6 +55,15 @@ class ApiService {
   /// Remove custom header
   void removeHeader(String key) {
     _headers.remove(key);
+  }
+
+  /// Get headers with current auth token if available
+  Map<String, String> get headers {
+    final headers = Map<String, String>.from(_headers);
+    if (_authToken != null) {
+      headers['Authorization'] = 'Bearer $_authToken';
+    }
+    return headers;
   }
 
   /// GET request
@@ -64,7 +80,7 @@ class ApiService {
       }
 
       final response = await _client
-          .get(uri, headers: _headers)
+          .get(uri, headers: headers)
           .timeout(Environment.apiTimeout);
 
       return _handleResponse(response);
@@ -89,7 +105,7 @@ class ApiService {
       final response = await _client
           .post(
             uri,
-            headers: _headers,
+            headers: headers,
             body: body != null ? jsonEncode(body) : null,
           )
           .timeout(Environment.apiTimeout);
@@ -116,7 +132,7 @@ class ApiService {
       final response = await _client
           .put(
             uri,
-            headers: _headers,
+            headers: headers,
             body: body != null ? jsonEncode(body) : null,
           )
           .timeout(Environment.apiTimeout);
@@ -143,7 +159,7 @@ class ApiService {
       final response = await _client
           .patch(
             uri,
-            headers: _headers,
+            headers: headers,
             body: body != null ? jsonEncode(body) : null,
           )
           .timeout(Environment.apiTimeout);
@@ -164,7 +180,7 @@ class ApiService {
       }
 
       final response = await _client
-          .delete(uri, headers: _headers)
+          .delete(uri, headers: headers)
           .timeout(Environment.apiTimeout);
 
       return _handleResponse(response);
@@ -196,9 +212,31 @@ class ApiService {
       dynamic errorData;
 
       try {
-        final errorResponse = jsonDecode(response.body) as Map<String, dynamic>;
-        errorMessage = errorResponse['message'] ?? errorMessage;
-        errorData = errorResponse;
+        final errorResponse = jsonDecode(response.body);
+        if (errorResponse is Map<String, dynamic>) {
+          // Try different error message fields
+          if (errorResponse.containsKey('detail')) {
+            errorMessage = errorResponse['detail'].toString();
+          } else if (errorResponse.containsKey('message')) {
+            errorMessage = errorResponse['message'].toString();
+          } else {
+            // If there are field-specific errors, format them
+            final fieldErrors = <String>[];
+            errorResponse.forEach((key, value) {
+              if (value is List) {
+                fieldErrors.addAll(value.map((e) => '$key: $e').toList());
+              } else if (value is String) {
+                fieldErrors.add('$key: $value');
+              }
+            });
+            if (fieldErrors.isNotEmpty) {
+              errorMessage = fieldErrors.join(', ');
+            }
+          }
+          errorData = errorResponse;
+        } else {
+          errorMessage = errorResponse.toString();
+        }
       } catch (e) {
         errorMessage = response.body.isNotEmpty
             ? response.body

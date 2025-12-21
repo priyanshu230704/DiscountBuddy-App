@@ -4,6 +4,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../models/restaurant.dart';
 import '../../services/restaurant_service.dart';
 import '../../services/location_service.dart';
+import '../../services/wallet_service.dart';
+import '../../providers/auth_provider.dart';
 import '../../widgets/blurred_ellipse_background.dart';
 import '../../widgets/common_search_bar.dart';
 import '../../widgets/border_gradient.dart';
@@ -23,11 +25,13 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final RestaurantService _restaurantService = RestaurantService();
   final LocationService _locationService = LocationService();
+  final WalletService _walletService = WalletService();
   final TextEditingController _searchController = TextEditingController();
   List<Restaurant> _restaurants = [];
   bool _isLoading = true;
   String? _error;
   String _cityName = 'Loading...';
+  String _walletBalance = '0.00';
 
   @override
   void initState() {
@@ -43,13 +47,25 @@ class _HomePageState extends State<HomePage> {
 
     _loadCityName();
     _loadRestaurants();
+    
+    // Listen to auth state changes to reload wallet
+    AuthProvider().addListener(_onAuthStateChanged);
+    _loadWalletBalance();
   }
 
   @override
   void dispose() {
+    AuthProvider().removeListener(_onAuthStateChanged);
     _searchController.dispose();
     super.dispose();
   }
+
+  void _onAuthStateChanged() {
+    if (mounted) {
+      _loadWalletBalance();
+    }
+  }
+
 
   Future<void> _loadCityName() async {
     try {
@@ -84,6 +100,29 @@ class _HomePageState extends State<HomePage> {
         _error = e.toString();
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _loadWalletBalance() async {
+    // Only load wallet if user is authenticated
+    if (!AuthProvider().isAuthenticated) {
+      return;
+    }
+
+    try {
+      final wallet = await _walletService.getWallet();
+      if (mounted) {
+        setState(() {
+          _walletBalance = wallet.balance;
+        });
+      }
+    } catch (e) {
+      // Silently fail - wallet may not be accessible
+      if (mounted) {
+        setState(() {
+          _walletBalance = '0.00';
+        });
+      }
     }
   }
 
@@ -153,6 +192,27 @@ class _HomePageState extends State<HomePage> {
                                   ],
                                 ),
                               ),
+                              // Wallet balance and notification icon
+                              if (AuthProvider().isAuthenticated)
+                                Container(
+                                  margin: const EdgeInsets.only(right: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF3E25F6),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    '£$_walletBalance',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
                               IconButton(
                                 icon: const Icon(Icons.notifications),
                                 color: Colors.grey[300],

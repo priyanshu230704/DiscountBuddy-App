@@ -279,15 +279,30 @@ class _EventsPageState extends State<EventsPage> {
                       ),
                     ),
                   ),
+                  // Gradient overlay
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withOpacity(0.4),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                   // Bookmark Icon
                   Positioned(
                     top: 8,
                     right: 8,
                     child: Container(
-                      padding: const EdgeInsets.all(4),
+                      padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
                         color: Colors.black.withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(4),
+                        shape: BoxShape.circle,
                       ),
                       child: const Icon(
                         Icons.bookmark_border,
@@ -303,11 +318,26 @@ class _EventsPageState extends State<EventsPage> {
             Expanded(
               flex: 2,
               child: Padding(
-                padding: const EdgeInsets.all(_EventsConstants.paddingSmall),
+                padding: const EdgeInsets.all(10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
+                    // Title
+                    Flexible(
+                      child: Text(
+                        event.title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          height: 1.2,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
                     // Location
                     Row(
                       children: [
@@ -316,7 +346,7 @@ class _EventsPageState extends State<EventsPage> {
                           size: 12,
                           color: Colors.grey[500],
                         ),
-                        const SizedBox(width: 2),
+                        const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             event.location,
@@ -330,26 +360,28 @@ class _EventsPageState extends State<EventsPage> {
                         ),
                       ],
                     ),
-                    // Title
-                    Text(
-                      event.title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    const SizedBox(height: 3),
                     // Date and Time
-                    Text(
-                      fullDate,
-                      style: TextStyle(
-                        color: Colors.grey[400],
-                        fontSize: 10,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today,
+                          size: 12,
+                          color: Colors.grey[500],
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            fullDate,
+                            style: TextStyle(
+                              color: Colors.grey[400],
+                              fontSize: 10,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

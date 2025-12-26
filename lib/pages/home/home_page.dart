@@ -710,6 +710,17 @@ class _FeaturedRestaurantCardContent extends StatelessWidget {
     return colors[index % colors.length];
   }
 
+  String _formatReviewCount(int count) {
+    if (count >= 1000) {
+      final thousands = count / 1000;
+      if (thousands >= 10) {
+        return '${thousands.toStringAsFixed(1)}K+';
+      }
+      return '${thousands.toStringAsFixed(1)}K+';
+    }
+    return '$count+';
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -736,110 +747,184 @@ class _FeaturedRestaurantCardContent extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Restaurant Image
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(16),
-                  ),
-                  child: CachedNetworkImage(
-                    imageUrl: restaurant.imageUrl,
-                    width: double.infinity,
-                    height: 130,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      height: 130,
-                      color: const Color(0xFF2B2D30),
-                      child: const Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      height: 130,
-                      color: const Color(0xFF2B2D30),
-                      child: const Icon(
-                        Icons.restaurant,
-                        size: 48,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ),
-                ),
-                // Restaurant Info
+                // Restaurant Image with overlay badges
                 Stack(
-                  clipBehavior: Clip.hardEdge,
                   children: [
-                    // Blurred ellipse background for whole text section
+                    ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(16),
+                      ),
+                      child: CachedNetworkImage(
+                        imageUrl: restaurant.imageUrl,
+                        width: double.infinity,
+                        height: 160,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          height: 160,
+                          color: const Color(0xFF2B2D30),
+                          child: const Center(
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3E25F6)),
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          height: 160,
+                          color: const Color(0xFF2B2D30),
+                          child: const Icon(
+                            Icons.restaurant,
+                            size: 48,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Full-width dark gradient bar at bottom of image
                     Positioned(
                       bottom: 0,
                       left: 0,
                       right: 0,
-                      child: Center(
-                        child: ImageFiltered(
-                          imageFilter: ImageFilter.blur(sigmaX: 60, sigmaY: 60),
-                          child: Transform.translate(
-                            offset: const Offset(0, 25),
-                            child: Container(
-                              width: 200,
-                              height: 80,
-                              decoration: BoxDecoration(
-                                color: _getEllipseColor().withOpacity(0.5),
-                                borderRadius: BorderRadius.circular(35),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withOpacity(0.7),
+                              Colors.black.withOpacity(0.8),
+                            ],
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            const Text(
+                              '💰',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              restaurant.discount.displayText,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // Bookmark icon
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.5),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.bookmark_border,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                // Restaurant Info with ellipse background
+                Expanded(
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      // Blurred ellipse background
+                      Positioned.fill(
+                        child: Center(
+                          child: ImageFiltered(
+                            imageFilter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
+                            child: Transform.translate(
+                              offset: const Offset(0, 20),
+                              child: Container(
+                                width: 220,
+                                height: 100,
+                                decoration: BoxDecoration(
+                                  color: _getEllipseColor().withOpacity(0.6),
+                                  borderRadius: BorderRadius.circular(50),
+                                ),
                               ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(14),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            restaurant.name,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            restaurant.cuisine,
-                            style: TextStyle(
-                              color: Colors.grey[400],
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.location_on,
-                                size: 14,
-                                color: Colors.grey[500],
+                      // Content
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Restaurant name
+                            Text(
+                              restaurant.name,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: -0.3,
                               ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  restaurant.address,
-                                  style: TextStyle(
-                                    color: Colors.grey[500],
-                                    fontSize: 12,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 8),
+                            // Rating with review count
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.star,
+                                  color: Color(0xFF34A853),
+                                  size: 16,
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
+                                const SizedBox(width: 4),
+                                Text(
+                                  '${restaurant.rating.toStringAsFixed(1)} (${_formatReviewCount(restaurant.reviewCount)})',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                    Text(
+                                  ' • ',
+                                  style: TextStyle(
+                                    color: Colors.grey[400],
+                                    fontSize: 13,
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    '${restaurant.address.split(',').first}, ${restaurant.distance.toStringAsFixed(1)} km',
+                                    style: TextStyle(
+                                      color: Colors.grey[400],
+                                      fontSize: 13,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),

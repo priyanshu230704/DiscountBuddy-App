@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../utils/constants.dart';
 import '../../widgets/blurred_ellipse_background.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/auth_provider.dart';
@@ -7,6 +6,13 @@ import '../../services/voucher_service.dart';
 import '../../models/voucher.dart';
 import '../profile_page.dart';
 import '../auth/login_page.dart';
+
+// Local constants for more page
+class _MoreConstants {
+  static const double paddingSmall = 8.0;
+  static const double paddingMedium = 16.0;
+  static const double paddingLarge = 24.0;
+}
 
 /// More/Settings page
 class MorePage extends StatefulWidget {
@@ -80,9 +86,9 @@ class _MorePageState extends State<MorePage> {
                 Container(
                   padding: EdgeInsets.only(
                     top: MediaQuery.of(context).padding.top,
-                    left: AppConstants.paddingMedium,
-                    right: AppConstants.paddingMedium,
-                    bottom: AppConstants.paddingMedium,
+                    left: _MoreConstants.paddingMedium,
+                    right: _MoreConstants.paddingMedium,
+                    bottom: _MoreConstants.paddingMedium,
                   ),
                   child: const Text(
                     'More',
@@ -100,11 +106,11 @@ class _MorePageState extends State<MorePage> {
                     children: [
                       // Profile Section
                       _buildProfileSection(),
-                      const SizedBox(height: AppConstants.paddingMedium),
+                      const SizedBox(height: _MoreConstants.paddingMedium),
                       // My Vouchers Section (show for all authenticated users, but content varies)
                       if (AuthProvider().isAuthenticated) _buildVouchersSection(),
                       if (AuthProvider().isAuthenticated)
-                        const SizedBox(height: AppConstants.paddingMedium),
+                        const SizedBox(height: _MoreConstants.paddingMedium),
                       // Account Section
                       _buildSection(
                         'Account',
@@ -138,7 +144,7 @@ class _MorePageState extends State<MorePage> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: AppConstants.paddingMedium),
+                      const SizedBox(height: _MoreConstants.paddingMedium),
                       // Preferences Section
                       _buildSection(
                         'Preferences',
@@ -170,7 +176,7 @@ class _MorePageState extends State<MorePage> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: AppConstants.paddingMedium),
+                      const SizedBox(height: _MoreConstants.paddingMedium),
                       // Support Section
                       _buildSection(
                         'Support & Feedback',
@@ -195,7 +201,7 @@ class _MorePageState extends State<MorePage> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: AppConstants.paddingMedium),
+                      const SizedBox(height: _MoreConstants.paddingMedium),
                       // About Section
                       _buildSection(
                         'About',
@@ -220,11 +226,11 @@ class _MorePageState extends State<MorePage> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: AppConstants.paddingMedium),
+                      const SizedBox(height: _MoreConstants.paddingMedium),
                       // Logout
                       Padding(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: AppConstants.paddingMedium,
+                          horizontal: _MoreConstants.paddingMedium,
                         ),
                         child: OutlinedButton(
                           onPressed: () async {
@@ -276,13 +282,13 @@ class _MorePageState extends State<MorePage> {
                             foregroundColor: Colors.red,
                             side: const BorderSide(color: Colors.red),
                             padding: const EdgeInsets.symmetric(
-                              vertical: AppConstants.paddingMedium,
+                              vertical: _MoreConstants.paddingMedium,
                             ),
                           ),
                           child: const Text('Logout'),
                         ),
                       ),
-                      const SizedBox(height: AppConstants.paddingLarge),
+                      const SizedBox(height: _MoreConstants.paddingLarge),
                     ],
                   ),
                 ),
@@ -441,9 +447,9 @@ class _MorePageState extends State<MorePage> {
       children: [
         Padding(
           padding: const EdgeInsets.only(
-            left: AppConstants.paddingMedium,
-            right: AppConstants.paddingMedium,
-            bottom: AppConstants.paddingSmall,
+            left: _MoreConstants.paddingMedium,
+            right: _MoreConstants.paddingMedium,
+            bottom: _MoreConstants.paddingSmall,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -470,10 +476,10 @@ class _MorePageState extends State<MorePage> {
         if (!isMerchant)
           Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: AppConstants.paddingMedium,
+              horizontal: _MoreConstants.paddingMedium,
             ),
             child: Container(
-              padding: const EdgeInsets.all(AppConstants.paddingLarge),
+              padding: const EdgeInsets.all(_MoreConstants.paddingLarge),
               decoration: BoxDecoration(
                 color: const Color(0xFF1A1B1F),
                 borderRadius: BorderRadius.circular(12),
@@ -495,7 +501,7 @@ class _MorePageState extends State<MorePage> {
           )
         else if (_isLoadingVouchers)
           const Padding(
-            padding: EdgeInsets.all(AppConstants.paddingMedium),
+            padding: EdgeInsets.all(_MoreConstants.paddingMedium),
             child: Center(
               child: CircularProgressIndicator(),
             ),
@@ -503,10 +509,10 @@ class _MorePageState extends State<MorePage> {
         else if (_vouchers.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: AppConstants.paddingMedium,
+              horizontal: _MoreConstants.paddingMedium,
             ),
             child: Container(
-              padding: const EdgeInsets.all(AppConstants.paddingLarge),
+              padding: const EdgeInsets.all(_MoreConstants.paddingLarge),
               decoration: BoxDecoration(
                 color: const Color(0xFF1A1B1F),
                 borderRadius: BorderRadius.circular(12),
@@ -529,7 +535,7 @@ class _MorePageState extends State<MorePage> {
         else
           Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: AppConstants.paddingMedium,
+              horizontal: _MoreConstants.paddingMedium,
             ),
             child: Column(
               children: _vouchers.take(5).map((voucher) {
@@ -645,7 +651,7 @@ class _MorePageState extends State<MorePage> {
     final initials = _getInitials(displayName);
 
     return Container(
-      padding: const EdgeInsets.all(AppConstants.paddingLarge),
+      padding: const EdgeInsets.all(_MoreConstants.paddingLarge),
       color: const Color(0xFF1E1E1E),
       child: Row(
         children: [
@@ -661,7 +667,7 @@ class _MorePageState extends State<MorePage> {
               ),
             ),
           ),
-          const SizedBox(width: AppConstants.paddingMedium),
+          const SizedBox(width: _MoreConstants.paddingMedium),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -720,9 +726,9 @@ class _MorePageState extends State<MorePage> {
       children: [
         Padding(
           padding: const EdgeInsets.only(
-            left: AppConstants.paddingMedium,
-            right: AppConstants.paddingMedium,
-            bottom: AppConstants.paddingSmall,
+            left: _MoreConstants.paddingMedium,
+            right: _MoreConstants.paddingMedium,
+            bottom: _MoreConstants.paddingSmall,
           ),
           child: Text(
             title,
@@ -735,11 +741,11 @@ class _MorePageState extends State<MorePage> {
         ),
         Padding(
           padding: const EdgeInsets.symmetric(
-            horizontal: AppConstants.paddingMedium,
+            horizontal: _MoreConstants.paddingMedium,
           ),
           child: Column(children: children),
         ),
-        const SizedBox(height: AppConstants.paddingMedium),
+        const SizedBox(height: _MoreConstants.paddingMedium),
       ],
     );
   }

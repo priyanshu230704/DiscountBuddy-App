@@ -3,7 +3,6 @@ import '../models/restaurant.dart';
 import '../services/restaurant_service.dart';
 import '../widgets/restaurant_card.dart';
 import '../widgets/loading_widget.dart';
-import '../utils/constants.dart';
 import 'restaurant_details_page.dart';
 
 /// Search/Discover page for finding restaurants
@@ -12,6 +11,13 @@ class SearchPage extends StatefulWidget {
 
   @override
   State<SearchPage> createState() => _SearchPageState();
+}
+
+// Local constants for search page
+class _SearchConstants {
+  static const double paddingSmall = 8.0;
+  static const double paddingMedium = 16.0;
+  static const double radiusMedium = 12.0;
 }
 
 class _SearchPageState extends State<SearchPage> {
@@ -97,7 +103,7 @@ class _SearchPageState extends State<SearchPage> {
             expandedHeight: 100,
             floating: true,
             pinned: true,
-            backgroundColor: const Color(AppConstants.primaryColorValue),
+            backgroundColor: const Color(0xFF1A73E8),
             flexibleSpace: FlexibleSpaceBar(
               title: const Text(
                 'Discover',
@@ -110,8 +116,8 @@ class _SearchPageState extends State<SearchPage> {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      const Color(AppConstants.primaryColorValue),
-                      const Color(AppConstants.primaryColorValue).withOpacity(0.8),
+                      const Color(0xFF1A73E8),
+                      const Color(0xFF1A73E8).withOpacity(0.8),
                     ],
                   ),
                 ),
@@ -121,7 +127,7 @@ class _SearchPageState extends State<SearchPage> {
           // Search Bar
           SliverToBoxAdapter(
             child: Container(
-              padding: const EdgeInsets.all(AppConstants.paddingMedium),
+              padding: const EdgeInsets.all(_SearchConstants.paddingMedium),
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
@@ -138,7 +144,7 @@ class _SearchPageState extends State<SearchPage> {
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+                    borderRadius: BorderRadius.circular(_SearchConstants.radiusMedium),
                     borderSide: BorderSide.none,
                   ),
                 ),
@@ -152,14 +158,14 @@ class _SearchPageState extends State<SearchPage> {
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: AppConstants.paddingMedium,
+                  horizontal: _SearchConstants.paddingMedium,
                 ),
                 itemCount: _cuisines.length,
                 itemBuilder: (context, index) {
                   final cuisine = _cuisines[index];
                   final isSelected = cuisine == _selectedCuisine;
                   return Padding(
-                    padding: const EdgeInsets.only(right: AppConstants.paddingSmall),
+                    padding: const EdgeInsets.only(right: _SearchConstants.paddingSmall),
                     child: FilterChip(
                       label: Text(cuisine),
                       selected: isSelected,
@@ -169,7 +175,7 @@ class _SearchPageState extends State<SearchPage> {
                           _filterRestaurants();
                         });
                       },
-                      selectedColor: const Color(AppConstants.primaryColorValue),
+                      selectedColor: const Color(0xFF1A73E8),
                       labelStyle: TextStyle(
                         color: isSelected ? Colors.white : Colors.black87,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -184,8 +190,8 @@ class _SearchPageState extends State<SearchPage> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(
-                horizontal: AppConstants.paddingMedium,
-                vertical: AppConstants.paddingSmall,
+                horizontal: _SearchConstants.paddingMedium,
+                vertical: _SearchConstants.paddingSmall,
               ),
               child: Text(
                 '${_filteredRestaurants.length} restaurants found',
@@ -235,7 +241,7 @@ class _SearchPageState extends State<SearchPage> {
           else
             SliverPadding(
               padding: const EdgeInsets.symmetric(
-                horizontal: AppConstants.paddingMedium,
+                horizontal: _SearchConstants.paddingMedium,
               ),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(

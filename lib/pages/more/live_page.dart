@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import '../../utils/constants.dart';
 import '../../widgets/blurred_ellipse_background.dart';
 import '../../widgets/border_gradient.dart';
 
@@ -10,6 +9,13 @@ class LivePage extends StatefulWidget {
 
   @override
   State<LivePage> createState() => _LivePageState();
+}
+
+// Local constants for live page
+class _LiveConstants {
+  static const double paddingMedium = 16.0;
+  static const double paddingLarge = 24.0;
+  static const double radiusLarge = 16.0;
 }
 
 class _LivePageState extends State<LivePage> {
@@ -139,9 +145,9 @@ class _LivePageState extends State<LivePage> {
                 Padding(
                   padding: EdgeInsets.only(
                     top: MediaQuery.of(context).padding.top,
-                    left: AppConstants.paddingMedium,
-                    right: AppConstants.paddingMedium,
-                    bottom: AppConstants.paddingMedium,
+                    left: _LiveConstants.paddingMedium,
+                    right: _LiveConstants.paddingMedium,
+                    bottom: _LiveConstants.paddingMedium,
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -193,9 +199,9 @@ class _LivePageState extends State<LivePage> {
                         )
                       : ListView.builder(
                           padding: const EdgeInsets.only(
-                            left: AppConstants.paddingMedium,
-                            right: AppConstants.paddingMedium,
-                            bottom: AppConstants.paddingLarge,
+                            left: _LiveConstants.paddingMedium,
+                            right: _LiveConstants.paddingMedium,
+                            bottom: _LiveConstants.paddingLarge,
                           ),
                           itemCount: activeOffers.length,
                           itemBuilder: (context, index) {
@@ -218,14 +224,14 @@ class _LivePageState extends State<LivePage> {
     final urgencyColor = _getUrgencyColor(remaining);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: AppConstants.paddingMedium),
+      margin: const EdgeInsets.only(bottom: _LiveConstants.paddingMedium),
       child: BorderGradient(
         borderWidth: 1,
-        borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
+        borderRadius: BorderRadius.circular(_LiveConstants.radiusLarge),
         child: Container(
           decoration: BoxDecoration(
             color: const Color(0xFF1A1B1F),
-            borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
+            borderRadius: BorderRadius.circular(_LiveConstants.radiusLarge),
             boxShadow: [
               BoxShadow(
                 color: urgencyColor.withOpacity(0.1),
@@ -235,7 +241,7 @@ class _LivePageState extends State<LivePage> {
             ],
           ),
           child: Padding(
-            padding: const EdgeInsets.all(AppConstants.paddingMedium),
+            padding: const EdgeInsets.all(_LiveConstants.paddingMedium),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -389,7 +395,7 @@ class _LivePageState extends State<LivePage> {
                         ],
                       ),
                     ),
-                    const SizedBox(width: AppConstants.paddingMedium),
+                    const SizedBox(width: _LiveConstants.paddingMedium),
                     // Get Deal Button
                     Container(
                       decoration: BoxDecoration(

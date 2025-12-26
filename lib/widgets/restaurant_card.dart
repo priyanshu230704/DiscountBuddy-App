@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/restaurant.dart';
-import '../utils/constants.dart';
 
 /// Restaurant card widget similar to Tastecard design
 class RestaurantCard extends StatelessWidget {
@@ -14,17 +13,23 @@ class RestaurantCard extends StatelessWidget {
     this.onTap,
   });
 
+  // Local constants for restaurant card
+  static const double _paddingSmall = 8.0;
+  static const double _paddingMedium = 16.0;
+  static const double _radiusSmall = 8.0;
+  static const double _radiusMedium = 12.0;
+
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(bottom: AppConstants.paddingMedium),
+      margin: const EdgeInsets.only(bottom: _paddingMedium),
       elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+        borderRadius: BorderRadius.circular(_radiusMedium),
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+        borderRadius: BorderRadius.circular(_radiusMedium),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -33,7 +38,7 @@ class RestaurantCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(AppConstants.radiusMedium),
+                    top: Radius.circular(_radiusMedium),
                   ),
                   child: CachedNetworkImage(
                     imageUrl: restaurant.imageUrl,
@@ -56,8 +61,8 @@ class RestaurantCard extends StatelessWidget {
                 ),
                 // Bookmark Icon
                 Positioned(
-                  top: AppConstants.paddingMedium,
-                  right: AppConstants.paddingMedium,
+                  top: _paddingMedium,
+                  right: _paddingMedium,
                   child: IconButton(
                     icon: const Icon(Icons.bookmark_border, color: Colors.white),
                     onPressed: () {
@@ -70,16 +75,16 @@ class RestaurantCard extends StatelessWidget {
                 ),
                 // Discount Badge (Green like Tastecard)
                 Positioned(
-                  bottom: AppConstants.paddingMedium,
-                  left: AppConstants.paddingMedium,
+                  bottom: _paddingMedium,
+                  left: _paddingMedium,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: AppConstants.paddingMedium,
-                      vertical: AppConstants.paddingSmall,
+                      horizontal: _paddingMedium,
+                      vertical: _paddingSmall,
                     ),
                     decoration: BoxDecoration(
                       color: const Color(0xFF34A853), // Green like Tastecard
-                      borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
+                      borderRadius: BorderRadius.circular(_radiusSmall),
                     ),
                     child: Text(
                       restaurant.discount.displayText,
@@ -93,16 +98,16 @@ class RestaurantCard extends StatelessWidget {
                 ),
                 // Distance Badge
                 Positioned(
-                  top: AppConstants.paddingMedium,
-                  left: AppConstants.paddingMedium,
+                  top: _paddingMedium,
+                  left: _paddingMedium,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: AppConstants.paddingMedium,
-                      vertical: AppConstants.paddingSmall,
+                      horizontal: _paddingMedium,
+                      vertical: _paddingSmall,
                     ),
                     decoration: BoxDecoration(
                       color: Colors.black54,
-                      borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
+                      borderRadius: BorderRadius.circular(_radiusSmall),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -129,7 +134,7 @@ class RestaurantCard extends StatelessWidget {
             ),
             // Restaurant Info
             Padding(
-              padding: const EdgeInsets.all(AppConstants.paddingMedium),
+              padding: const EdgeInsets.all(_paddingMedium),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -173,7 +178,7 @@ class RestaurantCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppConstants.paddingSmall),
+                  const SizedBox(height: _paddingSmall),
                   // Cuisine
                   Row(
                     children: [
@@ -192,7 +197,7 @@ class RestaurantCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppConstants.paddingSmall),
+                  const SizedBox(height: _paddingSmall),
                   // Address
                   Row(
                     children: [
@@ -215,7 +220,7 @@ class RestaurantCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppConstants.paddingSmall),
+                  const SizedBox(height: _paddingSmall),
                   // Availability and Thumbs Up
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,

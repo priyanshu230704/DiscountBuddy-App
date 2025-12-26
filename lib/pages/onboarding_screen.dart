@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../utils/constants.dart';
 import '../services/onboarding_service.dart';
 import 'auth/login_page.dart';
 
@@ -9,6 +8,14 @@ class OnboardingScreen extends StatefulWidget {
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
+}
+
+// Local constants for onboarding screen
+class _OnboardingConstants {
+  static const double paddingLarge = 24.0;
+  static const double paddingXLarge = 32.0;
+  static const double radiusMedium = 12.0;
+  static const double radiusLarge = 16.0;
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
@@ -147,8 +154,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               right: 0,
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: AppConstants.paddingLarge,
-                  vertical: AppConstants.paddingXLarge,
+                  horizontal: _OnboardingConstants.paddingLarge,
+                  vertical: _OnboardingConstants.paddingXLarge,
                 ),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -189,7 +196,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget _buildPage(OnboardingPageData pageData, int pageIndex) {
     return SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge),
+        padding: const EdgeInsets.symmetric(horizontal: _OnboardingConstants.paddingLarge),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -248,7 +255,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             color: pageData.iconColor!.withOpacity(0.2),
             shape: isThirdPage ? BoxShape.rectangle : BoxShape.circle,
             borderRadius: isThirdPage 
-                ? BorderRadius.circular(AppConstants.radiusLarge)
+                ? BorderRadius.circular(_OnboardingConstants.radiusLarge)
                 : null,
             border: Border.all(
               color: pageData.iconColor!.withOpacity(0.3),
@@ -270,7 +277,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: card.color.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
+        borderRadius: BorderRadius.circular(_OnboardingConstants.radiusLarge),
         border: Border.all(
           color: card.color.withOpacity(0.3),
           width: 1.5,
@@ -388,7 +395,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 18),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+            borderRadius: BorderRadius.circular(_OnboardingConstants.radiusMedium),
           ),
           elevation: 0,
         ),
@@ -538,7 +545,7 @@ class _SwipeableButtonState extends State<_SwipeableButton>
         width: double.infinity,
         decoration: BoxDecoration(
           color: Colors.black.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
+          borderRadius: BorderRadius.circular(_OnboardingConstants.radiusLarge),
           border: Border.all(
             color: Colors.white.withOpacity(0.1),
             width: 1,
@@ -552,7 +559,7 @@ class _SwipeableButtonState extends State<_SwipeableButton>
               width: buttonWidth * progress,
               decoration: BoxDecoration(
                 color: const Color(0xFF3E25F6).withOpacity(0.3),
-                borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
+                borderRadius: BorderRadius.circular(_OnboardingConstants.radiusLarge),
               ),
             ),
             // Swipeable button

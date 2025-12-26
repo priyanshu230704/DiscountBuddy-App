@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../utils/constants.dart';
 import '../widgets/blurred_ellipse_background.dart';
 import '../providers/auth_provider.dart';
 import '../services/wallet_service.dart';
@@ -12,6 +11,15 @@ class ProfilePage extends StatefulWidget {
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
+}
+
+// Local constants for profile page
+class _ProfileConstants {
+  static const double paddingSmall = 8.0;
+  static const double paddingMedium = 16.0;
+  static const double paddingLarge = 24.0;
+  static const double paddingXLarge = 32.0;
+  static const double radiusMedium = 12.0;
 }
 
 class _ProfilePageState extends State<ProfilePage> {
@@ -84,10 +92,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 SliverToBoxAdapter(
                   child: Container(
                     padding: EdgeInsets.only(
-                      top: MediaQuery.of(context).padding.top + AppConstants.paddingMedium,
-                      left: AppConstants.paddingLarge,
-                      right: AppConstants.paddingLarge,
-                      bottom: AppConstants.paddingLarge,
+                      top: MediaQuery.of(context).padding.top,
+                      left: _ProfileConstants.paddingLarge,
+                      right: _ProfileConstants.paddingLarge,
+                      // bottom: _ProfileConstants.paddingLarge,
                     ),
                     decoration: const BoxDecoration(
                       color: Colors.transparent,
@@ -109,7 +117,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 // Profile Header
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(AppConstants.paddingXLarge),
+                  padding: const EdgeInsets.all(_ProfileConstants.paddingXLarge),
                   decoration: const BoxDecoration(
                     color: Colors.transparent,
                   ),
@@ -127,7 +135,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: AppConstants.paddingMedium),
+                      const SizedBox(height: _ProfileConstants.paddingMedium),
                       Text(
                         displayName,
                         style: const TextStyle(
@@ -137,7 +145,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                       if (email.isNotEmpty) ...[
-                        const SizedBox(height: AppConstants.paddingSmall),
+                        const SizedBox(height: _ProfileConstants.paddingSmall),
                         Text(
                           email,
                           style: const TextStyle(
@@ -147,7 +155,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ],
                       if (user?.profile?.role != null) ...[
-                        const SizedBox(height: AppConstants.paddingSmall),
+                        const SizedBox(height: _ProfileConstants.paddingSmall),
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
@@ -174,11 +182,11 @@ class _ProfilePageState extends State<ProfilePage> {
                     ],
                   ),
                 ),
-                const SizedBox(height: AppConstants.paddingMedium),
+                const SizedBox(height: _ProfileConstants.paddingMedium),
                 // Stats Cards
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: AppConstants.paddingMedium,
+                    horizontal: _ProfileConstants.paddingMedium,
                   ),
                   child: Row(
                     children: [
@@ -192,7 +200,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           const Color(0xFF3E25F6),
                         ),
                       ),
-                      const SizedBox(width: AppConstants.paddingMedium),
+                      const SizedBox(width: _ProfileConstants.paddingMedium),
                       Expanded(
                         child: _buildStatCard(
                           'Account Type',
@@ -210,7 +218,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ],
                   ),
                 ),
-                const SizedBox(height: AppConstants.paddingLarge),
+                const SizedBox(height: _ProfileConstants.paddingLarge),
                 // Settings List
                 Container(
                   color: const Color(0xFF1E1E1E),
@@ -267,11 +275,11 @@ class _ProfilePageState extends State<ProfilePage> {
                     ],
                   ),
                 ),
-                const SizedBox(height: AppConstants.paddingLarge),
+                const SizedBox(height: _ProfileConstants.paddingLarge),
                 // Logout Button
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: AppConstants.paddingMedium,
+                    horizontal: _ProfileConstants.paddingMedium,
                   ),
                   child: SizedBox(
                     width: double.infinity,
@@ -325,14 +333,14 @@ class _ProfilePageState extends State<ProfilePage> {
                         foregroundColor: Colors.red,
                         side: const BorderSide(color: Colors.red),
                         padding: const EdgeInsets.symmetric(
-                          vertical: AppConstants.paddingMedium,
+                          vertical: _ProfileConstants.paddingMedium,
                         ),
                       ),
                       child: const Text('Logout'),
                     ),
                   ),
                 ),
-                const SizedBox(height: AppConstants.paddingLarge),
+                const SizedBox(height: _ProfileConstants.paddingLarge),
               ],
             ),
           ),
@@ -346,10 +354,10 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildStatCard(String label, String value, IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.all(AppConstants.paddingLarge),
+      padding: const EdgeInsets.all(_ProfileConstants.paddingLarge),
       decoration: BoxDecoration(
         color: const Color(0xFF1E1E1E),
-        borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+        borderRadius: BorderRadius.circular(_ProfileConstants.radiusMedium),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.3),
@@ -362,7 +370,7 @@ class _ProfilePageState extends State<ProfilePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: color, size: 28),
-          const SizedBox(height: AppConstants.paddingSmall),
+          const SizedBox(height: _ProfileConstants.paddingSmall),
           Text(
             label,
             style: const TextStyle(

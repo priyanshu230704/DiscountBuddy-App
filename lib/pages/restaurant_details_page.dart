@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/restaurant.dart';
-import '../utils/constants.dart';
 
 /// Restaurant details page
 class RestaurantDetailsPage extends StatelessWidget {
@@ -11,6 +10,14 @@ class RestaurantDetailsPage extends StatelessWidget {
     super.key,
     required this.restaurant,
   });
+
+  // Local constants for restaurant details page
+  static const double _paddingSmall = 8.0;
+  static const double _paddingMedium = 16.0;
+  static const double _paddingLarge = 24.0;
+  static const double _radiusSmall = 8.0;
+  static const double _radiusMedium = 12.0;
+  static const double _radiusLarge = 16.0;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +49,7 @@ class RestaurantDetailsPage extends StatelessWidget {
               children: [
                 // Restaurant Info
                 Padding(
-                  padding: const EdgeInsets.all(AppConstants.paddingLarge),
+                  padding: const EdgeInsets.all(_paddingLarge),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -61,12 +68,12 @@ class RestaurantDetailsPage extends StatelessWidget {
                           ),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: AppConstants.paddingMedium,
-                              vertical: AppConstants.paddingSmall,
+                              horizontal: _paddingMedium,
+                              vertical: _paddingSmall,
                             ),
                             decoration: BoxDecoration(
                               color: Colors.amber,
-                              borderRadius: BorderRadius.circular(AppConstants.radiusSmall),
+                              borderRadius: BorderRadius.circular(_radiusSmall),
                             ),
                             child: Row(
                               children: [
@@ -84,7 +91,7 @@ class RestaurantDetailsPage extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: AppConstants.paddingSmall),
+                      const SizedBox(height: _paddingSmall),
                       // Cuisine
                       Row(
                         children: [
@@ -109,7 +116,7 @@ class RestaurantDetailsPage extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: AppConstants.paddingMedium),
+                      const SizedBox(height: _paddingMedium),
                       // Description
                       Text(
                         restaurant.description,
@@ -125,17 +132,17 @@ class RestaurantDetailsPage extends StatelessWidget {
                 // Discount Card
                 Container(
                   margin: const EdgeInsets.symmetric(
-                    horizontal: AppConstants.paddingLarge,
+                    horizontal: _paddingLarge,
                   ),
-                  padding: const EdgeInsets.all(AppConstants.paddingLarge),
+                  padding: const EdgeInsets.all(_paddingLarge),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        const Color(AppConstants.accentColorValue),
-                        const Color(AppConstants.accentColorValue).withOpacity(0.8),
+                        const Color(0xFFEA4335),
+                        const Color(0xFFEA4335).withOpacity(0.8),
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(AppConstants.radiusLarge),
+                    borderRadius: BorderRadius.circular(_radiusLarge),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,7 +161,7 @@ class RestaurantDetailsPage extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: AppConstants.paddingSmall),
+                      const SizedBox(height: _paddingSmall),
                       Text(
                         restaurant.discount.description,
                         style: const TextStyle(
@@ -163,7 +170,7 @@ class RestaurantDetailsPage extends StatelessWidget {
                         ),
                       ),
                       if (restaurant.discount.validDays.isNotEmpty) ...[
-                        const SizedBox(height: AppConstants.paddingSmall),
+                        const SizedBox(height: _paddingSmall),
                         Text(
                           'Valid: ${restaurant.discount.validDays.join(", ")}',
                           style: TextStyle(
@@ -175,7 +182,7 @@ class RestaurantDetailsPage extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(height: AppConstants.paddingLarge),
+                const SizedBox(height: _paddingLarge),
                 // Address
                 _buildInfoSection(
                   Icons.location_on,
@@ -199,7 +206,7 @@ class RestaurantDetailsPage extends StatelessWidget {
                 // Restrictions
                 if (restaurant.restrictions.isNotEmpty) ...[
                   Padding(
-                    padding: const EdgeInsets.all(AppConstants.paddingLarge),
+                    padding: const EdgeInsets.all(_paddingLarge),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -216,10 +223,10 @@ class RestaurantDetailsPage extends StatelessWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: AppConstants.paddingMedium),
+                        const SizedBox(height: _paddingMedium),
                         ...restaurant.restrictions.map(
                           (restriction) => Padding(
-                            padding: const EdgeInsets.only(bottom: AppConstants.paddingSmall),
+                            padding: const EdgeInsets.only(bottom: _paddingSmall),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -243,12 +250,12 @@ class RestaurantDetailsPage extends StatelessWidget {
                 ],
                 if (restaurant.requiresBooking)
                   Padding(
-                    padding: const EdgeInsets.all(AppConstants.paddingLarge),
+                    padding: const EdgeInsets.all(_paddingLarge),
                     child: Container(
-                      padding: const EdgeInsets.all(AppConstants.paddingMedium),
+                      padding: const EdgeInsets.all(_paddingMedium),
                       decoration: BoxDecoration(
                         color: Colors.orange[50],
-                        borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+                        borderRadius: BorderRadius.circular(_radiusMedium),
                         border: Border.all(color: Colors.orange[200]!),
                       ),
                       child: Row(
@@ -268,10 +275,10 @@ class RestaurantDetailsPage extends StatelessWidget {
                       ),
                     ),
                   ),
-                const SizedBox(height: AppConstants.paddingLarge),
+                const SizedBox(height: _paddingLarge),
                 // Action Buttons
                 Padding(
-                  padding: const EdgeInsets.all(AppConstants.paddingLarge),
+                  padding: const EdgeInsets.all(_paddingLarge),
                   child: Column(
                     children: [
                       SizedBox(
@@ -281,13 +288,13 @@ class RestaurantDetailsPage extends StatelessWidget {
                             // Handle booking
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(AppConstants.primaryColorValue),
+                            backgroundColor: const Color(0xFF1A73E8),
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(
-                              vertical: AppConstants.paddingMedium,
+                              vertical: _paddingMedium,
                             ),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+                              borderRadius: BorderRadius.circular(_radiusMedium),
                             ),
                           ),
                           child: const Text(
@@ -299,7 +306,7 @@ class RestaurantDetailsPage extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(height: AppConstants.paddingMedium),
+                      const SizedBox(height: _paddingMedium),
                       SizedBox(
                         width: double.infinity,
                         child: OutlinedButton(
@@ -307,15 +314,15 @@ class RestaurantDetailsPage extends StatelessWidget {
                             // Handle directions
                           },
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(AppConstants.primaryColorValue),
+                            foregroundColor: const Color(0xFF1A73E8),
                             side: const BorderSide(
-                              color: Color(AppConstants.primaryColorValue),
+                              color: const Color(0xFF1A73E8),
                             ),
                             padding: const EdgeInsets.symmetric(
-                              vertical: AppConstants.paddingMedium,
+                              vertical: _paddingMedium,
                             ),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(AppConstants.radiusMedium),
+                              borderRadius: BorderRadius.circular(_radiusMedium),
                             ),
                           ),
                           child: const Text(
@@ -340,7 +347,7 @@ class RestaurantDetailsPage extends StatelessWidget {
 
   Widget _buildInfoSection(IconData icon, String title, String content) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppConstants.paddingLarge),
+      padding: const EdgeInsets.symmetric(horizontal: _paddingLarge),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -357,7 +364,7 @@ class RestaurantDetailsPage extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: AppConstants.paddingSmall),
+          const SizedBox(height: _paddingSmall),
           Padding(
             padding: const EdgeInsets.only(left: 28),
             child: Text(
@@ -369,7 +376,7 @@ class RestaurantDetailsPage extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: AppConstants.paddingLarge),
+          const SizedBox(height: _paddingLarge),
         ],
       ),
     );

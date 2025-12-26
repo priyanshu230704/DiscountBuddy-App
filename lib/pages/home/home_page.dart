@@ -9,10 +9,17 @@ import '../../providers/auth_provider.dart';
 import '../../widgets/blurred_ellipse_background.dart';
 import '../../widgets/common_search_bar.dart';
 import '../../widgets/border_gradient.dart';
-import '../../utils/constants.dart';
 import 'dart:ui';
 import '../restaurant_details_page.dart';
 import '../browse_page.dart';
+
+// Local constants for home page
+class _HomeConstants {
+  static const double paddingSmall = 8.0;
+  static const double paddingMedium = 16.0;
+  static const double paddingLarge = 24.0;
+  static const double radiusLarge = 16.0;
+}
 
 /// Home page with search, categories, banner, and featured restaurants
 class HomePage extends StatefulWidget {
@@ -145,8 +152,8 @@ class _HomePageState extends State<HomePage> {
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: AppConstants.paddingMedium,
-                        vertical: AppConstants.paddingLarge,
+                        horizontal: _HomeConstants.paddingMedium,
+                        vertical: _HomeConstants.paddingLarge,
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -158,13 +165,13 @@ class _HomePageState extends State<HomePage> {
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
                                   color: const Color(
-                                    AppConstants.primaryColorValue,
+                                    0xFF1A73E8,
                                   ).withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: const Icon(
                                   Icons.location_on,
-                                  color: Color(AppConstants.primaryColorValue),
+                                  color: const Color(0xFF1A73E8),
                                   size: 20,
                                 ),
                               ),
@@ -222,7 +229,7 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: AppConstants.paddingSmall),
+                          const SizedBox(height: _HomeConstants.paddingSmall),
                           // Search Bar
                           CommonSearchBar(
                             controller: _searchController,
@@ -244,10 +251,10 @@ class _HomePageState extends State<HomePage> {
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(
-                        AppConstants.paddingMedium,
+                        _HomeConstants.paddingMedium,
                         0,
-                        AppConstants.paddingMedium,
-                        AppConstants.paddingSmall,
+                        _HomeConstants.paddingMedium,
+                        _HomeConstants.paddingSmall,
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -344,21 +351,21 @@ class _HomePageState extends State<HomePage> {
                   SliverToBoxAdapter(
                     child: Container(
                       margin: const EdgeInsets.symmetric(
-                        horizontal: AppConstants.paddingMedium,
-                        vertical: AppConstants.paddingSmall,
+                        horizontal: _HomeConstants.paddingMedium,
+                        vertical: _HomeConstants.paddingSmall,
                       ),
                       height: 140,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            const Color(AppConstants.primaryColorValue),
+                            const Color(0xFF1A73E8),
                             const Color(
-                              AppConstants.primaryColorValue,
+                              0xFF1A73E8,
                             ).withOpacity(0.8),
                           ],
                         ),
                         borderRadius: BorderRadius.circular(
-                          AppConstants.radiusLarge,
+                          _HomeConstants.radiusLarge,
                         ),
                       ),
                       child: Stack(
@@ -377,7 +384,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                           Padding(
                             padding: const EdgeInsets.all(
-                              AppConstants.paddingMedium,
+                              _HomeConstants.paddingMedium,
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -418,7 +425,7 @@ class _HomePageState extends State<HomePage> {
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.white,
                                     foregroundColor: const Color(
-                                      AppConstants.primaryColorValue,
+                                      0xFF1A73E8,
                                     ),
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 20,

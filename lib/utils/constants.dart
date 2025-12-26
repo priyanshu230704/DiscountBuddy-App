@@ -14,7 +14,7 @@ class AppConstants {
   // Border radius
   static const double radiusSmall = 8.0;
   static const double radiusMedium = 12.0;
-  static const double radiusLarge = 16.0;
+  static const double radiusLarge = 40.0;
   
   // Image placeholders
   static const String restaurantPlaceholder = 'https://via.placeholder.com/400x300?text=Restaurant';

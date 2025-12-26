@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'config/environment.dart';
 import 'pages/main_navigation.dart';
 import 'pages/auth/login_page.dart';
+import 'pages/splash_screen.dart';
+import 'pages/onboarding_check_screen.dart';
 import 'providers/theme_provider.dart';
 import 'providers/auth_provider.dart';
 import 'services/auth_service.dart';
@@ -51,20 +53,11 @@ class _DiscountBuddyAppState extends State<DiscountBuddyApp> {
           theme: _themeProvider.lightTheme,
           darkTheme: _themeProvider.darkTheme,
           themeMode: _themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
-          home: _authProvider.isLoading
-              ? const Scaffold(
-                  backgroundColor: Color(0xFF121212),
-                  body: Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                )
-              : _authProvider.isAuthenticated
-                  ? MainNavigation(themeProvider: _themeProvider)
-                  : const LoginPage(),
+          home: const SplashScreen(),
           routes: {
-            '/': (context) => _authProvider.isAuthenticated
-                ? MainNavigation(themeProvider: _themeProvider)
-                : const LoginPage(),
+            '/onboarding-check': (context) => const OnboardingCheckScreen(),
+            '/login': (context) => const LoginPage(),
+            '/home': (context) => MainNavigation(themeProvider: _themeProvider),
           },
         );
       },

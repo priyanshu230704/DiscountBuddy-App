@@ -14,16 +14,16 @@ class Environment {
       case production:
         return 'https://api.discountbuddy.com';
       case staging:
-        return 'https://staging-api.discountbuddy.com';
+        return 'http://192.168.29.221:8000';
       case development:
       default:
-        return 'http://10.174.83.186:8000';
+        return 'http://192.168.29.221:8000';
     }
   }
 
   // API Timeout
   static const Duration apiTimeout = Duration(seconds: 30);
-
+  
   // API Version
   static const String apiVersion = 'v1';
 

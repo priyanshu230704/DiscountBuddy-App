@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../models/restaurant.dart';
+import '../providers/theme_provider.dart';
+import 'deals/redeem_offer_modal.dart';
 
-/// Restaurant details page
+/// Restaurant details page - NeoTaste style
 class RestaurantDetailsPage extends StatelessWidget {
   final Restaurant restaurant;
 
@@ -11,375 +14,329 @@ class RestaurantDetailsPage extends StatelessWidget {
     required this.restaurant,
   });
 
-  // Local constants for restaurant details page
-  static const double _paddingSmall = 8.0;
-  static const double _paddingMedium = 16.0;
-  static const double _paddingLarge = 24.0;
-  static const double _radiusSmall = 8.0;
-  static const double _radiusMedium = 12.0;
-  static const double _radiusLarge = 16.0;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: NeoTasteColors.background,
       body: CustomScrollView(
         slivers: [
-          // Hero Image
+          // Header with full-width image
           SliverAppBar(
             expandedHeight: 300,
             pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              background: CachedNetworkImage(
-                imageUrl: restaurant.imageUrl,
-                fit: BoxFit.cover,
-                placeholder: (context, url) => Container(
-                  color: Colors.grey[300],
-                  child: const Center(child: CircularProgressIndicator()),
-                ),
-                errorWidget: (context, url, error) => Container(
-                  color: Colors.grey[300],
-                  child: const Icon(Icons.restaurant, size: 64),
-                ),
+            backgroundColor: NeoTasteColors.white,
+            leading: Container(
+              margin: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.5),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.arrow_back, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
               ),
             ),
-          ),
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Restaurant Info
-                Padding(
-                  padding: const EdgeInsets.all(_paddingLarge),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Name and Rating
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              restaurant.name,
-                              style: const TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: _paddingMedium,
-                              vertical: _paddingSmall,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.amber,
-                              borderRadius: BorderRadius.circular(_radiusSmall),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.star, color: Colors.white, size: 20),
-                                const SizedBox(width: 4),
-                                Text(
-                                  restaurant.rating.toStringAsFixed(1),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: _paddingSmall),
-                      // Cuisine
-                      Row(
-                        children: [
-                          Icon(Icons.restaurant_menu, size: 18, color: Colors.grey[600]),
-                          const SizedBox(width: 4),
-                          Text(
-                            restaurant.cuisine,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Icon(Icons.location_on, size: 18, color: Colors.grey[600]),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${restaurant.distance.toStringAsFixed(1)} km',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: _paddingMedium),
-                      // Description
-                      Text(
-                        restaurant.description,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[700],
-                          height: 1.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Discount Card
-                Container(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: _paddingLarge,
-                  ),
-                  padding: const EdgeInsets.all(_paddingLarge),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        const Color(0xFFEA4335),
-                        const Color(0xFFEA4335).withOpacity(0.8),
-                      ],
+            flexibleSpace: FlexibleSpaceBar(
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  CachedNetworkImage(
+                    imageUrl: restaurant.imageUrl,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      color: NeoTasteColors.textDisabled,
+                      child: const Center(child: CircularProgressIndicator()),
                     ),
-                    borderRadius: BorderRadius.circular(_radiusLarge),
+                    errorWidget: (context, url, error) => Container(
+                      color: NeoTasteColors.textDisabled,
+                      child: const Icon(Icons.restaurant, size: 64),
+                    ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.local_offer, color: Colors.white, size: 28),
-                          const SizedBox(width: 12),
-                          Text(
-                            restaurant.discount.displayText,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: _paddingSmall),
-                      Text(
-                        restaurant.discount.description,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                        ),
-                      ),
-                      if (restaurant.discount.validDays.isNotEmpty) ...[
-                        const SizedBox(height: _paddingSmall),
-                        Text(
-                          'Valid: ${restaurant.discount.validDays.join(", ")}',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                const SizedBox(height: _paddingLarge),
-                // Address
-                _buildInfoSection(
-                  Icons.location_on,
-                  'Address',
-                  restaurant.address,
-                ),
-                // Contact
-                if (restaurant.phoneNumber.isNotEmpty)
-                  _buildInfoSection(
-                    Icons.phone,
-                    'Phone',
-                    restaurant.phoneNumber,
-                  ),
-                // Opening Hours
-                if (restaurant.openingHours.isNotEmpty)
-                  _buildInfoSection(
-                    Icons.access_time,
-                    'Opening Hours',
-                    restaurant.openingHours.join('\n'),
-                  ),
-                // Restrictions
-                if (restaurant.restrictions.isNotEmpty) ...[
-                  Padding(
-                    padding: const EdgeInsets.all(_paddingLarge),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.info_outline, color: Colors.orange[700]),
-                            const SizedBox(width: 8),
-                            const Text(
-                              'Important Information',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                  // Gradient fade
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      height: 100,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withOpacity(0.7),
                           ],
                         ),
-                        const SizedBox(height: _paddingMedium),
-                        ...restaurant.restrictions.map(
-                          (restriction) => Padding(
-                            padding: const EdgeInsets.only(bottom: _paddingSmall),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('• ', style: TextStyle(fontSize: 16)),
-                                Expanded(
-                                  child: Text(
-                                    restriction,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.grey[700],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ],
-                if (restaurant.requiresBooking)
-                  Padding(
-                    padding: const EdgeInsets.all(_paddingLarge),
-                    child: Container(
-                      padding: const EdgeInsets.all(_paddingMedium),
-                      decoration: BoxDecoration(
-                        color: Colors.orange[50],
-                        borderRadius: BorderRadius.circular(_radiusMedium),
-                        border: Border.all(color: Colors.orange[200]!),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.event_note, color: Colors.orange[700]),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Text(
-                              'Booking is required for this discount',
-                              style: TextStyle(
-                                color: Colors.orange[900],
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+              ),
+            ),
+          ),
+
+          // Restaurant Info
+          SliverToBoxAdapter(
+            child: Container(
+              color: NeoTasteColors.white,
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Name
+                  Text(
+                    restaurant.name,
+                    style: GoogleFonts.inter(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: NeoTasteColors.textPrimary,
                     ),
                   ),
-                const SizedBox(height: _paddingLarge),
-                // Action Buttons
-                Padding(
-                  padding: const EdgeInsets.all(_paddingLarge),
-                  child: Column(
+                  const SizedBox(height: 12),
+                  // Rating + Reviews
+                  Row(
                     children: [
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            // Handle booking
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF1A73E8),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                              vertical: _paddingMedium,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(_radiusMedium),
-                            ),
-                          ),
-                          child: const Text(
-                            'Book Table',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+                      const Icon(
+                        Icons.star,
+                        color: Colors.amber,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        restaurant.rating.toStringAsFixed(1),
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: NeoTasteColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '(${restaurant.reviewCount} reviews)',
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: NeoTasteColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  // Address + Distance
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.location_on,
+                        size: 16,
+                        color: NeoTasteColors.textSecondary,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          restaurant.address,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: NeoTasteColors.textSecondary,
                           ),
                         ),
                       ),
-                      const SizedBox(height: _paddingMedium),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton(
-                          onPressed: () {
-                            // Handle directions
-                          },
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: const Color(0xFF1A73E8),
-                            side: const BorderSide(
-                              color: const Color(0xFF1A73E8),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              vertical: _paddingMedium,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(_radiusMedium),
-                            ),
-                          ),
-                          child: const Text(
-                            'Get Directions',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: NeoTasteColors.accent.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          '${restaurant.distance.toStringAsFixed(1)} km',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: NeoTasteColors.accent,
                           ),
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
+
+          const SliverToBoxAdapter(child: SizedBox(height: 16)),
+
+          // Deals Section
+          SliverToBoxAdapter(
+            child: Container(
+              color: NeoTasteColors.white,
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Available Deals',
+                    style: GoogleFonts.inter(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: NeoTasteColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _DealCard(
+                    title: restaurant.discount.displayText,
+                    description: restaurant.discount.description,
+                    validDays: restaurant.discount.validDays,
+                    validTime: restaurant.discount.validTime,
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
-    );
-  }
 
-  Widget _buildInfoSection(IconData icon, String title, String content) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: _paddingLarge),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, color: Colors.grey[700], size: 20),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+      // Bottom Sticky Button
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: NeoTasteColors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: ElevatedButton(
+            onPressed: () {
+              // Show redeem modal
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => RedeemOfferModal(
+                  restaurant: restaurant,
                 ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: NeoTasteColors.accent,
+              foregroundColor: NeoTasteColors.primary,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-            ],
-          ),
-          const SizedBox(height: _paddingSmall),
-          Padding(
-            padding: const EdgeInsets.only(left: 28),
+            ),
             child: Text(
-              content,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[700],
-                height: 1.5,
+              'Redeem Offer',
+              style: GoogleFonts.inter(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),
-          const SizedBox(height: _paddingLarge),
-        ],
+        ),
       ),
     );
   }
 }
 
+/// Deal Card in Restaurant Details
+class _DealCard extends StatelessWidget {
+  final String title;
+  final String description;
+  final List<String> validDays;
+  final String? validTime;
+
+  const _DealCard({
+    required this.title,
+    required this.description,
+    required this.validDays,
+    this.validTime,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: NeoTasteColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: NeoTasteColors.accent,
+          width: 2,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Deal Title
+          Text(
+            title,
+            style: GoogleFonts.inter(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: NeoTasteColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          // Description
+          Text(
+            description,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: NeoTasteColors.textSecondary,
+            ),
+          ),
+          if (validDays.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Icon(
+                  Icons.calendar_today,
+                  size: 16,
+                  color: NeoTasteColors.textSecondary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Valid: ${validDays.join(", ")}',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: NeoTasteColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (validTime != null) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(
+                  Icons.access_time,
+                  size: 16,
+                  color: NeoTasteColors.textSecondary,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  validTime!,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: NeoTasteColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}

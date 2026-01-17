@@ -80,9 +80,15 @@ class AuthService {
       final loginResponse = LoginResponse.fromJson(response);
 
       // Store tokens and user data
-      await _storage.write(key: _accessTokenKey, value: loginResponse.accessToken);
-      await _storage.write(key: _refreshTokenKey, value: loginResponse.refreshToken);
-      await _storage.write(key: _userKey, value: loginResponse.user.toJson().toString());
+      if (loginResponse.accessToken.isNotEmpty) {
+        await _storage.write(key: _accessTokenKey, value: loginResponse.accessToken);
+      }
+      if (loginResponse.refreshToken.isNotEmpty) {
+        await _storage.write(key: _refreshTokenKey, value: loginResponse.refreshToken);
+      }
+      if (loginResponse.user != null) {
+        await _storage.write(key: _userKey, value: loginResponse.user!.toJson().toString());
+      }
 
       // Set auth token in API service
       _apiService.setAuthToken(loginResponse.accessToken);

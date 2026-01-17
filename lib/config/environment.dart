@@ -12,12 +12,12 @@ class Environment {
   static String get baseUrl {
     switch (currentEnvironment) {
       case production:
-        return 'https://api.discountbuddy.com';
+        return 'http://16.171.196.144';
       case staging:
-        return 'http://192.168.29.221:8000';
+        return 'http://16.171.196.144';
       case development:
       default:
-        return 'http://192.168.29.221:8000';
+        return 'http://16.171.196.144';
     }
   }
 

@@ -18,12 +18,12 @@ class ApiUser {
 
   factory ApiUser.fromJson(Map<String, dynamic> json) {
     return ApiUser(
-      id: json['id'] as int,
-      email: json['email'] as String,
-      username: json['username'] as String,
+      id: json['id'] as int? ?? 0,
+      email: json['email'] as String? ?? '',
+      username: json['username'] as String? ?? '',
       isMerchant: json['is_merchant'] as bool? ?? false,
       isCustomer: json['is_customer'] as bool? ?? true,
-      profile: json['profile'] != null
+      profile: json['profile'] != null && json['profile'] is Map<String, dynamic>
           ? UserProfile.fromJson(json['profile'] as Map<String, dynamic>)
           : null,
     );
@@ -55,7 +55,7 @@ class UserProfile {
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
-      role: json['role'] as String,
+      role: json['role'] as String? ?? 'customer',
       phoneNumber: json['phone_number'] as String?,
       marketingOptIn: json['marketing_opt_in'] as bool? ?? true,
     );
@@ -74,19 +74,52 @@ class UserProfile {
 class LoginResponse {
   final String accessToken;
   final String refreshToken;
-  final ApiUser user;
+  final String username;
+  final String role; // 'customer' or 'merchant'
+  final ApiUser? user;
 
   LoginResponse({
     required this.accessToken,
     required this.refreshToken,
-    required this.user,
+    required this.username,
+    required this.role,
+    this.user,
   });
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
+    // Extract role from response
+    final role = json['role'] as String? ?? 'customer';
+    final username = json['username'] as String? ?? '';
+    
+    // Handle case where 'user' might be null or missing
+    ApiUser? user;
+    if (json['user'] != null && json['user'] is Map<String, dynamic>) {
+      user = ApiUser.fromJson(json['user'] as Map<String, dynamic>);
+    } else {
+      // Construct user from available fields
+      final isMerchant = role == 'merchant';
+      final isCustomer = role == 'customer';
+      
+      user = ApiUser(
+        id: json['id'] as int? ?? 0,
+        email: json['email'] as String? ?? '',
+        username: username,
+        isMerchant: isMerchant,
+        isCustomer: isCustomer,
+        profile: UserProfile(
+          role: role,
+          phoneNumber: json['phone_number'] as String?,
+          marketingOptIn: json['marketing_opt_in'] as bool? ?? true,
+        ),
+      );
+    }
+    
     return LoginResponse(
-      accessToken: json['access'] as String,
-      refreshToken: json['refresh'] as String,
-      user: ApiUser.fromJson(json['user'] as Map<String, dynamic>),
+      accessToken: json['access'] as String? ?? json['access_token'] as String? ?? '',
+      refreshToken: json['refresh'] as String? ?? json['refresh_token'] as String? ?? '',
+      username: username,
+      role: role,
+      user: user,
     );
   }
 
@@ -94,7 +127,9 @@ class LoginResponse {
     return {
       'access': accessToken,
       'refresh': refreshToken,
-      'user': user.toJson(),
+      'username': username,
+      'role': role,
+      'user': user?.toJson(),
     };
   }
 }

@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
-import '../widgets/animated_bottom_nav_bar.dart';
 import '../providers/theme_provider.dart';
-import 'home/home_page.dart';
-import 'browse_page.dart';
-import 'events/events_page.dart';
-import 'more/live_page.dart';
-import 'more/more_page.dart';
+import '../providers/theme_provider.dart' as theme;
+import '../providers/auth_provider.dart';
+import 'discover/discover_page.dart';
+import 'nearby/nearby_page.dart';
+import 'deals/deals_page.dart';
+import 'profile_page.dart';
+import 'merchant/merchant_restaurants_page.dart';
+import 'merchant/merchant_deals_page.dart';
 
-/// Main navigation with bottom navigation bar (Tastecard style)
+/// Main navigation with bottom navigation bar (NeoTaste style)
 class MainNavigation extends StatefulWidget {
   final ThemeProvider? themeProvider;
   
@@ -19,54 +21,229 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
+  final AuthProvider _authProvider = AuthProvider();
+  final Map<int, Widget> _pageCache = {};
 
-  List<Widget> get _pages => [
-    const HomePage(),
-    const BrowsePage(),
-    const EventsPage(),
-    const LivePage(),
-    MorePage(themeProvider: widget.themeProvider),
-  ];
+  Widget _getPage(int index) {
+    // Return cached page if exists
+    if (_pageCache.containsKey(index)) {
+      return _pageCache[index]!;
+    }
 
-  List<BottomNavItem> get _navItems => [
-    const BottomNavItem(
-      icon: Icons.home,
-      label: 'Home',
-    ),
-    const BottomNavItem(
-      icon: Icons.view_list,
-      label: 'Browse',
-    ),
-    const BottomNavItem(
-      imageAsset: 'assets/png/event.png',
-      label: 'Events',
-    ),
-    const BottomNavItem(
-      icon: Icons.local_fire_department,
-      label: 'Live',
-    ),
-    const BottomNavItem(
-      icon: Icons.more_horiz,
-      label: 'More',
-    ),
-  ];
+    // Create page lazily
+    Widget page;
+    if (_authProvider.isMerchant) {
+      switch (index) {
+        case 0:
+          page = const MerchantRestaurantsPage();
+          break;
+        case 1:
+          page = const MerchantDealsPage();
+          break;
+        case 2:
+          page = const ProfilePage();
+          break;
+        default:
+          page = const ProfilePage();
+      }
+    } else {
+      switch (index) {
+        case 0:
+          page = const DiscoverPage();
+          break;
+        case 1:
+          page = const NearbyPage();
+          break;
+        case 2:
+          page = const DealsPage();
+          break;
+        case 3:
+          page = const ProfilePage();
+          break;
+        default:
+          page = const DiscoverPage();
+      }
+    }
+
+    // Cache the page
+    _pageCache[index] = page;
+    return page;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
-        children: _pages,
+        children: List.generate(
+          _authProvider.isMerchant ? 3 : 4,
+          (index) => _getPage(index),
+        ),
       ),
-      bottomNavigationBar: AnimatedBottomNavBar(
+      bottomNavigationBar: _NeoTasteBottomNavBar(
         currentIndex: _currentIndex,
+        isMerchant: _authProvider.isMerchant,
         onTap: (index) {
           setState(() {
             _currentIndex = index;
           });
         },
-        items: _navItems,
-        selectedColor: const Color(0xFF3E25F6),
+      ),
+    );
+  }
+}
+
+/// NeoTaste-style bottom navigation bar with rounded design and yellow underline
+class _NeoTasteBottomNavBar extends StatelessWidget {
+  final int currentIndex;
+  final Function(int) onTap;
+  final bool isMerchant;
+
+  const _NeoTasteBottomNavBar({
+    required this.currentIndex,
+    required this.onTap,
+    this.isMerchant = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.NeoTasteColors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: Container(
+          height: 70,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: isMerchant
+                ? [
+                    _buildNavItem(
+                      context,
+                      icon: Icons.restaurant_outlined,
+                      selectedIcon: Icons.restaurant,
+                      label: 'Restaurants',
+                      index: 0,
+                    ),
+                    _buildNavItem(
+                      context,
+                      icon: Icons.local_offer_outlined,
+                      selectedIcon: Icons.local_offer,
+                      label: 'Deals',
+                      index: 1,
+                    ),
+                    _buildNavItem(
+                      context,
+                      icon: Icons.person_outline,
+                      selectedIcon: Icons.person,
+                      label: 'Profile',
+                      index: 2,
+                    ),
+                  ]
+                : [
+                    _buildNavItem(
+                      context,
+                      icon: Icons.explore_outlined,
+                      selectedIcon: Icons.explore,
+                      label: 'Discover',
+                      index: 0,
+                    ),
+                    _buildNavItem(
+                      context,
+                      icon: Icons.near_me_outlined,
+                      selectedIcon: Icons.near_me,
+                      label: 'Nearby',
+                      index: 1,
+                    ),
+                    _buildNavItem(
+                      context,
+                      icon: Icons.local_offer_outlined,
+                      selectedIcon: Icons.local_offer,
+                      label: 'Deals',
+                      index: 2,
+                    ),
+                    _buildNavItem(
+                      context,
+                      icon: Icons.person_outline,
+                      selectedIcon: Icons.person,
+                      label: 'Profile',
+                      index: 3,
+                    ),
+                  ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(
+    BuildContext context, {
+    required IconData icon,
+    required IconData selectedIcon,
+    required String label,
+    required int index,
+  }) {
+    final isSelected = currentIndex == index;
+    
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => onTap(index),
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: isSelected
+                ? theme.NeoTasteColors.accent.withOpacity(0.1)
+                : Colors.transparent,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  Icon(
+                    isSelected ? selectedIcon : icon,
+                    size: 24,
+                    color: isSelected
+                        ? theme.NeoTasteColors.accent
+                        : theme.NeoTasteColors.textSecondary,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Container(
+                height: 2,
+                width: 24,
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? theme.NeoTasteColors.accent
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(1),
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  color: isSelected
+                      ? theme.NeoTasteColors.accent
+                      : theme.NeoTasteColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

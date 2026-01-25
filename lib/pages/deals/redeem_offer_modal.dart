@@ -161,8 +161,8 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                     });
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: NeoTasteColors.accent,
-                    foregroundColor: NeoTasteColors.primary,
+                    backgroundColor: Colors.green,
+                    foregroundColor: NeoTasteColors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -175,7 +175,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              NeoTasteColors.primary,
+                              NeoTasteColors.white,
                             ),
                           ),
                         )

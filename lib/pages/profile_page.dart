@@ -4,7 +4,7 @@ import '../providers/theme_provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/wallet_service.dart';
 import '../models/wallet.dart';
-import 'auth/login_page.dart';
+import 'edit_profile_page.dart';
 
 /// Profile Screen - NeoTaste style
 class ProfilePage extends StatefulWidget {
@@ -48,7 +48,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _loadWallet() async {
     if (!_authProvider.isAuthenticated || _authProvider.isMerchant) {
-      return; // Don't load wallet for merchants
+      return;
     }
 
     try {
@@ -69,7 +69,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (parts.length >= 2) {
       return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     } else if (parts.length == 1 && parts[0].isNotEmpty) {
-      return parts[0].substring(0, parts[0].length > 1 ? 2 : 1).toUpperCase();
+      return parts[0][0].toUpperCase();
     }
     return name[0].toUpperCase();
   }
@@ -78,390 +78,210 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     final user = _authProvider.user;
     final displayName = user?.username ?? 'Guest';
-    final email = user?.email ?? '';
-    final userId = user?.id ?? 0;
-    final phoneNumber = user?.profile?.phoneNumber;
-    final role = user?.profile?.role ?? 'customer';
-    final isMerchant = user?.isMerchant ?? false;
-    final isCustomer = user?.isCustomer ?? true;
     final initials = _getInitials(displayName);
-    final isPremium = role == 'premium' || false;
-    final accountType = isMerchant ? 'Merchant' : (isCustomer ? 'Customer' : 'Guest');
+    final walletBalance = _wallet?.balance ?? '0.00';
 
     return Scaffold(
-      backgroundColor: NeoTasteColors.background,
-      appBar: AppBar(
-        title: Text(
-          'Profile',
-          style: GoogleFonts.inter(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: NeoTasteColors.white,
-        elevation: 0,
-      ),
+      backgroundColor: NeoTasteColors.white,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 24),
-              // Circular Avatar
-              CircleAvatar(
-                radius: 50,
-                backgroundColor: NeoTasteColors.accent,
+              // Header with Profile title
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                 child: Text(
-                  initials,
+                  'Profile',
                   style: GoogleFonts.inter(
-                    fontSize: 36,
+                    fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: NeoTasteColors.primary,
+                    color: NeoTasteColors.textPrimary,
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
-              // Username
-              Text(
-                displayName,
-                style: GoogleFonts.inter(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: NeoTasteColors.textPrimary,
-                ),
-              ),
-              if (email.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(
-                  email,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: NeoTasteColors.textSecondary,
-                  ),
-                ),
-              ],
-              if (phoneNumber != null && phoneNumber.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(
-                  phoneNumber,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: NeoTasteColors.textSecondary,
-                  ),
-                ),
-              ],
-              if (userId > 0) ...[
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: NeoTasteColors.accent.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    'ID: $userId',
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: NeoTasteColors.textSecondary,
-                    ),
-                  ),
-                ),
-              ],
               const SizedBox(height: 24),
               
-              // Account Info Cards
+              // User Profile Section with Edit Profile
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  children: [
-                    // Wallet Balance Card (if available and not merchant)
-                    if (_wallet != null && !isMerchant) ...[
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const EditProfilePage(),
+                      ),
+                    );
+                  },
+                  child: Row(
+                    children: [
+                      // Avatar with green background
                       Container(
-                        padding: const EdgeInsets.all(20),
+                        width: 64,
+                        height: 64,
                         decoration: BoxDecoration(
-                          color: NeoTasteColors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: NeoTasteColors.accent.withOpacity(0.5),
-                            width: 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 10,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
+                          color: Colors.green,
+                          shape: BoxShape.circle,
                         ),
-                        child: Row(
+                        child: Center(
+                          child: Text(
+                            initials,
+                            style: GoogleFonts.inter(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: NeoTasteColors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      // Name and Edit profile
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: NeoTasteColors.accent.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(
-                                Icons.account_balance_wallet,
-                                color: NeoTasteColors.accent,
-                                size: 24,
+                            Text(
+                              displayName,
+                              style: GoogleFonts.inter(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: NeoTasteColors.textPrimary,
                               ),
                             ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Wallet Balance',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 14,
-                                      color: NeoTasteColors.textSecondary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    '£${_wallet!.balance}',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: NeoTasteColors.textPrimary,
-                                    ),
-                                  ),
-                                ],
+                            const SizedBox(height: 4),
+                            Text(
+                              'Edit profile',
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: NeoTasteColors.textSecondary,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const Icon(
+                        Icons.chevron_right,
+                        color: NeoTasteColors.textPrimary,
+                      ),
                     ],
-                    // Account Type Card
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: NeoTasteColors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: NeoTasteColors.accent,
-                          width: 2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: NeoTasteColors.accent,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(
-                              isMerchant ? Icons.store : Icons.person,
-                              color: NeoTasteColors.primary,
-                              size: 24,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  accountType,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: NeoTasteColors.textPrimary,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'Role: ${role.toUpperCase()}',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 12,
-                                    color: NeoTasteColors.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Statistics Cards Row
+              SizedBox(
+                height: 120,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: [
+                    _StatCard(
+                      icon: Icons.favorite,
+                      value: '0',
+                      label: 'Favourites',
                     ),
-                    const SizedBox(height: 12),
-                    // Subscription/Membership Card
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: NeoTasteColors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: isPremium ? NeoTasteColors.accent : NeoTasteColors.textDisabled,
-                          width: 2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: isPremium
-                                  ? NeoTasteColors.accent
-                                  : NeoTasteColors.textDisabled.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(
-                              isPremium ? Icons.star : Icons.star_border,
-                              color: isPremium
-                                  ? NeoTasteColors.primary
-                                  : NeoTasteColors.textSecondary,
-                              size: 24,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  isPremium ? 'Premium Member' : 'Free Member',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: NeoTasteColors.textPrimary,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  isPremium
-                                      ? 'Access to all exclusive deals'
-                                      : 'Upgrade to unlock premium deals',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 12,
-                                    color: NeoTasteColors.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (!isPremium)
-                            TextButton(
-                              onPressed: () {
-                                // Navigate to upgrade
-                              },
-                              child: Text(
-                                'Upgrade',
-                                style: GoogleFonts.inter(
-                                  fontWeight: FontWeight.w600,
-                                  color: NeoTasteColors.accent,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
+                    const SizedBox(width: 12),
+                    _StatCard(
+                      icon: Icons.account_balance_wallet,
+                      value: '£$walletBalance',
+                      label: 'Saved',
+                    ),
+                    const SizedBox(width: 12),
+                    _StatCard(
+                      icon: Icons.local_offer,
+                      value: '0',
+                      label: 'Deals',
+                    ),
+                    const SizedBox(width: 12),
+                    _StatCard(
+                      icon: Icons.star,
+                      value: '1',
+                      label: 'Loyalty',
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 24),
-              
-              // List Items
+
+              // Invitation Banner
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2E7D32), // Dark green
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Earn €10 for every friend you invite!',
+                        style: GoogleFonts.inter(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: NeoTasteColors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            // Handle invite friends
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.lightGreen,
+                            foregroundColor: NeoTasteColors.textPrimary,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(
+                            'Invite friends',
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Navigation List Items
               Container(
                 color: NeoTasteColors.white,
                 child: Column(
                   children: [
                     _buildListTile(
-                      Icons.card_giftcard,
-                      'Redeemed Deals',
-                      'View your redeemed offers',
-                      () {},
-                    ),
-                    const Divider(height: 1),
-                    _buildListTile(
-                      Icons.favorite,
-                      'Favorites',
-                      'Your saved restaurants',
-                      () {},
+                      Icons.card_membership,
+                      'Membership',
+                      () {
+                        // Navigate to membership
+                      },
                     ),
                     const Divider(height: 1),
                     _buildListTile(
                       Icons.help_outline,
-                      'Help',
-                      'Get support and FAQs',
-                      () {},
+                      'Help & Support',
+                      () {
+                        // Navigate to help
+                      },
                     ),
                     const Divider(height: 1),
                     _buildListTile(
-                      Icons.logout,
-                      'Logout',
-                      'Sign out of your account',
-                      () async {
-                        final shouldLogout = await showDialog<bool>(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            backgroundColor: NeoTasteColors.white,
-                            title: Text(
-                              'Logout',
-                              style: GoogleFonts.inter(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            content: Text(
-                              'Are you sure you want to logout?',
-                              style: GoogleFonts.inter(),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context, false),
-                                child: Text(
-                                  'Cancel',
-                                  style: GoogleFonts.inter(
-                                    color: NeoTasteColors.textSecondary,
-                                  ),
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: () => Navigator.pop(context, true),
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Colors.red,
-                                ),
-                                child: Text(
-                                  'Logout',
-                                  style: GoogleFonts.inter(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-
-                        if (shouldLogout == true) {
-                          await _authProvider.logout();
-                          if (context.mounted) {
-                            Navigator.of(context).pushAndRemoveUntil(
-                              MaterialPageRoute(
-                                builder: (context) => const LoginPage(),
-                              ),
-                              (route) => false,
-                            );
-                          }
-                        }
+                      Icons.settings,
+                      'Settings',
+                      () {
+                        // Navigate to settings
                       },
-                      isDestructive: true,
                     ),
                   ],
                 ),
@@ -474,41 +294,82 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildListTile(
-    IconData icon,
-    String title,
-    String subtitle,
-    VoidCallback onTap, {
-    bool isDestructive = false,
-  }) {
+  Widget _buildListTile(IconData icon, String title, VoidCallback onTap) {
     return ListTile(
       leading: Icon(
         icon,
-        color: isDestructive
-            ? Colors.red
-            : NeoTasteColors.textSecondary,
+        color: NeoTasteColors.textPrimary,
       ),
       title: Text(
         title,
         style: GoogleFonts.inter(
-          fontWeight: FontWeight.w600,
-          color: isDestructive
-              ? Colors.red
-              : NeoTasteColors.textPrimary,
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          color: NeoTasteColors.textPrimary,
         ),
       ),
-      subtitle: Text(
-        subtitle,
-        style: GoogleFonts.inter(
-          fontSize: 12,
-          color: NeoTasteColors.textSecondary,
-        ),
-      ),
-      trailing: Icon(
+      trailing: const Icon(
         Icons.chevron_right,
-        color: NeoTasteColors.textDisabled,
+        color: NeoTasteColors.textPrimary,
       ),
       onTap: onTap,
+    );
+  }
+}
+
+/// Statistics Card Widget
+class _StatCard extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+
+  const _StatCard({
+    required this.icon,
+    required this.value,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 100,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: NeoTasteColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: NeoTasteColors.textDisabled.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            color: NeoTasteColors.textPrimary,
+            size: 24,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: GoogleFonts.inter(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: NeoTasteColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              color: NeoTasteColors.textSecondary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 }

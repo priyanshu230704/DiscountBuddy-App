@@ -59,7 +59,7 @@ class MerchantService {
       final response = await _apiService.get(
         '/restaurants/merchant/restaurants/$restaurantId/',
       );
-      return response as Map<String, dynamic>;
+      return response;
     } catch (e) {
       throw Exception('Failed to load restaurant: ${e.toString()}');
     }
@@ -74,7 +74,7 @@ class MerchantService {
         '/restaurants/merchant/restaurants/',
         body: restaurantData,
       );
-      return response as Map<String, dynamic>;
+      return response;
     } catch (e) {
       if (e is ApiException) {
         throw Exception('Failed to create restaurant: ${e.message}');
@@ -92,7 +92,7 @@ class MerchantService {
         '/restaurants/merchant/restaurants/$restaurantId/',
         body: restaurantData,
       );
-      return response as Map<String, dynamic>;
+      return response;
     } catch (e) {
       if (e is ApiException) {
         throw Exception('Failed to update restaurant: ${e.message}');
@@ -157,7 +157,7 @@ class MerchantService {
       final response = await _apiService.get(
         '/restaurants/merchant/deals/$dealId/',
       );
-      return response as Map<String, dynamic>;
+      return response;
     } catch (e) {
       throw Exception('Failed to load deal: ${e.toString()}');
     }
@@ -172,7 +172,7 @@ class MerchantService {
         '/restaurants/merchant/deals/',
         body: dealData,
       );
-      return response as Map<String, dynamic>;
+      return response;
     } catch (e) {
       if (e is ApiException) {
         throw Exception('Failed to create deal: ${e.message}');
@@ -190,7 +190,7 @@ class MerchantService {
         '/restaurants/merchant/deals/$dealId/',
         body: dealData,
       );
-      return response as Map<String, dynamic>;
+      return response;
     } catch (e) {
       if (e is ApiException) {
         throw Exception('Failed to update deal: ${e.message}');
@@ -237,7 +237,7 @@ class MerchantService {
       if (response.containsKey('results')) {
         final results = response['results'];
         if (results is List) {
-          return (results as List).map((item) => item as Map<String, dynamic>).toList();
+          return (results).map((item) => item as Map<String, dynamic>).toList();
         }
       } else if (response is List) {
         return (response as List).map((item) => item as Map<String, dynamic>).toList();
@@ -266,7 +266,7 @@ class MerchantService {
       if (response.containsKey('results')) {
         final results = response['results'];
         if (results is List) {
-          return (results as List).map((item) => item as Map<String, dynamic>).toList();
+          return (results).map((item) => item as Map<String, dynamic>).toList();
         }
       } else if (response is List) {
         return (response as List).map((item) => item as Map<String, dynamic>).toList();

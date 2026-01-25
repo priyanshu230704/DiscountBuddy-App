@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import '../providers/theme_provider.dart';
 import '../providers/theme_provider.dart' as theme;
 import '../providers/auth_provider.dart';
-import 'discover/discover_page.dart';
+import 'home/home_page.dart';
 import 'nearby/nearby_page.dart';
-import 'deals/deals_page.dart';
+import 'bookings/bookings_page.dart';
 import 'profile_page.dart';
 import 'merchant/merchant_restaurants_page.dart';
 import 'merchant/merchant_deals_page.dart';
@@ -49,19 +49,19 @@ class _MainNavigationState extends State<MainNavigation> {
     } else {
       switch (index) {
         case 0:
-          page = const DiscoverPage();
+          page = const HomePage();
           break;
         case 1:
           page = const NearbyPage();
           break;
         case 2:
-          page = const DealsPage();
+          page = const BookingsPage();
           break;
         case 3:
           page = const ProfilePage();
           break;
         default:
-          page = const DiscoverPage();
+          page = const HomePage();
       }
     }
 
@@ -151,9 +151,9 @@ class _NeoTasteBottomNavBar extends StatelessWidget {
                 : [
                     _buildNavItem(
                       context,
-                      icon: Icons.explore_outlined,
-                      selectedIcon: Icons.explore,
-                      label: 'Discover',
+                      icon: Icons.home_outlined,
+                      selectedIcon: Icons.home,
+                      label: 'Home',
                       index: 0,
                     ),
                     _buildNavItem(
@@ -165,9 +165,9 @@ class _NeoTasteBottomNavBar extends StatelessWidget {
                     ),
                     _buildNavItem(
                       context,
-                      icon: Icons.local_offer_outlined,
-                      selectedIcon: Icons.local_offer,
-                      label: 'Deals',
+                      icon: Icons.event_note_outlined,
+                      selectedIcon: Icons.event_note,
+                      label: 'Bookings',
                       index: 2,
                     ),
                     _buildNavItem(
@@ -201,43 +201,27 @@ class _NeoTasteBottomNavBar extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             color: isSelected
-                ? theme.NeoTasteColors.accent.withOpacity(0.1)
+                ? Colors.green.withOpacity(0.1)
                 : Colors.transparent,
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  Icon(
-                    isSelected ? selectedIcon : icon,
-                    size: 24,
-                    color: isSelected
-                        ? theme.NeoTasteColors.accent
-                        : theme.NeoTasteColors.textSecondary,
-                  ),
-                ],
+              Icon(
+                isSelected ? selectedIcon : icon,
+                size: 24,
+                color: isSelected
+                    ? Colors.green
+                    : theme.NeoTasteColors.textSecondary,
               ),
               const SizedBox(height: 4),
-              Container(
-                height: 2,
-                width: 24,
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? theme.NeoTasteColors.accent
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(1),
-                ),
-              ),
-              const SizedBox(height: 2),
               Text(
                 label,
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                   color: isSelected
-                      ? theme.NeoTasteColors.accent
+                      ? Colors.green
                       : theme.NeoTasteColors.textSecondary,
                 ),
               ),

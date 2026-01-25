@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 // NeoTaste Design System Colors
 class NeoTasteColors {
   static const Color primary = Color(0xFF000000); // Black
+  static const Color green = Color(0xFF00FF00); // Green
   static const Color accent = Color(0xFFFFC83D); // Warm Yellow
   static const Color background = Color(0xFFF6F6F6); // Light Grey
   static const Color textPrimary = Color(0xFF000000);

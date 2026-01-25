@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/merchant_service.dart';
-import '../../models/restaurant.dart';
 import '../../widgets/skeleton_loader.dart';
-import 'add_restaurant_page.dart';
-import '../restaurant_details_page.dart';
+  import 'add_restaurant_page.dart';
 
 /// Merchant Restaurants Management Page
 class MerchantRestaurantsPage extends StatefulWidget {

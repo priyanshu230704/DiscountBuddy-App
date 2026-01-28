@@ -110,16 +110,6 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   const SizedBox(height: 24),
                   // Back Arrow
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.arrow_back,
-                        color: AuthTheme.textPrimary,
-                      ),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ),
                   const SizedBox(height: 40),
                   
                   // Large Heading

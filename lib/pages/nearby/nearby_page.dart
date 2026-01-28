@@ -918,10 +918,11 @@ class _ListRestaurantCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
+        final slug = restaurant.slug ?? restaurant.id;
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => RestaurantDetailsPage(restaurant: restaurant),
+            builder: (context) => RestaurantDetailsPage(slug: slug),
           ),
         );
       },

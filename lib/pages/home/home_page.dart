@@ -5,6 +5,7 @@ import '../../models/restaurant.dart';
 import '../../services/restaurant_service.dart';
 import '../../services/location_service.dart';
 import '../../providers/theme_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../restaurant_details_page.dart';
 import '../../widgets/city_selector_modal.dart';
 
@@ -19,10 +20,13 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final RestaurantService _restaurantService = RestaurantService();
   final LocationService _locationService = LocationService();
+  final AuthProvider _authProvider = AuthProvider();
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   List<Restaurant> _restaurants = [];
   List<Restaurant> _filteredRestaurants = [];
+  List<Restaurant> _nowOpenRestaurants = [];
+  List<Restaurant> _top10Restaurants = [];
   bool _isLoading = true;
   bool _isSearching = false;
   String _cityName = 'London';
@@ -82,15 +86,83 @@ class _HomePageState extends State<HomePage> {
     });
 
     try {
-      final restaurants = await _restaurantService.getNearbyRestaurants(
-        latitude: 51.5074,
-        longitude: -0.1278,
-      );
-      setState(() {
-        _restaurants = restaurants;
-        _filteredRestaurants = restaurants;
-        _isLoading = false;
-      });
+      // For customer role, use the home API endpoint
+      if (_authProvider.isCustomer) {
+        final homeData = await _restaurantService.getHomeData();
+        
+        // Build cuisine map from cuisines array for better cuisine assignment
+        final Map<int, String> cuisineMap = {};
+        final cuisinesJson = homeData['cuisines'] as List<dynamic>? ?? [];
+        for (final cuisineGroup in cuisinesJson) {
+          if (cuisineGroup is Map<String, dynamic>) {
+            final cuisine = cuisineGroup['cuisine'] as Map<String, dynamic>?;
+            final cuisineName = cuisine?['name'] as String? ?? 'Restaurant';
+            final restaurants = cuisineGroup['restaurants'] as List<dynamic>? ?? [];
+            for (final restaurant in restaurants) {
+              if (restaurant is Map<String, dynamic>) {
+                final restaurantId = restaurant['id'] as int?;
+                if (restaurantId != null) {
+                  cuisineMap[restaurantId] = cuisineName;
+                }
+              }
+            }
+          }
+        }
+        
+        // Convert API response to Restaurant models
+        final nowOpenJson = homeData['now_open'] as List<dynamic>? ?? [];
+        final nearbyJson = homeData['nearby'] as List<dynamic>? ?? [];
+        final top10Json = homeData['top_10'] as List<dynamic>? ?? [];
+        
+        // Combine now_open and nearby for "Now open and nearby" section
+        final combinedNearby = [...nowOpenJson, ...nearbyJson];
+        final nowOpenRestaurants = combinedNearby
+            .map((json) => _restaurantService.convertApiRestaurantToModel(
+                json as Map<String, dynamic>,
+                cuisineMap: cuisineMap,
+              ))
+            .toList();
+        
+        // Get top 10 restaurants
+        final top10Restaurants = top10Json
+            .map((json) => _restaurantService.convertApiRestaurantToModel(
+                json as Map<String, dynamic>,
+                cuisineMap: cuisineMap,
+              ))
+            .toList();
+        
+        // Use all_restaurants for search/filtering
+        final allRestaurantsJson = homeData['all_restaurants'] as List<dynamic>? ?? [];
+        final allRestaurants = allRestaurantsJson
+            .map((json) => _restaurantService.convertApiRestaurantToModel(
+                json as Map<String, dynamic>,
+                cuisineMap: cuisineMap,
+              ))
+            .toList();
+        
+        setState(() {
+          _nowOpenRestaurants = nowOpenRestaurants;
+          _top10Restaurants = top10Restaurants;
+          _restaurants = allRestaurants;
+          _filteredRestaurants = allRestaurants;
+          _isLoading = false;
+        });
+      } else {
+        // Fallback to old method for non-customer roles
+        final restaurants = await _restaurantService.getNearbyRestaurants(
+          latitude: 51.5074,
+          longitude: -0.1278,
+        );
+        setState(() {
+          _restaurants = restaurants;
+          _filteredRestaurants = restaurants;
+          _nowOpenRestaurants = restaurants;
+          _top10Restaurants = restaurants.length > 10 
+              ? restaurants.sublist(0, 10) 
+              : restaurants;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       setState(() {
         _isLoading = false;
@@ -341,19 +413,33 @@ class _HomePageState extends State<HomePage> {
                 SliverToBoxAdapter(
                   child: SizedBox(
                     height: 280,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: _filteredRestaurants.length,
-                    itemBuilder: (context, index) {
-                      final restaurant = _filteredRestaurants[index];
-                        return _HomeRestaurantCard(
-                          restaurant: restaurant,
-                          onOfferTags: _getOfferTags,
-                          onKmToMiles: _kmToMiles,
-                        );
-                      },
-                    ),
+                    child: _isSearching
+                        ? ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: _filteredRestaurants.length,
+                            itemBuilder: (context, index) {
+                              final restaurant = _filteredRestaurants[index];
+                              return _HomeRestaurantCard(
+                                restaurant: restaurant,
+                                onOfferTags: _getOfferTags,
+                                onKmToMiles: _kmToMiles,
+                              );
+                            },
+                          )
+                        : ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: _nowOpenRestaurants.length,
+                            itemBuilder: (context, index) {
+                              final restaurant = _nowOpenRestaurants[index];
+                              return _HomeRestaurantCard(
+                                restaurant: restaurant,
+                                onOfferTags: _getOfferTags,
+                                onKmToMiles: _kmToMiles,
+                              );
+                            },
+                          ),
                   ),
                 ),
 
@@ -467,9 +553,9 @@ class _HomePageState extends State<HomePage> {
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: _filteredRestaurants.length > 10 ? 10 : _filteredRestaurants.length,
+                      itemCount: _top10Restaurants.length,
                       itemBuilder: (context, index) {
-                        final restaurant = _filteredRestaurants[index];
+                        final restaurant = _top10Restaurants[index];
                         return _HomeRestaurantCard(
                           restaurant: restaurant,
                           onOfferTags: _getOfferTags,
@@ -512,10 +598,11 @@ class _HomeRestaurantCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
+        final slug = restaurant.slug ?? restaurant.id;
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => RestaurantDetailsPage(restaurant: restaurant),
+            builder: (context) => RestaurantDetailsPage(slug: slug),
           ),
         );
       },

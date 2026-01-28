@@ -250,12 +250,11 @@ class _SearchPageState extends State<SearchPage> {
                     return RestaurantCard(
                       restaurant: restaurant,
                       onTap: () {
+                        final slug = restaurant.slug ?? restaurant.id;
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => RestaurantDetailsPage(
-                              restaurant: restaurant,
-                            ),
+                            builder: (context) => RestaurantDetailsPage(slug: slug),
                           ),
                         );
                       },

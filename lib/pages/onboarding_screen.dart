@@ -104,7 +104,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   left: _OnboardingConstants.paddingLarge,
                   right: _OnboardingConstants.paddingLarge,
                   top: _OnboardingConstants.paddingXLarge,
-                  bottom: MediaQuery.of(context).padding.bottom,
+                  bottom: MediaQuery.of(context).padding.bottom+_OnboardingConstants.paddingXLarge,
                 ),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(

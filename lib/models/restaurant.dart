@@ -18,6 +18,10 @@ class Restaurant {
   final List<String> openingHours;
   final bool requiresBooking;
   final List<String> restrictions;
+  final String? slug; // Optional slug for API calls
+  final int? priceRange; // Price range 1-4
+  final String? postcode;
+  final String? email;
 
   Restaurant({
     required this.id,
@@ -38,6 +42,10 @@ class Restaurant {
     this.openingHours = const [],
     this.requiresBooking = false,
     this.restrictions = const [],
+    this.slug,
+    this.priceRange,
+    this.postcode,
+    this.email,
   });
 
   factory Restaurant.fromJson(Map<String, dynamic> json) {
@@ -92,6 +100,7 @@ class Restaurant {
       'openingHours': openingHours,
       'requiresBooking': requiresBooking,
       'restrictions': restrictions,
+      if (slug != null) 'slug': slug,
     };
   }
 }

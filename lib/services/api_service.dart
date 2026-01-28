@@ -66,22 +66,38 @@ class ApiService {
     return headers;
   }
 
+  /// Normalize endpoint URL - remove trailing slashes except for root paths
+  String _normalizeEndpoint(String endpoint) {
+    // Remove trailing slashes, but keep single slash for root
+    if (endpoint == '/') {
+      return endpoint;
+    }
+    return endpoint.replaceAll(RegExp(r'/+$'), '');
+  }
+
   /// GET request
   Future<Map<String, dynamic>> get(
     String endpoint, {
     Map<String, String>? queryParameters,
   }) async {
     try {
-      final uri = Uri.parse('${Environment.apiUrl}$endpoint')
+      final normalizedEndpoint = _normalizeEndpoint(endpoint);
+      final uri = Uri.parse('${Environment.apiUrl}$normalizedEndpoint')
           .replace(queryParameters: queryParameters);
 
       if (Environment.enableLogging) {
         print('GET: $uri');
       }
 
-      final response = await _client
-          .get(uri, headers: headers)
+      final request = http.Request('GET', uri)
+        ..headers.addAll(headers)
+        ..followRedirects = false;
+      
+      final streamedResponse = await _client
+          .send(request)
           .timeout(Environment.apiTimeout);
+      
+      final response = await http.Response.fromStream(streamedResponse);
 
       return _handleResponse(response);
     } catch (e) {
@@ -95,20 +111,25 @@ class ApiService {
     Map<String, dynamic>? body,
   }) async {
     try {
-      final uri = Uri.parse('${Environment.apiUrl}$endpoint');
+      final normalizedEndpoint = _normalizeEndpoint(endpoint);
+      final uri = Uri.parse('${Environment.apiUrl}$normalizedEndpoint');
 
       if (Environment.enableLogging) {
         print('POST: $uri');
         print('Body: $body');
       }
 
-      final response = await _client
-          .post(
-            uri,
-            headers: headers,
-            body: body != null ? jsonEncode(body) : null,
-          )
+      final request = http.Request('POST', uri);
+      request.headers.addAll(headers);
+      if (body != null) {
+        request.body = jsonEncode(body);
+      }
+      
+      final streamedResponse = await _client
+          .send(request)
           .timeout(Environment.apiTimeout);
+      
+      final response = await http.Response.fromStream(streamedResponse);
 
       return _handleResponse(response);
     } catch (e) {
@@ -122,20 +143,26 @@ class ApiService {
     Map<String, dynamic>? body,
   }) async {
     try {
-      final uri = Uri.parse('${Environment.apiUrl}$endpoint');
+      final normalizedEndpoint = _normalizeEndpoint(endpoint);
+      final uri = Uri.parse('${Environment.apiUrl}$normalizedEndpoint');
 
       if (Environment.enableLogging) {
         print('PUT: $uri');
         print('Body: $body');
       }
 
-      final response = await _client
-          .put(
-            uri,
-            headers: headers,
-            body: body != null ? jsonEncode(body) : null,
-          )
+      final request = http.Request('PUT', uri)
+        ..headers.addAll(headers)
+        ..followRedirects = false;
+      if (body != null) {
+        request.body = jsonEncode(body);
+      }
+      
+      final streamedResponse = await _client
+          .send(request)
           .timeout(Environment.apiTimeout);
+      
+      final response = await http.Response.fromStream(streamedResponse);
 
       return _handleResponse(response);
     } catch (e) {
@@ -149,20 +176,26 @@ class ApiService {
     Map<String, dynamic>? body,
   }) async {
     try {
-      final uri = Uri.parse('${Environment.apiUrl}$endpoint');
+      final normalizedEndpoint = _normalizeEndpoint(endpoint);
+      final uri = Uri.parse('${Environment.apiUrl}$normalizedEndpoint');
 
       if (Environment.enableLogging) {
         print('PATCH: $uri');
         print('Body: $body');
       }
 
-      final response = await _client
-          .patch(
-            uri,
-            headers: headers,
-            body: body != null ? jsonEncode(body) : null,
-          )
+      final request = http.Request('PATCH', uri)
+        ..headers.addAll(headers)
+        ..followRedirects = false;
+      if (body != null) {
+        request.body = jsonEncode(body);
+      }
+      
+      final streamedResponse = await _client
+          .send(request)
           .timeout(Environment.apiTimeout);
+      
+      final response = await http.Response.fromStream(streamedResponse);
 
       return _handleResponse(response);
     } catch (e) {
@@ -173,15 +206,22 @@ class ApiService {
   /// DELETE request
   Future<Map<String, dynamic>> delete(String endpoint) async {
     try {
-      final uri = Uri.parse('${Environment.apiUrl}$endpoint');
+      final normalizedEndpoint = _normalizeEndpoint(endpoint);
+      final uri = Uri.parse('${Environment.apiUrl}$normalizedEndpoint');
 
       if (Environment.enableLogging) {
         print('DELETE: $uri');
       }
 
-      final response = await _client
-          .delete(uri, headers: headers)
+      final request = http.Request('DELETE', uri)
+        ..headers.addAll(headers)
+        ..followRedirects = false;
+      
+      final streamedResponse = await _client
+          .send(request)
           .timeout(Environment.apiTimeout);
+      
+      final response = await http.Response.fromStream(streamedResponse);
 
       return _handleResponse(response);
     } catch (e) {
@@ -197,6 +237,19 @@ class ApiService {
     }
 
     final statusCode = response.statusCode;
+
+    // Handle redirects (301, 302, etc.) - if redirecting to trailing slash version, treat as error
+    // since we're preventing redirects to avoid duplicate calls
+    if (statusCode >= 300 && statusCode < 400) {
+      final location = response.headers['location'];
+      if (location != null && Environment.enableLogging) {
+        print('Redirect detected to: $location (prevented to avoid duplicate call)');
+      }
+      throw ApiException(
+        'Server redirected request. This should not happen with normalized endpoints.',
+        statusCode: statusCode,
+      );
+    }
 
     if (statusCode >= 200 && statusCode < 300) {
       if (response.body.isEmpty) {

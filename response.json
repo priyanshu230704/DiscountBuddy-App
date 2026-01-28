@@ -1,0 +1,1971 @@
+{
+  "count": 5,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 2,
+      "name": "Spice Garden",
+      "slug": "spice-garden",
+      "description": "Authentic Indian cuisine with modern twists",
+      "city": {
+        "id": 1,
+        "name": "London",
+        "slug": "london",
+        "country": {
+          "id": 1,
+          "name": "United Kingdom",
+          "code": "GB",
+          "flag_emoji": "🇬🇧",
+          "cities_count": 2,
+          "created_at": "2026-01-26T18:04:39.490871Z"
+        },
+        "latitude": "51.507400",
+        "longitude": "-0.127800",
+        "is_active": true,
+        "restaurants_count": 2,
+        "active_deals_count": 5,
+        "created_at": "2026-01-26T18:04:39.523910Z"
+      },
+      "address": "456 Oxford Street, London",
+      "postcode": "W1D 1BS",
+      "latitude": "51.515000",
+      "longitude": "-0.141900",
+      "phone": "+44 20 2345 6789",
+      "email": "hello@spicegarden.com",
+      "website": "",
+      "categories": [
+        {
+          "id": 2,
+          "name": "Casual Dining",
+          "slug": "casual-dining",
+          "icon": "🍴",
+          "restaurants_count": 4,
+          "created_at": "2026-01-26T18:04:39.581951Z"
+        }
+      ],
+      "cuisines": [
+        {
+          "id": 6,
+          "name": "American",
+          "slug": "american",
+          "icon": "🍔",
+          "is_active": true,
+          "restaurants_count": 2,
+          "created_at": "2026-01-26T18:04:39.674582Z"
+        }
+      ],
+      "price_range": 3,
+      "verified": true,
+      "is_featured": true,
+      "opening_hours": {},
+      "images": [
+        {
+          "id": 2,
+          "image": null,
+          "image_url": null,
+          "alt_text": "Spice Garden - Image 1",
+          "is_primary": true,
+          "order": 0
+        }
+      ],
+      "reviews": [
+        {
+          "id": 19,
+          "user": 17,
+          "user_email": "testuser_1769452143.089267@test.com",
+          "user_name": "testuser_1769452143",
+          "restaurant": 2,
+          "rating": 5,
+          "comment": "Great restaurant! Test review.",
+          "is_verified": false,
+          "created_at": "2026-01-26T18:29:04.932412Z"
+        },
+        {
+          "id": 18,
+          "user": 15,
+          "user_email": "testuser_1769452127.333885@test.com",
+          "user_name": "testuser_1769452127",
+          "restaurant": 2,
+          "rating": 5,
+          "comment": "Great restaurant! Test review.",
+          "is_verified": false,
+          "created_at": "2026-01-26T18:28:49.318341Z"
+        },
+        {
+          "id": 17,
+          "user": 13,
+          "user_email": "testuser_1769452083.676418@test.com",
+          "user_name": "testuser_1769452083",
+          "restaurant": 2,
+          "rating": 5,
+          "comment": "Great restaurant! Test review.",
+          "is_verified": false,
+          "created_at": "2026-01-26T18:28:06.239491Z"
+        },
+        {
+          "id": 16,
+          "user": 11,
+          "user_email": "testuser_1769452053.070121@test.com",
+          "user_name": "testuser_1769452053",
+          "restaurant": 2,
+          "rating": 5,
+          "comment": "Great restaurant! Test review.",
+          "is_verified": false,
+          "created_at": "2026-01-26T18:27:35.109217Z"
+        },
+        {
+          "id": 6,
+          "user": 4,
+          "user_email": "user3@test.com",
+          "user_name": "user3",
+          "restaurant": 2,
+          "rating": 4,
+          "comment": "Nice ambiance and friendly staff.",
+          "is_verified": false,
+          "created_at": "2026-01-26T18:04:41.910465Z"
+        },
+        {
+          "id": 5,
+          "user": 3,
+          "user_email": "user2@test.com",
+          "user_name": "user2",
+          "restaurant": 2,
+          "rating": 5,
+          "comment": "Nice ambiance and friendly staff.",
+          "is_verified": false,
+          "created_at": "2026-01-26T18:04:41.897410Z"
+        },
+        {
+          "id": 4,
+          "user": 2,
+          "user_email": "user1@test.com",
+          "user_name": "user1",
+          "restaurant": 2,
+          "rating": 3,
+          "comment": "Nice ambiance and friendly staff.",
+          "is_verified": true,
+          "created_at": "2026-01-26T18:04:41.887423Z"
+        }
+      ],
+      "menu_categories": [
+        {
+          "id": 5,
+          "name": "Appetizers",
+          "description": "Appetizers menu",
+          "order": 0,
+          "is_active": true,
+          "items": [
+            {
+              "id": 10,
+              "name": "Garlic Bread",
+              "description": "Fresh baked bread with garlic butter",
+              "price": "5.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 0
+            },
+            {
+              "id": 11,
+              "name": "Caesar Salad",
+              "description": "Fresh romaine lettuce with caesar dressing",
+              "price": "8.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 1
+            }
+          ],
+          "items_count": 2
+        },
+        {
+          "id": 6,
+          "name": "Main Course",
+          "description": "Main Course menu",
+          "order": 1,
+          "is_active": true,
+          "items": [
+            {
+              "id": 12,
+              "name": "Grilled Chicken",
+              "description": "Tender grilled chicken breast",
+              "price": "18.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 0
+            },
+            {
+              "id": 13,
+              "name": "Beef Steak",
+              "description": "Prime cut beef steak",
+              "price": "24.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 1
+            },
+            {
+              "id": 14,
+              "name": "Vegetable Pasta",
+              "description": "Fresh pasta with vegetables",
+              "price": "14.99",
+              "is_vegetarian": true,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 2
+            }
+          ],
+          "items_count": 3
+        },
+        {
+          "id": 7,
+          "name": "Desserts",
+          "description": "Desserts menu",
+          "order": 2,
+          "is_active": true,
+          "items": [
+            {
+              "id": 15,
+              "name": "Chocolate Cake",
+              "description": "Rich chocolate cake",
+              "price": "7.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 0
+            },
+            {
+              "id": 16,
+              "name": "Ice Cream",
+              "description": "Vanilla ice cream",
+              "price": "5.99",
+              "is_vegetarian": true,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 1
+            }
+          ],
+          "items_count": 2
+        },
+        {
+          "id": 8,
+          "name": "Beverages",
+          "description": "Beverages menu",
+          "order": 3,
+          "is_active": true,
+          "items": [
+            {
+              "id": 17,
+              "name": "Coca Cola",
+              "description": "Soft drink",
+              "price": "2.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 0
+            },
+            {
+              "id": 18,
+              "name": "Fresh Juice",
+              "description": "Fresh orange juice",
+              "price": "4.99",
+              "is_vegetarian": true,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 1
+            }
+          ],
+          "items_count": 2
+        }
+      ],
+      "opening_slots": [
+        {
+          "id": 8,
+          "day_of_week": 0,
+          "day_name": "Monday",
+          "opening_time": "09:00:00",
+          "closing_time": "22:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 9,
+          "day_of_week": 1,
+          "day_name": "Tuesday",
+          "opening_time": "09:00:00",
+          "closing_time": "22:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 10,
+          "day_of_week": 2,
+          "day_name": "Wednesday",
+          "opening_time": "09:00:00",
+          "closing_time": "22:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 11,
+          "day_of_week": 3,
+          "day_name": "Thursday",
+          "opening_time": "09:00:00",
+          "closing_time": "22:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 12,
+          "day_of_week": 4,
+          "day_name": "Friday",
+          "opening_time": "09:00:00",
+          "closing_time": "22:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 13,
+          "day_of_week": 5,
+          "day_name": "Saturday",
+          "opening_time": "10:00:00",
+          "closing_time": "23:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 14,
+          "day_of_week": 6,
+          "day_name": "Sunday",
+          "opening_time": "11:00:00",
+          "closing_time": "21:00:00",
+          "is_closed": false
+        }
+      ],
+      "active_deals": [
+        {
+          "id": 4,
+          "title": "Spice Garden Special Offer 1",
+          "description": "Great deal at Spice Garden!",
+          "deal_type": "percentage",
+          "restaurant_name": "Spice Garden",
+          "restaurant_slug": "spice-garden",
+          "city_name": "London",
+          "discount_percentage": 15,
+          "discount_amount": null,
+          "minimum_spend": "50.00",
+          "start_date": "2026-01-23T18:04:41.500079Z",
+          "end_date": "2026-02-19T18:04:41.500079Z",
+          "is_featured": true,
+          "primary_image": null,
+          "is_active": true,
+          "created_at": "2026-01-26T18:04:41.505079Z"
+        },
+        {
+          "id": 5,
+          "title": "Spice Garden Special Offer 2",
+          "description": "Great deal at Spice Garden!",
+          "deal_type": "percentage",
+          "restaurant_name": "Spice Garden",
+          "restaurant_slug": "spice-garden",
+          "city_name": "London",
+          "discount_percentage": 30,
+          "discount_amount": null,
+          "minimum_spend": null,
+          "start_date": "2026-01-25T18:04:41.516651Z",
+          "end_date": "2026-02-23T18:04:41.516651Z",
+          "is_featured": false,
+          "primary_image": null,
+          "is_active": true,
+          "created_at": "2026-01-26T18:04:41.522646Z"
+        }
+      ],
+      "average_rating": 4.571428571428571,
+      "reviews_count": 7,
+      "is_open_now": true,
+      "is_favourite": false,
+      "distance": null,
+      "created_at": "2026-01-26T18:04:39.733109Z"
+    },
+    {
+      "id": 1,
+      "name": "The Golden Fork",
+      "slug": "the-golden-fork",
+      "description": "Fine dining restaurant serving exquisite European cuisine",
+      "city": {
+        "id": 1,
+        "name": "London",
+        "slug": "london",
+        "country": {
+          "id": 1,
+          "name": "United Kingdom",
+          "code": "GB",
+          "flag_emoji": "🇬🇧",
+          "cities_count": 2,
+          "created_at": "2026-01-26T18:04:39.490871Z"
+        },
+        "latitude": "51.507400",
+        "longitude": "-0.127800",
+        "is_active": true,
+        "restaurants_count": 2,
+        "active_deals_count": 5,
+        "created_at": "2026-01-26T18:04:39.523910Z"
+      },
+      "address": "123 High Street, London",
+      "postcode": "SW1A 1AA",
+      "latitude": "51.507400",
+      "longitude": "-0.127800",
+      "phone": "+44 20 1234 5678",
+      "email": "info@goldenfork.com",
+      "website": "https://goldenfork.com",
+      "categories": [
+        {
+          "id": 2,
+          "name": "Casual Dining",
+          "slug": "casual-dining",
+          "icon": "🍴",
+          "restaurants_count": 4,
+          "created_at": "2026-01-26T18:04:39.581951Z"
+        }
+      ],
+      "cuisines": [
+        {
+          "id": 2,
+          "name": "Chinese",
+          "slug": "chinese",
+          "icon": "🥢",
+          "is_active": true,
+          "restaurants_count": 3,
+          "created_at": "2026-01-26T18:04:39.633968Z"
+        }
+      ],
+      "price_range": 4,
+      "verified": true,
+      "is_featured": true,
+      "opening_hours": {},
+      "images": [
+        {
+          "id": 1,
+          "image": null,
+          "image_url": null,
+          "alt_text": "The Golden Fork - Image 1",
+          "is_primary": true,
+          "order": 0
+        }
+      ],
+      "reviews": [
+        {
+          "id": 3,
+          "user": 4,
+          "user_email": "user3@test.com",
+          "user_name": "user3",
+          "restaurant": 1,
+          "rating": 5,
+          "comment": "Amazing experience, will come again.",
+          "is_verified": false,
+          "created_at": "2026-01-26T18:04:41.872411Z"
+        },
+        {
+          "id": 2,
+          "user": 3,
+          "user_email": "user2@test.com",
+          "user_name": "user2",
+          "restaurant": 1,
+          "rating": 4,
+          "comment": "Nice ambiance and friendly staff.",
+          "is_verified": true,
+          "created_at": "2026-01-26T18:04:41.858410Z"
+        },
+        {
+          "id": 1,
+          "user": 2,
+          "user_email": "user1@test.com",
+          "user_name": "user1",
+          "restaurant": 1,
+          "rating": 5,
+          "comment": "Excellent quality, highly recommended.",
+          "is_verified": true,
+          "created_at": "2026-01-26T18:04:41.841414Z"
+        }
+      ],
+      "menu_categories": [
+        {
+          "id": 1,
+          "name": "Appetizers",
+          "description": "Appetizers menu",
+          "order": 0,
+          "is_active": true,
+          "items": [
+            {
+              "id": 1,
+              "name": "Garlic Bread",
+              "description": "Fresh baked bread with garlic butter",
+              "price": "5.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 0
+            },
+            {
+              "id": 2,
+              "name": "Caesar Salad",
+              "description": "Fresh romaine lettuce with caesar dressing",
+              "price": "8.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 1
+            }
+          ],
+          "items_count": 2
+        },
+        {
+          "id": 2,
+          "name": "Main Course",
+          "description": "Main Course menu",
+          "order": 1,
+          "is_active": true,
+          "items": [
+            {
+              "id": 3,
+              "name": "Grilled Chicken",
+              "description": "Tender grilled chicken breast",
+              "price": "18.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 0
+            },
+            {
+              "id": 4,
+              "name": "Beef Steak",
+              "description": "Prime cut beef steak",
+              "price": "24.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 1
+            },
+            {
+              "id": 5,
+              "name": "Vegetable Pasta",
+              "description": "Fresh pasta with vegetables",
+              "price": "14.99",
+              "is_vegetarian": true,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 2
+            }
+          ],
+          "items_count": 3
+        },
+        {
+          "id": 3,
+          "name": "Desserts",
+          "description": "Desserts menu",
+          "order": 2,
+          "is_active": true,
+          "items": [
+            {
+              "id": 6,
+              "name": "Chocolate Cake",
+              "description": "Rich chocolate cake",
+              "price": "7.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 0
+            },
+            {
+              "id": 7,
+              "name": "Ice Cream",
+              "description": "Vanilla ice cream",
+              "price": "5.99",
+              "is_vegetarian": true,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 1
+            }
+          ],
+          "items_count": 2
+        },
+        {
+          "id": 4,
+          "name": "Beverages",
+          "description": "Beverages menu",
+          "order": 3,
+          "is_active": true,
+          "items": [
+            {
+              "id": 8,
+              "name": "Coca Cola",
+              "description": "Soft drink",
+              "price": "2.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 0
+            },
+            {
+              "id": 9,
+              "name": "Fresh Juice",
+              "description": "Fresh orange juice",
+              "price": "4.99",
+              "is_vegetarian": true,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 1
+            }
+          ],
+          "items_count": 2
+        }
+      ],
+      "opening_slots": [
+        {
+          "id": 1,
+          "day_of_week": 0,
+          "day_name": "Monday",
+          "opening_time": "09:00:00",
+          "closing_time": "22:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 2,
+          "day_of_week": 1,
+          "day_name": "Tuesday",
+          "opening_time": "09:00:00",
+          "closing_time": "22:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 3,
+          "day_of_week": 2,
+          "day_name": "Wednesday",
+          "opening_time": "09:00:00",
+          "closing_time": "22:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 4,
+          "day_of_week": 3,
+          "day_name": "Thursday",
+          "opening_time": "09:00:00",
+          "closing_time": "22:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 5,
+          "day_of_week": 4,
+          "day_name": "Friday",
+          "opening_time": "09:00:00",
+          "closing_time": "22:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 6,
+          "day_of_week": 5,
+          "day_name": "Saturday",
+          "opening_time": "10:00:00",
+          "closing_time": "23:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 7,
+          "day_of_week": 6,
+          "day_name": "Sunday",
+          "opening_time": "11:00:00",
+          "closing_time": "21:00:00",
+          "is_closed": false
+        }
+      ],
+      "active_deals": [
+        {
+          "id": 1,
+          "title": "The Golden Fork Special Offer 1",
+          "description": "Great deal at The Golden Fork!",
+          "deal_type": "percentage",
+          "restaurant_name": "The Golden Fork",
+          "restaurant_slug": "the-golden-fork",
+          "city_name": "London",
+          "discount_percentage": 10,
+          "discount_amount": null,
+          "minimum_spend": "20.00",
+          "start_date": "2026-01-22T18:04:41.447901Z",
+          "end_date": "2026-02-09T18:04:41.447901Z",
+          "is_featured": true,
+          "primary_image": null,
+          "is_active": true,
+          "created_at": "2026-01-26T18:04:41.453902Z"
+        },
+        {
+          "id": 3,
+          "title": "The Golden Fork Special Offer 3",
+          "description": "Great deal at The Golden Fork!",
+          "deal_type": "fixed",
+          "restaurant_name": "The Golden Fork",
+          "restaurant_slug": "the-golden-fork",
+          "city_name": "London",
+          "discount_percentage": null,
+          "discount_amount": "5.00",
+          "minimum_spend": "30.00",
+          "start_date": "2026-01-24T18:04:41.483906Z",
+          "end_date": "2026-02-08T18:04:41.483906Z",
+          "is_featured": false,
+          "primary_image": null,
+          "is_active": true,
+          "created_at": "2026-01-26T18:04:41.488904Z"
+        },
+        {
+          "id": 2,
+          "title": "The Golden Fork Special Offer 2",
+          "description": "Great deal at The Golden Fork!",
+          "deal_type": "percentage",
+          "restaurant_name": "The Golden Fork",
+          "restaurant_slug": "the-golden-fork",
+          "city_name": "London",
+          "discount_percentage": 30,
+          "discount_amount": null,
+          "minimum_spend": "20.00",
+          "start_date": "2026-01-23T18:04:41.468911Z",
+          "end_date": "2026-02-19T18:04:41.468911Z",
+          "is_featured": false,
+          "primary_image": null,
+          "is_active": true,
+          "created_at": "2026-01-26T18:04:41.471900Z"
+        }
+      ],
+      "average_rating": 4.666666666666667,
+      "reviews_count": 3,
+      "is_open_now": true,
+      "is_favourite": false,
+      "distance": null,
+      "created_at": "2026-01-26T18:04:39.690580Z"
+    },
+    {
+      "id": 5,
+      "name": "Mumbai Spice",
+      "slug": "mumbai-spice",
+      "description": "Best Indian street food and traditional dishes",
+      "city": {
+        "id": 4,
+        "name": "Mumbai",
+        "slug": "mumbai",
+        "country": {
+          "id": 3,
+          "name": "India",
+          "code": "IN",
+          "flag_emoji": "🇮🇳",
+          "cities_count": 1,
+          "created_at": "2026-01-26T18:04:39.507877Z"
+        },
+        "latitude": "19.076000",
+        "longitude": "72.877700",
+        "is_active": true,
+        "restaurants_count": 1,
+        "active_deals_count": 3,
+        "created_at": "2026-01-26T18:04:39.560911Z"
+      },
+      "address": "555 Marine Drive, Mumbai",
+      "postcode": "400001",
+      "latitude": "19.076000",
+      "longitude": "72.877700",
+      "phone": "+91 22 5678 9012",
+      "email": "info@mumbaispice.com",
+      "website": "",
+      "categories": [
+        {
+          "id": 5,
+          "name": "Bar & Grill",
+          "slug": "bar-grill",
+          "icon": "🍻",
+          "restaurants_count": 3,
+          "created_at": "2026-01-26T18:04:39.613957Z"
+        },
+        {
+          "id": 2,
+          "name": "Casual Dining",
+          "slug": "casual-dining",
+          "icon": "🍴",
+          "restaurants_count": 4,
+          "created_at": "2026-01-26T18:04:39.581951Z"
+        }
+      ],
+      "cuisines": [
+        {
+          "id": 1,
+          "name": "Italian",
+          "slug": "italian",
+          "icon": "🍝",
+          "is_active": true,
+          "restaurants_count": 2,
+          "created_at": "2026-01-26T18:04:39.624958Z"
+        },
+        {
+          "id": 4,
+          "name": "Mexican",
+          "slug": "mexican",
+          "icon": "🌮",
+          "is_active": true,
+          "restaurants_count": 1,
+          "created_at": "2026-01-26T18:04:39.654969Z"
+        }
+      ],
+      "price_range": 1,
+      "verified": true,
+      "is_featured": false,
+      "opening_hours": {},
+      "images": [
+        {
+          "id": 5,
+          "image": null,
+          "image_url": null,
+          "alt_text": "Mumbai Spice - Image 1",
+          "is_primary": true,
+          "order": 0
+        }
+      ],
+      "reviews": [
+        {
+          "id": 15,
+          "user": 4,
+          "user_email": "user3@test.com",
+          "user_name": "user3",
+          "restaurant": 5,
+          "rating": 5,
+          "comment": "Excellent quality, highly recommended.",
+          "is_verified": false,
+          "created_at": "2026-01-26T18:04:42.013046Z"
+        },
+        {
+          "id": 14,
+          "user": 3,
+          "user_email": "user2@test.com",
+          "user_name": "user2",
+          "restaurant": 5,
+          "rating": 3,
+          "comment": "Amazing experience, will come again.",
+          "is_verified": false,
+          "created_at": "2026-01-26T18:04:41.998020Z"
+        },
+        {
+          "id": 13,
+          "user": 2,
+          "user_email": "user1@test.com",
+          "user_name": "user1",
+          "restaurant": 5,
+          "rating": 4,
+          "comment": "Good value for money.",
+          "is_verified": true,
+          "created_at": "2026-01-26T18:04:41.989007Z"
+        }
+      ],
+      "menu_categories": [
+        {
+          "id": 17,
+          "name": "Appetizers",
+          "description": "Appetizers menu",
+          "order": 0,
+          "is_active": true,
+          "items": [
+            {
+              "id": 37,
+              "name": "Garlic Bread",
+              "description": "Fresh baked bread with garlic butter",
+              "price": "5.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 0
+            },
+            {
+              "id": 38,
+              "name": "Caesar Salad",
+              "description": "Fresh romaine lettuce with caesar dressing",
+              "price": "8.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 1
+            }
+          ],
+          "items_count": 2
+        },
+        {
+          "id": 18,
+          "name": "Main Course",
+          "description": "Main Course menu",
+          "order": 1,
+          "is_active": true,
+          "items": [
+            {
+              "id": 39,
+              "name": "Grilled Chicken",
+              "description": "Tender grilled chicken breast",
+              "price": "18.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 0
+            },
+            {
+              "id": 40,
+              "name": "Beef Steak",
+              "description": "Prime cut beef steak",
+              "price": "24.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 1
+            },
+            {
+              "id": 41,
+              "name": "Vegetable Pasta",
+              "description": "Fresh pasta with vegetables",
+              "price": "14.99",
+              "is_vegetarian": true,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 2
+            }
+          ],
+          "items_count": 3
+        },
+        {
+          "id": 19,
+          "name": "Desserts",
+          "description": "Desserts menu",
+          "order": 2,
+          "is_active": true,
+          "items": [
+            {
+              "id": 42,
+              "name": "Chocolate Cake",
+              "description": "Rich chocolate cake",
+              "price": "7.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 0
+            },
+            {
+              "id": 43,
+              "name": "Ice Cream",
+              "description": "Vanilla ice cream",
+              "price": "5.99",
+              "is_vegetarian": true,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 1
+            }
+          ],
+          "items_count": 2
+        },
+        {
+          "id": 20,
+          "name": "Beverages",
+          "description": "Beverages menu",
+          "order": 3,
+          "is_active": true,
+          "items": [
+            {
+              "id": 44,
+              "name": "Coca Cola",
+              "description": "Soft drink",
+              "price": "2.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 0
+            },
+            {
+              "id": 45,
+              "name": "Fresh Juice",
+              "description": "Fresh orange juice",
+              "price": "4.99",
+              "is_vegetarian": true,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 1
+            }
+          ],
+          "items_count": 2
+        }
+      ],
+      "opening_slots": [
+        {
+          "id": 29,
+          "day_of_week": 0,
+          "day_name": "Monday",
+          "opening_time": "09:00:00",
+          "closing_time": "22:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 30,
+          "day_of_week": 1,
+          "day_name": "Tuesday",
+          "opening_time": "09:00:00",
+          "closing_time": "22:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 31,
+          "day_of_week": 2,
+          "day_name": "Wednesday",
+          "opening_time": "09:00:00",
+          "closing_time": "22:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 32,
+          "day_of_week": 3,
+          "day_name": "Thursday",
+          "opening_time": "09:00:00",
+          "closing_time": "22:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 33,
+          "day_of_week": 4,
+          "day_name": "Friday",
+          "opening_time": "09:00:00",
+          "closing_time": "22:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 34,
+          "day_of_week": 5,
+          "day_name": "Saturday",
+          "opening_time": "10:00:00",
+          "closing_time": "23:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 35,
+          "day_of_week": 6,
+          "day_name": "Sunday",
+          "opening_time": "11:00:00",
+          "closing_time": "21:00:00",
+          "is_closed": false
+        }
+      ],
+      "active_deals": [
+        {
+          "id": 11,
+          "title": "Mumbai Spice Special Offer 1",
+          "description": "Great deal at Mumbai Spice!",
+          "deal_type": "percentage",
+          "restaurant_name": "Mumbai Spice",
+          "restaurant_slug": "mumbai-spice",
+          "city_name": "Mumbai",
+          "discount_percentage": 10,
+          "discount_amount": null,
+          "minimum_spend": "20.00",
+          "start_date": "2026-01-24T18:04:41.610674Z",
+          "end_date": "2026-02-05T18:04:41.610674Z",
+          "is_featured": true,
+          "primary_image": null,
+          "is_active": true,
+          "created_at": "2026-01-26T18:04:41.611676Z"
+        },
+        {
+          "id": 13,
+          "title": "Mumbai Spice Special Offer 3",
+          "description": "Great deal at Mumbai Spice!",
+          "deal_type": "two_for_one",
+          "restaurant_name": "Mumbai Spice",
+          "restaurant_slug": "mumbai-spice",
+          "city_name": "Mumbai",
+          "discount_percentage": null,
+          "discount_amount": null,
+          "minimum_spend": "50.00",
+          "start_date": "2026-01-26T18:04:41.641205Z",
+          "end_date": "2026-02-21T18:04:41.641205Z",
+          "is_featured": false,
+          "primary_image": null,
+          "is_active": true,
+          "created_at": "2026-01-26T18:04:41.643206Z"
+        },
+        {
+          "id": 12,
+          "title": "Mumbai Spice Special Offer 2",
+          "description": "Great deal at Mumbai Spice!",
+          "deal_type": "percentage",
+          "restaurant_name": "Mumbai Spice",
+          "restaurant_slug": "mumbai-spice",
+          "city_name": "Mumbai",
+          "discount_percentage": 20,
+          "discount_amount": null,
+          "minimum_spend": "30.00",
+          "start_date": "2026-01-23T18:04:41.626203Z",
+          "end_date": "2026-02-21T18:04:41.626203Z",
+          "is_featured": false,
+          "primary_image": null,
+          "is_active": true,
+          "created_at": "2026-01-26T18:04:41.628205Z"
+        }
+      ],
+      "average_rating": 4,
+      "reviews_count": 3,
+      "is_open_now": true,
+      "is_favourite": false,
+      "distance": null,
+      "created_at": "2026-01-26T18:04:39.852653Z"
+    },
+    {
+      "id": 4,
+      "name": "Dragon Palace",
+      "slug": "dragon-palace",
+      "description": "Authentic Chinese cuisine in the heart of the city",
+      "city": {
+        "id": 3,
+        "name": "New York",
+        "slug": "new-york",
+        "country": {
+          "id": 2,
+          "name": "United States",
+          "code": "US",
+          "flag_emoji": "🇺🇸",
+          "cities_count": 1,
+          "created_at": "2026-01-26T18:04:39.498898Z"
+        },
+        "latitude": "40.712800",
+        "longitude": "-74.006000",
+        "is_active": true,
+        "restaurants_count": 1,
+        "active_deals_count": 2,
+        "created_at": "2026-01-26T18:04:39.547937Z"
+      },
+      "address": "321 Broadway, New York",
+      "postcode": "10001",
+      "latitude": "40.712800",
+      "longitude": "-74.006000",
+      "phone": "+1 212 456 7890",
+      "email": "info@dragonpalace.com",
+      "website": "",
+      "categories": [
+        {
+          "id": 5,
+          "name": "Bar & Grill",
+          "slug": "bar-grill",
+          "icon": "🍻",
+          "restaurants_count": 3,
+          "created_at": "2026-01-26T18:04:39.613957Z"
+        }
+      ],
+      "cuisines": [
+        {
+          "id": 6,
+          "name": "American",
+          "slug": "american",
+          "icon": "🍔",
+          "is_active": true,
+          "restaurants_count": 2,
+          "created_at": "2026-01-26T18:04:39.674582Z"
+        },
+        {
+          "id": 2,
+          "name": "Chinese",
+          "slug": "chinese",
+          "icon": "🥢",
+          "is_active": true,
+          "restaurants_count": 3,
+          "created_at": "2026-01-26T18:04:39.633968Z"
+        }
+      ],
+      "price_range": 2,
+      "verified": true,
+      "is_featured": false,
+      "opening_hours": {},
+      "images": [
+        {
+          "id": 4,
+          "image": null,
+          "image_url": null,
+          "alt_text": "Dragon Palace - Image 1",
+          "is_primary": true,
+          "order": 0
+        }
+      ],
+      "reviews": [
+        {
+          "id": 12,
+          "user": 4,
+          "user_email": "user3@test.com",
+          "user_name": "user3",
+          "restaurant": 4,
+          "rating": 3,
+          "comment": "Great food and service!",
+          "is_verified": true,
+          "created_at": "2026-01-26T18:04:41.977986Z"
+        },
+        {
+          "id": 11,
+          "user": 3,
+          "user_email": "user2@test.com",
+          "user_name": "user2",
+          "restaurant": 4,
+          "rating": 4,
+          "comment": "Nice ambiance and friendly staff.",
+          "is_verified": true,
+          "created_at": "2026-01-26T18:04:41.968008Z"
+        },
+        {
+          "id": 10,
+          "user": 2,
+          "user_email": "user1@test.com",
+          "user_name": "user1",
+          "restaurant": 4,
+          "rating": 4,
+          "comment": "Nice ambiance and friendly staff.",
+          "is_verified": false,
+          "created_at": "2026-01-26T18:04:41.957989Z"
+        }
+      ],
+      "menu_categories": [
+        {
+          "id": 13,
+          "name": "Appetizers",
+          "description": "Appetizers menu",
+          "order": 0,
+          "is_active": true,
+          "items": [
+            {
+              "id": 28,
+              "name": "Garlic Bread",
+              "description": "Fresh baked bread with garlic butter",
+              "price": "5.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 0
+            },
+            {
+              "id": 29,
+              "name": "Caesar Salad",
+              "description": "Fresh romaine lettuce with caesar dressing",
+              "price": "8.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 1
+            }
+          ],
+          "items_count": 2
+        },
+        {
+          "id": 14,
+          "name": "Main Course",
+          "description": "Main Course menu",
+          "order": 1,
+          "is_active": true,
+          "items": [
+            {
+              "id": 30,
+              "name": "Grilled Chicken",
+              "description": "Tender grilled chicken breast",
+              "price": "18.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 0
+            },
+            {
+              "id": 31,
+              "name": "Beef Steak",
+              "description": "Prime cut beef steak",
+              "price": "24.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 1
+            },
+            {
+              "id": 32,
+              "name": "Vegetable Pasta",
+              "description": "Fresh pasta with vegetables",
+              "price": "14.99",
+              "is_vegetarian": true,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 2
+            }
+          ],
+          "items_count": 3
+        },
+        {
+          "id": 15,
+          "name": "Desserts",
+          "description": "Desserts menu",
+          "order": 2,
+          "is_active": true,
+          "items": [
+            {
+              "id": 33,
+              "name": "Chocolate Cake",
+              "description": "Rich chocolate cake",
+              "price": "7.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 0
+            },
+            {
+              "id": 34,
+              "name": "Ice Cream",
+              "description": "Vanilla ice cream",
+              "price": "5.99",
+              "is_vegetarian": true,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 1
+            }
+          ],
+          "items_count": 2
+        },
+        {
+          "id": 16,
+          "name": "Beverages",
+          "description": "Beverages menu",
+          "order": 3,
+          "is_active": true,
+          "items": [
+            {
+              "id": 35,
+              "name": "Coca Cola",
+              "description": "Soft drink",
+              "price": "2.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 0
+            },
+            {
+              "id": 36,
+              "name": "Fresh Juice",
+              "description": "Fresh orange juice",
+              "price": "4.99",
+              "is_vegetarian": true,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 1
+            }
+          ],
+          "items_count": 2
+        }
+      ],
+      "opening_slots": [
+        {
+          "id": 22,
+          "day_of_week": 0,
+          "day_name": "Monday",
+          "opening_time": "09:00:00",
+          "closing_time": "22:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 23,
+          "day_of_week": 1,
+          "day_name": "Tuesday",
+          "opening_time": "09:00:00",
+          "closing_time": "22:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 24,
+          "day_of_week": 2,
+          "day_name": "Wednesday",
+          "opening_time": "09:00:00",
+          "closing_time": "22:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 25,
+          "day_of_week": 3,
+          "day_name": "Thursday",
+          "opening_time": "09:00:00",
+          "closing_time": "22:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 26,
+          "day_of_week": 4,
+          "day_name": "Friday",
+          "opening_time": "09:00:00",
+          "closing_time": "22:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 27,
+          "day_of_week": 5,
+          "day_name": "Saturday",
+          "opening_time": "10:00:00",
+          "closing_time": "23:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 28,
+          "day_of_week": 6,
+          "day_name": "Sunday",
+          "opening_time": "11:00:00",
+          "closing_time": "21:00:00",
+          "is_closed": false
+        }
+      ],
+      "active_deals": [
+        {
+          "id": 9,
+          "title": "Dragon Palace Special Offer 1",
+          "description": "Great deal at Dragon Palace!",
+          "deal_type": "percentage",
+          "restaurant_name": "Dragon Palace",
+          "restaurant_slug": "dragon-palace",
+          "city_name": "New York",
+          "discount_percentage": 15,
+          "discount_amount": null,
+          "minimum_spend": "20.00",
+          "start_date": "2026-01-26T18:04:41.579643Z",
+          "end_date": "2026-02-16T18:04:41.579643Z",
+          "is_featured": true,
+          "primary_image": null,
+          "is_active": true,
+          "created_at": "2026-01-26T18:04:41.583653Z"
+        },
+        {
+          "id": 10,
+          "title": "Dragon Palace Special Offer 2",
+          "description": "Great deal at Dragon Palace!",
+          "deal_type": "fixed",
+          "restaurant_name": "Dragon Palace",
+          "restaurant_slug": "dragon-palace",
+          "city_name": "New York",
+          "discount_percentage": null,
+          "discount_amount": "10.00",
+          "minimum_spend": "50.00",
+          "start_date": "2026-01-24T18:04:41.595644Z",
+          "end_date": "2026-02-13T18:04:41.595644Z",
+          "is_featured": false,
+          "primary_image": null,
+          "is_active": true,
+          "created_at": "2026-01-26T18:04:41.599721Z"
+        }
+      ],
+      "average_rating": 3.6666666666666665,
+      "reviews_count": 3,
+      "is_open_now": true,
+      "is_favourite": false,
+      "distance": null,
+      "created_at": "2026-01-26T18:04:39.810122Z"
+    },
+    {
+      "id": 3,
+      "name": "Bella Italia",
+      "slug": "bella-italia",
+      "description": "Traditional Italian pizzeria and pasta house",
+      "city": {
+        "id": 2,
+        "name": "Manchester",
+        "slug": "manchester",
+        "country": {
+          "id": 1,
+          "name": "United Kingdom",
+          "code": "GB",
+          "flag_emoji": "🇬🇧",
+          "cities_count": 2,
+          "created_at": "2026-01-26T18:04:39.490871Z"
+        },
+        "latitude": "53.480800",
+        "longitude": "-2.242600",
+        "is_active": true,
+        "restaurants_count": 1,
+        "active_deals_count": 3,
+        "created_at": "2026-01-26T18:04:39.538914Z"
+      },
+      "address": "789 Market Street, Manchester",
+      "postcode": "M1 1AA",
+      "latitude": "53.480800",
+      "longitude": "-2.242600",
+      "phone": "+44 161 3456 7890",
+      "email": "info@bellaitalia.com",
+      "website": "",
+      "categories": [
+        {
+          "id": 5,
+          "name": "Bar & Grill",
+          "slug": "bar-grill",
+          "icon": "🍻",
+          "restaurants_count": 3,
+          "created_at": "2026-01-26T18:04:39.613957Z"
+        },
+        {
+          "id": 4,
+          "name": "Cafe",
+          "slug": "cafe",
+          "icon": "☕",
+          "restaurants_count": 1,
+          "created_at": "2026-01-26T18:04:39.605929Z"
+        },
+        {
+          "id": 2,
+          "name": "Casual Dining",
+          "slug": "casual-dining",
+          "icon": "🍴",
+          "restaurants_count": 4,
+          "created_at": "2026-01-26T18:04:39.581951Z"
+        }
+      ],
+      "cuisines": [
+        {
+          "id": 2,
+          "name": "Chinese",
+          "slug": "chinese",
+          "icon": "🥢",
+          "is_active": true,
+          "restaurants_count": 3,
+          "created_at": "2026-01-26T18:04:39.633968Z"
+        },
+        {
+          "id": 1,
+          "name": "Italian",
+          "slug": "italian",
+          "icon": "🍝",
+          "is_active": true,
+          "restaurants_count": 2,
+          "created_at": "2026-01-26T18:04:39.624958Z"
+        }
+      ],
+      "price_range": 2,
+      "verified": true,
+      "is_featured": false,
+      "opening_hours": {},
+      "images": [
+        {
+          "id": 3,
+          "image": null,
+          "image_url": null,
+          "alt_text": "Bella Italia - Image 1",
+          "is_primary": true,
+          "order": 0
+        }
+      ],
+      "reviews": [
+        {
+          "id": 9,
+          "user": 4,
+          "user_email": "user3@test.com",
+          "user_name": "user3",
+          "restaurant": 3,
+          "rating": 4,
+          "comment": "Excellent quality, highly recommended.",
+          "is_verified": true,
+          "created_at": "2026-01-26T18:04:41.945987Z"
+        },
+        {
+          "id": 8,
+          "user": 3,
+          "user_email": "user2@test.com",
+          "user_name": "user2",
+          "restaurant": 3,
+          "rating": 3,
+          "comment": "Great food and service!",
+          "is_verified": false,
+          "created_at": "2026-01-26T18:04:41.934998Z"
+        },
+        {
+          "id": 7,
+          "user": 2,
+          "user_email": "user1@test.com",
+          "user_name": "user1",
+          "restaurant": 3,
+          "rating": 3,
+          "comment": "Excellent quality, highly recommended.",
+          "is_verified": false,
+          "created_at": "2026-01-26T18:04:41.922992Z"
+        }
+      ],
+      "menu_categories": [
+        {
+          "id": 9,
+          "name": "Appetizers",
+          "description": "Appetizers menu",
+          "order": 0,
+          "is_active": true,
+          "items": [
+            {
+              "id": 19,
+              "name": "Garlic Bread",
+              "description": "Fresh baked bread with garlic butter",
+              "price": "5.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 0
+            },
+            {
+              "id": 20,
+              "name": "Caesar Salad",
+              "description": "Fresh romaine lettuce with caesar dressing",
+              "price": "8.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 1
+            }
+          ],
+          "items_count": 2
+        },
+        {
+          "id": 10,
+          "name": "Main Course",
+          "description": "Main Course menu",
+          "order": 1,
+          "is_active": true,
+          "items": [
+            {
+              "id": 21,
+              "name": "Grilled Chicken",
+              "description": "Tender grilled chicken breast",
+              "price": "18.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 0
+            },
+            {
+              "id": 22,
+              "name": "Beef Steak",
+              "description": "Prime cut beef steak",
+              "price": "24.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 1
+            },
+            {
+              "id": 23,
+              "name": "Vegetable Pasta",
+              "description": "Fresh pasta with vegetables",
+              "price": "14.99",
+              "is_vegetarian": true,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 2
+            }
+          ],
+          "items_count": 3
+        },
+        {
+          "id": 11,
+          "name": "Desserts",
+          "description": "Desserts menu",
+          "order": 2,
+          "is_active": true,
+          "items": [
+            {
+              "id": 24,
+              "name": "Chocolate Cake",
+              "description": "Rich chocolate cake",
+              "price": "7.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 0
+            },
+            {
+              "id": 25,
+              "name": "Ice Cream",
+              "description": "Vanilla ice cream",
+              "price": "5.99",
+              "is_vegetarian": true,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 1
+            }
+          ],
+          "items_count": 2
+        },
+        {
+          "id": 12,
+          "name": "Beverages",
+          "description": "Beverages menu",
+          "order": 3,
+          "is_active": true,
+          "items": [
+            {
+              "id": 26,
+              "name": "Coca Cola",
+              "description": "Soft drink",
+              "price": "2.99",
+              "is_vegetarian": false,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 0
+            },
+            {
+              "id": 27,
+              "name": "Fresh Juice",
+              "description": "Fresh orange juice",
+              "price": "4.99",
+              "is_vegetarian": true,
+              "is_vegan": false,
+              "is_gluten_free": false,
+              "is_available": true,
+              "image": null,
+              "image_url": null,
+              "order": 1
+            }
+          ],
+          "items_count": 2
+        }
+      ],
+      "opening_slots": [
+        {
+          "id": 15,
+          "day_of_week": 0,
+          "day_name": "Monday",
+          "opening_time": "09:00:00",
+          "closing_time": "22:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 16,
+          "day_of_week": 1,
+          "day_name": "Tuesday",
+          "opening_time": "09:00:00",
+          "closing_time": "22:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 17,
+          "day_of_week": 2,
+          "day_name": "Wednesday",
+          "opening_time": "09:00:00",
+          "closing_time": "22:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 18,
+          "day_of_week": 3,
+          "day_name": "Thursday",
+          "opening_time": "09:00:00",
+          "closing_time": "22:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 19,
+          "day_of_week": 4,
+          "day_name": "Friday",
+          "opening_time": "09:00:00",
+          "closing_time": "22:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 20,
+          "day_of_week": 5,
+          "day_name": "Saturday",
+          "opening_time": "10:00:00",
+          "closing_time": "23:00:00",
+          "is_closed": false
+        },
+        {
+          "id": 21,
+          "day_of_week": 6,
+          "day_name": "Sunday",
+          "opening_time": "11:00:00",
+          "closing_time": "21:00:00",
+          "is_closed": false
+        }
+      ],
+      "active_deals": [
+        {
+          "id": 6,
+          "title": "Bella Italia Special Offer 1",
+          "description": "Great deal at Bella Italia!",
+          "deal_type": "two_for_one",
+          "restaurant_name": "Bella Italia",
+          "restaurant_slug": "bella-italia",
+          "city_name": "Manchester",
+          "discount_percentage": null,
+          "discount_amount": null,
+          "minimum_spend": "20.00",
+          "start_date": "2026-01-25T18:04:41.532666Z",
+          "end_date": "2026-02-09T18:04:41.532666Z",
+          "is_featured": true,
+          "primary_image": null,
+          "is_active": true,
+          "created_at": "2026-01-26T18:04:41.538645Z"
+        },
+        {
+          "id": 8,
+          "title": "Bella Italia Special Offer 3",
+          "description": "Great deal at Bella Italia!",
+          "deal_type": "percentage",
+          "restaurant_name": "Bella Italia",
+          "restaurant_slug": "bella-italia",
+          "city_name": "Manchester",
+          "discount_percentage": 15,
+          "discount_amount": null,
+          "minimum_spend": "50.00",
+          "start_date": "2026-01-23T18:04:41.565670Z",
+          "end_date": "2026-02-05T18:04:41.565670Z",
+          "is_featured": false,
+          "primary_image": null,
+          "is_active": true,
+          "created_at": "2026-01-26T18:04:41.571664Z"
+        },
+        {
+          "id": 7,
+          "title": "Bella Italia Special Offer 2",
+          "description": "Great deal at Bella Italia!",
+          "deal_type": "two_for_one",
+          "restaurant_name": "Bella Italia",
+          "restaurant_slug": "bella-italia",
+          "city_name": "Manchester",
+          "discount_percentage": null,
+          "discount_amount": null,
+          "minimum_spend": null,
+          "start_date": "2026-01-24T18:04:41.549647Z",
+          "end_date": "2026-02-24T18:04:41.549647Z",
+          "is_featured": false,
+          "primary_image": null,
+          "is_active": true,
+          "created_at": "2026-01-26T18:04:41.555658Z"
+        }
+      ],
+      "average_rating": 3.3333333333333335,
+      "reviews_count": 3,
+      "is_open_now": true,
+      "is_favourite": false,
+      "distance": null,
+      "created_at": "2026-01-26T18:04:39.771120Z"
+    }
+  ]
+}

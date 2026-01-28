@@ -320,10 +320,11 @@ class _BookingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
+        final slug = booking.restaurant.slug ?? booking.restaurant.id;
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => RestaurantDetailsPage(restaurant: booking.restaurant),
+            builder: (context) => RestaurantDetailsPage(slug: slug),
           ),
         );
       },

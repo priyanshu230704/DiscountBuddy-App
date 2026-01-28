@@ -6,7 +6,8 @@ import '../../services/merchant_service.dart';
 
 /// Add/Edit Restaurant Page for Merchants
 class AddRestaurantPage extends StatefulWidget {
-  final Map<String, dynamic>? restaurant; // If provided, edit mode; otherwise, create mode
+  final Map<String, dynamic>?
+  restaurant; // If provided, edit mode; otherwise, create mode
 
   const AddRestaurantPage({super.key, this.restaurant});
 
@@ -33,12 +34,15 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
   int? _selectedCityId;
   String _selectedCityName = '';
   final _cityController = TextEditingController();
+  final _cityFocusNode = FocusNode();
   List<Map<String, dynamic>> _filteredCities = [];
   List<int> _selectedCategoryIds = [];
   int _priceRange = 2;
   bool _isLoading = false;
   bool _isLoadingData = true;
-  bool _showCitySuggestions = false;
+  final LayerLink _cityLayerLink = LayerLink();
+  OverlayEntry? _cityOverlayEntry;
+  final GlobalKey _cityFieldKey = GlobalKey();
   Map<String, String> _openingHours = {
     'monday': '',
     'tuesday': '',
@@ -56,6 +60,141 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
     if (widget.restaurant != null) {
       _loadRestaurantData();
     }
+    _cityFocusNode.addListener(_onCityFocusChange);
+  }
+
+  void _onCityFocusChange() {
+    if (_cityFocusNode.hasFocus) {
+      _showOverlay();
+    } else {
+      _hideOverlay();
+    }
+  }
+
+  void _showOverlay() {
+    if (_cityOverlayEntry != null) return;
+
+    _cityOverlayEntry = _createOverlayEntry();
+    Overlay.of(context).insert(_cityOverlayEntry!);
+    setState(() {});
+  }
+
+  void _hideOverlay() {
+    _cityOverlayEntry?.remove();
+    _cityOverlayEntry = null;
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  OverlayEntry _createOverlayEntry() {
+    RenderBox? renderBox =
+        _cityFieldKey.currentContext?.findRenderObject() as RenderBox?;
+    var size = renderBox?.size ?? Size.zero;
+
+    return OverlayEntry(
+      builder: (context) => Stack(
+        children: [
+          Positioned(
+            width: size.width,
+            child: CompositedTransformFollower(
+              link: _cityLayerLink,
+              showWhenUnlinked: false,
+              targetAnchor: Alignment.bottomLeft,
+              followerAnchor: Alignment.topLeft,
+              offset: const Offset(0, 4.0),
+              child: Material(
+                elevation: 8,
+                borderRadius: BorderRadius.circular(12),
+                shadowColor: Colors.black.withOpacity(0.3),
+                child: Container(
+                  constraints: const BoxConstraints(maxHeight: 250),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: NeoTasteColors.textDisabled.withOpacity(0.2),
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_filteredCities.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.search_off,
+                                color: NeoTasteColors.textDisabled,
+                                size: 32,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                _cityController.text.isEmpty
+                                    ? 'Loading cities...'
+                                    : 'No cities found for "${_cityController.text}"',
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.inter(
+                                  color: NeoTasteColors.textSecondary,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        Flexible(
+                          child: ListView.separated(
+                            padding: EdgeInsets.zero,
+                            shrinkWrap: true,
+                            itemCount: _filteredCities.length,
+                            separatorBuilder: (context, index) => Divider(
+                              height: 1,
+                              color: NeoTasteColors.textDisabled.withOpacity(
+                                0.1,
+                              ),
+                            ),
+                            itemBuilder: (context, index) {
+                              final city = _filteredCities[index];
+                              final cityName =
+                                  city['name'] as String? ?? 'Unknown';
+                              return ListTile(
+                                leading: const Icon(
+                                  Icons.location_city,
+                                  size: 20,
+                                  color: NeoTasteColors.accent,
+                                ),
+                                title: Text(
+                                  cityName,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w500,
+                                    color: NeoTasteColors.textPrimary,
+                                  ),
+                                ),              
+                                onTap: () {
+                                  setState(() {
+                                    _cityController.text = cityName;
+                                    _selectedCityId = city['id'] as int;
+                                    _selectedCityName = cityName;
+                                  });
+                                  _cityFocusNode.unfocus();
+                                  _hideOverlay();
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -71,6 +210,9 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
     _emailController.dispose();
     _websiteController.dispose();
     _cityController.dispose();
+    _cityFocusNode.removeListener(_onCityFocusChange);
+    _cityFocusNode.dispose();
+    _hideOverlay();
     super.dispose();
   }
 
@@ -117,7 +259,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
     _emailController.text = restaurant['email'] as String? ?? '';
     _websiteController.text = restaurant['website'] as String? ?? '';
     _priceRange = restaurant['price_range'] as int? ?? 2;
-    
+
     // Load city
     if (restaurant['city'] != null) {
       final city = restaurant['city'] as Map<String, dynamic>;
@@ -125,7 +267,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
       _selectedCityName = city['name'] as String? ?? '';
       _cityController.text = _selectedCityName;
     }
-    
+
     // Load categories
     if (restaurant['categories'] != null) {
       final categories = restaurant['categories'] as List;
@@ -134,7 +276,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
         return c as int;
       }).toList();
     }
-    
+
     // Load opening hours
     if (restaurant['opening_hours'] != null) {
       final hours = restaurant['opening_hours'] as Map<String, dynamic>;
@@ -177,7 +319,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
             ? _generateSlug(_nameController.text.trim())
             : _slugController.text.trim(),
         'description': _descriptionController.text.trim(),
-        'city': _selectedCityId,
+        'city_id': _selectedCityId,
         'address': _addressController.text.trim(),
         'postcode': _postcodeController.text.trim(),
         'latitude': _latitudeController.text.trim(),
@@ -191,20 +333,21 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
       };
 
       // Remove empty optional fields
-      restaurantData.removeWhere((key, value) =>
-          (value == null || value == '' || (value is List && value.isEmpty)) &&
-          key != 'city' &&
-          key != 'categories' &&
-          key != 'price_range');
+      restaurantData.removeWhere(
+        (key, value) =>
+            (value == null ||
+                value == '' ||
+                (value is List && value.isEmpty)) &&
+            key != 'city_id' &&
+            key != 'categories' &&
+            key != 'price_range',
+      );
 
       if (widget.restaurant != null) {
         // Update existing restaurant
         final restaurantId = widget.restaurant!['id'];
         if (restaurantId is int) {
-          await _merchantService.updateRestaurant(
-            restaurantId,
-            restaurantData,
-          );
+          await _merchantService.updateRestaurant(restaurantId, restaurantData);
         } else {
           await _merchantService.updateRestaurant(
             int.parse(restaurantId.toString()),
@@ -258,10 +401,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
       appBar: AppBar(
         title: Text(
           widget.restaurant != null ? 'Edit Restaurant' : 'Add Restaurant',
-          style: GoogleFonts.inter(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         backgroundColor: NeoTasteColors.white,
         elevation: 0,
@@ -307,7 +447,9 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Failed to delete: ${e.toString()}'),
+                              content: Text(
+                                'Failed to delete: ${e.toString()}',
+                              ),
                               backgroundColor: Colors.red,
                             ),
                           );
@@ -352,95 +494,48 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Location
                     _buildSectionTitle('Location'),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        AuthTextField(
-                          controller: _cityController,
-                          placeholder: 'Search City *',
-                          onChanged: (value) {
-                            setState(() {
-                              if (value.isEmpty) {
-                                _filteredCities = _cities;
-                                _selectedCityId = null;
-                                _selectedCityName = '';
-                                _showCitySuggestions = false;
-                              } else {
-                                _filteredCities = _cities.where((city) {
-                                  final cityName = (city['name'] as String? ?? '').toLowerCase();
-                                  return cityName.contains(value.toLowerCase());
-                                }).toList();
-                                _showCitySuggestions = _filteredCities.isNotEmpty;
-                                // Clear selection if text doesn't match selected city
-                                if (_selectedCityName.toLowerCase() != value.toLowerCase()) {
-                                  _selectedCityId = null;
-                                }
-                              }
-                            });
-                          },
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'City is required';
+                    CompositedTransformTarget(
+                      link: _cityLayerLink,
+                      child: AuthTextField(
+                        key: _cityFieldKey,
+                        controller: _cityController,
+                        focusNode: _cityFocusNode,
+                        placeholder: 'Search City *',
+                        readOnly: true,
+                        onTap: () {
+                          if (!_cityFocusNode.hasFocus) {
+                            _cityFocusNode.requestFocus();
+                          } else {
+                            _showOverlay();
+                          }
+                        },
+                        onChanged: (value) {
+                          setState(() {
+                            if (value.isEmpty) {
+                              _filteredCities = _cities;
+                              _selectedCityId = null;
+                            } else {
+                              _filteredCities = _cities.where((city) {
+                                final cityName = (city['name'] as String? ?? '')
+                                    .toLowerCase();
+                                return cityName.contains(value.toLowerCase());
+                              }).toList();
                             }
-                            return null;
-                          },
-                        ),
-                        if (_showCitySuggestions && _filteredCities.isNotEmpty)
-                          Container(
-                            margin: const EdgeInsets.only(top: 4),
-                            constraints: const BoxConstraints(maxHeight: 200),
-                            decoration: BoxDecoration(
-                              color: NeoTasteColors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: NeoTasteColors.textDisabled.withOpacity(0.3),
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: ListView.builder(
-                              shrinkWrap: true,
-                              itemCount: _filteredCities.length > 5 ? 5 : _filteredCities.length,
-                              itemBuilder: (context, index) {
-                                final city = _filteredCities[index];
-                                final cityId = city['id'] as int;
-                                final cityName = city['name'] as String;
-                                return InkWell(
-                                  onTap: () {
-                                    setState(() {
-                                      _selectedCityId = cityId;
-                                      _selectedCityName = cityName;
-                                      _cityController.text = cityName;
-                                      _showCitySuggestions = false;
-                                    });
-                                    // Remove focus from text field
-                                    FocusScope.of(context).unfocus();
-                                  },
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 12,
-                                    ),
-                                    child: Text(
-                                      cityName,
-                                      style: GoogleFonts.inter(
-                                        fontSize: 14,
-                                        color: NeoTasteColors.textPrimary,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                      ],
+                            // Rebuild overlay with filtered list
+                            _cityOverlayEntry?.markNeedsBuild();
+                          });
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'City is required';
+                          }
+                          if (_selectedCityId == null) {
+                            return 'Please select a city from the dropdown';
+                          }
+                          return null;
+                        },
+                      ),
                     ),
                     const SizedBox(height: 16),
                     AuthTextField(
@@ -516,8 +611,9 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                       runSpacing: 8,
                       children: _categories.map((category) {
                         final categoryId = category['id'] as int;
-                        final isSelected =
-                            _selectedCategoryIds.contains(categoryId);
+                        final isSelected = _selectedCategoryIds.contains(
+                          categoryId,
+                        );
                         return FilterChip(
                           label: Text(category['name'] as String),
                           selected: isSelected,
@@ -594,7 +690,9 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                     // Opening Hours
                     _buildSectionTitle('Opening Hours (Optional)'),
                     ..._openingHours.entries.map((entry) {
-                      final controller = TextEditingController(text: entry.value);
+                      final controller = TextEditingController(
+                        text: entry.value,
+                      );
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: Row(

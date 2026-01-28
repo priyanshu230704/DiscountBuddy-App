@@ -12,6 +12,8 @@ class AuthTextField extends StatelessWidget {
   final bool showToggle;
   final FocusNode? focusNode;
   final void Function(String)? onChanged;
+  final bool readOnly;
+  final VoidCallback? onTap;
 
   const AuthTextField({
     super.key,
@@ -24,6 +26,8 @@ class AuthTextField extends StatelessWidget {
     this.showToggle = false,
     this.focusNode,
     this.onChanged,
+    this.readOnly = false,
+    this.onTap,
   });
 
   @override
@@ -34,6 +38,8 @@ class AuthTextField extends StatelessWidget {
       obscureText: obscureText,
       keyboardType: keyboardType,
       onChanged: onChanged,
+      readOnly: readOnly,
+      onTap: onTap,
       style: AuthTheme.bodyText,
       validator: validator,
       decoration: InputDecoration(
@@ -41,7 +47,10 @@ class AuthTextField extends StatelessWidget {
         hintStyle: AuthTheme.hintText,
         filled: true,
         fillColor: Colors.transparent,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 18,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AuthTheme.inputBorderRadius),
           borderSide: BorderSide(
@@ -80,7 +89,9 @@ class AuthTextField extends StatelessWidget {
         suffixIcon: showToggle && onToggleVisibility != null
             ? IconButton(
                 icon: Icon(
-                  obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                  obscureText
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
                   color: AuthTheme.textGrey,
                 ),
                 onPressed: onToggleVisibility,

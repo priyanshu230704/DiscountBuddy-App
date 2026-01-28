@@ -12,7 +12,7 @@ class MerchantService {
     if (_apiService.authToken != null) {
       return;
     }
-    
+
     // Try to load token from storage
     final token = await _authService.getAccessToken();
     if (token != null && token.isNotEmpty) {
@@ -27,14 +27,16 @@ class MerchantService {
     int? page,
     String? search,
     String? ordering,
+    int? cityId,
   }) async {
     try {
       await _ensureAuthenticated();
-      
+
       final queryParams = <String, String>{};
       if (page != null) queryParams['page'] = page.toString();
       if (search != null && search.isNotEmpty) queryParams['search'] = search;
       if (ordering != null) queryParams['ordering'] = ordering;
+      if (cityId != null) queryParams['city'] = cityId.toString();
 
       final response = await _apiService.get(
         '/restaurants/merchant/restaurants/',
@@ -55,7 +57,7 @@ class MerchantService {
   Future<Map<String, dynamic>> getRestaurantDetails(int restaurantId) async {
     try {
       await _ensureAuthenticated();
-      
+
       final response = await _apiService.get(
         '/restaurants/merchant/restaurants/$restaurantId/',
       );
@@ -66,10 +68,12 @@ class MerchantService {
   }
 
   /// Create restaurant - returns raw Map
-  Future<Map<String, dynamic>> createRestaurant(Map<String, dynamic> restaurantData) async {
+  Future<Map<String, dynamic>> createRestaurant(
+    Map<String, dynamic> restaurantData,
+  ) async {
     try {
       await _ensureAuthenticated();
-      
+
       final response = await _apiService.post(
         '/restaurants/merchant/restaurants/',
         body: restaurantData,
@@ -84,10 +88,13 @@ class MerchantService {
   }
 
   /// Update restaurant - returns raw Map
-  Future<Map<String, dynamic>> updateRestaurant(int restaurantId, Map<String, dynamic> restaurantData) async {
+  Future<Map<String, dynamic>> updateRestaurant(
+    int restaurantId,
+    Map<String, dynamic> restaurantData,
+  ) async {
     try {
       await _ensureAuthenticated();
-      
+
       final response = await _apiService.patch(
         '/restaurants/merchant/restaurants/$restaurantId/',
         body: restaurantData,
@@ -105,8 +112,10 @@ class MerchantService {
   Future<void> deleteRestaurant(int restaurantId) async {
     try {
       await _ensureAuthenticated();
-      
-      await _apiService.delete('/restaurants/merchant/restaurants/$restaurantId/');
+
+      await _apiService.delete(
+        '/restaurants/merchant/restaurants/$restaurantId/',
+      );
       // 204 No Content response is expected
       return;
     } catch (e) {
@@ -129,9 +138,11 @@ class MerchantService {
     try {
       final queryParams = <String, String>{};
       if (page != null) queryParams['page'] = page.toString();
-      if (restaurantId != null) queryParams['restaurant'] = restaurantId.toString();
+      if (restaurantId != null)
+        queryParams['restaurant'] = restaurantId.toString();
       if (dealType != null) queryParams['deal_type'] = dealType;
-      if (isFeatured != null) queryParams['is_featured'] = isFeatured.toString();
+      if (isFeatured != null)
+        queryParams['is_featured'] = isFeatured.toString();
       if (search != null && search.isNotEmpty) queryParams['search'] = search;
       if (ordering != null) queryParams['ordering'] = ordering;
 
@@ -153,7 +164,7 @@ class MerchantService {
   Future<Map<String, dynamic>> getDealDetails(int dealId) async {
     try {
       await _ensureAuthenticated();
-      
+
       final response = await _apiService.get(
         '/restaurants/merchant/deals/$dealId/',
       );
@@ -167,7 +178,7 @@ class MerchantService {
   Future<Map<String, dynamic>> createDeal(Map<String, dynamic> dealData) async {
     try {
       await _ensureAuthenticated();
-      
+
       final response = await _apiService.post(
         '/restaurants/merchant/deals/',
         body: dealData,
@@ -182,10 +193,13 @@ class MerchantService {
   }
 
   /// Update deal
-  Future<Map<String, dynamic>> updateDeal(int dealId, Map<String, dynamic> dealData) async {
+  Future<Map<String, dynamic>> updateDeal(
+    int dealId,
+    Map<String, dynamic> dealData,
+  ) async {
     try {
       await _ensureAuthenticated();
-      
+
       final response = await _apiService.patch(
         '/restaurants/merchant/deals/$dealId/',
         body: dealData,
@@ -203,7 +217,7 @@ class MerchantService {
   Future<void> deleteDeal(int dealId) async {
     try {
       await _ensureAuthenticated();
-      
+
       await _apiService.delete('/restaurants/merchant/deals/$dealId/');
       // 204 No Content response is expected
       return;
@@ -240,7 +254,9 @@ class MerchantService {
           return (results).map((item) => item as Map<String, dynamic>).toList();
         }
       } else if (response is List) {
-        return (response as List).map((item) => item as Map<String, dynamic>).toList();
+        return (response as List)
+            .map((item) => item as Map<String, dynamic>)
+            .toList();
       }
       return [];
     } catch (e) {
@@ -269,7 +285,9 @@ class MerchantService {
           return (results).map((item) => item as Map<String, dynamic>).toList();
         }
       } else if (response is List) {
-        return (response as List).map((item) => item as Map<String, dynamic>).toList();
+        return (response as List)
+            .map((item) => item as Map<String, dynamic>)
+            .toList();
       }
       return [];
     } catch (e) {

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'auth_theme.dart';
 
 /// NeoTaste-style Auth Text Field - Minimal rounded input with placeholder only
@@ -14,6 +16,9 @@ class AuthTextField extends StatelessWidget {
   final void Function(String)? onChanged;
   final bool readOnly;
   final VoidCallback? onTap;
+  final List<TextInputFormatter>? inputFormatters;
+  final int? maxLength;
+  final AutovalidateMode? autovalidateMode;
 
   const AuthTextField({
     super.key,
@@ -28,6 +33,9 @@ class AuthTextField extends StatelessWidget {
     this.onChanged,
     this.readOnly = false,
     this.onTap,
+    this.inputFormatters,
+    this.maxLength,
+    this.autovalidateMode = AutovalidateMode.onUserInteraction,
   });
 
   @override
@@ -41,7 +49,10 @@ class AuthTextField extends StatelessWidget {
       readOnly: readOnly,
       onTap: onTap,
       style: AuthTheme.bodyText,
+      inputFormatters: inputFormatters,
+      maxLength: maxLength,
       validator: validator,
+      autovalidateMode: autovalidateMode,
       decoration: InputDecoration(
         hintText: placeholder,
         hintStyle: AuthTheme.hintText,
@@ -51,6 +62,7 @@ class AuthTextField extends StatelessWidget {
           horizontal: 20,
           vertical: 18,
         ),
+        counterText: "", // Hide the default character counter
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AuthTheme.inputBorderRadius),
           borderSide: BorderSide(
@@ -86,6 +98,7 @@ class AuthTextField extends StatelessWidget {
             width: AuthTheme.inputBorderWidth,
           ),
         ),
+        errorStyle: GoogleFonts.inter(color: Colors.red, fontSize: 12),
         suffixIcon: showToggle && onToggleVisibility != null
             ? IconButton(
                 icon: Icon(

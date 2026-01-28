@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
@@ -68,8 +69,7 @@ class _RegisterPageState extends State<RegisterPage> {
     final isValid =
         _nameController.text.isNotEmpty &&
         _emailController.text.isNotEmpty &&
-        _emailController.text.contains('@') &&
-        _passwordController.text.length >= 6 &&
+        _passwordController.text.length >= 4 &&
         _confirmPasswordController.text == _passwordController.text &&
         _agreeToTerms &&
         _selectedRole.isNotEmpty;
@@ -104,6 +104,33 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
       );
       _authProvider?.clearError();
+    }
+  }
+
+  void _sanitizeField(
+    TextEditingController controller,
+    RegExp allowedChars, {
+    int? maxLength,
+  }) {
+    String currentText = controller.text;
+    String sanitizedText = currentText
+        .split('')
+        .where((char) => allowedChars.hasMatch(char))
+        .join('');
+
+    if (maxLength != null && sanitizedText.length > maxLength) {
+      sanitizedText = sanitizedText.substring(0, maxLength);
+    }
+
+    if (currentText != sanitizedText) {
+      Future.delayed(const Duration(milliseconds: 1000), () {
+        if (mounted && controller.text == currentText) {
+          controller.value = controller.value.copyWith(
+            text: sanitizedText,
+            selection: TextSelection.collapsed(offset: sanitizedText.length),
+          );
+        }
+      });
     }
   }
 
@@ -151,9 +178,22 @@ class _RegisterPageState extends State<RegisterPage> {
                     controller: _nameController,
                     placeholder: 'Full Name',
                     focusNode: _nameFocusNode,
+                    onChanged: (value) {
+                      _sanitizeField(
+                        _nameController,
+                        RegExp(r'[a-zA-Z\s]'),
+                        maxLength: 20,
+                      );
+                    },
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your full name';
+                      }
+                      if (value.length > 20) {
+                        return 'Name cannot exceed 20 characters';
+                      }
+                      if (!RegExp(r'^[a-zA-Z\s]*$').hasMatch(value)) {
+                        return 'Only letters and spaces are allowed';
                       }
                       return null;
                     },
@@ -166,13 +206,18 @@ class _RegisterPageState extends State<RegisterPage> {
                     placeholder: 'Email / Mobile',
                     keyboardType: TextInputType.emailAddress,
                     focusNode: _emailFocusNode,
+                    onChanged: (value) {
+                      _sanitizeField(
+                        _emailController,
+                        RegExp(r'[a-zA-Z0-9.@]'),
+                      );
+                    },
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your email or mobile';
                       }
-                      if (value.contains('@') &&
-                          (!value.contains('.') || !value.contains('@'))) {
-                        return 'Please enter a valid email';
+                      if (!RegExp(r'^[a-zA-Z0-9.@]*$').hasMatch(value)) {
+                        return 'Only letters, numbers, . and @ are allowed';
                       }
                       return null;
                     },
@@ -195,8 +240,8 @@ class _RegisterPageState extends State<RegisterPage> {
                       if (value == null || value.isEmpty) {
                         return 'Please enter a password';
                       }
-                      if (value.length < 6) {
-                        return 'Password must be at least 6 characters';
+                      if (value.length < 4) {
+                        return 'Password must be at least 4 characters';
                       }
                       return null;
                     },

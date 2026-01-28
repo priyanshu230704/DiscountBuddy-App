@@ -51,9 +51,7 @@ class _LoginPageState extends State<LoginPage> {
 
   void _validateForm() {
     final isValid =
-        _emailController.text.isNotEmpty &&
-        _passwordController.text.isNotEmpty &&
-        _emailController.text.contains('@');
+        _emailController.text.isNotEmpty && _passwordController.text.isNotEmpty;
     if (isValid != _isFormValid) {
       setState(() {
         _isFormValid = isValid;
@@ -132,16 +130,8 @@ class _LoginPageState extends State<LoginPage> {
                     placeholder: 'Email / Mobile',
                     keyboardType: TextInputType.emailAddress,
                     focusNode: _emailFocusNode,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your email or mobile';
-                      }
-                      if (value.contains('@') &&
-                          (!value.contains('.') || !value.contains('@'))) {
-                        return 'Please enter a valid email';
-                      }
-                      return null;
-                    },
+                    autovalidateMode: AutovalidateMode.disabled,
+                    validator: null,
                   ),
                   const SizedBox(height: 16),
 
@@ -152,20 +142,13 @@ class _LoginPageState extends State<LoginPage> {
                     obscureText: _obscurePassword,
                     showToggle: true,
                     focusNode: _passwordFocusNode,
+                    autovalidateMode: AutovalidateMode.disabled,
                     onToggleVisibility: () {
                       setState(() {
                         _obscurePassword = !_obscurePassword;
                       });
                     },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your password';
-                      }
-                      if (value.length < 6) {
-                        return 'Password must be at least 6 characters';
-                      }
-                      return null;
-                    },
+                    validator: null,
                   ),
                   const SizedBox(height: 12),
 

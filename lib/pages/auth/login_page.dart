@@ -50,7 +50,8 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _validateForm() {
-    final isValid = _emailController.text.isNotEmpty &&
+    final isValid =
+        _emailController.text.isNotEmpty &&
         _passwordController.text.isNotEmpty &&
         _emailController.text.contains('@');
     if (isValid != _isFormValid) {
@@ -98,10 +99,12 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AuthTheme.background,
-      body: SafeArea(
-        child: SingleChildScrollView(
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        backgroundColor: AuthTheme.background,
+        body: SafeArea(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Form(
               key: _formKey,
@@ -111,21 +114,18 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 24),
                   // Back Arrow
                   const SizedBox(height: 40),
-                  
+
                   // Large Heading
-                  Text(
-                    'Welcome back',
-                    style: AuthTheme.headingLarge,
-                  ),
+                  Text('Welcome back', style: AuthTheme.headingLarge),
                   const SizedBox(height: 8),
-                  
+
                   // Small Subtitle
                   Text(
                     'Log in to continue discovering deals',
                     style: AuthTheme.subtitle,
                   ),
                   const SizedBox(height: 48),
-                  
+
                   // Email / Mobile Input
                   AuthTextField(
                     controller: _emailController,
@@ -136,14 +136,15 @@ class _LoginPageState extends State<LoginPage> {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your email or mobile';
                       }
-                      if (value.contains('@') && (!value.contains('.') || !value.contains('@'))) {
+                      if (value.contains('@') &&
+                          (!value.contains('.') || !value.contains('@'))) {
                         return 'Please enter a valid email';
                       }
                       return null;
                     },
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Password Input
                   AuthTextField(
                     controller: _passwordController,
@@ -167,7 +168,7 @@ class _LoginPageState extends State<LoginPage> {
                     },
                   ),
                   const SizedBox(height: 12),
-                  
+
                   // Forgot Password
                   Align(
                     alignment: Alignment.centerRight,
@@ -182,42 +183,56 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  
+
                   // Login Button
                   AuthButton(
                     text: 'Login',
-                    onPressed: _isFormValid && !_isLoading ? _handleLogin : null,
+                    onPressed: _isFormValid && !_isLoading
+                        ? _handleLogin
+                        : null,
                     isLoading: _isLoading,
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // Footer
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        'New here? ',
-                        style: AuthTheme.subtitle,
-                      ),
+                      Text('New here?', style: AuthTheme.subtitle),
                       TextButton(
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
                         onPressed: () {
                           Navigator.push(
                             context,
                             PageRouteBuilder(
-                              pageBuilder: (context, animation, secondaryAnimation) =>
-                                  const RegisterPage(),
-                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                return SlideTransition(
-                                  position: Tween<Offset>(
-                                    begin: const Offset(1.0, 0.0),
-                                    end: Offset.zero,
-                                  ).animate(CurvedAnimation(
-                                    parent: animation,
-                                    curve: Curves.easeInOut,
-                                  )),
-                                  child: child,
-                                );
-                              },
+                              pageBuilder:
+                                  (context, animation, secondaryAnimation) =>
+                                      const RegisterPage(),
+                              transitionsBuilder:
+                                  (
+                                    context,
+                                    animation,
+                                    secondaryAnimation,
+                                    child,
+                                  ) {
+                                    return SlideTransition(
+                                      position:
+                                          Tween<Offset>(
+                                            begin: const Offset(1.0, 0.0),
+                                            end: Offset.zero,
+                                          ).animate(
+                                            CurvedAnimation(
+                                              parent: animation,
+                                              curve: Curves.easeInOut,
+                                            ),
+                                          ),
+                                      child: child,
+                                    );
+                                  },
                             ),
                           );
                         },
@@ -234,6 +249,7 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
         ),
+      ),
     );
   }
 }

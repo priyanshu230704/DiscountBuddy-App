@@ -12,7 +12,7 @@ import 'merchant/merchant_deals_page.dart';
 /// Main navigation with bottom navigation bar (NeoTaste style)
 class MainNavigation extends StatefulWidget {
   final ThemeProvider? themeProvider;
-  
+
   const MainNavigation({super.key, this.themeProvider});
 
   @override
@@ -75,10 +75,13 @@ class _MainNavigationState extends State<MainNavigation> {
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
-        children: List.generate(
-          _authProvider.isMerchant ? 3 : 4,
-          (index) => _getPage(index),
-        ),
+        children: List.generate(_authProvider.isMerchant ? 3 : 4, (index) {
+          // Lazy load: only build if it's the current index or already cached
+          if (index == _currentIndex || _pageCache.containsKey(index)) {
+            return _getPage(index);
+          }
+          return const SizedBox.shrink();
+        }),
       ),
       bottomNavigationBar: _NeoTasteBottomNavBar(
         currentIndex: _currentIndex,
@@ -192,7 +195,7 @@ class _NeoTasteBottomNavBar extends StatelessWidget {
     required int index,
   }) {
     final isSelected = currentIndex == index;
-    
+
     return Expanded(
       child: GestureDetector(
         onTap: () => onTap(index),
@@ -232,4 +235,3 @@ class _NeoTasteBottomNavBar extends StatelessWidget {
     );
   }
 }
-

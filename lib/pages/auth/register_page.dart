@@ -65,7 +65,8 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void _validateForm() {
-    final isValid = _nameController.text.isNotEmpty &&
+    final isValid =
+        _nameController.text.isNotEmpty &&
         _emailController.text.isNotEmpty &&
         _emailController.text.contains('@') &&
         _passwordController.text.length >= 6 &&
@@ -119,44 +120,32 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AuthTheme.background,
-      body: SafeArea(
-        child: SingleChildScrollView(
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        backgroundColor: AuthTheme.background,
+        body: SafeArea(
+          child: SingleChildScrollView(
+            physics: const NeverScrollableScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 24),
-                  // Back Arrow
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.arrow_back,
-                        color: AuthTheme.textPrimary,
-                      ),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  
+                  const SizedBox(height: 16),
+
                   // Title
-                  Text(
-                    'Create your account',
-                    style: AuthTheme.headingLarge,
-                  ),
+                  Text('Create your account', style: AuthTheme.headingLarge),
                   const SizedBox(height: 8),
-                  
+
                   // Subtitle
                   Text(
                     'Unlock exclusive restaurant offers',
                     style: AuthTheme.subtitle,
                   ),
                   const SizedBox(height: 48),
-                  
+
                   // Full Name Input
                   AuthTextField(
                     controller: _nameController,
@@ -170,7 +159,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Email / Mobile Input
                   AuthTextField(
                     controller: _emailController,
@@ -181,14 +170,15 @@ class _RegisterPageState extends State<RegisterPage> {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your email or mobile';
                       }
-                      if (value.contains('@') && (!value.contains('.') || !value.contains('@'))) {
+                      if (value.contains('@') &&
+                          (!value.contains('.') || !value.contains('@'))) {
                         return 'Please enter a valid email';
                       }
                       return null;
                     },
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Password Input
                   AuthTextField(
                     controller: _passwordController,
@@ -212,7 +202,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Confirm Password Input
                   AuthTextField(
                     controller: _confirmPasswordController,
@@ -236,7 +226,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Role Selection
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 0),
@@ -251,7 +241,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             color: NeoTasteColors.textPrimary,
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
                         Row(
                           children: [
                             Expanded(
@@ -272,7 +262,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                     border: Border.all(
                                       color: _selectedRole == 'customer'
                                           ? NeoTasteColors.accent
-                                          : NeoTasteColors.textDisabled.withOpacity(0.3),
+                                          : NeoTasteColors.textDisabled
+                                                .withOpacity(0.3),
                                       width: 2,
                                     ),
                                   ),
@@ -320,7 +311,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                     border: Border.all(
                                       color: _selectedRole == 'merchant'
                                           ? NeoTasteColors.accent
-                                          : NeoTasteColors.textDisabled.withOpacity(0.3),
+                                          : NeoTasteColors.textDisabled
+                                                .withOpacity(0.3),
                                       width: 2,
                                     ),
                                   ),
@@ -355,7 +347,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // Terms Checkbox
                   Row(
                     children: [
@@ -408,49 +400,63 @@ class _RegisterPageState extends State<RegisterPage> {
                     ],
                   ),
                   const SizedBox(height: 32),
-                  
+
                   // Create Account Button
                   AuthButton(
                     text: 'Create Account',
-                    onPressed: _isFormValid && !_isLoading ? _handleRegister : null,
+                    onPressed: _isFormValid && !_isLoading
+                        ? _handleRegister
+                        : null,
                     isLoading: _isLoading,
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // Footer
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Already have an account? ',
+                        'Already have an account?',
                         style: AuthTheme.subtitle,
                       ),
                       TextButton(
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
                         onPressed: () {
                           Navigator.push(
                             context,
                             PageRouteBuilder(
-                              pageBuilder: (context, animation, secondaryAnimation) =>
-                                  const LoginPage(),
-                              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                return SlideTransition(
-                                  position: Tween<Offset>(
-                                    begin: const Offset(1.0, 0.0),
-                                    end: Offset.zero,
-                                  ).animate(CurvedAnimation(
-                                    parent: animation,
-                                    curve: Curves.easeInOut,
-                                  )),
-                                  child: child,
-                                );
-                              },
+                              pageBuilder:
+                                  (context, animation, secondaryAnimation) =>
+                                      const LoginPage(),
+                              transitionsBuilder:
+                                  (
+                                    context,
+                                    animation,
+                                    secondaryAnimation,
+                                    child,
+                                  ) {
+                                    return SlideTransition(
+                                      position:
+                                          Tween<Offset>(
+                                            begin: const Offset(1.0, 0.0),
+                                            end: Offset.zero,
+                                          ).animate(
+                                            CurvedAnimation(
+                                              parent: animation,
+                                              curve: Curves.easeInOut,
+                                            ),
+                                          ),
+                                      child: child,
+                                    );
+                                  },
                             ),
                           );
                         },
-                        child: Text(
-                          'Log in',
-                          style: AuthTheme.linkText,
-                        ),
+                        child: Text('Log in', style: AuthTheme.linkText),
                       ),
                     ],
                   ),
@@ -460,6 +466,7 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
           ),
         ),
+      ),
     );
   }
 }

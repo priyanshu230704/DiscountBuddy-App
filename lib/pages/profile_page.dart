@@ -24,7 +24,6 @@ class _ProfilePageState extends State<ProfilePage> {
     super.initState();
     _authProvider.addListener(_onAuthStateChanged);
     _loadWallet();
-    _refreshUserData();
   }
 
   @override
@@ -37,12 +36,6 @@ class _ProfilePageState extends State<ProfilePage> {
     if (mounted) {
       setState(() {});
       _loadWallet();
-    }
-  }
-
-  Future<void> _refreshUserData() async {
-    if (_authProvider.isAuthenticated) {
-      await _authProvider.refreshUser();
     }
   }
 
@@ -101,7 +94,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
               const SizedBox(height: 24),
-              
+
               // User Profile Section with Edit Profile
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -195,11 +188,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       label: 'Deals',
                     ),
                     const SizedBox(width: 12),
-                    _StatCard(
-                      icon: Icons.star,
-                      value: '1',
-                      label: 'Loyalty',
-                    ),
+                    _StatCard(icon: Icons.star, value: '1', label: 'Loyalty'),
                   ],
                 ),
               ),
@@ -260,29 +249,21 @@ class _ProfilePageState extends State<ProfilePage> {
                 color: NeoTasteColors.white,
                 child: Column(
                   children: [
-                    _buildListTile(
-                      Icons.card_membership,
-                      'Membership',
-                      () {
-                        // Navigate to membership
-                      },
-                    ),
+                    _buildListTile(Icons.card_membership, 'Membership', () {
+                      // Navigate to membership
+                    }),
                     const Divider(height: 1),
-                    _buildListTile(
-                      Icons.help_outline,
-                      'Help & Support',
-                      () {
-                        // Navigate to help
-                      },
-                    ),
+                    _buildListTile(Icons.help_outline, 'Help & Support', () {
+                      // Navigate to help
+                    }),
                     const Divider(height: 1),
-                    _buildListTile(
-                      Icons.settings,
-                      'Settings',
-                      () {
-                        // Navigate to settings
-                      },
-                    ),
+                    _buildListTile(Icons.settings, 'Settings', () {
+                      // Navigate to settings
+                    }),
+                    const Divider(height: 1),
+                    _buildListTile(Icons.logout, 'Logout', () {
+                      _showLogoutConfirmation();
+                    }, isDestructive: true),
                   ],
                 ),
               ),
@@ -294,23 +275,69 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildListTile(IconData icon, String title, VoidCallback onTap) {
+  void _showLogoutConfirmation() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Logout',
+          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'Are you sure you want to logout?',
+          style: GoogleFonts.inter(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.inter(color: NeoTasteColors.textSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await _authProvider.logout();
+              if (mounted) {
+                Navigator.of(context).pushReplacementNamed('/login');
+              }
+            },
+            child: Text(
+              'Logout',
+              style: GoogleFonts.inter(
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildListTile(
+    IconData icon,
+    String title,
+    VoidCallback onTap, {
+    bool isDestructive = false,
+  }) {
     return ListTile(
       leading: Icon(
         icon,
-        color: NeoTasteColors.textPrimary,
+        color: isDestructive ? Colors.red : NeoTasteColors.textPrimary,
       ),
       title: Text(
         title,
         style: GoogleFonts.inter(
           fontSize: 16,
           fontWeight: FontWeight.w500,
-          color: NeoTasteColors.textPrimary,
+          color: isDestructive ? Colors.red : NeoTasteColors.textPrimary,
         ),
       ),
-      trailing: const Icon(
+      trailing: Icon(
         Icons.chevron_right,
-        color: NeoTasteColors.textPrimary,
+        color: isDestructive ? Colors.red : NeoTasteColors.textPrimary,
       ),
       onTap: onTap,
     );
@@ -345,11 +372,7 @@ class _StatCard extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            color: NeoTasteColors.textPrimary,
-            size: 24,
-          ),
+          Icon(icon, color: NeoTasteColors.textPrimary, size: 24),
           const SizedBox(height: 8),
           Text(
             value,

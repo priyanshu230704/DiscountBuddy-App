@@ -82,7 +82,7 @@ class RestaurantService {
     Map<int, String>? cuisineMap,
   }) {
     final restaurantId = json['id'] as int? ?? 0;
-    
+
     // Build address from city_name and country_name
     final cityName = json['city_name'] as String? ?? '';
     final countryName = json['country_name'] as String? ?? '';
@@ -97,7 +97,8 @@ class RestaurantService {
     final longitude = double.tryParse(lngStr) ?? 0.0;
 
     // Get image URL - use primary_image if available, otherwise placeholder
-    final imageUrl = json['primary_image'] as String? ??
+    final imageUrl =
+        json['primary_image'] as String? ??
         'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800';
 
     // Get cuisine from map if available, otherwise use default
@@ -150,22 +151,27 @@ class RestaurantService {
       final cleanSlug = slug.trim().replaceAll(RegExp(r'/+$'), '');
       final endpoint = '/restaurants/restaurant-detail/$cleanSlug';
       final response = await _apiService.get(endpoint);
-      
+
       final restaurant = _convertDetailResponseToModel(response);
-      
+
       // Parse reviews
       final reviewsJson = response['reviews'] as List<dynamic>? ?? [];
       final reviews = reviewsJson
           .map((review) => Review.fromJson(review as Map<String, dynamic>))
           .toList();
-      
+
       // Parse menu categories
-      final menuCategoriesJson = response['menu_categories'] as List<dynamic>? ?? [];
-      final menuCategories = menuCategoriesJson
-          .map((category) => MenuCategory.fromJson(category as Map<String, dynamic>))
-          .toList()
-        ..sort((a, b) => a.order.compareTo(b.order));
-      
+      final menuCategoriesJson =
+          response['menu_categories'] as List<dynamic>? ?? [];
+      final menuCategories =
+          menuCategoriesJson
+              .map(
+                (category) =>
+                    MenuCategory.fromJson(category as Map<String, dynamic>),
+              )
+              .toList()
+            ..sort((a, b) => a.order.compareTo(b.order));
+
       return RestaurantDetail(
         restaurant: restaurant,
         reviews: reviews,
@@ -179,7 +185,7 @@ class RestaurantService {
   /// Convert restaurant detail API response to Restaurant model
   Restaurant _convertDetailResponseToModel(Map<String, dynamic> json) {
     final restaurantId = json['id'] as int? ?? 0;
-    
+
     // Parse latitude and longitude from strings
     final latStr = json['latitude'] as String? ?? '0';
     final lngStr = json['longitude'] as String? ?? '0';
@@ -187,7 +193,8 @@ class RestaurantService {
     final longitude = double.tryParse(lngStr) ?? 0.0;
 
     // Get primary image from images array
-    String imageUrl = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800';
+    String imageUrl =
+        'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800';
     final images = json['images'] as List<dynamic>? ?? [];
     if (images.isNotEmpty) {
       final primaryImage = images.firstWhere(
@@ -214,13 +221,11 @@ class RestaurantService {
     }
 
     // Get rating and review count
-    final averageRating = json['average_rating'] as num? ?? 4.0;
-    final reviewsCount = json['reviews_count'] as int? ?? 0;
+    final averageRating = _parseDouble(json['average_rating']) ?? 4.0;
+    final reviewsCount = _parseInt(json['reviews_count']) ?? 0;
 
     // Get distance if available
-    final distance = json['distance'] != null 
-        ? (json['distance'] as num).toDouble() 
-        : 0.0;
+    final distance = _parseDouble(json['distance']) ?? 0.0;
 
     // Get active deals and create discount from first deal
     final activeDeals = json['active_deals'] as List<dynamic>? ?? [];
@@ -229,18 +234,19 @@ class RestaurantService {
       percentage: 10.0,
       description: 'Special discount available',
     );
-    
+
     if (activeDeals.isNotEmpty) {
       final firstDeal = activeDeals.first as Map<String, dynamic>;
       final dealType = firstDeal['deal_type'] as String? ?? 'percentage';
-      final discountPercentage = firstDeal['discount_percentage'] as num?;
-      final discountAmount = firstDeal['discount_amount'] as num?;
-      final dealDescription = firstDeal['description'] as String? ?? 'Special offer';
-      
+      final discountPercentage = _parseDouble(firstDeal['discount_percentage']);
+      final discountAmount = _parseDouble(firstDeal['discount_amount']);
+      final dealDescription =
+          firstDeal['description'] as String? ?? 'Special offer';
+
       discount = Discount(
         type: dealType == 'percentage' ? 'percentage' : 'fixed',
-        percentage: discountPercentage?.toDouble(),
-        fixedAmount: discountAmount?.toDouble(),
+        percentage: discountPercentage,
+        fixedAmount: discountAmount,
         description: dealDescription,
       );
     }
@@ -254,14 +260,14 @@ class RestaurantService {
         final openingTime = slot['opening_time'] as String? ?? '';
         final closingTime = slot['closing_time'] as String? ?? '';
         final isClosed = slot['is_closed'] as bool? ?? false;
-        
+
         if (!isClosed && openingTime.isNotEmpty && closingTime.isNotEmpty) {
           // Format time (remove seconds if present)
-          final openTime = openingTime.length > 5 
-              ? openingTime.substring(0, 5) 
+          final openTime = openingTime.length > 5
+              ? openingTime.substring(0, 5)
               : openingTime;
-          final closeTime = closingTime.length > 5 
-              ? closingTime.substring(0, 5) 
+          final closeTime = closingTime.length > 5
+              ? closingTime.substring(0, 5)
               : closingTime;
           openingHours.add('$dayName: $openTime - $closeTime');
         }
@@ -300,8 +306,10 @@ class RestaurantService {
       Restaurant(
         id: '1',
         name: 'Prezzo',
-        description: 'Authentic Italian cuisine in a warm, welcoming atmosphere',
-        imageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800',
+        description:
+            'Authentic Italian cuisine in a warm, welcoming atmosphere',
+        imageUrl:
+            'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800',
         address: '123 High Street, London',
         latitude: 51.5074,
         longitude: -0.1278,
@@ -320,7 +328,8 @@ class RestaurantService {
         id: '2',
         name: 'ASK Italian',
         description: 'Modern Italian dining with fresh pasta and pizza',
-        imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800',
+        imageUrl:
+            'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800',
         address: '456 Oxford Street, London',
         latitude: 51.5155,
         longitude: -0.1419,
@@ -339,7 +348,8 @@ class RestaurantService {
         id: '3',
         name: 'Burger King',
         description: 'Flame-grilled burgers and crispy fries',
-        imageUrl: 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=800',
+        imageUrl:
+            'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=800',
         address: '789 Regent Street, London',
         latitude: 51.5099,
         longitude: -0.1336,
@@ -357,7 +367,8 @@ class RestaurantService {
         id: '4',
         name: 'Ed\'s Easy Diner',
         description: 'Classic American diner experience',
-        imageUrl: 'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800',
+        imageUrl:
+            'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800',
         address: '321 Piccadilly, London',
         latitude: 51.5081,
         longitude: -0.1406,
@@ -374,5 +385,20 @@ class RestaurantService {
       ),
     ];
   }
-}
 
+  /// Helper to safely parse a value to double
+  double? _parseDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is num) return value.toDouble();
+    if (value is String) return double.tryParse(value);
+    return null;
+  }
+
+  /// Helper to safely parse a value to int
+  int? _parseInt(dynamic value) {
+    if (value == null) return null;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value);
+    return null;
+  }
+}

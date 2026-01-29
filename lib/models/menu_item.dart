@@ -1,3 +1,11 @@
+/// Helper to safely parse a value to int
+int? _parseInt(dynamic value) {
+  if (value == null) return null;
+  if (value is num) return value.toInt();
+  if (value is String) return int.tryParse(value);
+  return null;
+}
+
 /// Menu Item model
 class MenuItem {
   final int id;
@@ -26,16 +34,16 @@ class MenuItem {
 
   factory MenuItem.fromJson(Map<String, dynamic> json) {
     return MenuItem(
-      id: json['id'] as int? ?? 0,
+      id: _parseInt(json['id']) ?? 0,
       name: json['name'] as String? ?? '',
       description: json['description'] as String? ?? '',
-      price: json['price'] as String? ?? '0.00',
+      price: json['price']?.toString() ?? '0.00',
       isVegetarian: json['is_vegetarian'] as bool? ?? false,
       isVegan: json['is_vegan'] as bool? ?? false,
       isGlutenFree: json['is_gluten_free'] as bool? ?? false,
       isAvailable: json['is_available'] as bool? ?? true,
       imageUrl: json['image_url'] as String?,
-      order: json['order'] as int? ?? 0,
+      order: _parseInt(json['order']) ?? 0,
     );
   }
 }
@@ -63,15 +71,15 @@ class MenuCategory {
   factory MenuCategory.fromJson(Map<String, dynamic> json) {
     final itemsJson = json['items'] as List<dynamic>? ?? [];
     return MenuCategory(
-      id: json['id'] as int? ?? 0,
+      id: _parseInt(json['id']) ?? 0,
       name: json['name'] as String? ?? '',
       description: json['description'] as String? ?? '',
-      order: json['order'] as int? ?? 0,
+      order: _parseInt(json['order']) ?? 0,
       isActive: json['is_active'] as bool? ?? true,
       items: itemsJson
           .map((item) => MenuItem.fromJson(item as Map<String, dynamic>))
           .toList(),
-      itemsCount: json['items_count'] as int? ?? 0,
+      itemsCount: _parseInt(json['items_count']) ?? 0,
     );
   }
 }

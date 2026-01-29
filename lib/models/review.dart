@@ -1,3 +1,11 @@
+/// Helper to safely parse a value to int
+int? _parseInt(dynamic value) {
+  if (value == null) return null;
+  if (value is num) return value.toInt();
+  if (value is String) return int.tryParse(value);
+  return null;
+}
+
 /// Review model
 class Review {
   final int id;
@@ -20,10 +28,10 @@ class Review {
 
   factory Review.fromJson(Map<String, dynamic> json) {
     return Review(
-      id: json['id'] as int? ?? 0,
+      id: _parseInt(json['id']) ?? 0,
       userName: json['user_name'] as String? ?? 'Anonymous',
       userEmail: json['user_email'] as String? ?? '',
-      rating: json['rating'] as int? ?? 0,
+      rating: _parseInt(json['rating']) ?? 0,
       comment: json['comment'] as String?,
       isVerified: json['is_verified'] as bool? ?? false,
       createdAt: json['created_at'] != null

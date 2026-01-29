@@ -95,6 +95,12 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  Future<void> _handleGoogleLogin() async {
+    if (_authProvider != null) {
+      await _authProvider!.loginWithGoogle();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -174,6 +180,69 @@ class _LoginPageState extends State<LoginPage> {
                         ? _handleLogin
                         : null,
                     isLoading: _isLoading,
+                  ),
+                  const SizedBox(height: 24),
+
+                  // OR Divider
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Divider(color: Colors.grey.withOpacity(0.3)),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          'OR',
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Divider(color: Colors.grey.withOpacity(0.3)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Google Login Button
+                  OutlinedButton(
+                    onPressed: _isLoading ? null : _handleGoogleLogin,
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      side: BorderSide(color: Colors.grey.shade300),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      backgroundColor: Colors.white,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Google Logo (simulated with text if asset missing, but standard is icon)
+                        // Using a simple 'G' styled text as fallback or just the text "Continue with Google"
+                        Text(
+                          'G',
+                          style: TextStyle(
+                            color: Colors.blue,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Roboto', // Google font usually
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Continue with Google',
+                          style: TextStyle(
+                            color: Colors.black87,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 24),
 

@@ -12,12 +12,12 @@ class Environment {
   static String get baseUrl {
     switch (currentEnvironment) {
       case production:
-        return 'http://16.171.196.144';
+        return 'http://10.215.158.186:8000';
       case staging:
-        return 'http://16.171.196.144';
+        return 'http://10.215.158.186:8000';
       case development:
       default:
-        return 'http://16.171.196.144';
+        return 'http://10.215.158.186:8000';
     }
   }
 

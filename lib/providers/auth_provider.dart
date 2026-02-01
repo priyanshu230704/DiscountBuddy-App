@@ -16,11 +16,15 @@ class AuthProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool _isAuthenticated = false;
   String? _errorMessage;
+  String _userRole = 'customer'; // 'customer' or 'merchant'
 
   ApiUser? get user => _user;
   bool get isLoading => _isLoading;
   bool get isAuthenticated => _isAuthenticated;
   String? get errorMessage => _errorMessage;
+  String get userRole => _userRole;
+  bool get isMerchant => _userRole == 'merchant';
+  bool get isCustomer => _userRole == 'customer';
 
   /// Initialize authentication state
   Future<void> _initializeAuth() async {
@@ -35,14 +39,19 @@ class AuthProvider extends ChangeNotifier {
         final user = await _authService.getCurrentUser();
         if (user != null) {
           _user = user;
+          // Determine role from user profile or default to customer
+          _userRole =
+              user.profile?.role ?? (user.isMerchant ? 'merchant' : 'customer');
           _isAuthenticated = true;
         } else {
           // Token might be invalid, clear auth
           await _authService.logout();
           _isAuthenticated = false;
+          _userRole = 'customer';
         }
       } else {
         _isAuthenticated = false;
+        _userRole = 'customer';
       }
     } catch (e) {
       _errorMessage = 'Failed to initialize authentication';
@@ -83,10 +92,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   /// Login with email and password
-  Future<bool> login({
-    required String email,
-    required String password,
-  }) async {
+  Future<bool> login({required String email, required String password}) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -98,11 +104,41 @@ class AuthProvider extends ChangeNotifier {
       );
 
       _user = loginResponse.user;
+      _userRole = loginResponse.role; // Store role from login response
       _isAuthenticated = true;
       _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _isAuthenticated = false;
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Login with Google
+  Future<bool> loginWithGoogle() async {
+    print('DEBUG: AuthProvider.loginWithGoogle -> Triggered');
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final loginResponse = await _authService.loginWithGoogle();
+
+      _user = loginResponse.user;
+      _userRole = loginResponse.role;
+      _isAuthenticated = true;
+      _isLoading = false;
+      print(
+        'DEBUG: AuthProvider.loginWithGoogle -> Success: authenticated as ${_user?.email}',
+      );
+      notifyListeners();
+      return true;
+    } catch (e) {
+      print('DEBUG: AuthProvider.loginWithGoogle -> Catching error: $e');
       _errorMessage = e.toString().replaceAll('Exception: ', '');
       _isAuthenticated = false;
       _isLoading = false;
@@ -120,6 +156,7 @@ class AuthProvider extends ChangeNotifier {
       await _authService.logout();
       _user = null;
       _isAuthenticated = false;
+      _userRole = 'customer';
       _errorMessage = null;
     } catch (e) {
       _errorMessage = 'Failed to logout';

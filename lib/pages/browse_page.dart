@@ -103,7 +103,7 @@ class _BrowsePageState extends State<BrowsePage> {
               context,
               MaterialPageRoute(
                 builder: (context) =>
-                    RestaurantDetailsPage(restaurant: restaurant),
+                    RestaurantDetailsPage(slug: restaurant.slug ?? restaurant.id),
               ),
             );
           },
@@ -234,11 +234,11 @@ class _BrowsePageState extends State<BrowsePage> {
         return RestaurantCard(
           restaurant: restaurant,
           onTap: () {
+            final slug = restaurant.slug ?? restaurant.id;
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) =>
-                    RestaurantDetailsPage(restaurant: restaurant),
+                builder: (context) => RestaurantDetailsPage(slug: slug),
               ),
             );
           },
@@ -283,12 +283,12 @@ class _BrowsePageState extends State<BrowsePage> {
                 ),
                 child: InkWell(
                   onTap: () {
+                    final restaurant = _filteredRestaurants[0];
+                    final slug = restaurant.slug ?? restaurant.id;
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => RestaurantDetailsPage(
-                          restaurant: _filteredRestaurants[0],
-                        ),
+                        builder: (context) => RestaurantDetailsPage(slug: slug),
                       ),
                     );
                   },

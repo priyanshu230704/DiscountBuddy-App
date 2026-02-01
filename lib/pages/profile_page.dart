@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import '../widgets/blurred_ellipse_background.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../providers/theme_provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/wallet_service.dart';
 import '../models/wallet.dart';
-import 'auth/login_page.dart';
+import 'edit_profile_page.dart';
 
-/// Profile/Settings page
+/// Profile Screen - NeoTaste style
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -13,49 +14,45 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-// Local constants for profile page
-class _ProfileConstants {
-  static const double paddingSmall = 8.0;
-  static const double paddingMedium = 16.0;
-  static const double paddingLarge = 24.0;
-  static const double paddingXLarge = 32.0;
-  static const double radiusMedium = 12.0;
-}
-
 class _ProfilePageState extends State<ProfilePage> {
   final WalletService _walletService = WalletService();
+  final AuthProvider _authProvider = AuthProvider();
   Wallet? _wallet;
-  bool _isLoadingWallet = false;
 
   @override
   void initState() {
     super.initState();
+    _authProvider.addListener(_onAuthStateChanged);
     _loadWallet();
   }
 
+  @override
+  void dispose() {
+    _authProvider.removeListener(_onAuthStateChanged);
+    super.dispose();
+  }
+
+  void _onAuthStateChanged() {
+    if (mounted) {
+      setState(() {});
+      _loadWallet();
+    }
+  }
+
   Future<void> _loadWallet() async {
-    if (!AuthProvider().isAuthenticated) {
+    if (!_authProvider.isAuthenticated || _authProvider.isMerchant) {
       return;
     }
-
-    setState(() {
-      _isLoadingWallet = true;
-    });
 
     try {
       final wallet = await _walletService.getWallet();
       if (mounted) {
         setState(() {
           _wallet = wallet;
-          _isLoadingWallet = false;
         });
       }
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoadingWallet = false;
-        });
-      }
+      // Silently fail
     }
   }
 
@@ -65,326 +62,253 @@ class _ProfilePageState extends State<ProfilePage> {
     if (parts.length >= 2) {
       return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     } else if (parts.length == 1 && parts[0].isNotEmpty) {
-      return parts[0].substring(0, parts[0].length > 1 ? 2 : 1).toUpperCase();
+      return parts[0][0].toUpperCase();
     }
     return name[0].toUpperCase();
   }
 
   @override
   Widget build(BuildContext context) {
-    final user = AuthProvider().user;
+    final user = _authProvider.user;
     final displayName = user?.username ?? 'Guest';
-    final email = user?.email ?? '';
     final initials = _getInitials(displayName);
     final walletBalance = _wallet?.balance ?? '0.00';
+
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
-      body: Stack(
-        children: [
-          // Blurred ellipse at the top center background
-          const BlurredEllipseBackground(),
-          // Main content scrollable
-          SafeArea(
-            bottom: false,
-            child: CustomScrollView(
-        slivers: [
-                // Custom Header
-                SliverToBoxAdapter(
-                  child: Container(
-                    padding: EdgeInsets.only(
-                      top: MediaQuery.of(context).padding.top,
-                      left: _ProfileConstants.paddingLarge,
-                      right: _ProfileConstants.paddingLarge,
-                      // bottom: _ProfileConstants.paddingLarge,
-                    ),
-                    decoration: const BoxDecoration(
-                      color: Colors.transparent,
-                    ),
-                    child: const Text(
-                'Profile',
-                style: TextStyle(
-                  color: Colors.white,
-                        fontSize: 22,
-                  fontWeight: FontWeight.bold,
+      backgroundColor: NeoTasteColors.white,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header with Profile title
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                child: Text(
+                  'Profile',
+                  style: GoogleFonts.inter(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: NeoTasteColors.textPrimary,
+                  ),
                 ),
-                      textAlign: TextAlign.center,
               ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Column(
-              children: [
-                // Profile Header
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(_ProfileConstants.paddingXLarge),
-                  decoration: const BoxDecoration(
-                    color: Colors.transparent,
+              const SizedBox(height: 24),
+
+              // User Profile Section with Edit Profile
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const EditProfilePage(),
+                      ),
+                    );
+                  },
+                  child: Row(
+                    children: [
+                      // Avatar with green background
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Text(
+                            initials,
+                            style: GoogleFonts.inter(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: NeoTasteColors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      // Name and Edit profile
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              displayName,
+                              style: GoogleFonts.inter(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: NeoTasteColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Edit profile',
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: NeoTasteColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(
+                        Icons.chevron_right,
+                        color: NeoTasteColors.textPrimary,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Statistics Cards Row
+              SizedBox(
+                height: 120,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: [
+                    _StatCard(
+                      icon: Icons.favorite,
+                      value: '0',
+                      label: 'Favourites',
+                    ),
+                    const SizedBox(width: 12),
+                    _StatCard(
+                      icon: Icons.account_balance_wallet,
+                      value: '£$walletBalance',
+                      label: 'Saved',
+                    ),
+                    const SizedBox(width: 12),
+                    _StatCard(
+                      icon: Icons.local_offer,
+                      value: '0',
+                      label: 'Deals',
+                    ),
+                    const SizedBox(width: 12),
+                    _StatCard(icon: Icons.star, value: '1', label: 'Loyalty'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Invitation Banner
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2E7D32), // Dark green
+                    borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundColor: const Color(0xFF3E25F6),
-                        child: Text(
-                          initials,
-                          style: const TextStyle(
-                            fontSize: 36,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: _ProfileConstants.paddingMedium),
                       Text(
-                        displayName,
-                        style: const TextStyle(
-                          fontSize: 24,
+                        'Earn €10 for every friend you invite!',
+                        style: GoogleFonts.inter(
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: NeoTasteColors.white,
                         ),
                       ),
-                      if (email.isNotEmpty) ...[
-                        const SizedBox(height: _ProfileConstants.paddingSmall),
-                        Text(
-                          email,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                      if (user?.profile?.role != null) ...[
-                        const SizedBox(height: _ProfileConstants.paddingSmall),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF3E25F6).withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: const Color(0xFF3E25F6),
-                              width: 1,
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            // Handle invite friends
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.lightGreen,
+                            foregroundColor: NeoTasteColors.textPrimary,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                             ),
                           ),
                           child: Text(
-                            user!.profile!.role.toUpperCase(),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF3E25F6),
-                              fontWeight: FontWeight.bold,
+                            'Invite friends',
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
-                      ],
-                    ],
-                  ),
-                ),
-                const SizedBox(height: _ProfileConstants.paddingMedium),
-                // Stats Cards
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: _ProfileConstants.paddingMedium,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _buildStatCard(
-                          'Wallet Balance',
-                          _isLoadingWallet
-                              ? 'Loading...'
-                              : '£$walletBalance',
-                          Icons.account_balance_wallet,
-                          const Color(0xFF3E25F6),
-                        ),
-                      ),
-                      const SizedBox(width: _ProfileConstants.paddingMedium),
-                      Expanded(
-                        child: _buildStatCard(
-                          'Account Type',
-                          user?.isMerchant == true
-                              ? 'Merchant'
-                              : user?.isCustomer == true
-                                  ? 'Customer'
-                                  : 'Guest',
-                          user?.isMerchant == true
-                              ? Icons.store
-                              : Icons.person,
-                          Colors.blue,
-                        ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: _ProfileConstants.paddingLarge),
-                // Settings List
-                Container(
-                  color: const Color(0xFF1E1E1E),
-                  child: Column(
-                    children: [
-                      _buildListTile(
-                        Icons.card_membership,
-                        'My Membership',
-                        'View membership details',
-                        () {},
-                      ),
-                      Divider(height: 1, color: Colors.grey[800]),
-                      _buildListTile(
-                        Icons.history,
-                        'Visit History',
-                        'View your restaurant visits',
-                        () {},
-                      ),
-                      Divider(height: 1, color: Colors.grey[800]),
-                      _buildListTile(
-                        Icons.favorite,
-                        'Favorites',
-                        'Your saved restaurants',
-                        () {},
-                      ),
-                      Divider(height: 1, color: Colors.grey[800]),
-                      _buildListTile(
-                        Icons.notifications,
-                        'Notifications',
-                        'Manage notifications',
-                        () {},
-                      ),
-                      Divider(height: 1, color: Colors.grey[800]),
-                      _buildListTile(
-                        Icons.settings,
-                        'Settings',
-                        'App settings and preferences',
-                        () {},
-                      ),
-                      Divider(height: 1, color: Colors.grey[800]),
-                      _buildListTile(
-                        Icons.help_outline,
-                        'Help & Support',
-                        'Get help and contact support',
-                        () {},
-                      ),
-                      Divider(height: 1, color: Colors.grey[800]),
-                      _buildListTile(
-                        Icons.info_outline,
-                        'About',
-                        'App version and information',
-                        () {},
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: _ProfileConstants.paddingLarge),
-                // Logout Button
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: _ProfileConstants.paddingMedium,
-                  ),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () async {
-                        // Show confirmation dialog
-                        final shouldLogout = await showDialog<bool>(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            backgroundColor: const Color(0xFF1E1E1E),
-                            title: const Text(
-                              'Logout',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            content: const Text(
-                              'Are you sure you want to logout?',
-                              style: TextStyle(color: Colors.white70),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context, false),
-                                child: const Text('Cancel'),
-                              ),
-                              TextButton(
-                                onPressed: () => Navigator.pop(context, true),
-                                style: TextButton.styleFrom(
-                                  foregroundColor: Colors.red,
-                                ),
-                                child: const Text('Logout'),
-                              ),
-                            ],
-                          ),
-                        );
+              ),
+              const SizedBox(height: 24),
 
-                        if (shouldLogout == true) {
-                          // Perform logout using auth provider
-                          await AuthProvider().logout();
-                          
-                          // Navigate to login page
-                          if (context.mounted) {
-                            Navigator.of(context).pushAndRemoveUntil(
-                              MaterialPageRoute(
-                                builder: (context) => const LoginPage(),
-                              ),
-                              (route) => false,
-                            );
-                          }
-                        }
-                      },
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        side: const BorderSide(color: Colors.red),
-                        padding: const EdgeInsets.symmetric(
-                          vertical: _ProfileConstants.paddingMedium,
-                        ),
-                      ),
-                      child: const Text('Logout'),
-                    ),
-                  ),
+              // Navigation List Items
+              Container(
+                color: NeoTasteColors.white,
+                child: Column(
+                  children: [
+                    _buildListTile(Icons.card_membership, 'Membership', () {
+                      // Navigate to membership
+                    }),
+                    const Divider(height: 1),
+                    _buildListTile(Icons.help_outline, 'Help & Support', () {
+                      // Navigate to help
+                    }),
+                    const Divider(height: 1),
+                    _buildListTile(Icons.settings, 'Settings', () {
+                      // Navigate to settings
+                    }),
+                    const Divider(height: 1),
+                    _buildListTile(Icons.logout, 'Logout', () {
+                      _showLogoutConfirmation();
+                    }, isDestructive: true),
+                  ],
                 ),
-                const SizedBox(height: _ProfileConstants.paddingLarge),
-              ],
-            ),
+              ),
+              const SizedBox(height: 24),
+            ],
           ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(_ProfileConstants.paddingLarge),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
-        borderRadius: BorderRadius.circular(_ProfileConstants.radiusMedium),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: color, size: 28),
-          const SizedBox(height: _ProfileConstants.paddingSmall),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              color: Colors.grey,
+  void _showLogoutConfirmation() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Logout',
+          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          'Are you sure you want to logout?',
+          style: GoogleFonts.inter(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.inter(color: NeoTasteColors.textSecondary),
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await _authProvider.logout();
+              if (mounted) {
+                Navigator.of(context).pushReplacementNamed('/login');
+              }
+            },
+            child: Text(
+              'Logout',
+              style: GoogleFonts.inter(
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -395,22 +319,80 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildListTile(
     IconData icon,
     String title,
-    String subtitle,
-    VoidCallback onTap,
-  ) {
+    VoidCallback onTap, {
+    bool isDestructive = false,
+  }) {
     return ListTile(
-      leading: Icon(icon, color: Colors.grey[400]),
+      leading: Icon(
+        icon,
+        color: isDestructive ? Colors.red : NeoTasteColors.textPrimary,
+      ),
       title: Text(
         title,
-        style: const TextStyle(color: Colors.white),
+        style: GoogleFonts.inter(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          color: isDestructive ? Colors.red : NeoTasteColors.textPrimary,
+        ),
       ),
-      subtitle: Text(
-        subtitle,
-        style: const TextStyle(fontSize: 12, color: Colors.grey),
+      trailing: Icon(
+        Icons.chevron_right,
+        color: isDestructive ? Colors.red : NeoTasteColors.textPrimary,
       ),
-      trailing: const Icon(Icons.chevron_right, color: Colors.grey),
       onTap: onTap,
     );
   }
 }
 
+/// Statistics Card Widget
+class _StatCard extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+
+  const _StatCard({
+    required this.icon,
+    required this.value,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 100,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: NeoTasteColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: NeoTasteColors.textDisabled.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: NeoTasteColors.textPrimary, size: 24),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: GoogleFonts.inter(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: NeoTasteColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              color: NeoTasteColors.textSecondary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}

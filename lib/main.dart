@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'config/environment.dart';
 import 'pages/main_navigation.dart';
 import 'pages/auth/login_page.dart';
@@ -10,6 +11,13 @@ import 'services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Lock app to portrait orientation
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
   // Initialize auth service to load stored tokens
   await AuthService().initializeAuth();
   runApp(const DiscountBuddyApp());
@@ -52,7 +60,9 @@ class _DiscountBuddyAppState extends State<DiscountBuddyApp> {
           debugShowCheckedModeBanner: Environment.enableDebugMode,
           theme: _themeProvider.lightTheme,
           darkTheme: _themeProvider.darkTheme,
-          themeMode: _themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+          themeMode: _themeProvider.isDarkMode
+              ? ThemeMode.dark
+              : ThemeMode.light,
           home: const SplashScreen(),
           routes: {
             '/onboarding-check': (context) => const OnboardingCheckScreen(),

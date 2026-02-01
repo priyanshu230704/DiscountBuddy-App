@@ -1,3 +1,19 @@
+/// Helper to safely parse a value to double
+double? _parseDouble(dynamic value) {
+  if (value == null) return null;
+  if (value is num) return value.toDouble();
+  if (value is String) return double.tryParse(value);
+  return null;
+}
+
+/// Helper to safely parse a value to int
+int? _parseInt(dynamic value) {
+  if (value == null) return null;
+  if (value is num) return value.toInt();
+  if (value is String) return int.tryParse(value);
+  return null;
+}
+
 /// Restaurant model
 class Restaurant {
   final String id;
@@ -18,6 +34,10 @@ class Restaurant {
   final List<String> openingHours;
   final bool requiresBooking;
   final List<String> restrictions;
+  final String? slug; // Optional slug for API calls
+  final int? priceRange; // Price range 1-4
+  final String? postcode;
+  final String? email;
 
   Restaurant({
     required this.id,
@@ -38,35 +58,44 @@ class Restaurant {
     this.openingHours = const [],
     this.requiresBooking = false,
     this.restrictions = const [],
+    this.slug,
+    this.priceRange,
+    this.postcode,
+    this.email,
   });
 
   factory Restaurant.fromJson(Map<String, dynamic> json) {
     return Restaurant(
-      id: json['id'] as String,
-      name: json['name'] as String,
-      description: json['description'] as String,
-      imageUrl: json['imageUrl'] as String,
-      address: json['address'] as String,
-      latitude: (json['latitude'] as num).toDouble(),
-      longitude: (json['longitude'] as num).toDouble(),
-      cuisine: json['cuisine'] as String,
-      rating: (json['rating'] as num).toDouble(),
-      reviewCount: json['reviewCount'] as int,
-      distance: (json['distance'] as num?)?.toDouble() ?? 0.0,
-      discount: Discount.fromJson(json['discount'] as Map<String, dynamic>),
-      images: (json['images'] as List<dynamic>?)
-              ?.map((e) => e as String)
+      id: json['id']?.toString() ?? '',
+      name: json['name'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      imageUrl: json['imageUrl'] as String? ?? '',
+      address: json['address'] as String? ?? '',
+      latitude: _parseDouble(json['latitude']) ?? 0.0,
+      longitude: _parseDouble(json['longitude']) ?? 0.0,
+      cuisine: json['cuisine'] as String? ?? '',
+      rating: _parseDouble(json['rating']) ?? 0.0,
+      reviewCount: _parseInt(json['reviewCount']) ?? 0,
+      distance: _parseDouble(json['distance']) ?? 0.0,
+      discount: json['discount'] != null
+          ? Discount.fromJson(json['discount'] as Map<String, dynamic>)
+          : Discount(type: 'none', description: ''),
+      images:
+          (json['images'] as List<dynamic>?)
+              ?.map((e) => e.toString())
               .toList() ??
           [],
       phoneNumber: json['phoneNumber'] as String? ?? '',
       website: json['website'] as String? ?? '',
-      openingHours: (json['openingHours'] as List<dynamic>?)
-              ?.map((e) => e as String)
+      openingHours:
+          (json['openingHours'] as List<dynamic>?)
+              ?.map((e) => e.toString())
               .toList() ??
           [],
       requiresBooking: json['requiresBooking'] as bool? ?? false,
-      restrictions: (json['restrictions'] as List<dynamic>?)
-              ?.map((e) => e as String)
+      restrictions:
+          (json['restrictions'] as List<dynamic>?)
+              ?.map((e) => e.toString())
               .toList() ??
           [],
     );
@@ -92,6 +121,7 @@ class Restaurant {
       'openingHours': openingHours,
       'requiresBooking': requiresBooking,
       'restrictions': restrictions,
+      if (slug != null) 'slug': slug,
     };
   }
 }
@@ -129,12 +159,13 @@ class Discount {
 
   factory Discount.fromJson(Map<String, dynamic> json) {
     return Discount(
-      type: json['type'] as String,
-      percentage: (json['percentage'] as num?)?.toDouble(),
-      fixedAmount: (json['fixedAmount'] as num?)?.toDouble(),
-      description: json['description'] as String,
-      validDays: (json['validDays'] as List<dynamic>?)
-              ?.map((e) => e as String)
+      type: json['type'] as String? ?? 'none',
+      percentage: _parseDouble(json['percentage']),
+      fixedAmount: _parseDouble(json['fixedAmount']),
+      description: json['description'] as String? ?? '',
+      validDays:
+          (json['validDays'] as List<dynamic>?)
+              ?.map((e) => e.toString())
               .toList() ??
           [],
       validTime: json['validTime'] as String?,
@@ -152,4 +183,3 @@ class Discount {
     };
   }
 }
-

@@ -16,7 +16,7 @@ class NeoTasteColors {
 
 class ThemeProvider extends ChangeNotifier {
   // NeoTaste uses light theme only
-  bool _isDarkMode = false;
+  final bool _isDarkMode = false;
 
   bool get isDarkMode => _isDarkMode;
 

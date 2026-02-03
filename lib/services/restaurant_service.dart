@@ -3,6 +3,7 @@ import '../models/restaurant_detail.dart';
 import '../models/review.dart';
 import '../models/menu_item.dart';
 import '../models/user_interactions.dart';
+import '../config/api_endpoints.dart';
 import 'api_service.dart';
 
 /// Service for restaurant-related API calls
@@ -11,13 +12,11 @@ class RestaurantService {
 
   // --- User Interactions ---
 
-   Future<List<Restaurant>> getRestaurants(int cityId) async {
+  Future<List<Restaurant>> getRestaurants(int cityId) async {
     try {
       final response = await _apiService.get(
-        '/restaurants/restaurants',
-        queryParameters: {
-          'city': cityId.toString(),
-        },
+        ApiEndpoints.restaurants,
+        queryParameters: {'city': cityId.toString()},
       );
 
       final List<dynamic> restaurantsJson =
@@ -34,7 +33,7 @@ class RestaurantService {
   /// Get profile statistics for the current user
   Future<ProfileStats> getProfileStats() async {
     try {
-      final response = await _apiService.get('/restaurants/profile/stats/');
+      final response = await _apiService.get(ApiEndpoints.profileStats);
       return ProfileStats.fromJson(response);
     } catch (e) {
       throw Exception('Failed to load profile stats: ${e.toString()}');
@@ -52,7 +51,7 @@ class RestaurantService {
   }) async {
     try {
       final response = await _apiService.post(
-        '/restaurants/bookings/',
+        ApiEndpoints.bookings,
         body: {
           'restaurant': restaurantId,
           'booking_date': bookingDate.toIso8601String(),
@@ -75,7 +74,7 @@ class RestaurantService {
       if (status != null) queryParams['status'] = status;
 
       final response = await _apiService.get(
-        '/restaurants/bookings/',
+        ApiEndpoints.bookings,
         queryParameters: queryParams,
       );
 
@@ -96,7 +95,7 @@ class RestaurantService {
   Future<Booking> getBookingDetail(int bookingId) async {
     try {
       final response = await _apiService.get(
-        '/restaurants/bookings/$bookingId/',
+        ApiEndpoints.bookingDetail(bookingId),
       );
       return Booking.fromJson(response);
     } catch (e) {
@@ -107,7 +106,7 @@ class RestaurantService {
   /// Cancel a booking
   Future<void> cancelBooking(int bookingId) async {
     try {
-      await _apiService.post('/restaurants/bookings/$bookingId/cancel/');
+      await _apiService.post(ApiEndpoints.cancelBooking(bookingId));
     } catch (e) {
       throw Exception('Failed to cancel booking: ${e.toString()}');
     }
@@ -121,7 +120,7 @@ class RestaurantService {
   }) async {
     try {
       final response = await _apiService.post(
-        '/restaurants/reviews/',
+        ApiEndpoints.reviews,
         body: {
           'restaurant': restaurantId,
           'rating': rating,
@@ -138,14 +137,10 @@ class RestaurantService {
   Future<bool> toggleFavourite(String slug, bool isCurrentlyFavourite) async {
     try {
       if (isCurrentlyFavourite) {
-        await _apiService.delete(
-          '/restaurants/restaurant-detail/$slug/favourite/',
-        );
+        await _apiService.delete(ApiEndpoints.toggleFavourite(slug));
         return false;
       } else {
-        await _apiService.post(
-          '/restaurants/restaurant-detail/$slug/favourite/',
-        );
+        await _apiService.post(ApiEndpoints.toggleFavourite(slug));
         return true;
       }
     } catch (e) {
@@ -157,7 +152,7 @@ class RestaurantService {
   Future<Map<String, dynamic>> claimDeal(int dealId, {String? notes}) async {
     try {
       final response = await _apiService.post(
-        '/restaurants/deals/$dealId/use/',
+        ApiEndpoints.claimDeal(dealId),
         body: notes != null ? {'notes': notes} : {},
       );
       return response;
@@ -169,7 +164,7 @@ class RestaurantService {
   /// Get user's saved restaurants
   Future<List<Restaurant>> getSavedRestaurants() async {
     try {
-      final response = await _apiService.get('/restaurants/restaurants/saved');
+      final response = await _apiService.get(ApiEndpoints.savedRestaurants);
 
       // The ApiService wraps lists in a 'data' key for consistency
       final List<dynamic> results =
@@ -196,7 +191,7 @@ class RestaurantService {
   }) async {
     try {
       final response = await _apiService.get(
-        '/restaurants/nearby',
+        ApiEndpoints.nearbyRestaurants,
         queryParameters: {
           'lat': latitude.toString(),
           'lng': longitude.toString(),
@@ -218,7 +213,7 @@ class RestaurantService {
   Future<List<Restaurant>> searchRestaurants(String query) async {
     try {
       final response = await _apiService.get(
-        '/restaurants/search',
+        ApiEndpoints.searchRestaurants,
         queryParameters: {'q': query},
       );
 
@@ -235,7 +230,7 @@ class RestaurantService {
   /// Get restaurant by ID
   Future<Restaurant> getRestaurantById(String id) async {
     try {
-      final response = await _apiService.get('/restaurants/$id');
+      final response = await _apiService.get(ApiEndpoints.restaurantById(id));
       return Restaurant.fromJson(response['data'] as Map<String, dynamic>);
     } catch (e) {
       throw Exception('Failed to load restaurant');
@@ -246,7 +241,7 @@ class RestaurantService {
   /// Returns a map with: now_open, nearby, cuisines, top_10, all_restaurants
   Future<Map<String, dynamic>> getHomeData() async {
     try {
-      final response = await _apiService.get('/restaurants/home/');
+      final response = await _apiService.get(ApiEndpoints.homeData);
       return response;
     } catch (e) {
       throw Exception('Failed to load home data: ${e.toString()}');
@@ -308,6 +303,7 @@ class RestaurantService {
         percentage: discountPercentage,
         fixedAmount: discountAmount,
         description: firstDeal['description'] as String? ?? 'Special offer',
+        title: firstDeal['title'] as String?,
         id: firstDeal['id'] as int?,
       );
     }
@@ -333,10 +329,10 @@ class RestaurantService {
   /// Get restaurant details by slug
   Future<Restaurant> getRestaurantBySlug(String slug) async {
     try {
-      // Remove any trailing slashes from slug and ensure endpoint doesn't have trailing slash
-      final cleanSlug = slug.trim().replaceAll(RegExp(r'/+$'), '');
-      final endpoint = '/restaurants/restaurant-detail/$cleanSlug';
-      final response = await _apiService.get(endpoint);
+      // Endpoint logic handled in ApiEndpoints
+      final response = await _apiService.get(
+        ApiEndpoints.restaurantDetail(slug),
+      );
       return _convertDetailResponseToModel(response);
     } catch (e) {
       throw Exception('Failed to load restaurant: ${e.toString()}');
@@ -346,10 +342,10 @@ class RestaurantService {
   /// Get full restaurant details including reviews and menu
   Future<RestaurantDetail> getRestaurantDetailBySlug(String slug) async {
     try {
-      // Remove any trailing slashes from slug and ensure endpoint doesn't have trailing slash
-      final cleanSlug = slug.trim().replaceAll(RegExp(r'/+$'), '');
-      final endpoint = '/restaurants/restaurant-detail/$cleanSlug';
-      final response = await _apiService.get(endpoint);
+      // Endpoint logic handled in ApiEndpoints
+      final response = await _apiService.get(
+        ApiEndpoints.restaurantDetail(slug),
+      );
 
       final restaurant = _convertDetailResponseToModel(response);
 

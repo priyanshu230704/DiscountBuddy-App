@@ -43,7 +43,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
   final LayerLink _cityLayerLink = LayerLink();
   OverlayEntry? _cityOverlayEntry;
   final GlobalKey _cityFieldKey = GlobalKey();
-  Map<String, String> _openingHours = {
+  final Map<String, String> _openingHours = {
     'monday': '',
     'tuesday': '',
     'wednesday': '',

@@ -1,5 +1,6 @@
 import '../services/api_service.dart';
 import '../models/api_user.dart';
+import '../config/api_endpoints.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:google_sign_in/google_sign_in.dart';
@@ -32,7 +33,7 @@ class AuthService {
     try {
       final apiType = role == 'merchant' ? ApiType.merchant : ApiType.user;
       final response = await _apiService.post(
-        '/users/register/',
+        ApiEndpoints.register,
         body: {
           'email': email,
           'username': username,
@@ -85,7 +86,7 @@ class AuthService {
       // Note: We'll attempt login as user by default, but we should ideally know the role
       // For now, let's try to detect if it's a merchant based on previous context or just try user
       final response = await _apiService.post(
-        '/users/token/',
+        ApiEndpoints.login,
         body: {'email': email, 'password': password},
         type:
             ApiType.user, // Default to user, but we might need a way to switch
@@ -167,7 +168,7 @@ class AuthService {
         'DEBUG: googleLogin -> Sending ID token to backend: /api/users/google',
       );
       final response = await _apiService.post(
-        '/users/google',
+        ApiEndpoints.googleLogin,
         body: {'id_token': googleAuth.idToken},
       );
       print('DEBUG: googleLogin -> Backend response received');
@@ -297,7 +298,7 @@ class AuthService {
       }
 
       final response = await _apiService.post(
-        '/users/token/refresh/',
+        ApiEndpoints.refreshToken,
         body: {'refresh': refreshToken},
       );
 
@@ -316,7 +317,7 @@ class AuthService {
   /// Get current user from API
   Future<ApiUser?> getCurrentUser() async {
     try {
-      final response = await _apiService.get('/users/me/');
+      final response = await _apiService.get(ApiEndpoints.currentUser);
       return ApiUser.fromJson(response);
     } catch (e) {
       return null;

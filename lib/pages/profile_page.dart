@@ -4,7 +4,6 @@ import '../providers/theme_provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/wallet_service.dart';
 import '../services/restaurant_service.dart';
-import '../models/wallet.dart';
 import '../models/user_interactions.dart';
 import 'edit_profile_page.dart';
 import 'help_support_page.dart';
@@ -22,7 +21,6 @@ class _ProfilePageState extends State<ProfilePage> {
   final WalletService _walletService = WalletService();
   final RestaurantService _restaurantService = RestaurantService();
   final AuthProvider _authProvider = AuthProvider();
-  Wallet? _wallet;
   ProfileStats? _stats;
 
   @override
@@ -54,10 +52,9 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     try {
-      final wallet = await _walletService.getWallet();
+      await _walletService.getWallet();
       if (mounted) {
         setState(() {
-          _wallet = wallet;
         });
       }
     } catch (e) {
@@ -98,7 +95,6 @@ class _ProfilePageState extends State<ProfilePage> {
     final user = _authProvider.user;
     final displayName = user?.username ?? 'Guest';
     final initials = _getInitials(displayName);
-    final walletBalance = _wallet?.balance ?? '0.00';
 
     return Scaffold(
       backgroundColor: NeoTasteColors.white,

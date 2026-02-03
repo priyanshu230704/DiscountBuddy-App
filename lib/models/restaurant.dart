@@ -148,6 +148,7 @@ class Restaurant {
               ?.map((e) => Discount.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
+      slug: json['slug'] as String?,
     );
   }
 
@@ -182,6 +183,7 @@ class Discount {
   final double? percentage;
   final double? fixedAmount;
   final String description;
+  final String? title;
   final List<String> validDays;
   final String? validTime;
   final int? id;
@@ -191,12 +193,16 @@ class Discount {
     this.percentage,
     this.fixedAmount,
     required this.description,
+    this.title,
     this.validDays = const [],
     this.validTime,
     this.id,
   });
 
   String get displayText {
+    if (title != null && title!.isNotEmpty) {
+      return title!;
+    }
     switch (type) {
       case '2for1':
         return '2 FOR 1';
@@ -226,7 +232,8 @@ class Discount {
       type: type,
       percentage: percentage,
       fixedAmount: fixedAmount,
-      description: title != null ? '$title: $description' : description,
+      description: description,
+      title: title,
       validDays:
           (json['validDays'] as List<dynamic>?)
               ?.map((e) => e.toString())
@@ -243,6 +250,7 @@ class Discount {
       'percentage': percentage,
       'fixedAmount': fixedAmount,
       'description': description,
+      'title': title,
       'validDays': validDays,
       'validTime': validTime,
     };

@@ -1,5 +1,3 @@
-import 'package:flutter/foundation.dart';
-
 /// Stat representation for the user profile
 class ProfileStats {
   final int dealsClaimed;

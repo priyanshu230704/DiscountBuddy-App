@@ -1,5 +1,6 @@
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
+import '../config/api_endpoints.dart';
 
 /// Merchant Service for restaurant and deal management
 class MerchantService {
@@ -39,7 +40,7 @@ class MerchantService {
       if (cityId != null) queryParams['city'] = cityId.toString();
 
       final response = await _apiService.get(
-        '/restaurants/restaurant/manage/',
+        ApiEndpoints.merchantRestaurants,
         queryParameters: queryParams,
         type: ApiType.merchant,
       );
@@ -60,7 +61,7 @@ class MerchantService {
       await _ensureAuthenticated();
 
       final response = await _apiService.get(
-        '/restaurants/restaurant/manage/$restaurantId/',
+        ApiEndpoints.merchantRestaurantDetail(restaurantId),
         type: ApiType.merchant,
       );
       return response;
@@ -77,7 +78,7 @@ class MerchantService {
       await _ensureAuthenticated();
 
       final response = await _apiService.post(
-        '/restaurants/restaurant/manage/',
+        ApiEndpoints.merchantRestaurants,
         body: restaurantData,
         type: ApiType.merchant,
       );
@@ -99,7 +100,7 @@ class MerchantService {
       await _ensureAuthenticated();
 
       final response = await _apiService.patch(
-        '/restaurants/restaurant/manage/$restaurantId/',
+        ApiEndpoints.merchantRestaurantDetail(restaurantId),
         body: restaurantData,
         type: ApiType.merchant,
       );
@@ -118,7 +119,7 @@ class MerchantService {
       await _ensureAuthenticated();
 
       await _apiService.delete(
-        '/restaurants/restaurant/manage/$restaurantId/',
+        ApiEndpoints.merchantRestaurantDetail(restaurantId),
         type: ApiType.merchant,
       );
       // 204 No Content response is expected
@@ -143,16 +144,18 @@ class MerchantService {
     try {
       final queryParams = <String, String>{};
       if (page != null) queryParams['page'] = page.toString();
-      if (restaurantId != null)
+      if (restaurantId != null) {
         queryParams['restaurant'] = restaurantId.toString();
+      }
       if (dealType != null) queryParams['deal_type'] = dealType;
-      if (isFeatured != null)
+      if (isFeatured != null) {
         queryParams['is_featured'] = isFeatured.toString();
+      }
       if (search != null && search.isNotEmpty) queryParams['search'] = search;
       if (ordering != null) queryParams['ordering'] = ordering;
 
       final response = await _apiService.get(
-        '/restaurants/deals/',
+        ApiEndpoints.merchantDeals,
         queryParameters: queryParams,
         type: ApiType.merchant,
       );
@@ -172,7 +175,7 @@ class MerchantService {
       await _ensureAuthenticated();
 
       final response = await _apiService.get(
-        '/restaurants/deals/$dealId/',
+        ApiEndpoints.merchantDealDetail(dealId),
         type: ApiType.merchant,
       );
       return response;
@@ -187,7 +190,7 @@ class MerchantService {
       await _ensureAuthenticated();
 
       final response = await _apiService.post(
-        '/restaurants/deals/',
+        ApiEndpoints.merchantDeals,
         body: dealData,
         type: ApiType.merchant,
       );
@@ -209,7 +212,7 @@ class MerchantService {
       await _ensureAuthenticated();
 
       final response = await _apiService.patch(
-        '/restaurants/deals/$dealId/',
+        ApiEndpoints.merchantDealDetail(dealId),
         body: dealData,
         type: ApiType.merchant,
       );
@@ -228,7 +231,7 @@ class MerchantService {
       await _ensureAuthenticated();
 
       await _apiService.delete(
-        '/restaurants/deals/$dealId/',
+        ApiEndpoints.merchantDealDetail(dealId),
         type: ApiType.merchant,
       );
       // 204 No Content response is expected
@@ -250,11 +253,12 @@ class MerchantService {
     try {
       await _ensureAuthenticated();
       final queryParams = <String, String>{};
-      if (restaurantId != null)
+      if (restaurantId != null) {
         queryParams['restaurant'] = restaurantId.toString();
+      }
 
       final response = await _apiService.get(
-        '/restaurants/restaurant/menu/',
+        ApiEndpoints.merchantMenu,
         queryParameters: queryParams,
         type: ApiType.merchant,
       );
@@ -275,7 +279,7 @@ class MerchantService {
     try {
       await _ensureAuthenticated();
       return await _apiService.post(
-        '/restaurants/restaurant/menu/',
+        ApiEndpoints.merchantMenu,
         body: data,
         type: ApiType.merchant,
       );
@@ -292,7 +296,7 @@ class MerchantService {
     try {
       await _ensureAuthenticated();
       return await _apiService.patch(
-        '/restaurants/restaurant/menu/$id/',
+        ApiEndpoints.merchantMenuDetail(id),
         body: data,
         type: ApiType.merchant,
       );
@@ -306,7 +310,7 @@ class MerchantService {
     try {
       await _ensureAuthenticated();
       await _apiService.delete(
-        '/restaurants/restaurant/menu/$id/',
+        ApiEndpoints.merchantMenuDetail(id),
         type: ApiType.merchant,
       );
     } catch (e) {
@@ -323,11 +327,12 @@ class MerchantService {
     try {
       await _ensureAuthenticated();
       final queryParams = <String, String>{};
-      if (restaurantId != null)
+      if (restaurantId != null) {
         queryParams['restaurant'] = restaurantId.toString();
+      }
 
       final response = await _apiService.get(
-        '/restaurants/restaurant/opening-slots/',
+        ApiEndpoints.merchantOpeningSlots,
         queryParameters: queryParams,
         type: ApiType.merchant,
       );
@@ -348,7 +353,7 @@ class MerchantService {
     try {
       await _ensureAuthenticated();
       return await _apiService.post(
-        '/restaurants/restaurant/opening-slots/',
+        ApiEndpoints.merchantOpeningSlots,
         body: data,
         type: ApiType.merchant,
       );
@@ -366,11 +371,12 @@ class MerchantService {
     try {
       await _ensureAuthenticated();
       final queryParams = <String, String>{};
-      if (restaurantId != null)
+      if (restaurantId != null) {
         queryParams['restaurant'] = restaurantId.toString();
+      }
 
       final response = await _apiService.get(
-        '/restaurants/restaurant/reviews/',
+        ApiEndpoints.merchantReviews,
         queryParameters: queryParams,
         type: ApiType.merchant,
       );
@@ -392,12 +398,13 @@ class MerchantService {
     try {
       await _ensureAuthenticated();
       final queryParams = <String, String>{};
-      if (restaurantId != null)
+      if (restaurantId != null) {
         queryParams['restaurant'] = restaurantId.toString();
+      }
       if (status != null) queryParams['status'] = status;
 
       final response = await _apiService.get(
-        '/restaurants/restaurant/bookings/',
+        ApiEndpoints.merchantBookings,
         queryParameters: queryParams,
         type: ApiType.merchant,
       );
@@ -426,7 +433,7 @@ class MerchantService {
       if (ordering != null) queryParams['ordering'] = ordering;
 
       final response = await _apiService.get(
-        '/restaurants/cities/',
+        ApiEndpoints.cities,
         queryParameters: queryParams,
         type: ApiType.common,
       );
@@ -458,7 +465,7 @@ class MerchantService {
       if (ordering != null) queryParams['ordering'] = ordering;
 
       final response = await _apiService.get(
-        '/restaurants/categories/',
+        ApiEndpoints.categories,
         queryParameters: queryParams,
         type: ApiType.common,
       );

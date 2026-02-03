@@ -1,6 +1,5 @@
-import 'dart:convert';
-
 import '../models/city.dart';
+import '../config/api_endpoints.dart';
 import '../services/api_service.dart';
 
 class CityService {
@@ -9,7 +8,7 @@ class CityService {
   Future<List<City>> getCities() async {
     try {
       final Map<String, dynamic> body = await _apiService.get(
-        '/restaurants/cities/',
+        ApiEndpoints.cities,
       );
       final List results = body["results"] ?? [];
       return results.map((e) => City.fromJson(e)).toList();

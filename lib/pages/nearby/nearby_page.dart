@@ -14,6 +14,7 @@ import '../../providers/theme_provider.dart';
 import '../restaurant_details_page.dart';
 import '../../widgets/city_selector_modal.dart';
 import '../../widgets/filter_modal.dart';
+import '../../widgets/generic_bottom_sheet.dart';
 
 class NearbyPage extends StatefulWidget {
   const NearbyPage({super.key});
@@ -52,10 +53,8 @@ class _NearbyPageState extends State<NearbyPage>
   Restaurant? _selectedRestaurant;
   String? _selectedRestaurantId;
 
-  
   final Map<String, PointAnnotation> _restaurantPins = {};
 
-  
   final Map<String, String> _annotationIdToRestaurantId = {};
 
   Uint8List? _pinNormalBytes;
@@ -70,7 +69,6 @@ class _NearbyPageState extends State<NearbyPage>
   bool _isProgrammaticMove = false;
   bool _isUserMovingMap = false;
 
-  
   static const int _pinNormalSize = 140;
   static const int _pinSelectedSize = 170;
   static const int _pinPopSize = 240;
@@ -228,7 +226,6 @@ class _NearbyPageState extends State<NearbyPage>
     await Future.delayed(const Duration(milliseconds: 700));
     _isProgrammaticMove = false;
   }
-
 
   void _filterRestaurants() async {
     final q = _searchController.text.trim().toLowerCase();
@@ -556,51 +553,12 @@ class _NearbyPageState extends State<NearbyPage>
       minChildSize: 0.35,
       maxChildSize: 0.92,
       builder: (context, scrollController) {
-        return Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
-            boxShadow: [
-              BoxShadow(
-                blurRadius: 25,
-                color: Colors.black.withOpacity(0.18),
-                offset: const Offset(0, -8),
-              ),
-            ],
-          ),
+        return GenericBottomSheet(
+          title: "Restaurants in $_cityName",
+          onClose: () => setState(() => _showList = false),
+          expandChild: true,
           child: Column(
             children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 46,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              const SizedBox(height: 14),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        "Restaurants in $_cityName",
-                        style: GoogleFonts.inter(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => setState(() => _showList = false),
-                      icon: const Icon(Icons.close, size: 22),
-                    ),
-                  ],
-                ),
-              ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 18),
                 child: Align(
@@ -680,12 +638,12 @@ class _NearbyPageState extends State<NearbyPage>
                                       width: 62,
                                       height: 62,
                                       fit: BoxFit.cover,
-                                      placeholder: (_, __) => Container(
+                                      placeholder: (_, _) => Container(
                                         width: 62,
                                         height: 62,
                                         color: Colors.grey.shade200,
                                       ),
-                                      errorWidget: (_, __, ___) => Container(
+                                      errorWidget: (_, _, _) => Container(
                                         width: 62,
                                         height: 62,
                                         color: Colors.grey.shade200,
@@ -1163,7 +1121,7 @@ class _NearbyPageState extends State<NearbyPage>
                 width: 90,
                 height: 90,
                 fit: BoxFit.cover,
-                placeholder: (_, __) => Container(
+                placeholder: (_, _) => Container(
                   width: 90,
                   height: 90,
                   color: Colors.grey.shade200,
@@ -1171,7 +1129,7 @@ class _NearbyPageState extends State<NearbyPage>
                     child: CircularProgressIndicator(strokeWidth: 2),
                   ),
                 ),
-                errorWidget: (_, __, ___) => Container(
+                errorWidget: (_, _, _) => Container(
                   width: 90,
                   height: 90,
                   color: Colors.grey.shade200,

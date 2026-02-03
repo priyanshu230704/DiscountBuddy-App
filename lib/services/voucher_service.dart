@@ -1,5 +1,6 @@
 import '../services/api_service.dart';
 import '../models/voucher.dart';
+import '../config/api_endpoints.dart';
 
 /// Voucher service for handling voucher-related API calls
 class VoucherService {
@@ -16,7 +17,7 @@ class VoucherService {
   }) async {
     try {
       final response = await _apiService.get(
-        '/vouchers/me/',
+        ApiEndpoints.userVouchers,
         queryParameters: {
           'page': page.toString(),
           'page_size': pageSize.toString(),

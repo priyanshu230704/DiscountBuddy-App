@@ -6,6 +6,7 @@ import '../../services/restaurant_service.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../deals/redeem_offer_modal.dart';
+import '../../widgets/generic_bottom_sheet.dart';
 
 class BookingSelectionModal extends StatefulWidget {
   final Restaurant restaurant;
@@ -146,48 +147,17 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
   Widget build(BuildContext context) {
     final availableTimes = _getAvailableTimes();
 
-    return Container(
+    return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
-      decoration: const BoxDecoration(
-        color: NeoTasteColors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
-      ),
-      child: SafeArea(
+      child: GenericBottomSheet(
+        title: 'Make a Booking',
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Handle
-              Center(
-                child: Container(
-                  margin: const EdgeInsets.only(top: 12),
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: NeoTasteColors.textDisabled,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Text(
-                  'Make a Booking',
-                  style: GoogleFonts.inter(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: NeoTasteColors.textPrimary,
-                  ),
-                ),
-              ),
               const SizedBox(height: 8),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),

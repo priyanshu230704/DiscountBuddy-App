@@ -10,6 +10,7 @@ import '../services/restaurant_service.dart';
 import '../providers/theme_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
+import '../widgets/generic_bottom_sheet.dart';
 import 'deals/redeem_offer_modal.dart';
 import 'bookings/booking_selection_modal.dart';
 
@@ -450,14 +451,48 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
             ),
           ),
 
-          // Offer Card
+          // Offer Card Section
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _OfferCard(discount: restaurant.discount),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (restaurant.activeDeals.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    child: Text(
+                      'Active Offers 📢',
+                      style: GoogleFonts.inter(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: NeoTasteColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                if (restaurant.activeDeals.length > 1)
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: restaurant.activeDeals.map((deal) {
+                        return Container(
+                          width: 300,
+                          margin: const EdgeInsets.only(right: 12),
+                          child: _OfferCard(discount: deal),
+                        );
+                      }).toList(),
+                    ),
+                  )
+                else
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _OfferCard(discount: restaurant.discount),
+                  ),
+              ],
             ),
           ),
 
+          const SliverToBoxAdapter(child: SizedBox(height: 17)),
           // Opening Hours Section
           if (restaurant.openingSlots.isNotEmpty)
             SliverToBoxAdapter(
@@ -947,6 +982,9 @@ class _OfferCard extends StatelessWidget {
   const _OfferCard({required this.discount});
 
   String _getOfferTitle() {
+    if (discount.title != null && discount.title!.isNotEmpty) {
+      return discount.title!;
+    }
     switch (discount.type) {
       case '2for1':
         return '2for1 Drink';
@@ -983,30 +1021,6 @@ class _OfferCard extends StatelessWidget {
                   ),
                 ),
               ),
-              Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: NeoTasteColors.textSecondary,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.info_outline,
-                  color: NeoTasteColors.white,
-                  size: 16,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          // Chips
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _OfferChip(icon: Icons.card_giftcard, text: '~£11 benefit'),
-              _OfferChip(icon: Icons.autorenew, text: '30 days'),
-              _OfferChip(icon: Icons.location_on, text: 'On-site'),
             ],
           ),
           const SizedBox(height: 12),
@@ -1073,110 +1087,66 @@ class MenuPopup extends StatelessWidget {
       minChildSize: 0.5,
       maxChildSize: 0.95,
       builder: (context, scrollController) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: NeoTasteColors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Column(
-            children: [
-              // Handle bar
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 12),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: NeoTasteColors.textDisabled,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              // Header
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: [
-                    Text(
-                      'Menu',
-                      style: GoogleFonts.inter(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: NeoTasteColors.textPrimary,
-                      ),
+        return GenericBottomSheet(
+          title: 'Menu',
+          expandChild: true,
+          child: menuCategories.isEmpty
+              ? Center(
+                  child: Text(
+                    'No menu available',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: NeoTasteColors.textSecondary,
                     ),
-                    const Spacer(),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.close,
-                        color: NeoTasteColors.textPrimary,
-                      ),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(height: 1),
-              // Menu Categories
-              Expanded(
-                child: menuCategories.isEmpty
-                    ? Center(
-                        child: Text(
-                          'No menu available',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: NeoTasteColors.textSecondary,
+                  ),
+                )
+              : ListView.builder(
+                  controller: scrollController,
+                  padding: const EdgeInsets.all(16),
+                  itemCount: menuCategories.length,
+                  itemBuilder: (context, categoryIndex) {
+                    final category = menuCategories[categoryIndex];
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Category Header
+                        Padding(
+                          padding: EdgeInsets.only(
+                            bottom: 12,
+                            top: categoryIndex > 0 ? 24 : 0,
                           ),
-                        ),
-                      )
-                    : ListView.builder(
-                        controller: scrollController,
-                        padding: const EdgeInsets.all(16),
-                        itemCount: menuCategories.length,
-                        itemBuilder: (context, categoryIndex) {
-                          final category = menuCategories[categoryIndex];
-                          return Column(
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Category Header
-                              Padding(
-                                padding: EdgeInsets.only(
-                                  bottom: 12,
-                                  top: categoryIndex > 0 ? 24 : 0,
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      category.name,
-                                      style: GoogleFonts.inter(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: NeoTasteColors.textPrimary,
-                                      ),
-                                    ),
-                                    if (category.description.isNotEmpty) ...[
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        category.description,
-                                        style: GoogleFonts.inter(
-                                          fontSize: 14,
-                                          color: NeoTasteColors.textSecondary,
-                                        ),
-                                      ),
-                                    ],
-                                  ],
+                              Text(
+                                category.name,
+                                style: GoogleFonts.inter(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: NeoTasteColors.textPrimary,
                                 ),
                               ),
-                              // Menu Items
-                              ...category.items.map(
-                                (item) => _MenuItemCard(item: item),
-                              ),
+                              if (category.description.isNotEmpty) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  category.description,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    color: NeoTasteColors.textSecondary,
+                                  ),
+                                ),
+                              ],
                             ],
-                          );
-                        },
-                      ),
-              ),
-            ],
-          ),
+                          ),
+                        ),
+                        // Menu Items
+                        ...category.items.map(
+                          (item) => _MenuItemCard(item: item),
+                        ),
+                      ],
+                    );
+                  },
+                ),
         );
       },
     );

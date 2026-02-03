@@ -30,6 +30,7 @@ class AuthService {
     required String role, // 'customer' or 'merchant'
   }) async {
     try {
+      final apiType = role == 'merchant' ? ApiType.merchant : ApiType.user;
       final response = await _apiService.post(
         '/users/register/',
         body: {
@@ -38,6 +39,7 @@ class AuthService {
           'password': password,
           'role': role,
         },
+        type: apiType,
       );
 
       return RegisterResponse.fromJson(response);
@@ -80,9 +82,13 @@ class AuthService {
     required String password,
   }) async {
     try {
+      // Note: We'll attempt login as user by default, but we should ideally know the role
+      // For now, let's try to detect if it's a merchant based on previous context or just try user
       final response = await _apiService.post(
-        '/users/login/',
+        '/users/token/',
         body: {'email': email, 'password': password},
+        type:
+            ApiType.user, // Default to user, but we might need a way to switch
       );
 
       final loginResponse = LoginResponse.fromJson(response);

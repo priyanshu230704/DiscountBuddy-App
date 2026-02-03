@@ -6,8 +6,8 @@ import 'home/home_page.dart';
 import 'nearby/nearby_page.dart';
 import 'bookings/bookings_page.dart';
 import 'profile_page.dart';
-import 'merchant/merchant_restaurants_page.dart';
 import 'merchant/merchant_deals_page.dart';
+import 'merchant/merchant_dashboard_page.dart';
 
 /// Main navigation with bottom navigation bar (NeoTaste style)
 class MainNavigation extends StatefulWidget {
@@ -35,7 +35,7 @@ class _MainNavigationState extends State<MainNavigation> {
     if (_authProvider.isMerchant) {
       switch (index) {
         case 0:
-          page = const MerchantRestaurantsPage();
+          page = const MerchantDashboardPage();
           break;
         case 1:
           page = const MerchantDealsPage();
@@ -131,9 +131,9 @@ class _NeoTasteBottomNavBar extends StatelessWidget {
                 ? [
                     _buildNavItem(
                       context,
-                      icon: Icons.restaurant_outlined,
-                      selectedIcon: Icons.restaurant,
-                      label: 'Restaurants',
+                      icon: Icons.dashboard_outlined,
+                      selectedIcon: Icons.dashboard,
+                      label: 'Dashboard',
                       index: 0,
                     ),
                     _buildNavItem(

@@ -8,16 +8,16 @@ import '../models/review.dart';
 import '../models/menu_item.dart';
 import '../services/restaurant_service.dart';
 import '../providers/theme_provider.dart';
+import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart';
 import 'deals/redeem_offer_modal.dart';
+import 'bookings/booking_selection_modal.dart';
 
 /// Restaurant details page - NeoTaste style
 class RestaurantDetailsPage extends StatefulWidget {
   final String slug;
 
-  const RestaurantDetailsPage({
-    super.key,
-    required this.slug,
-  });
+  const RestaurantDetailsPage({super.key, required this.slug});
 
   @override
   State<RestaurantDetailsPage> createState() => _RestaurantDetailsPageState();
@@ -29,11 +29,18 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
   bool _isLoading = true;
   bool _isFavorite = false;
   String? _errorMessage;
+  GoogleMapController? _mapController;
 
   @override
   void initState() {
     super.initState();
     _loadRestaurant();
+  }
+
+  @override
+  void dispose() {
+    _mapController?.dispose();
+    super.dispose();
   }
 
   Future<void> _loadRestaurant() async {
@@ -43,10 +50,11 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     });
 
     try {
-      final restaurantDetail = await _restaurantService.getRestaurantDetailBySlug(widget.slug);
+      final restaurantDetail = await _restaurantService
+          .getRestaurantDetailBySlug(widget.slug);
       setState(() {
         _restaurantDetail = restaurantDetail;
-        _isFavorite = false; // You can load this from API if available
+        _isFavorite = restaurantDetail.restaurant.isFavourite;
         _isLoading = false;
       });
     } catch (e) {
@@ -85,23 +93,54 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     return '£' * priceRange;
   }
 
+  // Toggle favorite status
+  Future<void> _toggleFavorite() async {
+    if (_restaurantDetail == null) return;
+
+    final slug =
+        _restaurantDetail!.restaurant.slug ?? _restaurantDetail!.restaurant.id;
+    final currentStatus = _isFavorite;
+
+    setState(() {
+      _isFavorite = !currentStatus;
+    });
+
+    try {
+      final newStatus = await _restaurantService.toggleFavourite(
+        slug,
+        currentStatus,
+      );
+      if (mounted) {
+        setState(() {
+          _isFavorite = newStatus;
+        });
+      }
+    } catch (e) {
+      // Revert if failed
+      if (mounted) {
+        setState(() {
+          _isFavorite = currentStatus;
+        });
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.toString())));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
         backgroundColor: NeoTasteColors.white,
-        body: const Center(
-          child: CircularProgressIndicator(),
-        ),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (_errorMessage != null || _restaurantDetail == null) {
       return Scaffold(
         backgroundColor: NeoTasteColors.white,
-        appBar: AppBar(
-          title: const Text('Restaurant Details'),
-        ),
+        appBar: AppBar(title: const Text('Restaurant Details')),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -139,6 +178,8 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     return Scaffold(
       backgroundColor: NeoTasteColors.white,
       body: CustomScrollView(
+        cacheExtent:
+            500, // Limit off-screen rendering to reduce memory pressure
         slivers: [
           // Header with full-width image and gradient
           SliverAppBar(
@@ -159,46 +200,48 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                 ],
               ),
               child: IconButton(
-                icon: const Icon(Icons.arrow_back, color: NeoTasteColors.textPrimary),
+                icon: const Icon(
+                  Icons.arrow_back,
+                  color: NeoTasteColors.textPrimary,
+                ),
                 onPressed: () => Navigator.pop(context),
               ),
             ),
             flexibleSpace: FlexibleSpaceBar(
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  CachedNetworkImage(
-                    imageUrl: restaurant.imageUrl,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      color: NeoTasteColors.textDisabled,
-                      child: const Center(child: CircularProgressIndicator()),
+              background: RepaintBoundary(
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    CachedNetworkImage(
+                      imageUrl: restaurant.imageUrl,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(
+                        color: NeoTasteColors.textDisabled,
+                        child: const Center(child: CircularProgressIndicator()),
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        color: NeoTasteColors.textDisabled,
+                        child: const Icon(Icons.restaurant, size: 64),
+                      ),
                     ),
-                    errorWidget: (context, url, error) => Container(
-                      color: NeoTasteColors.textDisabled,
-                      child: const Icon(Icons.restaurant, size: 64),
-                    ),
-                  ),
-                  // White gradient fade at bottom
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: Container(
-                      height: 100,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            NeoTasteColors.white,
-                          ],
+                    // White gradient fade at bottom
+                    Positioned(
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        height: 100,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.transparent, NeoTasteColors.white],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -346,15 +389,15 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         child: Material(
                           color: Colors.transparent,
                           child: InkWell(
-                            onTap: () {
-                              setState(() {
-                                _isFavorite = !_isFavorite;
-                              });
-                            },
+                            onTap: _toggleFavorite,
                             borderRadius: BorderRadius.circular(24),
                             child: Icon(
-                              _isFavorite ? Icons.favorite : Icons.favorite_border,
-                              color: _isFavorite ? Colors.red : NeoTasteColors.textPrimary,
+                              _isFavorite
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: _isFavorite
+                                  ? Colors.red
+                                  : NeoTasteColors.textPrimary,
                               size: 24,
                             ),
                           ),
@@ -384,7 +427,12 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                           color: Colors.transparent,
                           child: InkWell(
                             onTap: () {
-                              // Share restaurant
+                              final message =
+                                  'Check out this deal at ${restaurant.name}!\n\n'
+                                  '${restaurant.discount.displayText} - ${restaurant.discount.description}\n\n'
+                                  '📍 ${restaurant.address}\n'
+                                  'Found on NeoTaste';
+                              Share.share(message);
                             },
                             borderRadius: BorderRadius.circular(24),
                             child: const Icon(
@@ -406,11 +454,20 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: _OfferCard(
-                discount: restaurant.discount,
-              ),
+              child: _OfferCard(discount: restaurant.discount),
             ),
           ),
+
+          // Opening Hours Section
+          if (restaurant.openingSlots.isNotEmpty)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: _OpeningHoursSection(
+                  openingSlots: restaurant.openingSlots,
+                ),
+              ),
+            ),
 
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
@@ -447,13 +504,14 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         children: List.generate(5, (index) {
                           final rating = restaurant.rating;
                           final filled = index < rating.floor();
-                          final halfFilled = index == rating.floor() && rating % 1 >= 0.5;
+                          final halfFilled =
+                              index == rating.floor() && rating % 1 >= 0.5;
                           return Icon(
                             halfFilled
                                 ? Icons.star_half
                                 : filled
-                                    ? Icons.star
-                                    : Icons.star_border,
+                                ? Icons.star
+                                : Icons.star_border,
                             color: Colors.green,
                             size: 24,
                           );
@@ -526,7 +584,8 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                       color: NeoTasteColors.textPrimary,
                     ),
                   ),
-                  if (restaurant.postcode != null && restaurant.postcode!.isNotEmpty) ...[
+                  if (restaurant.postcode != null &&
+                      restaurant.postcode!.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(
                       restaurant.postcode!,
@@ -567,7 +626,8 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         ),
                       ),
                     // Email
-                    if (restaurant.email != null && restaurant.email!.isNotEmpty)
+                    if (restaurant.email != null &&
+                        restaurant.email!.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: Row(
@@ -624,43 +684,49 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                   ],
                   const SizedBox(height: 16),
                   // Map
-                  Container(
-                    height: 200,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: NeoTasteColors.textDisabled.withOpacity(0.3),
-                        width: 1,
-                      ),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: GoogleMap(
-                        initialCameraPosition: CameraPosition(
-                          target: LatLng(
-                            restaurant.latitude,
-                            restaurant.longitude,
-                          ),
-                          zoom: 15,
+                  RepaintBoundary(
+                    child: Container(
+                      height: 200,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: NeoTasteColors.textDisabled.withOpacity(0.3),
+                          width: 1,
                         ),
-                        onMapCreated: (controller) {
-                          // Map controller initialized
-                        },
-                        markers: {
-                          Marker(
-                            markerId: MarkerId(restaurant.id),
-                            position: LatLng(
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: GoogleMap(
+                          initialCameraPosition: CameraPosition(
+                            target: LatLng(
                               restaurant.latitude,
                               restaurant.longitude,
                             ),
-                            icon: BitmapDescriptor.defaultMarkerWithHue(
-                              BitmapDescriptor.hueGreen,
-                            ),
+                            zoom: 15,
                           ),
-                        },
-                        myLocationButtonEnabled: false,
-                        zoomControlsEnabled: false,
-                        mapType: MapType.normal,
+                          onMapCreated: (controller) {
+                            if (_mapController == null) {
+                              _mapController = controller;
+                            }
+                          },
+                          markers: {
+                            Marker(
+                              markerId: MarkerId(restaurant.id),
+                              position: LatLng(
+                                restaurant.latitude,
+                                restaurant.longitude,
+                              ),
+                              icon: BitmapDescriptor.defaultMarkerWithHue(
+                                BitmapDescriptor.hueGreen,
+                              ),
+                            ),
+                          },
+                          myLocationButtonEnabled: false,
+                          zoomControlsEnabled: false,
+                          mapType: MapType.normal,
+                          liteModeEnabled:
+                              true, // Use lite mode for better performance
+                        ),
                       ),
                     ),
                   ),
@@ -689,14 +755,23 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
         child: SafeArea(
           child: ElevatedButton(
             onPressed: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (context) => RedeemOfferModal(
-                  restaurant: restaurant,
-                ),
-              );
+              if (restaurant.requiresBooking) {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) =>
+                      BookingSelectionModal(restaurant: restaurant),
+                );
+              } else {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) =>
+                      RedeemOfferModal(restaurant: restaurant),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green,
@@ -791,13 +866,14 @@ class _ReviewItem extends StatelessWidget {
                         children: List.generate(5, (index) {
                           final rating = review.rating.toDouble();
                           final filled = index < rating.floor();
-                          final halfFilled = index == rating.floor() && rating % 1 >= 0.5;
+                          final halfFilled =
+                              index == rating.floor() && rating % 1 >= 0.5;
                           return Icon(
                             halfFilled
                                 ? Icons.star_half
                                 : filled
-                                    ? Icons.star
-                                    : Icons.star_border,
+                                ? Icons.star
+                                : Icons.star_border,
                             color: Colors.green,
                             size: 16,
                           );
@@ -928,18 +1004,9 @@ class _OfferCard extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _OfferChip(
-                icon: Icons.card_giftcard,
-                text: '~£11 benefit',
-              ),
-              _OfferChip(
-                icon: Icons.autorenew,
-                text: '30 days',
-              ),
-              _OfferChip(
-                icon: Icons.location_on,
-                text: 'On-site',
-              ),
+              _OfferChip(icon: Icons.card_giftcard, text: '~£11 benefit'),
+              _OfferChip(icon: Icons.autorenew, text: '30 days'),
+              _OfferChip(icon: Icons.location_on, text: 'On-site'),
             ],
           ),
           const SizedBox(height: 12),
@@ -964,10 +1031,7 @@ class _OfferChip extends StatelessWidget {
   final IconData icon;
   final String text;
 
-  const _OfferChip({
-    required this.icon,
-    required this.text,
-  });
+  const _OfferChip({required this.icon, required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -980,11 +1044,7 @@ class _OfferChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            color: NeoTasteColors.white,
-            size: 14,
-          ),
+          Icon(icon, color: NeoTasteColors.white, size: 14),
           const SizedBox(width: 4),
           Text(
             text,
@@ -1045,7 +1105,10 @@ class MenuPopup extends StatelessWidget {
                     ),
                     const Spacer(),
                     IconButton(
-                      icon: const Icon(Icons.close, color: NeoTasteColors.textPrimary),
+                      icon: const Icon(
+                        Icons.close,
+                        color: NeoTasteColors.textPrimary,
+                      ),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
@@ -1075,7 +1138,10 @@ class MenuPopup extends StatelessWidget {
                             children: [
                               // Category Header
                               Padding(
-                                padding: EdgeInsets.only(bottom: 12, top: categoryIndex > 0 ? 24 : 0),
+                                padding: EdgeInsets.only(
+                                  bottom: 12,
+                                  top: categoryIndex > 0 ? 24 : 0,
+                                ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -1101,7 +1167,9 @@ class MenuPopup extends StatelessWidget {
                                 ),
                               ),
                               // Menu Items
-                              ...category.items.map((item) => _MenuItemCard(item: item)),
+                              ...category.items.map(
+                                (item) => _MenuItemCard(item: item),
+                              ),
                             ],
                           );
                         },
@@ -1142,7 +1210,9 @@ class _MenuItemCard extends StatelessWidget {
             children: [
               // Item Name
               Padding(
-                padding: const EdgeInsets.only(right: 40), // Space for symbol
+                padding: const EdgeInsets.only(
+                  right: 80,
+                ), // Space for symbol + price
                 child: Text(
                   item.name,
                   style: GoogleFonts.inter(
@@ -1156,7 +1226,9 @@ class _MenuItemCard extends StatelessWidget {
               // Description
               if (item.description.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.only(right: 40), // Space for symbol
+                  padding: const EdgeInsets.only(
+                    right: 80,
+                  ), // Space for symbol + price
                   child: Text(
                     item.description,
                     style: GoogleFonts.inter(
@@ -1173,7 +1245,10 @@ class _MenuItemCard extends StatelessWidget {
                   // Dietary Tags
                   if (item.isVegan)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       margin: const EdgeInsets.only(right: 6),
                       decoration: BoxDecoration(
                         color: Colors.green.withOpacity(0.1),
@@ -1190,7 +1265,10 @@ class _MenuItemCard extends StatelessWidget {
                     ),
                   if (item.isGlutenFree)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       margin: const EdgeInsets.only(right: 6),
                       decoration: BoxDecoration(
                         color: Colors.blue.withOpacity(0.1),
@@ -1205,16 +1283,6 @@ class _MenuItemCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                  const Spacer(),
-                  // Price
-                  Text(
-                    '£${item.price}',
-                    style: GoogleFonts.inter(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: NeoTasteColors.textPrimary,
-                    ),
-                  ),
                 ],
               ),
               // Availability
@@ -1236,7 +1304,21 @@ class _MenuItemCard extends StatelessWidget {
           Positioned(
             top: 0,
             right: 0,
-            child: _VegetarianSymbol(isVegetarian: item.isVegetarian),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '£${item.price}',
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: NeoTasteColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                _VegetarianSymbol(isVegetarian: item.isVegetarian),
+              ],
+            ),
           ),
         ],
       ),
@@ -1253,40 +1335,145 @@ class _VegetarianSymbol extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = isVegetarian ? Colors.green : Colors.red;
-    final darkColor = isVegetarian ? Colors.green.shade700 : Colors.red.shade700;
-    
+    final darkColor = isVegetarian
+        ? Colors.green.shade700
+        : Colors.red.shade700;
+
     return Container(
-      width: 28,
-      height: 28,
-      decoration: BoxDecoration(
-        color: Colors.transparent,
-      ),
+      width: 15,
+      height: 15,
+      decoration: const BoxDecoration(color: Colors.transparent),
       child: Stack(
         alignment: Alignment.center,
         children: [
           // Outer square outline
           Container(
-            width: 28,
-            height: 28,
+            width: 15,
+            height: 15,
             decoration: BoxDecoration(
-              border: Border.all(
-                color: darkColor,
-                width: 2.5,
-              ),
+              border: Border.all(color: darkColor, width: 1.5),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
           // Inner filled circle
           Container(
-            width: 18,
-            height: 18,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
+            width: 9,
+            height: 9,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Opening Hours Section Widget
+class _OpeningHoursSection extends StatelessWidget {
+  final List<OpeningSlot> openingSlots;
+
+  const _OpeningHoursSection({required this.openingSlots});
+
+  @override
+  Widget build(BuildContext context) {
+    final currentDay = DateFormat('EEEE').format(DateTime.now());
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(
+              Icons.access_time_filled,
+              color: NeoTasteColors.textPrimary,
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Opening Hours',
+              style: GoogleFonts.inter(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: NeoTasteColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 110,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: openingSlots.length,
+            itemBuilder: (context, index) {
+              final slot = openingSlots[index];
+              final isToday =
+                  slot.dayName.toLowerCase() == currentDay.toLowerCase();
+
+              return Container(
+                width: 100,
+                margin: const EdgeInsets.only(right: 12),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isToday
+                      ? Colors.green.withOpacity(0.05)
+                      : const Color(0xFFF8F9FA),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isToday
+                        ? Colors.green.withOpacity(0.3)
+                        : NeoTasteColors.textDisabled.withOpacity(0.1),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      slot.dayName.substring(0, 3), // Mon, Tue, etc.
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: isToday ? FontWeight.bold : FontWeight.w600,
+                        color: isToday
+                            ? Colors.green
+                            : NeoTasteColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (slot.isClosed)
+                      Text(
+                        'Closed',
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.red.shade400,
+                        ),
+                      )
+                    else ...[
+                      Text(
+                        slot.openingTime,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: NeoTasteColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        slot.closingTime,
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: NeoTasteColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

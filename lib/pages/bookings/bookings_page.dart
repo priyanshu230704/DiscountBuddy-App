@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import '../../providers/theme_provider.dart';
-import '../../models/restaurant.dart';
+import '../../models/user_interactions.dart' as interaction;
+import '../../services/restaurant_service.dart';
 import '../restaurant_details_page.dart';
 
-/// Bookings Screen - Simple and clean UI
+/// Bookings Screen - Integrated with real API
 class BookingsPage extends StatefulWidget {
   const BookingsPage({super.key});
 
@@ -12,8 +14,10 @@ class BookingsPage extends StatefulWidget {
   State<BookingsPage> createState() => _BookingsPageState();
 }
 
-class _BookingsPageState extends State<BookingsPage> with SingleTickerProviderStateMixin {
-  List<_Booking> _bookings = [];
+class _BookingsPageState extends State<BookingsPage>
+    with SingleTickerProviderStateMixin {
+  final RestaurantService _restaurantService = RestaurantService();
+  List<interaction.Booking> _bookings = [];
   bool _isLoading = true;
   late TabController _tabController;
 
@@ -31,127 +35,51 @@ class _BookingsPageState extends State<BookingsPage> with SingleTickerProviderSt
   }
 
   Future<void> _loadBookings() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
     });
 
-    // Mock data - in real app, this would come from API
-    await Future.delayed(const Duration(seconds: 1));
-
-    setState(() {
-      _bookings = _generateMockBookings();
-      _isLoading = false;
-    });
-  }
-
-  List<_Booking> _generateMockBookings() {
-    return [
-      _Booking(
-        id: '1',
-        restaurantName: 'The Gourmet Kitchen',
-        restaurantImageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800',
-        date: DateTime.now().add(const Duration(days: 2)),
-        time: '19:00',
-        guests: 2,
-        status: BookingStatus.upcoming,
-        restaurant: Restaurant(
-          id: '1',
-          name: 'The Gourmet Kitchen',
-          description: 'Fine dining experience',
-          imageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800',
-          address: '123 High Street, London',
-          latitude: 51.5074,
-          longitude: -0.1278,
-          cuisine: 'Fine Dining',
-          rating: 4.5,
-          reviewCount: 234,
-          distance: 0.5,
-          discount: Discount(
-            type: 'percentage',
-            percentage: 20,
-            description: '20% off',
-          ),
-        ),
-      ),
-      _Booking(
-        id: '2',
-        restaurantName: 'Cafe Delight',
-        restaurantImageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800',
-        date: DateTime.now().add(const Duration(days: 5)),
-        time: '12:30',
-        guests: 4,
-        status: BookingStatus.upcoming,
-        restaurant: Restaurant(
-          id: '2',
-          name: 'Cafe Delight',
-          description: 'Casual dining',
-          imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800',
-          address: '456 Oxford Street, London',
-          latitude: 51.5155,
-          longitude: -0.1419,
-          cuisine: 'Cafe',
-          rating: 4.3,
-          reviewCount: 189,
-          distance: 1.2,
-          discount: Discount(
-            type: 'percentage',
-            percentage: 15,
-            description: '15% off',
-          ),
-        ),
-      ),
-      _Booking(
-        id: '3',
-        restaurantName: 'Pizza Express',
-        restaurantImageUrl: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800',
-        date: DateTime.now().subtract(const Duration(days: 2)),
-        time: '18:00',
-        guests: 2,
-        status: BookingStatus.completed,
-        restaurant: Restaurant(
-          id: '3',
-          name: 'Pizza Express',
-          description: 'Italian pizza',
-          imageUrl: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800',
-          address: '789 Regent Street, London',
-          latitude: 51.5099,
-          longitude: -0.1336,
-          cuisine: 'Italian',
-          rating: 4.1,
-          reviewCount: 456,
-          distance: 0.8,
-          discount: Discount(
-            type: '2for1',
-            description: '2 FOR 1',
-          ),
-        ),
-      ),
-    ];
-  }
-
-  List<_Booking> _getBookingsForTab(int index) {
-    switch (index) {
-      case 0: // Upcoming
-        return _bookings.where((b) => b.status == BookingStatus.upcoming).toList();
-      case 1: // Completed
-        return _bookings.where((b) => b.status == BookingStatus.completed).toList();
-      case 2: // Cancelled
-        return _bookings.where((b) => b.status == BookingStatus.cancelled).toList();
-      default:
-        return _bookings.where((b) => b.status == BookingStatus.upcoming).toList();
+    try {
+      final bookings = await _restaurantService.getUserBookings();
+      if (mounted) {
+        setState(() {
+          _bookings = bookings;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to load bookings: $e')));
+      }
     }
   }
 
-  String _getTabLabel(int index) {
+  List<interaction.Booking> _getBookingsByTab(int index) {
     switch (index) {
-      case 0:
-        return 'Upcoming';
-      case 1:
-        return 'Completed';
-      case 2:
-        return 'Cancelled';
+      case 0: // Upcoming (Pending & Confirmed)
+        return _bookings
+            .where(
+              (b) =>
+                  b.status == interaction.BookingStatus.pending ||
+                  b.status == interaction.BookingStatus.confirmed,
+            )
+            .toList();
+      case 1: // Completed
+        return _bookings
+            .where((b) => b.status == interaction.BookingStatus.completed)
+            .toList();
+      case 2: // Cancelled
+        return _bookings
+            .where((b) => b.status == interaction.BookingStatus.cancelled)
+            .toList();
       default:
-        return 'Upcoming';
+        return [];
     }
   }
 
@@ -161,302 +89,512 @@ class _BookingsPageState extends State<BookingsPage> with SingleTickerProviderSt
       backgroundColor: NeoTasteColors.white,
       appBar: AppBar(
         title: Text(
-          'Bookings',
-          style: GoogleFonts.inter(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          'My Bookings',
+          style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         backgroundColor: NeoTasteColors.white,
         elevation: 0,
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: Colors.green,
+          unselectedLabelColor: NeoTasteColors.textSecondary,
+          indicatorColor: Colors.green,
+          indicatorWeight: 3,
+          labelStyle: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ),
+          tabs: const [
+            Tab(text: 'Upcoming'),
+            Tab(text: 'History'),
+            Tab(text: 'Cancelled'),
+          ],
+        ),
       ),
-      body: Column(
-        children: [
-          // Tabs (Scrollable)
-          Container(
-            color: NeoTasteColors.white,
-            child: TabBar(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: Colors.green))
+          : TabBarView(
               controller: _tabController,
-              isScrollable: true,
-              labelColor: Colors.green,
-              unselectedLabelColor: NeoTasteColors.textSecondary,
-              indicatorColor: Colors.green,
-              indicatorWeight: 2,
-              labelStyle: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-              ),
-              unselectedLabelStyle: GoogleFonts.inter(
-                fontSize: 14,
-                fontWeight: FontWeight.normal,
-              ),
-              tabs: const [
-                Tab(text: 'Upcoming'),
-                Tab(text: 'Completed'),
-                Tab(text: 'Cancelled'),
+              children: [
+                _BookingList(
+                  bookings: _getBookingsByTab(0),
+                  onRefresh: _loadBookings,
+                  emptyMessage: 'No upcoming bookings',
+                ),
+                _BookingList(
+                  bookings: _getBookingsByTab(1),
+                  onRefresh: _loadBookings,
+                  emptyMessage: 'No past bookings',
+                ),
+                _BookingList(
+                  bookings: _getBookingsByTab(2),
+                  onRefresh: _loadBookings,
+                  emptyMessage: 'No cancelled bookings',
+                ),
               ],
             ),
-          ),
-          const Divider(height: 1),
-          
-          // Bookings List (Scrollable content with TabBarView)
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: _loadBookings,
-              child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : TabBarView(
-                    controller: _tabController,
-                    children: List.generate(3, (index) {
-                      final bookings = _getBookingsForTab(index);
-                      final tabLabel = _getTabLabel(index);
-                      
-                      return bookings.isEmpty
-                          ? Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.event_note_outlined,
-                                    size: 64,
-                                    color: NeoTasteColors.textDisabled,
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'No ${tabLabel.toLowerCase()} bookings',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 16,
-                                      color: NeoTasteColors.textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          : ListView.builder(
-                              padding: const EdgeInsets.all(16),
-                              itemCount: bookings.length,
-                              itemBuilder: (context, itemIndex) {
-                                final booking = bookings[itemIndex];
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 16),
-                                  child: _BookingCard(booking: booking),
-                                );
-                              },
-                            );
-                    }),
+    );
+  }
+}
+
+class _BookingList extends StatelessWidget {
+  final List<interaction.Booking> bookings;
+  final Future<void> Function() onRefresh;
+  final String emptyMessage;
+
+  const _BookingList({
+    required this.bookings,
+    required this.onRefresh,
+    required this.emptyMessage,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (bookings.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: onRefresh,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height * 0.7,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.calendar_today_outlined,
+                    size: 64,
+                    color: NeoTasteColors.textDisabled,
                   ),
+                  const SizedBox(height: 16),
+                  Text(
+                    emptyMessage,
+                    style: GoogleFonts.inter(
+                      color: NeoTasteColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: bookings.length,
+        itemBuilder: (context, index) {
+          return _BookingCard(booking: bookings[index]);
+        },
+      ),
+    );
+  }
+}
+
+class _BookingCard extends StatelessWidget {
+  final interaction.Booking booking;
+
+  const _BookingCard({required this.booking});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: NeoTasteColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: NeoTasteColors.textDisabled.withOpacity(0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
         ],
+      ),
+      child: InkWell(
+        onTap: () => _showBookingDetails(context, booking.id),
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      booking.restaurantName,
+                      style: GoogleFonts.inter(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: NeoTasteColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                  _StatusBadge(status: booking.status),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Icon(
+                    Icons.calendar_today,
+                    size: 16,
+                    color: NeoTasteColors.textSecondary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    DateFormat('EEEE, MMM d, yyyy').format(booking.bookingDate),
+                    style: GoogleFonts.inter(
+                      color: NeoTasteColors.textSecondary,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(
+                    Icons.access_time,
+                    size: 16,
+                    color: NeoTasteColors.textSecondary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    DateFormat('HH:mm').format(booking.bookingDate),
+                    style: GoogleFonts.inter(
+                      color: NeoTasteColors.textSecondary,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(width: 24),
+                  Icon(
+                    Icons.people_outline,
+                    size: 16,
+                    color: NeoTasteColors.textSecondary,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${booking.numberOfGuests} Guests',
+                    style: GoogleFonts.inter(
+                      color: NeoTasteColors.textSecondary,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+              if (booking.specialRequests.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                const Divider(),
+                const SizedBox(height: 4),
+                Text(
+                  'Note: ${booking.specialRequests}',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontStyle: FontStyle.italic,
+                    color: NeoTasteColors.textSecondary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
 
+  void _showBookingDetails(BuildContext context, int bookingId) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _BookingDetailModal(bookingId: bookingId),
+    );
+  }
 }
 
-/// Booking Model
-class _Booking {
-  final String id;
-  final String restaurantName;
-  final String restaurantImageUrl;
-  final DateTime date;
-  final String time;
-  final int guests;
-  final BookingStatus status;
-  final Restaurant restaurant;
+class _BookingDetailModal extends StatefulWidget {
+  final int bookingId;
+  const _BookingDetailModal({required this.bookingId});
 
-  _Booking({
-    required this.id,
-    required this.restaurantName,
-    required this.restaurantImageUrl,
-    required this.date,
-    required this.time,
-    required this.guests,
-    required this.status,
-    required this.restaurant,
-  });
+  @override
+  State<_BookingDetailModal> createState() => _BookingDetailModalState();
 }
 
-enum BookingStatus {
-  upcoming,
-  completed,
-  cancelled,
-}
+class _BookingDetailModalState extends State<_BookingDetailModal> {
+  final RestaurantService _service = RestaurantService();
+  interaction.Booking? _booking;
+  bool _isLoading = true;
 
-/// Booking Card Widget
-class _BookingCard extends StatelessWidget {
-  final _Booking booking;
-
-  const _BookingCard({required this.booking});
-
-  String _formatDate(DateTime date) {
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
+  @override
+  void initState() {
+    super.initState();
+    _fetchDetail();
   }
 
-  Color _getStatusColor() {
-    switch (booking.status) {
-      case BookingStatus.upcoming:
-        return Colors.green;
-      case BookingStatus.completed:
-        return NeoTasteColors.textSecondary;
-      case BookingStatus.cancelled:
-        return Colors.red;
-    }
-  }
-
-  String _getStatusText() {
-    switch (booking.status) {
-      case BookingStatus.upcoming:
-        return 'Upcoming';
-      case BookingStatus.completed:
-        return 'Completed';
-      case BookingStatus.cancelled:
-        return 'Cancelled';
+  Future<void> _fetchDetail() async {
+    try {
+      final detail = await _service.getBookingDetail(widget.bookingId);
+      if (mounted) {
+        setState(() {
+          _booking = detail;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        final slug = booking.restaurant.slug ?? booking.restaurant.id;
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => RestaurantDetailsPage(slug: slug),
-          ),
-        );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: NeoTasteColors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: NeoTasteColors.textDisabled.withOpacity(0.3),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+    return Container(
+      decoration: const BoxDecoration(
+        color: NeoTasteColors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
         ),
-        child: Row(
-          children: [
-            // Restaurant Image
-            ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                bottomLeft: Radius.circular(16),
-              ),
-              child: Image.network(
-                booking.restaurantImageUrl,
-                width: 100,
-                height: 100,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  width: 100,
-                  height: 100,
-                  color: NeoTasteColors.textDisabled,
-                  child: const Icon(Icons.restaurant),
-                ),
-              ),
-            ),
-            // Content
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: _isLoading
+              ? const SizedBox(
+                  height: 200,
+                  child: Center(
+                    child: CircularProgressIndicator(color: Colors.green),
+                  ),
+                )
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Restaurant Name
-                    Text(
-                      booking.restaurantName,
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: NeoTasteColors.textPrimary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 8),
-                    // Date and Time
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_today,
-                          size: 14,
-                          color: NeoTasteColors.textSecondary,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          _formatDate(booking.date),
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            color: NeoTasteColors.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Icon(
-                          Icons.access_time,
-                          size: 14,
-                          color: NeoTasteColors.textSecondary,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          booking.time,
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            color: NeoTasteColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    // Guests
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.people,
-                          size: 14,
-                          color: NeoTasteColors.textSecondary,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${booking.guests} ${booking.guests == 1 ? 'guest' : 'guests'}',
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            color: NeoTasteColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    // Status Badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: _getStatusColor().withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        _getStatusText(),
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: _getStatusColor(),
+                    const SizedBox(height: 12),
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: NeoTasteColors.textDisabled,
+                          borderRadius: BorderRadius.circular(2),
                         ),
                       ),
                     ),
+                    const SizedBox(height: 24),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    _booking!.restaurantName,
+                                    style: GoogleFonts.inter(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                                _StatusBadge(status: _booking!.status),
+                              ],
+                            ),
+                            const SizedBox(height: 32),
+                            _DetailRow(
+                              icon: Icons.calendar_today,
+                              label: 'Date',
+                              value: DateFormat(
+                                'EEEE, MMM d, yyyy',
+                              ).format(_booking!.bookingDate),
+                            ),
+                            const SizedBox(height: 16),
+                            _DetailRow(
+                              icon: Icons.access_time,
+                              label: 'Time',
+                              value: DateFormat(
+                                'HH:mm',
+                              ).format(_booking!.bookingDate),
+                            ),
+                            const SizedBox(height: 16),
+                            _DetailRow(
+                              icon: Icons.people_outline,
+                              label: 'Number of Guests',
+                              value: '${_booking!.numberOfGuests} People',
+                            ),
+                            if (_booking!.specialRequests.isNotEmpty) ...[
+                              const SizedBox(height: 16),
+                              _DetailRow(
+                                icon: Icons.edit_note,
+                                label: 'Special Requests',
+                                value: _booking!.specialRequests,
+                              ),
+                            ],
+                            const SizedBox(height: 32),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => RestaurantDetailsPage(
+                                slug: _booking!.restaurantSlug,
+                              ),
+                            ),
+                          );
+                        },
+                        child: const Text('View Restaurant'),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    if (_booking!.canCancel) ...[
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            try {
+                              await _service.cancelBooking(_booking!.id);
+                              if (mounted) {
+                                Navigator.pop(context);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Booking cancelled'),
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Failed to cancel: $e')),
+                              );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text('Cancel Booking'),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 24),
                   ],
                 ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _DetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 20, color: NeoTasteColors.textSecondary),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: NeoTasteColors.textDisabled,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-          ],
+              Text(
+                value,
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  color: NeoTasteColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  final interaction.BookingStatus status;
+
+  const _StatusBadge({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    Color color;
+    String text;
+
+    switch (status) {
+      case interaction.BookingStatus.confirmed:
+        color = Colors.green;
+        text = 'Confirmed';
+        break;
+      case interaction.BookingStatus.cancelled:
+        color = Colors.red;
+        text = 'Cancelled';
+        break;
+      case interaction.BookingStatus.completed:
+        color = NeoTasteColors.textSecondary;
+        text = 'Completed';
+        break;
+      case interaction.BookingStatus.pending:
+      default:
+        color = Colors.orange;
+        text = 'Pending';
+        break;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.5)),
+      ),
+      child: Text(
+        text,
+        style: GoogleFonts.inter(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: color,
         ),
       ),
     );

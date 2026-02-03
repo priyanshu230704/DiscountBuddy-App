@@ -108,6 +108,10 @@ class AuthProvider extends ChangeNotifier {
       _isAuthenticated = true;
       _isLoading = false;
       notifyListeners();
+
+      // Refresh user data to get full profile (including email)
+      await refreshUser();
+
       return true;
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -136,6 +140,10 @@ class AuthProvider extends ChangeNotifier {
         'DEBUG: AuthProvider.loginWithGoogle -> Success: authenticated as ${_user?.email}',
       );
       notifyListeners();
+
+      // Refresh user data to get full profile (including email)
+      await refreshUser();
+
       return true;
     } catch (e) {
       print('DEBUG: AuthProvider.loginWithGoogle -> Catching error: $e');

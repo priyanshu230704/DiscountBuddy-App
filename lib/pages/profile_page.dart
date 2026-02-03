@@ -3,8 +3,12 @@ import 'package:google_fonts/google_fonts.dart';
 import '../providers/theme_provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/wallet_service.dart';
+import '../services/restaurant_service.dart';
 import '../models/wallet.dart';
+import '../models/user_interactions.dart';
 import 'edit_profile_page.dart';
+import 'help_support_page.dart';
+import 'privacy_policy_page.dart';
 
 /// Profile Screen - NeoTaste style
 class ProfilePage extends StatefulWidget {
@@ -16,14 +20,18 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final WalletService _walletService = WalletService();
+  final RestaurantService _restaurantService = RestaurantService();
   final AuthProvider _authProvider = AuthProvider();
   Wallet? _wallet;
+  ProfileStats? _stats;
 
   @override
   void initState() {
     super.initState();
     _authProvider.addListener(_onAuthStateChanged);
+    _authProvider.refreshUser(); // Refresh user data (email, etc.)
     _loadWallet();
+    _loadStats();
   }
 
   @override
@@ -36,6 +44,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (mounted) {
       setState(() {});
       _loadWallet();
+      _loadStats();
     }
   }
 
@@ -49,6 +58,23 @@ class _ProfilePageState extends State<ProfilePage> {
       if (mounted) {
         setState(() {
           _wallet = wallet;
+        });
+      }
+    } catch (e) {
+      // Silently fail
+    }
+  }
+
+  Future<void> _loadStats() async {
+    if (!_authProvider.isAuthenticated || _authProvider.isMerchant) {
+      return;
+    }
+
+    try {
+      final stats = await _restaurantService.getProfileStats();
+      if (mounted) {
+        setState(() {
+          _stats = stats;
         });
       }
     } catch (e) {
@@ -165,30 +191,34 @@ class _ProfilePageState extends State<ProfilePage> {
 
               // Statistics Cards Row
               SizedBox(
-                height: 120,
+                height: 130,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   children: [
                     _StatCard(
                       icon: Icons.favorite,
-                      value: '0',
+                      value: _stats?.favouriteRestaurants.toString() ?? '0',
                       label: 'Favourites',
                     ),
                     const SizedBox(width: 12),
                     _StatCard(
                       icon: Icons.account_balance_wallet,
-                      value: '£$walletBalance',
+                      value: '£${_stats?.moneySaved.toStringAsFixed(0) ?? '0'}',
                       label: 'Saved',
                     ),
                     const SizedBox(width: 12),
                     _StatCard(
                       icon: Icons.local_offer,
-                      value: '0',
+                      value: _stats?.dealsClaimed.toString() ?? '0',
                       label: 'Deals',
                     ),
                     const SizedBox(width: 12),
-                    _StatCard(icon: Icons.star, value: '1', label: 'Loyalty'),
+                    _StatCard(
+                      icon: Icons.star,
+                      value: _stats?.userLevel ?? 'Bronze',
+                      label: 'Level',
+                    ),
                   ],
                 ),
               ),
@@ -245,25 +275,44 @@ class _ProfilePageState extends State<ProfilePage> {
               const SizedBox(height: 24),
 
               // Navigation List Items
-              Container(
-                color: NeoTasteColors.white,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   children: [
-                    _buildListTile(Icons.card_membership, 'Membership', () {
-                      // Navigate to membership
-                    }),
-                    const Divider(height: 1),
-                    _buildListTile(Icons.help_outline, 'Help & Support', () {
-                      // Navigate to help
-                    }),
-                    const Divider(height: 1),
-                    _buildListTile(Icons.settings, 'Settings', () {
-                      // Navigate to settings
-                    }),
-                    const Divider(height: 1),
-                    _buildListTile(Icons.logout, 'Logout', () {
-                      _showLogoutConfirmation();
-                    }, isDestructive: true),
+                    _MenuTile(
+                      icon: Icons.help_outline,
+                      title: 'Help & Support',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const HelpSupportPage(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    _MenuTile(
+                      icon: Icons.privacy_tip_outlined,
+                      title: 'Privacy Policy',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const PrivacyPolicyPage(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    _MenuTile(
+                      icon: Icons.logout,
+                      title: 'Logout',
+                      isDestructive: true,
+                      onTap: () {
+                        _showLogoutConfirmation();
+                      },
+                    ),
                   ],
                 ),
               ),
@@ -316,30 +365,74 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildListTile(
-    IconData icon,
-    String title,
-    VoidCallback onTap, {
-    bool isDestructive = false,
-  }) {
-    return ListTile(
-      leading: Icon(
-        icon,
-        color: isDestructive ? Colors.red : NeoTasteColors.textPrimary,
-      ),
-      title: Text(
-        title,
-        style: GoogleFonts.inter(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          color: isDestructive ? Colors.red : NeoTasteColors.textPrimary,
+  // Removed _buildListTile
+}
+
+class _MenuTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+  final bool isDestructive;
+
+  const _MenuTile({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.isDestructive = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: NeoTasteColors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: NeoTasteColors.textDisabled.withOpacity(0.3),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isDestructive
+                    ? Colors.red.withOpacity(0.1)
+                    : NeoTasteColors.textPrimary.withOpacity(0.05),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                color: isDestructive ? Colors.red : NeoTasteColors.textPrimary,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                title,
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: isDestructive
+                      ? Colors.red
+                      : NeoTasteColors.textPrimary,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: isDestructive
+                  ? Colors.red.withOpacity(0.5)
+                  : NeoTasteColors.textDisabled,
+            ),
+          ],
         ),
       ),
-      trailing: Icon(
-        Icons.chevron_right,
-        color: isDestructive ? Colors.red : NeoTasteColors.textPrimary,
-      ),
-      onTap: onTap,
     );
   }
 }
@@ -359,7 +452,7 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 100,
+      constraints: const BoxConstraints(minWidth: 100),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: NeoTasteColors.white,

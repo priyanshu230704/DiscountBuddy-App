@@ -1,3 +1,36 @@
+/// Opening Slot model
+class OpeningSlot {
+  final String dayName;
+  final String openingTime;
+  final String closingTime;
+  final bool isClosed;
+
+  OpeningSlot({
+    required this.dayName,
+    required this.openingTime,
+    required this.closingTime,
+    required this.isClosed,
+  });
+
+  factory OpeningSlot.fromJson(Map<String, dynamic> json) {
+    return OpeningSlot(
+      dayName: json['day_name'] as String? ?? '',
+      openingTime: json['opening_time'] as String? ?? '',
+      closingTime: json['closing_time'] as String? ?? '',
+      isClosed: json['is_closed'] as bool? ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'day_name': dayName,
+      'opening_time': openingTime,
+      'closing_time': closingTime,
+      'is_closed': isClosed,
+    };
+  }
+}
+
 /// Helper to safely parse a value to double
 double? _parseDouble(dynamic value) {
   if (value == null) return null;
@@ -38,6 +71,9 @@ class Restaurant {
   final int? priceRange; // Price range 1-4
   final String? postcode;
   final String? email;
+  final bool isFavourite;
+  final List<OpeningSlot> openingSlots;
+  final List<Discount> activeDeals;
 
   Restaurant({
     required this.id,
@@ -62,6 +98,9 @@ class Restaurant {
     this.priceRange,
     this.postcode,
     this.email,
+    this.isFavourite = false,
+    this.openingSlots = const [],
+    this.activeDeals = const [],
   });
 
   factory Restaurant.fromJson(Map<String, dynamic> json) {
@@ -92,10 +131,21 @@ class Restaurant {
               ?.map((e) => e.toString())
               .toList() ??
           [],
-      requiresBooking: json['requiresBooking'] as bool? ?? false,
+      requiresBooking: json['requires_booking'] as bool? ?? false,
       restrictions:
           (json['restrictions'] as List<dynamic>?)
               ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      isFavourite: json['is_favourite'] as bool? ?? false,
+      openingSlots:
+          (json['opening_slots'] as List<dynamic>?)
+              ?.map((e) => OpeningSlot.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      activeDeals:
+          (json['active_deals'] as List<dynamic>?)
+              ?.map((e) => Discount.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
     );
@@ -134,6 +184,7 @@ class Discount {
   final String description;
   final List<String> validDays;
   final String? validTime;
+  final int? id;
 
   Discount({
     required this.type,
@@ -142,6 +193,7 @@ class Discount {
     required this.description,
     this.validDays = const [],
     this.validTime,
+    this.id,
   });
 
   String get displayText {
@@ -158,17 +210,30 @@ class Discount {
   }
 
   factory Discount.fromJson(Map<String, dynamic> json) {
+    // Handle different API formats
+    final type =
+        json['type'] as String? ?? json['deal_type'] as String? ?? 'none';
+    final percentage =
+        _parseDouble(json['percentage']) ??
+        _parseDouble(json['discount_percentage']);
+    final fixedAmount =
+        _parseDouble(json['fixedAmount']) ??
+        _parseDouble(json['discount_amount']);
+    final title = json['title'] as String?;
+    final description = json['description'] as String? ?? '';
+
     return Discount(
-      type: json['type'] as String? ?? 'none',
-      percentage: _parseDouble(json['percentage']),
-      fixedAmount: _parseDouble(json['fixedAmount']),
-      description: json['description'] as String? ?? '',
+      type: type,
+      percentage: percentage,
+      fixedAmount: fixedAmount,
+      description: title != null ? '$title: $description' : description,
       validDays:
           (json['validDays'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           [],
       validTime: json['validTime'] as String?,
+      id: json['id'] as int?,
     );
   }
 

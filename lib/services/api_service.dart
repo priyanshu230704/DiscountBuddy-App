@@ -14,6 +14,9 @@ class ApiException implements Exception {
   String toString() => message;
 }
 
+/// Types of APIs available
+enum ApiType { user, merchant, common }
+
 /// Common API Service for handling HTTP requests
 class ApiService {
   // Singleton instance
@@ -72,18 +75,38 @@ class ApiService {
     if (endpoint == '/') {
       return endpoint;
     }
-    return endpoint.replaceAll(RegExp(r'/+$'), '');
+    // Ensure endpoint starts with / if not common API
+    String normalized = endpoint.replaceAll(RegExp(r'/+$'), '');
+    if (!normalized.startsWith('/')) {
+      normalized = '/$normalized';
+    }
+    return normalized;
+  }
+
+  /// Get base URL based on ApiType
+  String _getBaseUrl(ApiType type) {
+    switch (type) {
+      case ApiType.user:
+        return Environment.userApiUrl;
+      case ApiType.merchant:
+        return Environment.merchantApiUrl;
+      case ApiType.common:
+        return Environment.apiUrl;
+    }
   }
 
   /// GET request
   Future<Map<String, dynamic>> get(
     String endpoint, {
     Map<String, String>? queryParameters,
+    ApiType type = ApiType.user,
   }) async {
     try {
       final normalizedEndpoint = _normalizeEndpoint(endpoint);
-      final uri = Uri.parse('${Environment.apiUrl}$normalizedEndpoint')
-          .replace(queryParameters: queryParameters);
+      final baseUrl = _getBaseUrl(type);
+      final uri = Uri.parse(
+        '$baseUrl$normalizedEndpoint',
+      ).replace(queryParameters: queryParameters);
 
       if (Environment.enableLogging) {
         print('GET: $uri');
@@ -92,11 +115,11 @@ class ApiService {
       final request = http.Request('GET', uri)
         ..headers.addAll(headers)
         ..followRedirects = false;
-      
+
       final streamedResponse = await _client
           .send(request)
           .timeout(Environment.apiTimeout);
-      
+
       final response = await http.Response.fromStream(streamedResponse);
 
       return _handleResponse(response);
@@ -109,10 +132,12 @@ class ApiService {
   Future<Map<String, dynamic>> post(
     String endpoint, {
     Map<String, dynamic>? body,
+    ApiType type = ApiType.user,
   }) async {
     try {
       final normalizedEndpoint = _normalizeEndpoint(endpoint);
-      final uri = Uri.parse('${Environment.apiUrl}$normalizedEndpoint');
+      final baseUrl = _getBaseUrl(type);
+      final uri = Uri.parse('$baseUrl$normalizedEndpoint');
 
       if (Environment.enableLogging) {
         print('POST: $uri');
@@ -124,11 +149,11 @@ class ApiService {
       if (body != null) {
         request.body = jsonEncode(body);
       }
-      
+
       final streamedResponse = await _client
           .send(request)
           .timeout(Environment.apiTimeout);
-      
+
       final response = await http.Response.fromStream(streamedResponse);
 
       return _handleResponse(response);
@@ -141,10 +166,12 @@ class ApiService {
   Future<Map<String, dynamic>> put(
     String endpoint, {
     Map<String, dynamic>? body,
+    ApiType type = ApiType.user,
   }) async {
     try {
       final normalizedEndpoint = _normalizeEndpoint(endpoint);
-      final uri = Uri.parse('${Environment.apiUrl}$normalizedEndpoint');
+      final baseUrl = _getBaseUrl(type);
+      final uri = Uri.parse('$baseUrl$normalizedEndpoint');
 
       if (Environment.enableLogging) {
         print('PUT: $uri');
@@ -157,11 +184,11 @@ class ApiService {
       if (body != null) {
         request.body = jsonEncode(body);
       }
-      
+
       final streamedResponse = await _client
           .send(request)
           .timeout(Environment.apiTimeout);
-      
+
       final response = await http.Response.fromStream(streamedResponse);
 
       return _handleResponse(response);
@@ -174,10 +201,12 @@ class ApiService {
   Future<Map<String, dynamic>> patch(
     String endpoint, {
     Map<String, dynamic>? body,
+    ApiType type = ApiType.user,
   }) async {
     try {
       final normalizedEndpoint = _normalizeEndpoint(endpoint);
-      final uri = Uri.parse('${Environment.apiUrl}$normalizedEndpoint');
+      final baseUrl = _getBaseUrl(type);
+      final uri = Uri.parse('$baseUrl$normalizedEndpoint');
 
       if (Environment.enableLogging) {
         print('PATCH: $uri');
@@ -190,11 +219,11 @@ class ApiService {
       if (body != null) {
         request.body = jsonEncode(body);
       }
-      
+
       final streamedResponse = await _client
           .send(request)
           .timeout(Environment.apiTimeout);
-      
+
       final response = await http.Response.fromStream(streamedResponse);
 
       return _handleResponse(response);
@@ -204,10 +233,14 @@ class ApiService {
   }
 
   /// DELETE request
-  Future<Map<String, dynamic>> delete(String endpoint) async {
+  Future<Map<String, dynamic>> delete(
+    String endpoint, {
+    ApiType type = ApiType.user,
+  }) async {
     try {
       final normalizedEndpoint = _normalizeEndpoint(endpoint);
-      final uri = Uri.parse('${Environment.apiUrl}$normalizedEndpoint');
+      final baseUrl = _getBaseUrl(type);
+      final uri = Uri.parse('$baseUrl$normalizedEndpoint');
 
       if (Environment.enableLogging) {
         print('DELETE: $uri');
@@ -216,11 +249,11 @@ class ApiService {
       final request = http.Request('DELETE', uri)
         ..headers.addAll(headers)
         ..followRedirects = false;
-      
+
       final streamedResponse = await _client
           .send(request)
           .timeout(Environment.apiTimeout);
-      
+
       final response = await http.Response.fromStream(streamedResponse);
 
       return _handleResponse(response);
@@ -243,7 +276,9 @@ class ApiService {
     if (statusCode >= 300 && statusCode < 400) {
       final location = response.headers['location'];
       if (location != null && Environment.enableLogging) {
-        print('Redirect detected to: $location (prevented to avoid duplicate call)');
+        print(
+          'Redirect detected to: $location (prevented to avoid duplicate call)',
+        );
       }
       throw ApiException(
         'Server redirected request. This should not happen with normalized endpoints.',
@@ -256,7 +291,13 @@ class ApiService {
         return {'success': true};
       }
       try {
-        return jsonDecode(response.body) as Map<String, dynamic>;
+        final decoded = jsonDecode(response.body);
+        if (decoded is List) {
+          return {
+            'data': decoded,
+          }; // Wrap lists in a data key for consistency if needed, or return dynamic
+        }
+        return decoded as Map<String, dynamic>;
       } catch (e) {
         return {'data': response.body};
       }
@@ -296,11 +337,7 @@ class ApiService {
             : 'Request failed with status: $statusCode';
       }
 
-      throw ApiException(
-        errorMessage,
-        statusCode: statusCode,
-        data: errorData,
-      );
+      throw ApiException(errorMessage, statusCode: statusCode, data: errorData);
     }
   }
 
@@ -322,4 +359,3 @@ class ApiService {
     _client.close();
   }
 }
-

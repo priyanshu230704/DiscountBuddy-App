@@ -2,11 +2,171 @@ import '../models/restaurant.dart';
 import '../models/restaurant_detail.dart';
 import '../models/review.dart';
 import '../models/menu_item.dart';
+import '../models/user_interactions.dart';
 import 'api_service.dart';
 
 /// Service for restaurant-related API calls
 class RestaurantService {
   final ApiService _apiService = ApiService();
+
+  // --- User Interactions ---
+
+  /// Get profile statistics for the current user
+  Future<ProfileStats> getProfileStats() async {
+    try {
+      final response = await _apiService.get('/restaurants/profile/stats/');
+      return ProfileStats.fromJson(response);
+    } catch (e) {
+      throw Exception('Failed to load profile stats: ${e.toString()}');
+    }
+  }
+
+  /// Create a new booking
+  Future<Booking> createBooking({
+    required int restaurantId,
+    required DateTime bookingDate,
+    required int numberOfGuests,
+    String specialRequests = '',
+    required String contactName,
+    required String contactPhone,
+  }) async {
+    try {
+      final response = await _apiService.post(
+        '/restaurants/bookings/',
+        body: {
+          'restaurant': restaurantId,
+          'booking_date': bookingDate.toIso8601String(),
+          'number_of_guests': numberOfGuests,
+          'special_requests': specialRequests,
+          'contact_name': contactName,
+          'contact_phone': contactPhone,
+        },
+      );
+      return Booking.fromJson(response);
+    } catch (e) {
+      throw Exception('Failed to create booking: ${e.toString()}');
+    }
+  }
+
+  /// Get user's bookings
+  Future<List<Booking>> getUserBookings({String? status}) async {
+    try {
+      final queryParams = <String, String>{};
+      if (status != null) queryParams['status'] = status;
+
+      final response = await _apiService.get(
+        '/restaurants/bookings/',
+        queryParameters: queryParams,
+      );
+
+      // Handle the wrapped list response
+      final List<dynamic> bookingsJson = response.containsKey('results')
+          ? response['results'] as List<dynamic>
+          : response['data'] as List<dynamic>? ?? [];
+
+      return bookingsJson
+          .map((json) => Booking.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to load bookings: ${e.toString()}');
+    }
+  }
+
+  /// Get detail for a specific booking
+  Future<Booking> getBookingDetail(int bookingId) async {
+    try {
+      final response = await _apiService.get(
+        '/restaurants/bookings/$bookingId/',
+      );
+      return Booking.fromJson(response);
+    } catch (e) {
+      throw Exception('Failed to load booking detail: ${e.toString()}');
+    }
+  }
+
+  /// Cancel a booking
+  Future<void> cancelBooking(int bookingId) async {
+    try {
+      await _apiService.post('/restaurants/bookings/$bookingId/cancel/');
+    } catch (e) {
+      throw Exception('Failed to cancel booking: ${e.toString()}');
+    }
+  }
+
+  /// Add a review for a restaurant
+  Future<Review> addReview({
+    required int restaurantId,
+    required int rating,
+    required String comment,
+  }) async {
+    try {
+      final response = await _apiService.post(
+        '/restaurants/reviews/',
+        body: {
+          'restaurant': restaurantId,
+          'rating': rating,
+          'comment': comment,
+        },
+      );
+      return Review.fromJson(response);
+    } catch (e) {
+      throw Exception('Failed to add review: ${e.toString()}');
+    }
+  }
+
+  /// Toggle restaurant favourite status
+  Future<bool> toggleFavourite(String slug, bool isCurrentlyFavourite) async {
+    try {
+      if (isCurrentlyFavourite) {
+        await _apiService.delete(
+          '/restaurants/restaurant-detail/$slug/favourite/',
+        );
+        return false;
+      } else {
+        await _apiService.post(
+          '/restaurants/restaurant-detail/$slug/favourite/',
+        );
+        return true;
+      }
+    } catch (e) {
+      throw Exception('Failed to toggle favourite: ${e.toString()}');
+    }
+  }
+
+  /// Claim/Redeem a deal
+  Future<Map<String, dynamic>> claimDeal(int dealId, {String? notes}) async {
+    try {
+      final response = await _apiService.post(
+        '/restaurants/deals/$dealId/use/',
+        body: notes != null ? {'notes': notes} : {},
+      );
+      return response;
+    } catch (e) {
+      throw Exception('Failed to claim deal: ${e.toString()}');
+    }
+  }
+
+  /// Get user's saved restaurants
+  Future<List<Restaurant>> getSavedRestaurants() async {
+    try {
+      final response = await _apiService.get('/restaurants/restaurants/saved');
+
+      // The ApiService wraps lists in a 'data' key for consistency
+      final List<dynamic> results =
+          (response['data'] ?? response['results'] ?? []) as List<dynamic>;
+
+      return results
+          .map(
+            (json) => convertApiRestaurantToModel(json as Map<String, dynamic>),
+          )
+          .toList();
+    } catch (e) {
+      // Return empty list if it fails, as it might be a 404/auth error handled gracefully
+      return [];
+    }
+  }
+
+  // --- Restaurant Browsing ---
 
   /// Get nearby restaurants
   Future<List<Restaurant>> getNearbyRestaurants({
@@ -90,29 +250,47 @@ class RestaurantService {
         ? '$cityName, $countryName'
         : (cityName.isNotEmpty ? cityName : 'Address not available');
 
-    // Parse latitude and longitude from strings
+    // Parse latitude and longitude
     final latStr = json['latitude'] as String? ?? '0';
     final lngStr = json['longitude'] as String? ?? '0';
     final latitude = double.tryParse(latStr) ?? 0.0;
     final longitude = double.tryParse(lngStr) ?? 0.0;
 
-    // Get image URL - use primary_image if available, otherwise placeholder
+    // Image URL
     final imageUrl =
         json['primary_image'] as String? ??
         'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800';
 
-    // Get cuisine from map if available, otherwise use default
+    // Cuisine
     final cuisine = cuisineMap?[restaurantId] ?? 'Restaurant';
-
-    // Get slug if available
     final slug = json['slug'] as String?;
 
-    // Create a default discount since API doesn't provide it
-    final discount = Discount(
+    // Rating and Reviews
+    final averageRating = _parseDouble(json['average_rating']) ?? 4.0;
+    final reviewsCount = _parseInt(json['reviews_count']) ?? 0;
+
+    // Discount from active_deals
+    Discount discount = Discount(
       type: 'percentage',
       percentage: 10.0,
       description: 'Special discount available',
     );
+
+    final activeDeals = json['active_deals'] as List<dynamic>? ?? [];
+    if (activeDeals.isNotEmpty) {
+      final firstDeal = activeDeals.first as Map<String, dynamic>;
+      final dealType = firstDeal['deal_type'] as String? ?? 'percentage';
+      final discountPercentage = _parseDouble(firstDeal['discount_percentage']);
+      final discountAmount = _parseDouble(firstDeal['discount_amount']);
+
+      discount = Discount(
+        type: dealType == 'percentage' ? 'percentage' : 'fixed',
+        percentage: discountPercentage,
+        fixedAmount: discountAmount,
+        description: firstDeal['description'] as String? ?? 'Special offer',
+        id: firstDeal['id'] as int?,
+      );
+    }
 
     return Restaurant(
       id: restaurantId.toString(),
@@ -123,11 +301,12 @@ class RestaurantService {
       latitude: latitude,
       longitude: longitude,
       cuisine: cuisine,
-      rating: 4.0, // Default rating since API doesn't provide
-      reviewCount: 0, // Default review count
-      distance: 0.0, // Will be calculated if needed
+      rating: averageRating.toDouble(),
+      reviewCount: reviewsCount,
+      distance: _parseDouble(json['distance']) ?? 0.0,
       discount: discount,
       slug: slug,
+      isFavourite: json['is_favourite'] as bool? ?? false,
     );
   }
 
@@ -228,28 +407,18 @@ class RestaurantService {
     final distance = _parseDouble(json['distance']) ?? 0.0;
 
     // Get active deals and create discount from first deal
-    final activeDeals = json['active_deals'] as List<dynamic>? ?? [];
-    Discount discount = Discount(
-      type: 'percentage',
-      percentage: 10.0,
-      description: 'Special discount available',
-    );
+    final activeDealsJson = json['active_deals'] as List<dynamic>? ?? [];
+    final activeDeals = activeDealsJson
+        .map((e) => Discount.fromJson(e as Map<String, dynamic>))
+        .toList();
 
-    if (activeDeals.isNotEmpty) {
-      final firstDeal = activeDeals.first as Map<String, dynamic>;
-      final dealType = firstDeal['deal_type'] as String? ?? 'percentage';
-      final discountPercentage = _parseDouble(firstDeal['discount_percentage']);
-      final discountAmount = _parseDouble(firstDeal['discount_amount']);
-      final dealDescription =
-          firstDeal['description'] as String? ?? 'Special offer';
-
-      discount = Discount(
-        type: dealType == 'percentage' ? 'percentage' : 'fixed',
-        percentage: discountPercentage,
-        fixedAmount: discountAmount,
-        description: dealDescription,
-      );
-    }
+    Discount discount = activeDeals.isNotEmpty
+        ? activeDeals.first
+        : Discount(
+            type: 'percentage',
+            percentage: 10.0,
+            description: 'Special discount available',
+          );
 
     // Get opening hours from opening_slots
     final openingSlots = json['opening_slots'] as List<dynamic>? ?? [];
@@ -291,12 +460,19 @@ class RestaurantService {
       phoneNumber: json['phone'] as String? ?? '',
       website: json['website'] as String? ?? '',
       openingHours: openingHours,
-      requiresBooking: false, // API doesn't provide this
-      restrictions: const [], // API doesn't provide this
+      requiresBooking: json['requires_booking'] as bool? ?? false,
+      restrictions: const [],
       slug: json['slug'] as String?,
       priceRange: json['price_range'] as int?,
       postcode: json['postcode'] as String?,
       email: json['email'] as String?,
+      isFavourite: json['is_favourite'] as bool? ?? false,
+      openingSlots:
+          (json['opening_slots'] as List<dynamic>?)
+              ?.map((e) => OpeningSlot.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      activeDeals: activeDeals,
     );
   }
 

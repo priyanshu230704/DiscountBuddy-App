@@ -39,8 +39,9 @@ class MerchantService {
       if (cityId != null) queryParams['city'] = cityId.toString();
 
       final response = await _apiService.get(
-        '/restaurants/merchant/restaurants/',
+        '/restaurants/restaurant/manage/',
         queryParameters: queryParams,
+        type: ApiType.merchant,
       );
 
       if (response['results'] != null && response['results'] is List) {
@@ -59,7 +60,8 @@ class MerchantService {
       await _ensureAuthenticated();
 
       final response = await _apiService.get(
-        '/restaurants/merchant/restaurants/$restaurantId/',
+        '/restaurants/restaurant/manage/$restaurantId/',
+        type: ApiType.merchant,
       );
       return response;
     } catch (e) {
@@ -75,8 +77,9 @@ class MerchantService {
       await _ensureAuthenticated();
 
       final response = await _apiService.post(
-        '/restaurants/merchant/restaurants/',
+        '/restaurants/restaurant/manage/',
         body: restaurantData,
+        type: ApiType.merchant,
       );
       return response;
     } catch (e) {
@@ -96,8 +99,9 @@ class MerchantService {
       await _ensureAuthenticated();
 
       final response = await _apiService.patch(
-        '/restaurants/merchant/restaurants/$restaurantId/',
+        '/restaurants/restaurant/manage/$restaurantId/',
         body: restaurantData,
+        type: ApiType.merchant,
       );
       return response;
     } catch (e) {
@@ -114,7 +118,8 @@ class MerchantService {
       await _ensureAuthenticated();
 
       await _apiService.delete(
-        '/restaurants/merchant/restaurants/$restaurantId/',
+        '/restaurants/restaurant/manage/$restaurantId/',
+        type: ApiType.merchant,
       );
       // 204 No Content response is expected
       return;
@@ -147,8 +152,9 @@ class MerchantService {
       if (ordering != null) queryParams['ordering'] = ordering;
 
       final response = await _apiService.get(
-        '/restaurants/merchant/deals/',
+        '/restaurants/deals/',
         queryParameters: queryParams,
+        type: ApiType.merchant,
       );
 
       if (response['results'] != null && response['results'] is List) {
@@ -166,7 +172,8 @@ class MerchantService {
       await _ensureAuthenticated();
 
       final response = await _apiService.get(
-        '/restaurants/merchant/deals/$dealId/',
+        '/restaurants/deals/$dealId/',
+        type: ApiType.merchant,
       );
       return response;
     } catch (e) {
@@ -180,8 +187,9 @@ class MerchantService {
       await _ensureAuthenticated();
 
       final response = await _apiService.post(
-        '/restaurants/merchant/deals/',
+        '/restaurants/deals/',
         body: dealData,
+        type: ApiType.merchant,
       );
       return response;
     } catch (e) {
@@ -201,8 +209,9 @@ class MerchantService {
       await _ensureAuthenticated();
 
       final response = await _apiService.patch(
-        '/restaurants/merchant/deals/$dealId/',
+        '/restaurants/deals/$dealId/',
         body: dealData,
+        type: ApiType.merchant,
       );
       return response;
     } catch (e) {
@@ -218,7 +227,10 @@ class MerchantService {
     try {
       await _ensureAuthenticated();
 
-      await _apiService.delete('/restaurants/merchant/deals/$dealId/');
+      await _apiService.delete(
+        '/restaurants/deals/$dealId/',
+        type: ApiType.merchant,
+      );
       // 204 No Content response is expected
       return;
     } catch (e) {
@@ -226,6 +238,176 @@ class MerchantService {
         throw Exception('Failed to delete deal: ${e.message}');
       }
       throw Exception('Failed to delete deal: ${e.toString()}');
+    }
+  }
+
+  /// --- Menu Management ---
+
+  /// List menu categories for merchant's restaurants
+  Future<List<Map<String, dynamic>>> getMenuCategories({
+    int? restaurantId,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+      final queryParams = <String, String>{};
+      if (restaurantId != null)
+        queryParams['restaurant'] = restaurantId.toString();
+
+      final response = await _apiService.get(
+        '/restaurants/restaurant/menu/',
+        queryParameters: queryParams,
+        type: ApiType.merchant,
+      );
+
+      if (response['results'] != null && response['results'] is List) {
+        return (response['results'] as List).cast<Map<String, dynamic>>();
+      }
+      return [];
+    } catch (e) {
+      throw Exception('Failed to load menu categories: ${e.toString()}');
+    }
+  }
+
+  /// Create menu category
+  Future<Map<String, dynamic>> createMenuCategory(
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      await _ensureAuthenticated();
+      return await _apiService.post(
+        '/restaurants/restaurant/menu/',
+        body: data,
+        type: ApiType.merchant,
+      );
+    } catch (e) {
+      throw Exception('Failed to create menu category: ${e.toString()}');
+    }
+  }
+
+  /// Update menu category
+  Future<Map<String, dynamic>> updateMenuCategory(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      await _ensureAuthenticated();
+      return await _apiService.patch(
+        '/restaurants/restaurant/menu/$id/',
+        body: data,
+        type: ApiType.merchant,
+      );
+    } catch (e) {
+      throw Exception('Failed to update menu category: ${e.toString()}');
+    }
+  }
+
+  /// Delete menu category
+  Future<void> deleteMenuCategory(int id) async {
+    try {
+      await _ensureAuthenticated();
+      await _apiService.delete(
+        '/restaurants/restaurant/menu/$id/',
+        type: ApiType.merchant,
+      );
+    } catch (e) {
+      throw Exception('Failed to delete menu category: ${e.toString()}');
+    }
+  }
+
+  /// --- Opening Slots Management ---
+
+  /// List opening slots
+  Future<List<Map<String, dynamic>>> getOpeningSlots({
+    int? restaurantId,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+      final queryParams = <String, String>{};
+      if (restaurantId != null)
+        queryParams['restaurant'] = restaurantId.toString();
+
+      final response = await _apiService.get(
+        '/restaurants/restaurant/opening-slots/',
+        queryParameters: queryParams,
+        type: ApiType.merchant,
+      );
+
+      if (response['results'] != null && response['results'] is List) {
+        return (response['results'] as List).cast<Map<String, dynamic>>();
+      }
+      return [];
+    } catch (e) {
+      throw Exception('Failed to load opening slots: ${e.toString()}');
+    }
+  }
+
+  /// Create opening slot
+  Future<Map<String, dynamic>> createOpeningSlot(
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      await _ensureAuthenticated();
+      return await _apiService.post(
+        '/restaurants/restaurant/opening-slots/',
+        body: data,
+        type: ApiType.merchant,
+      );
+    } catch (e) {
+      throw Exception('Failed to create opening slot: ${e.toString()}');
+    }
+  }
+
+  /// --- Merchant Insights (Reviews & Bookings) ---
+
+  /// View all reviews for user's restaurants
+  Future<List<Map<String, dynamic>>> getMerchantReviews({
+    int? restaurantId,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+      final queryParams = <String, String>{};
+      if (restaurantId != null)
+        queryParams['restaurant'] = restaurantId.toString();
+
+      final response = await _apiService.get(
+        '/restaurants/restaurant/reviews/',
+        queryParameters: queryParams,
+        type: ApiType.merchant,
+      );
+
+      if (response['results'] != null && response['results'] is List) {
+        return (response['results'] as List).cast<Map<String, dynamic>>();
+      }
+      return [];
+    } catch (e) {
+      throw Exception('Failed to load reviews: ${e.toString()}');
+    }
+  }
+
+  /// View all bookings for user's restaurants
+  Future<List<Map<String, dynamic>>> getMerchantBookings({
+    int? restaurantId,
+    String? status,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+      final queryParams = <String, String>{};
+      if (restaurantId != null)
+        queryParams['restaurant'] = restaurantId.toString();
+      if (status != null) queryParams['status'] = status;
+
+      final response = await _apiService.get(
+        '/restaurants/restaurant/bookings/',
+        queryParameters: queryParams,
+        type: ApiType.merchant,
+      );
+
+      if (response['results'] != null && response['results'] is List) {
+        return (response['results'] as List).cast<Map<String, dynamic>>();
+      }
+      return [];
+    } catch (e) {
+      throw Exception('Failed to load bookings: ${e.toString()}');
     }
   }
 
@@ -246,6 +428,7 @@ class MerchantService {
       final response = await _apiService.get(
         '/restaurants/cities/',
         queryParameters: queryParams,
+        type: ApiType.common,
       );
 
       if (response.containsKey('results')) {
@@ -277,6 +460,7 @@ class MerchantService {
       final response = await _apiService.get(
         '/restaurants/categories/',
         queryParameters: queryParams,
+        type: ApiType.common,
       );
 
       if (response.containsKey('results')) {

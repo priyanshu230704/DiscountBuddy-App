@@ -32,6 +32,7 @@ class _HomePageState extends State<HomePage> {
   bool _isLoading = true;
   bool _isSearching = false;
   String _cityName = 'London';
+  int _cityId = 1;
 
   @override
   void initState() {
@@ -373,7 +374,8 @@ class _HomePageState extends State<HomePage> {
                                       selectedCity: _cityName,
                                       onCitySelected: (city) {
                                         setState(() {
-                                          _cityName = city;
+                                        _cityId = city.id;
+                                        _cityName = city.name;
                                         });
                                         _loadRestaurants();
                                       },

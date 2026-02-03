@@ -11,6 +11,26 @@ class RestaurantService {
 
   // --- User Interactions ---
 
+   Future<List<Restaurant>> getRestaurants(int cityId) async {
+    try {
+      final response = await _apiService.get(
+        '/restaurants/restaurants',
+        queryParameters: {
+          'city': cityId.toString(),
+        },
+      );
+
+      final List<dynamic> restaurantsJson =
+          (response['results'] ?? []) as List<dynamic>;
+
+      return restaurantsJson
+          .map((json) => Restaurant.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      return _getMockRestaurants();
+    }
+  }
+
   /// Get profile statistics for the current user
   Future<ProfileStats> getProfileStats() async {
     try {

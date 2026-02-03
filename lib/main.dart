@@ -8,6 +8,7 @@ import 'pages/onboarding_check_screen.dart';
 import 'providers/theme_provider.dart';
 import 'providers/auth_provider.dart';
 import 'services/auth_service.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +21,7 @@ void main() async {
 
   // Initialize auth service to load stored tokens
   await AuthService().initializeAuth();
+  MapboxOptions.setAccessToken("pk.eyJ1Ijoia2V0YW5jaGF2ZGEyMSIsImEiOiJjbWwzbzhkZzIwM3dkM2Vxc2FxNmhvNjduIn0.ujNsfSEeeW3Ad862r3PGQQ");
   runApp(const DiscountBuddyApp());
 }
 

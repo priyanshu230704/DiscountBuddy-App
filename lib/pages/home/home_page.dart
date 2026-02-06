@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../models/restaurant.dart';
 import '../../services/restaurant_service.dart';
 import '../../services/location_service.dart';
-import '../../providers/theme_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../restaurant_details_page.dart';
 import '../../widgets/city_selector_modal.dart';
 
-/// Home page with sections for nearby restaurants and saved lists
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -17,22 +16,43 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
+enum HomeFilter { offers, rating, nearest, openNow }
+
 class _HomePageState extends State<HomePage> {
   final RestaurantService _restaurantService = RestaurantService();
   final LocationService _locationService = LocationService();
   final AuthProvider _authProvider = AuthProvider();
+
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
+
   List<Restaurant> _restaurants = [];
   List<Restaurant> _filteredRestaurants = [];
-  List<Restaurant> _nowOpenRestaurants = [];
-  List<Restaurant> _top10Restaurants = [];
-  List<Restaurant> _savedRestaurants = [];
   List<Map<String, dynamic>> _cuisineSections = [];
+
   bool _isLoading = true;
   bool _isSearching = false;
+
   String _cityName = 'London';
   int _cityId = 1;
+
+  HomeFilter? _activeFilter;
+  static const Color buddyPink = Color(0xFFFF2D83);
+  static const Color buddyPurple = Color(0xFF7C3AED);
+  static const Color buddyOrange = Color(0xFFFF7A00);
+  static const Color buddyYellow = Color(0xFFFFB100);
+
+  static const Color bg = Color(0xFFF7F8FA);
+
+  static const Color textPrimary = Color(0xFF111827);
+  static const Color textSecondary = Color(0xFF6B7280);
+
+  static const List<Color> buddyGradient = [
+    buddyPink,
+    buddyPurple,
+    buddyOrange,
+    buddyYellow,
+  ];
 
   @override
   void initState() {
@@ -49,23 +69,24 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-  void _onSearchChanged() {
-    _filterRestaurants();
-  }
+  void _onSearchChanged() => _filterRestaurants();
 
   void _filterRestaurants() {
     final query = _searchController.text.toLowerCase().trim();
+
     setState(() {
       if (query.isEmpty) {
-        _filteredRestaurants = _restaurants;
+        _filteredRestaurants = _applyFilter(_restaurants);
         _isSearching = false;
       } else {
         _isSearching = true;
-        _filteredRestaurants = _restaurants.where((restaurant) {
-          return restaurant.name.toLowerCase().contains(query) ||
-              restaurant.cuisine.toLowerCase().contains(query) ||
-              restaurant.description.toLowerCase().contains(query);
-        }).toList();
+        _filteredRestaurants = _applyFilter(
+          _restaurants.where((restaurant) {
+            return restaurant.name.toLowerCase().contains(query) ||
+                restaurant.cuisine.toLowerCase().contains(query) ||
+                restaurant.description.toLowerCase().contains(query);
+          }).toList(),
+        );
       }
     });
   }
@@ -73,75 +94,39 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadCityName() async {
     try {
       final city = await _locationService.getUserCity();
-      setState(() {
-        _cityName = city;
-      });
-    } catch (e) {
-      setState(() {
-        _cityName = 'London';
-      });
+      setState(() => _cityName = city);
+    } catch (_) {
+      setState(() => _cityName = 'London');
     }
   }
 
   Future<void> _loadRestaurants() async {
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
-      // For customer role, use the home API endpoint
       if (_authProvider.isCustomer) {
         final homeData = await _restaurantService.getHomeData();
 
-        // Build cuisine map from cuisines array for better cuisine assignment
         final Map<int, String> cuisineMap = {};
         final cuisinesJson = homeData['cuisines'] as List<dynamic>? ?? [];
+
         for (final cuisineGroup in cuisinesJson) {
           if (cuisineGroup is Map<String, dynamic>) {
             final cuisine = cuisineGroup['cuisine'] as Map<String, dynamic>?;
             final cuisineName = cuisine?['name'] as String? ?? 'Restaurant';
-            final restaurants =
-                cuisineGroup['restaurants'] as List<dynamic>? ?? [];
+
+            final restaurants = cuisineGroup['restaurants'] as List<dynamic>? ?? [];
             for (final restaurant in restaurants) {
               if (restaurant is Map<String, dynamic>) {
                 final restaurantId = restaurant['id'] as int?;
-                if (restaurantId != null) {
-                  cuisineMap[restaurantId] = cuisineName;
-                }
+                if (restaurantId != null) cuisineMap[restaurantId] = cuisineName;
               }
             }
           }
         }
 
-        // Convert API response to Restaurant models
-        final nowOpenJson = homeData['now_open'] as List<dynamic>? ?? [];
-        final nearbyJson = homeData['nearby'] as List<dynamic>? ?? [];
-        final top10Json = homeData['top_10'] as List<dynamic>? ?? [];
+        final allRestaurantsJson = homeData['all_restaurants'] as List<dynamic>? ?? [];
 
-        // Combine now_open and nearby for "Now open and nearby" section
-        final combinedNearby = [...nowOpenJson, ...nearbyJson];
-        final nowOpenRestaurants = combinedNearby
-            .map(
-              (json) => _restaurantService.convertApiRestaurantToModel(
-                json as Map<String, dynamic>,
-                cuisineMap: cuisineMap,
-              ),
-            )
-            .toList();
-
-        // Get top 10 restaurants
-        final top10Restaurants = top10Json
-            .map(
-              (json) => _restaurantService.convertApiRestaurantToModel(
-                json as Map<String, dynamic>,
-                cuisineMap: cuisineMap,
-              ),
-            )
-            .toList();
-
-        // Use all_restaurants for search/filtering
-        final allRestaurantsJson =
-            homeData['all_restaurants'] as List<dynamic>? ?? [];
         final allRestaurants = allRestaurantsJson
             .map(
               (json) => _restaurantService.convertApiRestaurantToModel(
@@ -151,14 +136,12 @@ class _HomePageState extends State<HomePage> {
             )
             .toList();
 
-        // Process cuisine sections
         final List<Map<String, dynamic>> cuisineSections = [];
         for (final group in cuisinesJson) {
           if (group is Map<String, dynamic>) {
             final cuisine = group['cuisine'] as Map<String, dynamic>?;
             if (cuisine != null) {
-              final restaurantsJson =
-                  group['restaurants'] as List<dynamic>? ?? [];
+              final restaurantsJson = group['restaurants'] as List<dynamic>? ?? [];
               final restaurants = restaurantsJson
                   .map(
                     (r) => _restaurantService.convertApiRestaurantToModel(
@@ -178,566 +161,902 @@ class _HomePageState extends State<HomePage> {
           }
         }
 
-        // Fetch saved restaurants separately
-        final savedRestaurants = await _restaurantService.getSavedRestaurants();
-
         setState(() {
-          _nowOpenRestaurants = nowOpenRestaurants;
-          _top10Restaurants = top10Restaurants;
           _restaurants = allRestaurants;
-          _filteredRestaurants = allRestaurants;
-          _savedRestaurants = savedRestaurants;
+          _filteredRestaurants = _applyFilter(allRestaurants);
           _cuisineSections = cuisineSections;
           _isLoading = false;
         });
       } else {
-        // Fallback to old method for non-customer roles
         final restaurants = await _restaurantService.getNearbyRestaurants(
           latitude: 51.5074,
           longitude: -0.1278,
         );
+
         setState(() {
           _restaurants = restaurants;
-          _filteredRestaurants = restaurants;
-          _nowOpenRestaurants = restaurants;
-          _top10Restaurants = restaurants.length > 10
-              ? restaurants.sublist(0, 10)
-              : restaurants;
+          _filteredRestaurants = _applyFilter(restaurants);
           _isLoading = false;
         });
       }
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+    } catch (_) {
+      setState(() => _isLoading = false);
     }
   }
 
-  // Convert km to miles
-  double _kmToMiles(double km) {
-    return km * 0.621371;
-  }
+  double _kmToMiles(double km) => km * 0.621371;
 
-  // Generate offer tags based on discount
   List<String> _getOfferTags(Restaurant restaurant) {
     final tags = <String>[];
     final desc = restaurant.discount.description.toLowerCase();
 
-    // Main discount tag
     switch (restaurant.discount.type) {
       case '2for1':
-        if (desc.contains('wings')) {
-          tags.add('2for1 Signature Wings');
-        } else if (desc.contains('rodizio')) {
-          tags.add('2for1 Rodizio');
-        } else if (desc.contains('course')) {
-          tags.add('2for1 Main Course');
-        } else if (desc.contains('wrap')) {
-          tags.add('2for1 Wrap');
-        } else if (desc.contains('main')) {
-          tags.add('2for1 Main Item');
-        } else {
-          tags.add('2for1 Main Item');
-        }
+        tags.add("2for1 Deal");
         break;
       case 'percentage':
-        tags.add('${restaurant.discount.percentage?.toInt()}% Discount');
+        tags.add("${restaurant.discount.percentage?.toInt() ?? 0}% OFF");
         break;
       case 'fixed':
-        tags.add(
-          '£${restaurant.discount.fixedAmount?.toStringAsFixed(0)} Discount',
-        );
+        tags.add("£${restaurant.discount.fixedAmount?.toStringAsFixed(0) ?? "0"} OFF");
         break;
     }
 
-    // Add additional free items based on description
-    if (desc.contains('dessert')) {
-      tags.add('FREE Dessert');
-    }
-    if (desc.contains('soup')) {
-      tags.add('FREE Soup');
-    }
-    if (desc.contains('drink') || desc.contains('soft drink')) {
-      tags.add('FREE Soft Drink');
-    }
-    if (desc.contains('caipirinha')) {
-      tags.add('FREE Caipirinha');
-    }
-    if (desc.contains('side')) {
-      tags.add('FREE Side Dish');
-    }
+    if (desc.contains('dessert')) tags.add("FREE Dessert");
+    if (desc.contains('drink') || desc.contains('soft drink')) tags.add("FREE Drink");
+    if (desc.contains('side')) tags.add("FREE Side");
 
     return tags;
   }
 
+  List<Restaurant> _bestOffersNearYou(List<Restaurant> list) {
+    final copy = [...list];
+
+    int score(Restaurant r) {
+      if (r.discount.type == 'percentage') return ((r.discount.percentage ?? 0) * 10).toInt();
+      if (r.discount.type == 'fixed') return ((r.discount.fixedAmount ?? 0) * 8).toInt();
+      if (r.discount.type == '2for1') return 700;
+      return 0;
+    }
+
+    copy.sort((a, b) {
+      final sb = score(b);
+      final sa = score(a);
+      if (sb != sa) return sb.compareTo(sa);
+      return a.distance.compareTo(b.distance);
+    });
+
+    return copy.take(10).toList();
+  }
+
+  List<Restaurant> _applyFilter(List<Restaurant> list) {
+    final copy = [...list];
+
+    switch (_activeFilter) {
+      case HomeFilter.offers:
+        return _bestOffersNearYou(copy);
+      case HomeFilter.rating:
+        copy.sort((a, b) => b.rating.compareTo(a.rating));
+        return copy;
+      case HomeFilter.nearest:
+        copy.sort((a, b) => a.distance.compareTo(b.distance));
+        return copy;
+      case HomeFilter.openNow:
+        return copy;
+      default:
+        return copy;
+    }
+  }
+
+  void _toggleFilter(HomeFilter filter) {
+    setState(() {
+      _activeFilter = (_activeFilter == filter) ? null : filter;
+      _filteredRestaurants = _applyFilter(_restaurants);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final list = _isSearching ? _filteredRestaurants : _applyFilter(_restaurants);
+
     return PopScope(
       canPop: !_isSearching,
       onPopInvoked: (didPop) {
         if (!didPop && _isSearching) {
           _searchController.clear();
           _searchFocusNode.unfocus();
-          setState(() {
-            _isSearching = false;
-          });
+          setState(() => _isSearching = false);
         }
       },
       child: Scaffold(
-        backgroundColor: NeoTasteColors.background,
+        backgroundColor: bg,
         body: SafeArea(
           child: RefreshIndicator(
             onRefresh: _loadRestaurants,
+            color: buddyOrange,
             child: CustomScrollView(
               slivers: [
-                // Top Header
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                    child: _isSearching
-                        ? // Search Mode - Center search bar
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.arrow_back,
-                                  color: NeoTasteColors.textPrimary,
-                                ),
-                                onPressed: () {
-                                  _searchController.clear();
-                                  _searchFocusNode.unfocus();
-                                  setState(() {
-                                    _isSearching = false;
-                                  });
-                                },
-                              ),
-                              Expanded(
-                                child: ValueListenableBuilder<TextEditingValue>(
-                                  valueListenable: _searchController,
-                                  builder: (context, value, child) {
-                                    return TextField(
-                                      controller: _searchController,
-                                      focusNode: _searchFocusNode,
-                                      autofocus: true,
-                                      decoration: InputDecoration(
-                                        hintText: 'Search restaurants...',
-                                        hintStyle: GoogleFonts.inter(
-                                          fontSize: 14,
-                                          color: NeoTasteColors.textSecondary,
-                                        ),
-                                        prefixIcon: const Icon(
-                                          Icons.search,
-                                          color: NeoTasteColors.textSecondary,
-                                          size: 20,
-                                        ),
-                                        suffixIcon: value.text.isNotEmpty
-                                            ? IconButton(
-                                                icon: const Icon(
-                                                  Icons.close,
-                                                  color: NeoTasteColors
-                                                      .textSecondary,
-                                                  size: 20,
-                                                ),
-                                                onPressed: () {
-                                                  _searchController.clear();
-                                                },
-                                              )
-                                            : null,
-                                        border: InputBorder.none,
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                              horizontal: 16,
-                                              vertical: 10,
-                                            ),
-                                      ),
-                                      style: GoogleFonts.inter(
-                                        fontSize: 14,
-                                        color: NeoTasteColors.textPrimary,
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          )
-                        : // Normal Mode - Location and Search icon
-                          Row(
-                            children: [
-                              // City Selector
-                              GestureDetector(
-                                onTap: () {
-                                  showModalBottomSheet(
-                                    context: context,
-                                    isScrollControlled: true,
-                                    backgroundColor: Colors.transparent,
-                                    builder: (context) => CitySelectorModal(
-                                      selectedCity: _cityName,
-                                      onCitySelected: (city) {
-                                        setState(() {
-                                        _cityId = city.id;
-                                        _cityName = city.name;
-                                        });
-                                        _loadRestaurants();
-                                      },
-                                    ),
-                                  );
-                                },
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      _cityName,
-                                      style: GoogleFonts.inter(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: NeoTasteColors.textPrimary,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    const Icon(
-                                      Icons.keyboard_arrow_down,
-                                      color: NeoTasteColors.textPrimary,
-                                      size: 20,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const Spacer(),
-                              // Search Icon
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.search,
-                                  color: NeoTasteColors.textPrimary,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _isSearching = true;
-                                  });
-                                  // Request focus after build
-                                  WidgetsBinding.instance.addPostFrameCallback((
-                                    _,
-                                  ) {
-                                    _searchFocusNode.requestFocus();
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                  ),
-                ),
+                _buildHeader(),
+                if (!_isSearching) _buildBanners(),
+                if (!_isSearching) _buildBestOffers(),
+                if (!_isSearching) _buildCuisineRow(),
+                _buildRestaurantFeed(list),
+                const SliverToBoxAdapter(child: SizedBox(height: 80)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
-                // "Explore Cuisines" Section
-                if (!_isLoading && _cuisineSections.isNotEmpty && !_isSearching)
-                  SliverToBoxAdapter(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
-                          child: Text(
-                            'Explore Cuisines',
-                            style: GoogleFonts.inter(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: NeoTasteColors.textPrimary,
-                            ),
+  Widget _buildHeader() {
+  return SliverAppBar(
+    pinned: true,
+    floating: false,
+    snap: false,
+    elevation: 0,
+    backgroundColor: bg,
+    automaticallyImplyLeading: false,
+    toolbarHeight: 70,
+    expandedHeight: 240,
+
+    flexibleSpace: FlexibleSpaceBar(
+      background: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.white,
+              buddyPink.withOpacity(0.09),
+              buddyOrange.withOpacity(0.09),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14),
+                        gradient: const LinearGradient(colors: buddyGradient),
+                        boxShadow: [
+                          BoxShadow(
+                            color: buddyPink.withOpacity(0.20),
+                            blurRadius: 16,
+                            offset: const Offset(0, 10),
                           ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.asset(
+                          "assets/png/db_logo.png",
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(Icons.local_offer, color: Colors.white),
                         ),
-                        SizedBox(
-                          height: 100,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            itemCount: _cuisineSections.length,
-                            itemBuilder: (context, index) {
-                              final cuisine = _cuisineSections[index];
-                              return _CuisineChip(
-                                name: cuisine['name'] ?? '',
-                                icon: cuisine['icon'] ?? '🍴',
-                              );
-                            },
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-
-                // "Now open and nearby" Section
-                if (_isLoading ||
-                    _isSearching ||
-                    _nowOpenRestaurants.isNotEmpty) ...[
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 24, 0, 16),
+                    const SizedBox(width: 12),
+                    Expanded(
                       child: Text(
-                        _isSearching ? 'Search Results' : 'Now open and nearby',
+                        "Discount Buddy",
                         style: GoogleFonts.inter(
                           fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: NeoTasteColors.textPrimary,
+                          fontWeight: FontWeight.w900,
+                          color: textPrimary,
                         ),
                       ),
                     ),
-                  ),
-                  if (_isLoading)
-                    SliverToBoxAdapter(
-                      child: SizedBox(
-                        height: 280,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          itemCount: 3,
-                          itemBuilder: (context, index) => Container(
-                            width: 240,
-                            margin: const EdgeInsets.only(right: 16),
-                            decoration: BoxDecoration(
-                              color: NeoTasteColors.background,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: const Center(
-                              child: CircularProgressIndicator(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(color: Colors.black.withOpacity(0.06)),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Row(
+                        children: [
+                          ShaderMask(
+                            shaderCallback: (bounds) {
+                              return const LinearGradient(colors: buddyGradient)
+                                  .createShader(bounds);
+                            },
+                            child: const Icon(Icons.flash_on,
+                                size: 16, color: Colors.white),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            "Live Deals",
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w800,
+                              color: textPrimary,
                             ),
                           ),
-                        ),
-                      ),
-                    )
-                  else
-                    SliverToBoxAdapter(
-                      child: SizedBox(
-                        height: 280,
-                        child: _isSearching
-                            ? ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                ),
-                                itemCount: _filteredRestaurants.length,
-                                itemBuilder: (context, index) {
-                                  final restaurant =
-                                      _filteredRestaurants[index];
-                                  return _HomeRestaurantCard(
-                                    restaurant: restaurant,
-                                    onOfferTags: _getOfferTags,
-                                    onKmToMiles: _kmToMiles,
-                                  );
-                                },
-                              )
-                            : ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                ),
-                                itemCount: _nowOpenRestaurants.length,
-                                itemBuilder: (context, index) {
-                                  final restaurant = _nowOpenRestaurants[index];
-                                  return _HomeRestaurantCard(
-                                    restaurant: restaurant,
-                                    onOfferTags: _getOfferTags,
-                                    onKmToMiles: _kmToMiles,
-                                  );
-                                },
-                              ),
+                        ],
                       ),
                     ),
-                ],
-
-                // "My London list" Section
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 6, 0, 16),
-                    child: Text(
-                      'My $_cityName list',
-                      style: GoogleFonts.inter(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: NeoTasteColors.textPrimary,
-                      ),
-                    ),
-                  ),
+                  ],
                 ),
-                SliverToBoxAdapter(
-                  child: _savedRestaurants.isEmpty
-                      ? Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Container(
-                            padding: const EdgeInsets.all(32),
-                            decoration: BoxDecoration(
-                              color: NeoTasteColors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: NeoTasteColors.textDisabled.withOpacity(
-                                  0.3,
-                                ),
-                                width: 1,
-                              ),
-                            ),
-                            child: Column(
-                              children: [
-                                const Icon(
-                                  Icons.favorite_border,
-                                  size: 48,
-                                  color: NeoTasteColors.textDisabled,
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'Nothing saved... yet!',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: NeoTasteColors.textPrimary,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Tap the heart icon to save the places you want to discover.',
-                                  textAlign: TextAlign.center,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 14,
-                                    color: NeoTasteColors.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      : SizedBox(
-                          height: 280,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            itemCount: _savedRestaurants.length,
-                            itemBuilder: (context, index) {
-                              final restaurant = _savedRestaurants[index];
-                              return _HomeRestaurantCard(
-                                restaurant: restaurant,
-                                onOfferTags: _getOfferTags,
-                                onKmToMiles: _kmToMiles,
-                              );
+
+                const SizedBox(height: 12),
+
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) => CitySelectorModal(
+                            selectedCity: _cityName,
+                            onCitySelected: (city) {
+                              setState(() {
+                                _cityId = city.id;
+                                _cityName = city.name;
+                              });
+                              _loadRestaurants();
                             },
                           ),
-                        ),
+                        );
+                      },
+                      child: Row(
+                        children: [
+                          ShaderMask(
+                            shaderCallback: (bounds) {
+                              return const LinearGradient(colors: buddyGradient)
+                                  .createShader(bounds);
+                            },
+                            child: const Icon(Icons.location_on,
+                                size: 18, color: Colors.white),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            _cityName,
+                            style: GoogleFonts.inter(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: textPrimary,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.keyboard_arrow_down,
+                              color: textSecondary),
+                        ],
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      onPressed: () {
+                        setState(() => _isSearching = true);
+                        WidgetsBinding.instance.addPostFrameCallback(
+                          (_) => _searchFocusNode.requestFocus(),
+                        );
+                      },
+                      icon: const Icon(Icons.search, color: textPrimary),
+                    ),
+                  ],
                 ),
 
-                // "Top 10 in London" Section
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 32, 0, 16),
-                    child: Row(
+                const SizedBox(height: 10),
+                _SearchBar(
+                  controller: _searchController,
+                  focusNode: _searchFocusNode,
+                  onClose: () {
+                    _searchController.clear();
+                    _searchFocusNode.unfocus();
+                    setState(() => _isSearching = false);
+                  },
+                ),
+
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 44,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      _FilterChipX(
+                        text: "🔥 Best Offers",
+                        active: _activeFilter == HomeFilter.offers,
+                        onTap: () => _toggleFilter(HomeFilter.offers),
+                      ),
+                      _FilterChipX(
+                        text: "⭐ Top Rated",
+                        active: _activeFilter == HomeFilter.rating,
+                        onTap: () => _toggleFilter(HomeFilter.rating),
+                      ),
+                      _FilterChipX(
+                        text: "📍 Nearest",
+                        active: _activeFilter == HomeFilter.nearest,
+                        onTap: () => _toggleFilter(HomeFilter.nearest),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+
+  Widget _buildBanners() {
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 14),
+        child: SizedBox(
+          height: 150,
+          child: PageView(
+            controller: PageController(viewportFraction: 0.92),
+            children: const [
+              _GradientBanner(
+                title: "Offer Hunter Mode",
+                subtitle: "Best discounts near you instantly",
+                emoji: "🏷️",
+              ),
+              _GradientBanner(
+                title: "Buddy Picks",
+                subtitle: "Hot deals from top restaurants",
+                emoji: "🔥",
+              ),
+              _GradientBanner(
+                title: "Save More Today",
+                subtitle: "Extra freebies + combo discounts",
+                emoji: "😋",
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBestOffers() {
+    if (_isLoading) return const SliverToBoxAdapter(child: SizedBox.shrink());
+
+    final best = _bestOffersNearYou(_restaurants);
+    if (best.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+
+    return SliverToBoxAdapter(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 22, 16, 10),
+            child: Text(
+              "Best Offers Near You ✨",
+              style: GoogleFonts.inter(
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+                color: textPrimary,
+              ),
+            ),
+          ),
+          SizedBox(
+            height: 330,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: best.length,
+              itemBuilder: (context, index) {
+                return _BestOfferCard(
+                  restaurant: best[index],
+                  kmToMiles: _kmToMiles,
+                  offerTags: _getOfferTags,
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCuisineRow() {
+    if (_cuisineSections.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+              child: Text(
+                "Explore Cuisines",
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  color: textPrimary,
+                ),
+              ),
+            ),
+            SizedBox(
+              height: 92,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: _cuisineSections.length,
+                itemBuilder: (context, index) {
+                  final c = _cuisineSections[index];
+                  return _CuisineChipX(
+                    icon: c['icon'] ?? "🍴",
+                    name: c['name'] ?? "",
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRestaurantFeed(List<Restaurant> list) {
+    if (_isLoading) {
+      return const SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.only(top: 80),
+          child: Center(child: CircularProgressIndicator(color: buddyOrange)),
+        ),
+      );
+    }
+
+    if (list.isEmpty) {
+      return const SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.only(top: 40),
+          child: Center(
+            child: Text("No restaurants found 😅", style: TextStyle(color: textSecondary)),
+          ),
+        ),
+      );
+    }
+
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 10),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 14),
+              child: _FeedTile(
+                restaurant: list[index],
+                kmToMiles: _kmToMiles,
+                offerTags: _getOfferTags,
+              ),
+            );
+          },
+          childCount: list.length,
+        ),
+      ),
+    );
+  }
+}
+
+/* ------------------- Premium Widgets ------------------- */
+
+class _SearchBar extends StatelessWidget {
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final VoidCallback onClose;
+
+  const _SearchBar({
+    required this.controller,
+    required this.focusNode,
+    required this.onClose,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 48,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.black.withOpacity(0.06)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: 12),
+          const Icon(Icons.search, size: 20, color: Color(0xFF6B7280)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: TextField(
+              controller: controller,
+              focusNode: focusNode,
+              decoration: InputDecoration(
+                hintText: "Search restaurants, cuisines...",
+                hintStyle: GoogleFonts.inter(
+                  fontSize: 13,
+                  color: const Color(0xFF9CA3AF),
+                ),
+                border: InputBorder.none,
+              ),
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: const Color(0xFF111827),
+              ),
+            ),
+          ),
+          if (controller.text.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.close, size: 18, color: Color(0xFF6B7280)),
+              onPressed: onClose,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FilterChipX extends StatelessWidget {
+  final String text;
+  final bool active;
+  final VoidCallback onTap;
+
+  const _FilterChipX({
+    required this.text,
+    required this.active,
+    required this.onTap,
+  });
+
+  static const List<Color> buddyGradient = [
+    Color(0xFFFF2D83),
+    Color(0xFF7C3AED),
+    Color(0xFFFF7A00),
+    Color(0xFFFFB100),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(right: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(22),
+          color: active ? null : Colors.white,
+          gradient: active ? const LinearGradient(colors: buddyGradient) : null,
+          border: Border.all(color: Colors.black.withOpacity(0.06)),
+          boxShadow: active
+              ? [
+                  BoxShadow(
+                    color: buddyGradient.first.withOpacity(0.22),
+                    blurRadius: 18,
+                    offset: const Offset(0, 10),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          text,
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            color: active ? Colors.white : const Color(0xFF111827),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GradientBanner extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final String emoji;
+
+  const _GradientBanner({
+    required this.title,
+    required this.subtitle,
+    required this.emoji,
+  });
+
+  static const List<Color> buddyGradient = [
+    Color(0xFFFF2D83),
+    Color(0xFF7C3AED),
+    Color(0xFFFF7A00),
+    Color(0xFFFFB100),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        gradient: const LinearGradient(
+          colors: buddyGradient,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: buddyGradient.first.withOpacity(0.25),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.inter(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  subtitle,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: Colors.white.withOpacity(0.95),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.18),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    "Explore",
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(emoji, style: const TextStyle(fontSize: 48)),
+        ],
+      ),
+    );
+  }
+}
+
+class _CuisineChipX extends StatelessWidget {
+  final String icon;
+  final String name;
+
+  const _CuisineChipX({required this.icon, required this.name});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(right: 14),
+      child: Column(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.black.withOpacity(0.06)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 14,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Center(child: Text(icon, style: const TextStyle(fontSize: 24))),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: 72,
+            child: Text(
+              name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF111827),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BestOfferCard extends StatelessWidget {
+  final Restaurant restaurant;
+  final double Function(double) kmToMiles;
+  final List<String> Function(Restaurant) offerTags;
+
+  const _BestOfferCard({
+    required this.restaurant,
+    required this.kmToMiles,
+    required this.offerTags,
+  });
+
+  static const List<Color> buddyGradient = [
+    Color(0xFFFF2D83),
+    Color(0xFF7C3AED),
+    Color(0xFFFF7A00),
+    Color(0xFFFFB100),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final tags = offerTags(restaurant);
+    final distanceMiles = kmToMiles(restaurant.distance);
+
+    return GestureDetector(
+      onTap: () {
+        final slug = restaurant.slug ?? restaurant.id;
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => RestaurantDetailsPage(slug: slug)),
+        );
+      },
+      child: Container(
+        width: 240,
+        margin: const EdgeInsets.only(right: 14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          gradient: const LinearGradient(colors: buddyGradient),
+          boxShadow: [
+            BoxShadow(
+              color: buddyGradient.first.withOpacity(0.18),
+              blurRadius: 18,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(1.5),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  child: AspectRatio(
+                    aspectRatio: 4 / 3,
+                    child: Stack(
                       children: [
-                        Text(
-                          'Top 10 in $_cityName',
-                          style: GoogleFonts.inter(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: NeoTasteColors.textPrimary,
+                        CachedNetworkImage(
+                          imageUrl: restaurant.imageUrl,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          placeholder: (context, url) => Container(
+                            color: Colors.black.withOpacity(0.03),
+                            child: const Center(
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            color: Colors.black.withOpacity(0.03),
+                            child: const Icon(Icons.restaurant, color: Color(0xFF6B7280)),
                           ),
                         ),
-                        const SizedBox(width: 4),
-                        const Text('😋', style: TextStyle(fontSize: 20)),
+                        if (tags.isNotEmpty)
+                          Positioned(
+                            left: 10,
+                            bottom: 10,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(colors: buddyGradient),
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Text(
+                                tags.first,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),
                 ),
-                if (_isLoading)
-                  SliverToBoxAdapter(
-                    child: SizedBox(
-                      height: 280,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: 3,
-                        itemBuilder: (context, index) => Container(
-                          width: 240,
-                          margin: const EdgeInsets.only(right: 16),
-                          decoration: BoxDecoration(
-                            color: NeoTasteColors.background,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Center(
-                            child: CircularProgressIndicator(),
-                          ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        restaurant.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w900,
+                          color: const Color(0xFF111827),
                         ),
                       ),
-                    ),
-                  )
-                else
-                  SliverToBoxAdapter(
-                    child: SizedBox(
-                      height: 280,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: _top10Restaurants.length,
-                        itemBuilder: (context, index) {
-                          final restaurant = _top10Restaurants[index];
-                          return _HomeRestaurantCard(
-                            restaurant: restaurant,
-                            onOfferTags: _getOfferTags,
-                            onKmToMiles: _kmToMiles,
-                          );
-                        },
+                      const SizedBox(height: 6),
+                      Text(
+                        "${restaurant.rating.toStringAsFixed(1)} (${restaurant.reviewCount}) • ${distanceMiles.toStringAsFixed(2)} mi • ${restaurant.cuisine}",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF6B7280)),
                       ),
-                    ),
-                  ),
-
-                // Category Sections from API (Italian, Chinese, etc.)
-                if (!_isLoading && !_isSearching)
-                  ..._cuisineSections.map((section) {
-                    final restaurants =
-                        section['restaurants'] as List<Restaurant>;
-                    if (restaurants.isEmpty)
-                      return const SliverToBoxAdapter(child: SizedBox.shrink());
-
-                    return SliverMainAxisGroup(
-                      slivers: [
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 32, 16, 16),
-                            child: Row(
-                              children: [
-                                Text(
-                                  section['name'] ?? '',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: NeoTasteColors.textPrimary,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  section['icon'] ?? '',
-                                  style: const TextStyle(fontSize: 20),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        SliverToBoxAdapter(
-                          child: SizedBox(
-                            height: 280,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
+                      const SizedBox(height: 10),
+                      if (tags.length > 1)
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: tags.skip(1).take(2).map((t) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF3F4F6),
+                                borderRadius: BorderRadius.circular(14),
                               ),
-                              itemCount: restaurants.length,
-                              itemBuilder: (context, index) {
-                                final restaurant = restaurants[index];
-                                return _HomeRestaurantCard(
-                                  restaurant: restaurant,
-                                  onOfferTags: _getOfferTags,
-                                  onKmToMiles: _kmToMiles,
-                                );
-                              },
-                            ),
-                          ),
+                              child: Text(
+                                t,
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  foreground: Paint()
+                                    ..shader = const LinearGradient(colors: buddyGradient)
+                                        .createShader(const Rect.fromLTWH(0, 0, 140, 20)),
+                                ),
+                              ),
+                            );
+                          }).toList(),
                         ),
-                      ],
-                    );
-                  }),
-
-                // Bottom padding
-                const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -747,212 +1066,112 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-/// Cuisine Chip Widget
-class _CuisineChip extends StatelessWidget {
-  final String name;
-  final String icon;
-
-  const _CuisineChip({required this.name, required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(right: 16),
-      child: Column(
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: NeoTasteColors.white,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Center(
-              child: Text(icon, style: const TextStyle(fontSize: 28)),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            name,
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: NeoTasteColors.textPrimary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Home Restaurant Card
-class _HomeRestaurantCard extends StatelessWidget {
+class _FeedTile extends StatelessWidget {
   final Restaurant restaurant;
-  final List<String> Function(Restaurant) onOfferTags;
-  final double Function(double) onKmToMiles;
+  final double Function(double) kmToMiles;
+  final List<String> Function(Restaurant) offerTags;
 
-  const _HomeRestaurantCard({
+  const _FeedTile({
     required this.restaurant,
-    required this.onOfferTags,
-    required this.onKmToMiles,
+    required this.kmToMiles,
+    required this.offerTags,
   });
 
+  static const List<Color> buddyGradient = [
+    Color(0xFFFF2D83),
+    Color(0xFF7C3AED),
+    Color(0xFFFF7A00),
+    Color(0xFFFFB100),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    final offerTags = onOfferTags(restaurant);
-    final distanceMiles = onKmToMiles(restaurant.distance);
+    final tags = offerTags(restaurant);
+    final distanceMiles = kmToMiles(restaurant.distance);
 
     return GestureDetector(
       onTap: () {
         final slug = restaurant.slug ?? restaurant.id;
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => RestaurantDetailsPage(slug: slug),
-          ),
+          MaterialPageRoute(builder: (context) => RestaurantDetailsPage(slug: slug)),
         );
       },
       child: Container(
-        width: 240,
-        margin: const EdgeInsets.only(right: 16),
-        decoration: const BoxDecoration(color: NeoTasteColors.background),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.black.withOpacity(0.06)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 18,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
           children: [
-            // Image with AspectRatio 4/3 and border radius on all sides
             ClipRRect(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
               child: AspectRatio(
-                aspectRatio: 4 / 3,
+                aspectRatio: 16 / 9,
                 child: CachedNetworkImage(
                   imageUrl: restaurant.imageUrl,
-                  width: double.infinity,
                   fit: BoxFit.cover,
+                  width: double.infinity,
                   placeholder: (context, url) => Container(
-                    color: NeoTasteColors.textDisabled,
-                    child: const Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
+                    color: Colors.black.withOpacity(0.03),
+                    child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
                   ),
                   errorWidget: (context, url, error) => Container(
-                    color: NeoTasteColors.textDisabled,
-                    child: const Icon(
-                      Icons.restaurant,
-                      color: NeoTasteColors.textSecondary,
-                    ),
+                    color: Colors.black.withOpacity(0.03),
+                    child: const Icon(Icons.restaurant, color: Color(0xFF6B7280)),
                   ),
                 ),
               ),
             ),
-            // Content (no border radius)
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Restaurant Name
                   Text(
                     restaurant.name,
                     style: GoogleFonts.inter(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: NeoTasteColors.textPrimary,
-                      height: 1.2,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                      color: const Color(0xFF111827),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 6),
-                  // Rating, Distance, Cuisine in one row with dot separators
-                  Row(
-                    children: [
-                      // const Icon(
-                      //   Icons.star,
-                      //   color: Colors.amber,
-                      //   size: 14,
-                      // ),
-                      // const SizedBox(width: 4),
-                      Text(
-                        restaurant.rating.toStringAsFixed(1),
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: NeoTasteColors.textPrimary,
-                        ),
-                      ),
-                      Text(
-                        ' (${restaurant.reviewCount})',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: NeoTasteColors.textSecondary,
-                        ),
-                      ),
-                      Text(
-                        ' • ',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: NeoTasteColors.textSecondary,
-                        ),
-                      ),
-                      Text(
-                        '${distanceMiles.toStringAsFixed(2)} mi',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: NeoTasteColors.textSecondary,
-                        ),
-                      ),
-                      Text(
-                        ' • ',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: NeoTasteColors.textSecondary,
-                        ),
-                      ),
-                      Flexible(
-                        child: Text(
-                          restaurant.cuisine,
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            color: NeoTasteColors.textSecondary,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
+                  Text(
+                    "${restaurant.rating.toStringAsFixed(1)} (${restaurant.reviewCount}) • ${distanceMiles.toStringAsFixed(2)} mi • ${restaurant.cuisine}",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF6B7280)),
                   ),
-                  if (offerTags.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    // Offer Chips using Wrap
+                  if (tags.isNotEmpty) ...[
+                    const SizedBox(height: 10),
                     Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: offerTags.take(2).map((tag) {
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: tags.take(3).map((t) {
                         return Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Colors.green,
-                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.black.withOpacity(0.04),
+                            borderRadius: BorderRadius.circular(14),
                           ),
                           child: Text(
-                            tag,
+                            t,
                             style: GoogleFonts.inter(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              foreground: Paint()
+                                ..shader = const LinearGradient(colors: buddyGradient)
+                                    .createShader(const Rect.fromLTWH(0, 0, 140, 20)),
                             ),
                           ),
                         );

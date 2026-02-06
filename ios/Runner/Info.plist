@@ -45,5 +45,17 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>MBXAccessToken</key>
+	<string>pk.eyJ1Ijoia2V0YW5jaGF2ZGEyMSIsImEiOiJjbWwzbzhkZzIwM3dkM2Vxc2FxNmhvNjduIn0.ujNsfSEeeW3Ad862r3PGQQ</string>
+	<key>MapboxAccessToken</key>
+	<string>pk.eyJ1Ijoia2V0YW5jaGF2ZGEyMSIsImEiOiJjbWwzbzhkZzIwM3dkM2Vxc2FxNmhvNjduIn0.ujNsfSEeeW3Ad862r3PGQQ</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs access to location when open to show your current location on the map.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app needs access to location when open and in the background to show your current location on the map.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>This app needs access to location when in the background to show your current location on the map.</string>
+	<key>io.flutter.embedded_views_preview</key>
+	<true/>
 </dict>
 </plist>

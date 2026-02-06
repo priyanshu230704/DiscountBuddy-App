@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../providers/theme_provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/wallet_service.dart';
 import '../services/restaurant_service.dart';
 import '../models/user_interactions.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_spacing.dart';
+import '../theme/theme_provider.dart';
+import 'package:provider/provider.dart';
 import 'edit_profile_page.dart';
 import 'help_support_page.dart';
 import 'privacy_policy_page.dart';
 
-/// Profile Screen - NeoTaste style
+/// Profile Screen - Redesigned
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -27,7 +30,7 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
     _authProvider.addListener(_onAuthStateChanged);
-    _authProvider.refreshUser(); // Refresh user data (email, etc.)
+    _authProvider.refreshUser();
     _loadWallet();
     _loadStats();
   }
@@ -47,26 +50,15 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _loadWallet() async {
-    if (!_authProvider.isAuthenticated || _authProvider.isMerchant) {
-      return;
-    }
-
+    if (!_authProvider.isAuthenticated || _authProvider.isMerchant) return;
     try {
       await _walletService.getWallet();
-      if (mounted) {
-        setState(() {
-        });
-      }
-    } catch (e) {
-      // Silently fail
-    }
+      if (mounted) setState(() {});
+    } catch (_) {}
   }
 
   Future<void> _loadStats() async {
-    if (!_authProvider.isAuthenticated || _authProvider.isMerchant) {
-      return;
-    }
-
+    if (!_authProvider.isAuthenticated || _authProvider.isMerchant) return;
     try {
       final stats = await _restaurantService.getProfileStats();
       if (mounted) {
@@ -74,9 +66,7 @@ class _ProfilePageState extends State<ProfilePage> {
           _stats = stats;
         });
       }
-    } catch (e) {
-      // Silently fail
-    }
+    } catch (_) {}
   }
 
   String _getInitials(String name) {
@@ -92,34 +82,49 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final user = _authProvider.user;
     final displayName = user?.username ?? 'Guest';
     final initials = _getInitials(displayName);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: NeoTasteColors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header with Profile title
+              // Header
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                child: Text(
-                  'Profile',
-                  style: GoogleFonts.inter(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: NeoTasteColors.textPrimary,
-                  ),
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.lg,
+                  AppSpacing.lg,
+                  AppSpacing.lg,
+                  0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Profile', style: theme.textTheme.headlineSmall),
+                    IconButton(
+                      onPressed: () {
+                        final themeProvider = Provider.of<ThemeProvider>(
+                          context,
+                          listen: false,
+                        );
+                        themeProvider.toggleTheme();
+                      },
+                      icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xl),
 
-              // User Profile Section with Edit Profile
+              // User Info
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 child: GestureDetector(
                   onTap: () {
                     Navigator.push(
@@ -129,190 +134,145 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                     );
                   },
-                  child: Row(
-                    children: [
-                      // Avatar with green background
-                      Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          color: Colors.green,
-                          shape: BoxShape.circle,
+                  child: Container(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: theme.cardTheme.color,
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
                         ),
-                        child: Center(
-                          child: Text(
-                            initials,
-                            style: GoogleFonts.inter(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: NeoTasteColors.white,
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            gradient: AppColors.primaryGradient,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: Text(
+                              initials,
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      // Name and Edit profile
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              displayName,
-                              style: GoogleFonts.inter(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: NeoTasteColors.textPrimary,
+                        const SizedBox(width: AppSpacing.lg),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                displayName,
+                                style: theme.textTheme.titleLarge,
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Edit profile',
-                              style: GoogleFonts.inter(
-                                fontSize: 14,
-                                color: NeoTasteColors.textSecondary,
+                              const SizedBox(height: 4),
+                              Text(
+                                'Edit profile',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: isDark
+                                      ? AppColors.textSecondaryDark
+                                      : AppColors.textSecondaryLight,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                      const Icon(
-                        Icons.chevron_right,
-                        color: NeoTasteColors.textPrimary,
-                      ),
-                    ],
+                        Icon(Icons.chevron_right, color: theme.iconTheme.color),
+                      ],
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xl),
 
-              // Statistics Cards Row
+              // Stats Cards
               SizedBox(
-                height: 130,
+                height: 120,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                  ),
                   children: [
                     _StatCard(
                       icon: Icons.favorite,
                       value: _stats?.favouriteRestaurants.toString() ?? '0',
                       label: 'Favourites',
+                      color: Colors.pink,
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppSpacing.md),
                     _StatCard(
                       icon: Icons.account_balance_wallet,
                       value: '£${_stats?.moneySaved.toStringAsFixed(0) ?? '0'}',
                       label: 'Saved',
+                      color: Colors.green,
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppSpacing.md),
                     _StatCard(
                       icon: Icons.local_offer,
                       value: _stats?.dealsClaimed.toString() ?? '0',
                       label: 'Deals',
+                      color: Colors.orange,
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppSpacing.md),
                     _StatCard(
                       icon: Icons.star,
                       value: _stats?.userLevel ?? 'Bronze',
                       label: 'Level',
+                      color: Colors.purple,
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
-
-              // Invitation Banner
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2E7D32), // Dark green
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Earn €10 for every friend you invite!',
-                        style: GoogleFonts.inter(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: NeoTasteColors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            // Handle invite friends
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.lightGreen,
-                            foregroundColor: NeoTasteColors.textPrimary,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: Text(
-                            'Invite friends',
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xl),
 
               // Navigation List Items
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 child: Column(
                   children: [
                     _MenuTile(
                       icon: Icons.help_outline,
                       title: 'Help & Support',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const HelpSupportPage(),
-                          ),
-                        );
-                      },
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const HelpSupportPage(),
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     _MenuTile(
                       icon: Icons.privacy_tip_outlined,
                       title: 'Privacy Policy',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const PrivacyPolicyPage(),
-                          ),
-                        );
-                      },
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const PrivacyPolicyPage(),
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     _MenuTile(
                       icon: Icons.logout,
                       title: 'Logout',
                       isDestructive: true,
-                      onTap: () {
-                        _showLogoutConfirmation();
-                      },
+                      onTap: () => _showLogoutConfirmation(),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 100), // Bottom padding
             ],
           ),
         ),
@@ -321,47 +281,39 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _showLogoutConfirmation() {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(
-          'Logout',
-          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
-        ),
+        backgroundColor: theme.cardTheme.color,
+        title: Text('Logout', style: theme.textTheme.titleLarge),
         content: Text(
           'Are you sure you want to logout?',
-          style: GoogleFonts.inter(),
+          style: theme.textTheme.bodyMedium,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
               'Cancel',
-              style: GoogleFonts.inter(color: NeoTasteColors.textSecondary),
+              style: TextStyle(color: theme.textTheme.bodyMedium?.color),
             ),
           ),
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
               await _authProvider.logout();
-              if (mounted) {
-                Navigator.of(context).pushReplacementNamed('/login');
-              }
+              if (mounted) Navigator.of(context).pushReplacementNamed('/login');
             },
-            child: Text(
+            child: const Text(
               'Logout',
-              style: GoogleFonts.inter(
-                color: Colors.red,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
             ),
           ),
         ],
       ),
     );
   }
-
-  // Removed _buildListTile
 }
 
 class _MenuTile extends StatelessWidget {
@@ -379,16 +331,18 @@ class _MenuTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
-          color: NeoTasteColors.white,
-          borderRadius: BorderRadius.circular(16),
+          color: theme.cardTheme.color,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
           border: Border.all(
-            color: NeoTasteColors.textDisabled.withOpacity(0.3),
-            width: 1,
+            color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
           ),
         ),
         child: Row(
@@ -398,25 +352,22 @@ class _MenuTile extends StatelessWidget {
               decoration: BoxDecoration(
                 color: isDestructive
                     ? Colors.red.withOpacity(0.1)
-                    : NeoTasteColors.textPrimary.withOpacity(0.05),
+                    : theme.colorScheme.primary.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
-                color: isDestructive ? Colors.red : NeoTasteColors.textPrimary,
+                color: isDestructive ? Colors.red : theme.colorScheme.primary,
                 size: 20,
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: AppSpacing.lg),
             Expanded(
               child: Text(
                 title,
-                style: GoogleFonts.inter(
-                  fontSize: 16,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: isDestructive ? Colors.red : null,
                   fontWeight: FontWeight.w600,
-                  color: isDestructive
-                      ? Colors.red
-                      : NeoTasteColors.textPrimary,
                 ),
               ),
             ),
@@ -424,7 +375,7 @@ class _MenuTile extends StatelessWidget {
               Icons.chevron_right,
               color: isDestructive
                   ? Colors.red.withOpacity(0.5)
-                  : NeoTasteColors.textDisabled,
+                  : theme.iconTheme.color?.withOpacity(0.5),
             ),
           ],
         ),
@@ -433,51 +384,49 @@ class _MenuTile extends StatelessWidget {
   }
 }
 
-/// Statistics Card Widget
 class _StatCard extends StatelessWidget {
   final IconData icon;
   final String value;
   final String label;
+  final Color color;
 
   const _StatCard({
     required this.icon,
     required this.value,
     required this.label,
+    required this.color,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       constraints: const BoxConstraints(minWidth: 100),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: NeoTasteColors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: theme.cardTheme.color,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
         border: Border.all(
-          color: NeoTasteColors.textDisabled.withOpacity(0.3),
-          width: 1,
+          color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
         ),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: NeoTasteColors.textPrimary, size: 24),
+          Icon(icon, color: color, size: 24),
           const SizedBox(height: 8),
           Text(
             value,
-            style: GoogleFonts.inter(
-              fontSize: 20,
+            style: theme.textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
-              color: NeoTasteColors.textPrimary,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             label,
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              color: NeoTasteColors.textSecondary,
-            ),
+            style: theme.textTheme.bodySmall,
             textAlign: TextAlign.center,
           ),
         ],

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'auth_theme.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_spacing.dart';
 
-/// NeoTaste-style Auth Button - Yellow pill-shaped button
+/// Primary Auth Button - Uses Gradient and New Design System
 class AuthButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
@@ -18,33 +19,54 @@ class AuthButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    final theme = Theme.of(context);
+
+    return Container(
       width: width ?? double.infinity,
-      height: AuthTheme.buttonHeight,
+      height: AppSpacing.buttonHeight,
+      decoration: BoxDecoration(
+        gradient: AppColors.primaryGradient,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        boxShadow: onPressed == null
+            ? []
+            : [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.3),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+      ),
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AuthTheme.accent,
-          foregroundColor: AuthTheme.background,
-          disabledBackgroundColor: AuthTheme.textGrey.withOpacity(0.3),
-          elevation: 0,
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          disabledForegroundColor: Colors.white.withOpacity(0.7),
+          disabledBackgroundColor: Colors.grey.withOpacity(
+            0.3,
+          ), // Fallback for disabled state if gradient doesn't show
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AuthTheme.buttonBorderRadius),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
         ),
         child: isLoading
-            ? SizedBox(
-                height: 20,
-                width: 20,
+            ? const SizedBox(
+                height: 24,
+                width: 24,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(AuthTheme.background),
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                 ),
               )
             : Text(
                 text,
-                style: AuthTheme.buttonText,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
       ),
     );

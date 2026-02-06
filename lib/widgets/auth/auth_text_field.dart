@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'auth_theme.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_spacing.dart';
 
-/// NeoTaste-style Auth Text Field - Minimal rounded input with placeholder only
+/// Auth Text Field - Updated to standard design system
 class AuthTextField extends StatelessWidget {
   final TextEditingController? controller;
   final String? placeholder;
@@ -40,6 +40,9 @@ class AuthTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return TextFormField(
       controller: controller,
       focusNode: focusNode,
@@ -48,64 +51,61 @@ class AuthTextField extends StatelessWidget {
       onChanged: onChanged,
       readOnly: readOnly,
       onTap: onTap,
-      style: AuthTheme.bodyText,
+      style: theme.textTheme.bodyLarge,
       inputFormatters: inputFormatters,
       maxLength: maxLength,
       validator: validator,
       autovalidateMode: autovalidateMode,
       decoration: InputDecoration(
         hintText: placeholder,
-        hintStyle: AuthTheme.hintText,
+        hintStyle: theme.textTheme.bodyMedium?.copyWith(
+          color: isDark
+              ? AppColors.textSecondaryDark
+              : AppColors.textSecondaryLight,
+        ),
         filled: true,
-        fillColor: Colors.transparent,
+        fillColor: theme.cardTheme.color,
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 18,
+          horizontal: AppSpacing.lg,
+          vertical: 16,
         ),
         counterText: "", // Hide the default character counter
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthTheme.inputBorderRadius),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
           borderSide: BorderSide(
-            color: AuthTheme.textGrey.withOpacity(0.5),
-            width: AuthTheme.inputBorderWidth,
+            color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
+            width: 1,
           ),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthTheme.inputBorderRadius),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
           borderSide: BorderSide(
-            color: AuthTheme.textGrey.withOpacity(0.5),
-            width: AuthTheme.inputBorderWidth,
+            color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
+            width: 1,
           ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthTheme.inputBorderRadius),
-          borderSide: BorderSide(
-            color: AuthTheme.accent,
-            width: AuthTheme.inputBorderWidth,
-          ),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthTheme.inputBorderRadius),
-          borderSide: const BorderSide(
-            color: Colors.red,
-            width: AuthTheme.inputBorderWidth,
-          ),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          borderSide: const BorderSide(color: AppColors.error, width: 1),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AuthTheme.inputBorderRadius),
-          borderSide: const BorderSide(
-            color: Colors.red,
-            width: AuthTheme.inputBorderWidth,
-          ),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
         ),
-        errorStyle: GoogleFonts.inter(color: Colors.red, fontSize: 12),
+        errorStyle: theme.textTheme.bodySmall?.copyWith(color: AppColors.error),
         suffixIcon: showToggle && onToggleVisibility != null
             ? IconButton(
                 icon: Icon(
                   obscureText
                       ? Icons.visibility_outlined
                       : Icons.visibility_off_outlined,
-                  color: AuthTheme.textGrey,
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
                 ),
                 onPressed: onToggleVisibility,
               )

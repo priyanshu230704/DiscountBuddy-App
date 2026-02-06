@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import '../providers/theme_provider.dart';
 import '../providers/auth_provider.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_spacing.dart';
 
-/// Edit Profile Screen
+/// Edit Profile Screen - Redesigned
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
 
@@ -63,15 +63,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     try {
       // TODO: Implement API call to update profile
-      // For now, just show success message
+      await Future.delayed(const Duration(seconds: 1)); // Simulating
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               'Profile updated successfully',
-              style: GoogleFonts.inter(),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.white),
             ),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.success,
           ),
         );
         Navigator.pop(context);
@@ -82,9 +85,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
           SnackBar(
             content: Text(
               'Failed to update profile',
-              style: GoogleFonts.inter(),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: Colors.white),
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -99,57 +104,54 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: NeoTasteColors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            color: NeoTasteColors.textPrimary,
-          ),
+          icon: Icon(Icons.arrow_back, color: theme.iconTheme.color),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          'Edit profile',
-          style: GoogleFonts.inter(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: NeoTasteColors.textPrimary,
-          ),
-        ),
-        backgroundColor: NeoTasteColors.white,
+        title: Text('Edit profile', style: theme.textTheme.headlineSmall),
+        backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           child: Column(
             children: [
-              const SizedBox(height: 32),
-              
+              const SizedBox(height: AppSpacing.xxl),
+
               // Profile Picture Section
               Stack(
                 children: [
-                  // Large circular avatar
                   Container(
                     width: 120,
                     height: 120,
                     decoration: BoxDecoration(
-                      color: Colors.green,
+                      gradient: AppColors.primaryGradient,
                       shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
                     child: Center(
                       child: Text(
                         _getInitials(),
-                        style: GoogleFonts.inter(
-                          fontSize: 48,
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          color: Colors.white,
                           fontWeight: FontWeight.bold,
-                          color: NeoTasteColors.white,
                         ),
                       ),
                     ),
                   ),
-                  // Edit icon overlay
                   Positioned(
                     bottom: 0,
                     right: 0,
@@ -157,82 +159,97 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF343A40),
+                        color: theme.cardTheme.color,
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: NeoTasteColors.white,
+                          color: theme.scaffoldBackgroundColor,
                           width: 3,
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 4,
+                          ),
+                        ],
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.edit,
-                        color: NeoTasteColors.white,
+                        color: theme.iconTheme.color,
                         size: 18,
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.xxl),
 
-              // First Name Field
+              // Fields
               _buildTextField(
+                context,
                 label: 'First name',
                 controller: _firstNameController,
                 onChanged: (value) => setState(() {}),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
 
-              // Last Name Field
               _buildTextField(
+                context,
                 label: 'Last name (not shown in the app)',
                 controller: _lastNameController,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
 
-              // Email Field
               _buildTextField(
+                context,
                 label: 'Email',
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.xxl),
 
               // Save Button
-              SizedBox(
+              Container(
                 width: double.infinity,
+                height: AppSpacing.buttonHeight,
+                decoration: BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusXxl),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.3),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _saveProfile,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.lightGreen,
-                    foregroundColor: const Color(0xFF2E7D32),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusXxl),
                     ),
-                    elevation: 0,
                   ),
                   child: _isLoading
                       ? const SizedBox(
-                          height: 20,
-                          width: 20,
+                          height: 24,
+                          width: 24,
                           child: CircularProgressIndicator(
+                            color: Colors.white,
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Color(0xFF2E7D32),
-                            ),
                           ),
                         )
                       : Text(
                           'Save',
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.xxl),
             ],
           ),
         ),
@@ -240,40 +257,46 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  Widget _buildTextField({
+  Widget _buildTextField(
+    BuildContext context, {
     required String label,
     required TextEditingController controller,
     TextInputType? keyboardType,
     void Function(String)? onChanged,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: GoogleFonts.inter(
-            fontSize: 12,
-            color: NeoTasteColors.textSecondary,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: isDark
+                ? AppColors.textSecondaryDark
+                : AppColors.textSecondaryLight,
           ),
         ),
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: const Color(0xFFF5F5F5),
-            borderRadius: BorderRadius.circular(12),
+            color: theme.cardTheme.color,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+            border: Border.all(
+              color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
+            ),
           ),
           child: TextField(
             controller: controller,
             keyboardType: keyboardType,
             onChanged: onChanged,
-            style: GoogleFonts.inter(
-              fontSize: 16,
+            style: theme.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.bold,
-              color: NeoTasteColors.textPrimary,
             ),
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
+              contentPadding: EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 14,
               ),

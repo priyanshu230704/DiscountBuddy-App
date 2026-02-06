@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../models/restaurant.dart';
 import '../../services/restaurant_service.dart';
-import '../../providers/theme_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../deals/redeem_offer_modal.dart';
 import '../../widgets/generic_bottom_sheet.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_spacing.dart';
 
 class BookingSelectionModal extends StatefulWidget {
   final Restaurant restaurant;
@@ -83,9 +83,12 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
 
   Future<void> _createBooking() async {
     if (_selectedTime == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please select a time')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a time'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
       return;
     }
 
@@ -127,7 +130,8 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Booking confirmed! Ready to redeem offer.'),
-            backgroundColor: NeoTasteColors.accent,
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
@@ -136,15 +140,21 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
         setState(() {
           _isBooking = false;
         });
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.toString())));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppColors.error,
+          ),
+        );
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final availableTimes = _getAvailableTimes();
 
     return Padding(
@@ -160,23 +170,26 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
             children: [
               const SizedBox(height: 8),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 child: Text(
                   'Select your preferred date and time',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: NeoTasteColors.textSecondary,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xxl),
 
               // Date Selection (Horizontal)
               SizedBox(
                 height: 80,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                  ),
                   itemCount: 14, // Next 14 days
                   itemBuilder: (context, index) {
                     final date = DateTime.now().add(Duration(days: index));
@@ -188,16 +201,20 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                       onTap: () => setState(() => _selectedDate = date),
                       child: Container(
                         width: 60,
-                        margin: const EdgeInsets.symmetric(horizontal: 8),
+                        margin: const EdgeInsets.only(right: AppSpacing.md),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? NeoTasteColors.accent
-                              : NeoTasteColors.background,
-                          borderRadius: BorderRadius.circular(16),
+                              ? AppColors.primary
+                              : theme.cardTheme.color,
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusXl,
+                          ),
                           border: Border.all(
                             color: isSelected
-                                ? NeoTasteColors.accent
-                                : NeoTasteColors.textDisabled.withOpacity(0.3),
+                                ? AppColors.primary
+                                : (isDark
+                                      ? AppColors.dividerDark
+                                      : AppColors.dividerLight),
                           ),
                         ),
                         child: Column(
@@ -205,23 +222,21 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                           children: [
                             Text(
                               DateFormat('E').format(date).toUpperCase(),
-                              style: GoogleFonts.inter(
-                                fontSize: 10,
+                              style: theme.textTheme.labelSmall?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: isSelected
-                                    ? NeoTasteColors.primary
-                                    : NeoTasteColors.textSecondary,
+                                    ? Colors.white
+                                    : (isDark
+                                          ? AppColors.textSecondaryDark
+                                          : AppColors.textSecondaryLight),
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               date.day.toString(),
-                              style: GoogleFonts.inter(
-                                fontSize: 18,
+                              style: theme.textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: isSelected
-                                    ? NeoTasteColors.primary
-                                    : NeoTasteColors.textPrimary,
+                                color: isSelected ? Colors.white : null,
                               ),
                             ),
                           ],
@@ -231,74 +246,88 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                   },
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xxl),
 
               // Guests Selection
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       'Guests',
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
+                      style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: NeoTasteColors.textPrimary,
                       ),
                     ),
-                    Row(
-                      children: [
-                        IconButton(
-                          onPressed: _guestCount > 1
-                              ? () => setState(() => _guestCount--)
-                              : null,
-                          icon: const Icon(Icons.remove_circle_outline),
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusLg,
                         ),
-                        Text(
-                          _guestCount.toString(),
-                          style: GoogleFonts.inter(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                        border: Border.all(
+                          color: isDark
+                              ? AppColors.dividerDark
+                              : AppColors.dividerLight,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          IconButton(
+                            onPressed: _guestCount > 1
+                                ? () => setState(() => _guestCount--)
+                                : null,
+                            icon: Icon(
+                              Icons.remove,
+                              color: theme.iconTheme.color,
+                            ),
                           ),
-                        ),
-                        IconButton(
-                          onPressed: () => setState(() => _guestCount++),
-                          icon: const Icon(Icons.add_circle_outline),
-                        ),
-                      ],
+                          Text(
+                            _guestCount.toString(),
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () => setState(() => _guestCount++),
+                            icon: Icon(Icons.add, color: theme.iconTheme.color),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xxl),
 
               // Time Selection
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 child: Text(
                   'Available Times',
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
+                  style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: NeoTasteColors.textPrimary,
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               if (availableTimes.isEmpty)
                 Padding(
-                  padding: const EdgeInsets.all(24.0),
+                  padding: const EdgeInsets.all(AppSpacing.lg),
                   child: Center(
                     child: Text(
                       'No available times for this day',
-                      style: GoogleFonts.inter(color: Colors.red),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: AppColors.error,
+                      ),
                     ),
                   ),
                 )
               else
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                  ),
                   child: Wrap(
                     spacing: 8,
                     runSpacing: 8,
@@ -313,21 +342,23 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                           ),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? NeoTasteColors.primary
-                                : NeoTasteColors.white,
-                            borderRadius: BorderRadius.circular(8),
+                                ? AppColors.primary
+                                : theme.cardTheme.color,
+                            borderRadius: BorderRadius.circular(
+                              AppSpacing.radiusSm,
+                            ),
                             border: Border.all(
                               color: isSelected
-                                  ? NeoTasteColors.primary
-                                  : NeoTasteColors.textDisabled,
+                                  ? AppColors.primary
+                                  : (isDark
+                                        ? AppColors.dividerDark
+                                        : AppColors.dividerLight),
                             ),
                           ),
                           child: Text(
                             time,
-                            style: GoogleFonts.inter(
-                              color: isSelected
-                                  ? NeoTasteColors.white
-                                  : NeoTasteColors.textPrimary,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: isSelected ? Colors.white : null,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -336,44 +367,66 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                     }).toList(),
                   ),
                 ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xxl),
 
               // Special Requests
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 child: TextField(
                   controller: _requestsController,
                   decoration: InputDecoration(
                     hintText: 'Special requests (optional)',
+                    hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                      borderSide: BorderSide.none,
                     ),
                     filled: true,
-                    fillColor: NeoTasteColors.background,
+                    fillColor: isDark
+                        ? AppColors.surfaceVariantDark
+                        : AppColors.surfaceVariantLight,
                   ),
                   maxLines: 2,
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.xxl),
 
               // Confirm Button
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: SizedBox(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                child: Container(
                   width: double.infinity,
+                  height: AppSpacing.buttonHeight,
+                  decoration: BoxDecoration(
+                    gradient: AppColors.primaryGradient,
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
                   child: ElevatedButton(
                     onPressed: _isBooking ? null : _createBooking,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusLg,
+                        ),
                       ),
                     ),
                     child: _isBooking
                         ? const SizedBox(
-                            height: 20,
-                            width: 20,
+                            height: 24,
+                            width: 24,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
                               color: Colors.white,
@@ -381,7 +434,7 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                           )
                         : Text(
                             'Continue to Redemption',
-                            style: GoogleFonts.inter(
+                            style: theme.textTheme.titleMedium?.copyWith(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -390,7 +443,7 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xxl),
             ],
           ),
         ),

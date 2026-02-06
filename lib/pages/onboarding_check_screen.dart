@@ -4,7 +4,6 @@ import '../services/onboarding_service.dart';
 import 'onboarding_screen.dart';
 import 'auth/login_page.dart';
 import 'main_navigation.dart';
-import '../providers/theme_provider.dart';
 
 /// Screen that checks onboarding status and routes accordingly
 class OnboardingCheckScreen extends StatefulWidget {
@@ -32,13 +31,14 @@ class _OnboardingCheckScreenState extends State<OnboardingCheckScreen> {
       await Future.delayed(const Duration(milliseconds: 100));
       attempts++;
     }
-    
+
     // Check if user has completed onboarding
-    final hasCompletedOnboarding = await _onboardingService.hasCompletedOnboarding();
-    
+    final hasCompletedOnboarding = await _onboardingService
+        .hasCompletedOnboarding();
+
     // Check authentication status
     final isAuthenticated = _authProvider.isAuthenticated;
-    
+
     if (mounted) {
       // Navigate based on onboarding and auth status
       if (!hasCompletedOnboarding) {
@@ -49,9 +49,7 @@ class _OnboardingCheckScreenState extends State<OnboardingCheckScreen> {
       } else if (isAuthenticated) {
         // User is authenticated, go to home
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => MainNavigation(themeProvider: ThemeProvider()),
-          ),
+          MaterialPageRoute(builder: (context) => const MainNavigation()),
         );
       } else {
         // User has seen onboarding but not authenticated, go to login
@@ -74,4 +72,3 @@ class _OnboardingCheckScreenState extends State<OnboardingCheckScreen> {
     );
   }
 }
-

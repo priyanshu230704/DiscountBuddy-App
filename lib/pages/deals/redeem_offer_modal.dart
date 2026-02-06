@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../models/restaurant.dart';
 import '../../services/restaurant_service.dart';
-import '../../providers/theme_provider.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_spacing.dart';
 import '../../widgets/generic_bottom_sheet.dart';
 
-/// Redeem Offer Modal - NeoTaste style bottom sheet
+/// Redeem Offer Modal - Redesigned
 class RedeemOfferModal extends StatefulWidget {
   final Restaurant restaurant;
 
@@ -30,6 +30,9 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     final deals = widget.restaurant.activeDeals.isNotEmpty
         ? widget.restaurant.activeDeals
         : [widget.restaurant.discount];
@@ -43,43 +46,46 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
             // Restaurant Name
             Text(
               widget.restaurant.name,
-              style: GoogleFonts.inter(
-                fontSize: 16,
-                color: NeoTasteColors.textSecondary,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: isDark
+                    ? AppColors.textSecondaryDark
+                    : AppColors.textSecondaryLight,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xxl),
 
             // Offers List
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Select an offer:',
-                    style: GoogleFonts.inter(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: NeoTasteColors.textPrimary,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md),
                   ...deals.map((deal) {
                     final isSelected =
                         _selectedDeal.id == deal.id ||
                         (_selectedDeal.id == null && deals.length == 1);
                     return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
+                      margin: const EdgeInsets.only(bottom: AppSpacing.md),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? Colors.green.withOpacity(0.05)
-                            : Colors.white,
-                        borderRadius: BorderRadius.circular(16),
+                            ? AppColors.primary.withOpacity(0.1)
+                            : theme.cardTheme.color,
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusXl,
+                        ),
                         border: Border.all(
                           color: isSelected
-                              ? Colors.green
-                              : NeoTasteColors.textDisabled.withOpacity(0.3),
+                              ? AppColors.primary
+                              : (isDark
+                                    ? AppColors.dividerDark
+                                    : AppColors.dividerLight),
                           width: isSelected ? 2 : 1,
                         ),
                       ),
@@ -94,29 +100,30 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                           }
                         },
                         toggleable: true,
-                        activeColor: Colors.green,
+                        activeColor: AppColors.primary,
                         contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
+                          horizontal: AppSpacing.lg,
+                          vertical: 4,
                         ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusXl,
+                          ),
                         ),
                         title: Text(
                           deal.displayText,
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
+                          style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: NeoTasteColors.textPrimary,
                           ),
                         ),
                         subtitle: Padding(
                           padding: const EdgeInsets.only(top: 4),
                           child: Text(
                             deal.description,
-                            style: GoogleFonts.inter(
-                              fontSize: 13,
-                              color: NeoTasteColors.textSecondary,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondaryLight,
                             ),
                           ),
                         ),
@@ -127,31 +134,30 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: AppSpacing.lg),
 
             // Warning Text
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               child: Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
-                  color: Colors.amber.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.warning.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                 ),
                 child: Row(
                   children: [
                     const Icon(
                       Icons.info_outline,
-                      color: Colors.amber,
+                      color: AppColors.warning,
                       size: 20,
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: Text(
                         'Activated offers last for 15 mins. Show to staff when ordering.',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: Colors.brown,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: isDark ? Colors.amber[200] : Colors.brown[800],
                         ),
                       ),
                     ),
@@ -159,13 +165,25 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                 ),
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: AppSpacing.xxl),
 
             // Confirm Button
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: SizedBox(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              child: Container(
                 width: double.infinity,
+                height: AppSpacing.buttonHeight,
+                decoration: BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.3),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
                 child: ElevatedButton(
                   onPressed: _isRedeeming
                       ? null
@@ -175,6 +193,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text('Please select a valid offer'),
+                                behavior: SnackBarBehavior.floating,
                               ),
                             );
                             return;
@@ -195,9 +214,11 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                                 SnackBar(
                                   content: Text(
                                     'Offer redeemed successfully!',
-                                    style: GoogleFonts.inter(),
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: Colors.white,
+                                    ),
                                   ),
-                                  backgroundColor: Colors.green,
+                                  backgroundColor: AppColors.success,
                                   behavior: SnackBarBehavior.floating,
                                 ),
                               );
@@ -208,41 +229,44 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                                 _isRedeeming = false;
                               });
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(e.toString())),
+                                SnackBar(
+                                  content: Text(e.toString()),
+                                  behavior: SnackBarBehavior.floating,
+                                  backgroundColor: AppColors.error,
+                                ),
                               );
                             }
                           }
                         },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: NeoTasteColors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
                     ),
                   ),
                   child: _isRedeeming
                       ? const SizedBox(
-                          height: 20,
-                          width: 20,
+                          height: 24,
+                          width: 24,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              NeoTasteColors.white,
+                              Colors.white,
                             ),
                           ),
                         )
                       : Text(
                           'Confirm Redemption',
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.xxl),
           ],
         ),
       ),

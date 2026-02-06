@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../providers/auth_provider.dart';
-import '../../widgets/auth/auth_theme.dart';
 import '../../widgets/auth/auth_button.dart';
 import '../../widgets/auth/auth_text_field.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_spacing.dart';
 import 'register_page.dart';
 
-/// Login Screen - NeoTaste style
+/// Login Screen - Redesigned
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -73,12 +74,12 @@ class _LoginPageState extends State<LoginPage> {
         SnackBar(
           content: Text(
             _authProvider!.errorMessage!,
-            style: AuthTheme.bodyText,
+            style: const TextStyle(color: Colors.white),
           ),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
           ),
         ),
       );
@@ -103,32 +104,69 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return PopScope(
       canPop: false,
       child: Scaffold(
-        backgroundColor: AuthTheme.background,
+        backgroundColor: theme.scaffoldBackgroundColor,
         body: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 24),
-                  // Back Arrow
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 60),
+
+                  // App Branding (Placeholder for Icon/Logo)
+                  Center(
+                    child: Container(
+                      height: 80,
+                      width: 80,
+                      decoration: BoxDecoration(
+                        gradient: AppColors.primaryGradient,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(0.3),
+                            blurRadius: 20,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.percent,
+                        size: 40,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xxl),
 
                   // Large Heading
-                  Text('Welcome back', style: AuthTheme.headingLarge),
-                  const SizedBox(height: 8),
+                  Text(
+                    'Welcome back',
+                    style: theme.textTheme.headlineLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
 
                   // Small Subtitle
                   Text(
                     'Log in to continue discovering deals',
-                    style: AuthTheme.subtitle,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 48),
+                  const SizedBox(height: AppSpacing.xxl),
 
                   // Email / Mobile Input
                   AuthTextField(
@@ -139,7 +177,7 @@ class _LoginPageState extends State<LoginPage> {
                     autovalidateMode: AutovalidateMode.disabled,
                     validator: null,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.md),
 
                   // Password Input
                   AuthTextField(
@@ -156,7 +194,7 @@ class _LoginPageState extends State<LoginPage> {
                     },
                     validator: null,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.sm),
 
                   // Forgot Password
                   Align(
@@ -167,11 +205,14 @@ class _LoginPageState extends State<LoginPage> {
                       },
                       child: Text(
                         'Forgot password?',
-                        style: AuthTheme.linkText,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: AppSpacing.xl),
 
                   // Login Button
                   AuthButton(
@@ -181,62 +222,75 @@ class _LoginPageState extends State<LoginPage> {
                         : null,
                     isLoading: _isLoading,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.xl),
 
                   // OR Divider
                   Row(
                     children: [
                       Expanded(
-                        child: Divider(color: Colors.grey.withOpacity(0.3)),
+                        child: Divider(
+                          color: isDark
+                              ? AppColors.dividerDark
+                              : AppColors.dividerLight,
+                        ),
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Text(
                           'OR',
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondaryLight,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
                       Expanded(
-                        child: Divider(color: Colors.grey.withOpacity(0.3)),
+                        child: Divider(
+                          color: isDark
+                              ? AppColors.dividerDark
+                              : AppColors.dividerLight,
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.xl),
 
                   // Google Login Button
                   OutlinedButton(
                     onPressed: _isLoading ? null : _handleGoogleLogin,
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: BorderSide(color: Colors.grey.shade300),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(
+                        color: isDark
+                            ? AppColors.dividerDark
+                            : AppColors.dividerLight,
                       ),
-                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusLg,
+                        ),
+                      ),
+                      backgroundColor: theme.cardTheme.color,
+                      foregroundColor: theme.textTheme.bodyLarge?.color,
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Google Logo (simulated with text if asset missing, but standard is icon)
-                        // Using a simple 'G' styled text as fallback or just the text "Continue with Google"
                         Text(
                           'G',
                           style: TextStyle(
-                            color: Colors.blue,
+                            color: Colors.blue, // Google Blue
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            fontFamily: 'Roboto', // Google font usually
+                            fontFamily: 'Roboto',
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Text(
+                        const Text(
                           'Continue with Google',
                           style: TextStyle(
-                            color: Colors.black87,
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
@@ -244,13 +298,20 @@ class _LoginPageState extends State<LoginPage> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.xxl),
 
                   // Footer
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('New here?', style: AuthTheme.subtitle),
+                      Text(
+                        'New here?',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
+                        ),
+                      ),
                       TextButton(
                         style: TextButton.styleFrom(
                           padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -290,7 +351,10 @@ class _LoginPageState extends State<LoginPage> {
                         },
                         child: Text(
                           'Create account',
-                          style: AuthTheme.linkText,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],

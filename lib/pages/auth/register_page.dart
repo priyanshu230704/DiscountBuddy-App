@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/theme_provider.dart';
-import '../../widgets/auth/auth_theme.dart';
 import '../../widgets/auth/auth_button.dart';
 import '../../widgets/auth/auth_text_field.dart';
 import 'login_page.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_spacing.dart';
 
-/// Register Screen - NeoTaste style
+/// Register Screen - Redesigned
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
@@ -93,12 +92,12 @@ class _RegisterPageState extends State<RegisterPage> {
         SnackBar(
           content: Text(
             _authProvider!.errorMessage!,
-            style: AuthTheme.bodyText,
+            style: const TextStyle(color: Colors.white),
           ),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
           ),
         ),
       );
@@ -152,31 +151,45 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return PopScope(
       canPop: false,
       child: Scaffold(
-        backgroundColor: AuthTheme.background,
+        backgroundColor: theme.scaffoldBackgroundColor,
         body: SafeArea(
           child: SingleChildScrollView(
-            physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            // Removed NeverScrollableScrollPhysics to allow scrolling on smaller screens
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.xl),
 
                   // Title
-                  Text('Create your account', style: AuthTheme.headingLarge),
-                  const SizedBox(height: 8),
+                  Text(
+                    'Create your account',
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
 
                   // Subtitle
                   Text(
                     'Unlock exclusive restaurant offers',
-                    style: AuthTheme.subtitle,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 48),
+                  const SizedBox(height: AppSpacing.xxl),
 
                   // Full Name Input
                   AuthTextField(
@@ -203,7 +216,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.md),
 
                   // Email / Mobile Input
                   AuthTextField(
@@ -227,7 +240,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.md),
 
                   // Password Input
                   AuthTextField(
@@ -251,7 +264,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.md),
 
                   // Confirm Password Input
                   AuthTextField(
@@ -275,7 +288,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
 
                   // Role Selection
                   Padding(
@@ -285,110 +298,30 @@ class _RegisterPageState extends State<RegisterPage> {
                       children: [
                         Text(
                           'Account Type',
-                          style: GoogleFonts.inter(
-                            fontSize: 18,
+                          style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: NeoTasteColors.textPrimary,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: AppSpacing.md),
                         Row(
                           children: [
                             Expanded(
-                              child: GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _selectedRole = 'customer';
-                                    _validateForm();
-                                  });
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: _selectedRole == 'customer'
-                                        ? NeoTasteColors.accent.withOpacity(0.2)
-                                        : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: _selectedRole == 'customer'
-                                          ? NeoTasteColors.accent
-                                          : NeoTasteColors.textDisabled
-                                                .withOpacity(0.3),
-                                      width: 2,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.person,
-                                        color: _selectedRole == 'customer'
-                                            ? NeoTasteColors.accent
-                                            : NeoTasteColors.textSecondary,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'Customer',
-                                        style: GoogleFonts.inter(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                          color: _selectedRole == 'customer'
-                                              ? NeoTasteColors.textPrimary
-                                              : NeoTasteColors.textSecondary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                              child: _buildRoleCard(
+                                value: 'customer',
+                                icon: Icons.person,
+                                label: 'Customer',
+                                theme: theme,
+                                isDark: isDark,
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: AppSpacing.md),
                             Expanded(
-                              child: GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _selectedRole = 'merchant';
-                                    _validateForm();
-                                  });
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: _selectedRole == 'merchant'
-                                        ? NeoTasteColors.accent.withOpacity(0.2)
-                                        : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: _selectedRole == 'merchant'
-                                          ? NeoTasteColors.accent
-                                          : NeoTasteColors.textDisabled
-                                                .withOpacity(0.3),
-                                      width: 2,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.store,
-                                        color: _selectedRole == 'merchant'
-                                            ? NeoTasteColors.accent
-                                            : NeoTasteColors.textSecondary,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'Merchant',
-                                        style: GoogleFonts.inter(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                          color: _selectedRole == 'merchant'
-                                              ? NeoTasteColors.textPrimary
-                                              : NeoTasteColors.textSecondary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                              child: _buildRoleCard(
+                                value: 'merchant',
+                                icon: Icons.store,
+                                label: 'Merchant',
+                                theme: theme,
+                                isDark: isDark,
                               ),
                             ),
                           ],
@@ -396,7 +329,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.xl),
 
                   // Terms Checkbox
                   Row(
@@ -413,12 +346,14 @@ class _RegisterPageState extends State<RegisterPage> {
                           height: 24,
                           decoration: BoxDecoration(
                             color: _agreeToTerms
-                                ? AuthTheme.accent
+                                ? AppColors.primary
                                 : Colors.transparent,
                             border: Border.all(
                               color: _agreeToTerms
-                                  ? AuthTheme.accent
-                                  : AuthTheme.textGrey,
+                                  ? AppColors.primary
+                                  : (isDark
+                                        ? AppColors.textSecondaryDark
+                                        : AppColors.textSecondaryLight),
                               width: 2,
                             ),
                             borderRadius: BorderRadius.circular(4),
@@ -426,7 +361,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           child: _agreeToTerms
                               ? const Icon(
                                   Icons.check,
-                                  color: AuthTheme.background,
+                                  color: Colors.white,
                                   size: 16,
                                 )
                               : null,
@@ -443,13 +378,17 @@ class _RegisterPageState extends State<RegisterPage> {
                           },
                           child: Text(
                             'I agree to Terms & Privacy Policy',
-                            style: AuthTheme.subtitle.copyWith(fontSize: 14),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: isDark
+                                  ? AppColors.textSecondaryDark
+                                  : AppColors.textSecondaryLight,
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: AppSpacing.xl),
 
                   // Create Account Button
                   AuthButton(
@@ -459,42 +398,58 @@ class _RegisterPageState extends State<RegisterPage> {
                         : null,
                     isLoading: _isLoading,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.xl),
 
                   // OR Divider
                   Row(
                     children: [
                       Expanded(
-                        child: Divider(color: Colors.grey.withOpacity(0.3)),
+                        child: Divider(
+                          color: isDark
+                              ? AppColors.dividerDark
+                              : AppColors.dividerLight,
+                        ),
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Text(
                           'OR',
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: isDark
+                                ? AppColors.textSecondaryDark
+                                : AppColors.textSecondaryLight,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
                       Expanded(
-                        child: Divider(color: Colors.grey.withOpacity(0.3)),
+                        child: Divider(
+                          color: isDark
+                              ? AppColors.dividerDark
+                              : AppColors.dividerLight,
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.xl),
 
                   // Google Login Button
                   OutlinedButton(
                     onPressed: _isLoading ? null : _handleGoogleLogin,
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: BorderSide(color: Colors.grey.shade300),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(
+                        color: isDark
+                            ? AppColors.dividerDark
+                            : AppColors.dividerLight,
                       ),
-                      backgroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusLg,
+                        ),
+                      ),
+                      backgroundColor: theme.cardTheme.color,
+                      foregroundColor: theme.textTheme.bodyLarge?.color,
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -512,7 +467,6 @@ class _RegisterPageState extends State<RegisterPage> {
                         const Text(
                           'Continue with Google',
                           style: TextStyle(
-                            color: Colors.black87,
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),
@@ -520,7 +474,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.xxl),
 
                   // Footer
                   Row(
@@ -528,7 +482,11 @@ class _RegisterPageState extends State<RegisterPage> {
                     children: [
                       Text(
                         'Already have an account?',
-                        style: AuthTheme.subtitle,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: isDark
+                              ? AppColors.textSecondaryDark
+                              : AppColors.textSecondaryLight,
+                        ),
                       ),
                       TextButton(
                         style: TextButton.styleFrom(
@@ -567,7 +525,13 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                           );
                         },
-                        child: Text('Log in', style: AuthTheme.linkText),
+                        child: Text(
+                          'Log in',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -576,6 +540,64 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRoleCard({
+    required String value,
+    required IconData icon,
+    required String label,
+    required ThemeData theme,
+    required bool isDark,
+  }) {
+    final isSelected = _selectedRole == value;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedRole = value;
+          _validateForm();
+        });
+      },
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primary.withOpacity(0.1)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          border: Border.all(
+            color: isSelected
+                ? AppColors.primary
+                : (isDark ? AppColors.dividerDark : AppColors.dividerLight),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: isSelected
+                  ? AppColors.primary
+                  : (isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                color: isSelected
+                    ? AppColors.primary
+                    : (isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight),
+              ),
+            ),
+          ],
         ),
       ),
     );

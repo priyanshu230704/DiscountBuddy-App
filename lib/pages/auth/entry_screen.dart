@@ -1,63 +1,69 @@
 import 'package:flutter/material.dart';
-import '../../widgets/auth/auth_theme.dart';
 import '../../widgets/auth/auth_button.dart';
 import 'login_page.dart';
 import 'register_page.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_spacing.dart';
 
-/// Entry Screen - Login/Signup Selector (NeoTaste style)
+/// Entry Screen - Login/Signup Selector (Redesigned)
 class EntryScreen extends StatelessWidget {
   const EntryScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AuthTheme.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(),
-              // NeoTaste Logo
+              // Branding Logo
               Container(
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  color: AuthTheme.accent,
-                  borderRadius: BorderRadius.circular(30),
+                  gradient: AppColors.primaryGradient,
+                  shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: AuthTheme.accent.withOpacity(0.3),
+                      color: AppColors.primary.withOpacity(0.3),
                       blurRadius: 30,
-                      spreadRadius: 5,
+                      offset: const Offset(0, 10),
                     ),
                   ],
                 ),
-                child: const Icon(
-                  Icons.local_dining,
-                  size: 60,
-                  color: AuthTheme.textPrimary,
-                ),
+                child: const Icon(Icons.percent, size: 60, color: Colors.white),
               ),
-              const SizedBox(height: 48),
-              
+              const SizedBox(height: AppSpacing.xxl),
+
               // Headline
               Text(
                 'Discover the best food deals around you',
-                style: AuthTheme.headingLarge,
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
-              
+              const SizedBox(height: AppSpacing.md),
+
               // Subtitle
               Text(
                 'Save money at your favorite restaurants',
-                style: AuthTheme.subtitle,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 64),
-              
+
               // Continue with Email Button
               AuthButton(
                 text: 'Continue with Email',
@@ -67,51 +73,30 @@ class EntryScreen extends StatelessWidget {
                     PageRouteBuilder(
                       pageBuilder: (context, animation, secondaryAnimation) =>
                           const RegisterPage(),
-                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                        return SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(1.0, 0.0),
-                            end: Offset.zero,
-                          ).animate(CurvedAnimation(
-                            parent: animation,
-                            curve: Curves.easeInOut,
-                          )),
-                          child: child,
-                        );
-                      },
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                            return SlideTransition(
+                              position:
+                                  Tween<Offset>(
+                                    begin: const Offset(1.0, 0.0),
+                                    end: Offset.zero,
+                                  ).animate(
+                                    CurvedAnimation(
+                                      parent: animation,
+                                      curve: Curves.easeInOut,
+                                    ),
+                                  ),
+                              child: child,
+                            );
+                          },
                     ),
                   );
                 },
               ),
-              const SizedBox(height: 16),
-              
-              // Continue with Mobile Number Button
-              AuthButton(
-                text: 'Continue with Mobile Number',
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    PageRouteBuilder(
-                      pageBuilder: (context, animation, secondaryAnimation) =>
-                          const RegisterPage(),
-                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                        return SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(1.0, 0.0),
-                            end: Offset.zero,
-                          ).animate(CurvedAnimation(
-                            parent: animation,
-                            curve: Curves.easeInOut,
-                          )),
-                          child: child,
-                        );
-                      },
-                    ),
-                  );
-                },
-              ),
+              const SizedBox(height: AppSpacing.md),
+
               const Spacer(),
-              
+
               // Secondary text button
               TextButton(
                 onPressed: () {
@@ -120,27 +105,34 @@ class EntryScreen extends StatelessWidget {
                     PageRouteBuilder(
                       pageBuilder: (context, animation, secondaryAnimation) =>
                           const LoginPage(),
-                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                        return SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(1.0, 0.0),
-                            end: Offset.zero,
-                          ).animate(CurvedAnimation(
-                            parent: animation,
-                            curve: Curves.easeInOut,
-                          )),
-                          child: child,
-                        );
-                      },
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                            return SlideTransition(
+                              position:
+                                  Tween<Offset>(
+                                    begin: const Offset(1.0, 0.0),
+                                    end: Offset.zero,
+                                  ).animate(
+                                    CurvedAnimation(
+                                      parent: animation,
+                                      curve: Curves.easeInOut,
+                                    ),
+                                  ),
+                              child: child,
+                            );
+                          },
                     ),
                   );
                 },
                 child: Text(
                   'Already have an account? Log in',
-                  style: AuthTheme.linkText,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.xxl),
             ],
           ),
         ),

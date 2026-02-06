@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import '../providers/theme_provider.dart';
 import 'package:discount_buddy/services/city_service.dart';
 import 'package:discount_buddy/models/city.dart';
 import 'generic_bottom_sheet.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_spacing.dart';
 
 class CitySelectorModal extends StatelessWidget {
   final String selectedCity;
@@ -17,6 +17,9 @@ class CitySelectorModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return GenericBottomSheet(
       title: 'Select City',
       child: FutureBuilder<List<City>>(
@@ -38,10 +41,8 @@ class CitySelectorModal extends StatelessWidget {
                 child: Text(
                   "Failed to load cities\n${snapshot.error}",
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.red,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.error,
                   ),
                 ),
               ),
@@ -54,10 +55,10 @@ class CitySelectorModal extends StatelessWidget {
             return Center(
               child: Text(
                 "No cities found",
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: NeoTasteColors.textSecondary,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: isDark
+                      ? AppColors.textSecondaryDark
+                      : AppColors.textSecondaryLight,
                 ),
               ),
             );
@@ -65,7 +66,7 @@ class CitySelectorModal extends StatelessWidget {
 
           return ListView.builder(
             shrinkWrap: true,
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
             itemCount: cities.length,
             itemBuilder: (context, index) {
               final city = cities[index];
@@ -76,7 +77,7 @@ class CitySelectorModal extends StatelessWidget {
               final isSelected = city.name == selectedCity;
 
               return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.only(bottom: AppSpacing.md),
                 child: Material(
                   color: Colors.transparent,
                   child: InkWell(
@@ -84,18 +85,22 @@ class CitySelectorModal extends StatelessWidget {
                       onCitySelected(city);
                       Navigator.pop(context);
                     },
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
                     child: Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(AppSpacing.lg),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? NeoTasteColors.accent.withOpacity(0.1)
+                            ? AppColors.primary.withOpacity(0.1)
                             : Colors.transparent,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusXl,
+                        ),
                         border: Border.all(
                           color: isSelected
-                              ? NeoTasteColors.accent
-                              : NeoTasteColors.textDisabled.withOpacity(0.2),
+                              ? AppColors.primary
+                              : (isDark
+                                    ? AppColors.dividerDark
+                                    : AppColors.dividerLight),
                           width: isSelected ? 2 : 1,
                         ),
                       ),
@@ -108,20 +113,17 @@ class CitySelectorModal extends StatelessWidget {
                               children: [
                                 Text(
                                   city.name,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: NeoTasteColors.textPrimary,
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: isSelected
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
                                   ),
                                 ),
                                 if (isCovered) ...[
                                   const SizedBox(height: 4),
                                   Text(
                                     "$restaurantCount restaurants",
-                                    style: GoogleFonts.inter(
-                                      fontSize: 12,
-                                      color: NeoTasteColors.textSecondary,
-                                    ),
+                                    style: theme.textTheme.bodySmall,
                                   ),
                                 ],
                               ],
@@ -136,7 +138,7 @@ class CitySelectorModal extends StatelessWidget {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.green,
+                                color: AppColors.success,
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Row(
@@ -150,10 +152,9 @@ class CitySelectorModal extends StatelessWidget {
                                   const SizedBox(width: 4),
                                   Text(
                                     'Covered',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
+                                    style: theme.textTheme.labelSmall?.copyWith(
                                       color: Colors.white,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ],
@@ -166,26 +167,27 @@ class CitySelectorModal extends StatelessWidget {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: NeoTasteColors.textDisabled.withOpacity(
-                                  0.3,
-                                ),
+                                color: isDark
+                                    ? AppColors.surfaceVariantDark
+                                    : AppColors.surfaceVariantLight,
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
                                 'Coming Soon',
-                                style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: NeoTasteColors.textSecondary,
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: isDark
+                                      ? AppColors.textSecondaryDark
+                                      : AppColors.textSecondaryLight,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
 
                           if (isSelected) ...[
                             const SizedBox(width: 12),
-                            Icon(
+                            const Icon(
                               Icons.check_circle,
-                              color: NeoTasteColors.accent,
+                              color: AppColors.primary,
                               size: 24,
                             ),
                           ],

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/onboarding_service.dart';
-import 'auth/login_page.dart';
-import 'auth/register_page.dart';
+import 'auth/entry_screen.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_spacing.dart';
 
 /// Data class for onboarding page content
 class OnboardingPageData {
@@ -17,13 +18,6 @@ class OnboardingScreen extends StatefulWidget {
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
-}
-
-// Local constants for onboarding screen
-class _OnboardingConstants {
-  static const double paddingLarge = 24.0;
-  static const double paddingXLarge = 32.0;
-  static const double radiusLarge = 16.0;
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
@@ -64,10 +58,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     // Mark onboarding as completed
     await OnboardingService().completeOnboarding();
 
-    // Navigate to login page
+    // Navigate to entry screen (Login/Register selection)
     if (mounted) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const LoginPage()),
+        MaterialPageRoute(builder: (context) => const EntryScreen()),
       );
     }
   }
@@ -78,12 +72,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: Stack(
         children: [
-          // Background color
-          Positioned.fill(child: Container(color: Colors.white)),
+          // Background
+          Positioned.fill(
+            child: Container(color: theme.scaffoldBackgroundColor),
+          ),
+
           // Main Content
           Column(
             children: [
@@ -98,22 +98,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   },
                 ),
               ),
+
               // Bottom section with indicators and button
               Container(
                 padding: EdgeInsets.only(
-                  left: _OnboardingConstants.paddingLarge,
-                  right: _OnboardingConstants.paddingLarge,
-                  top: _OnboardingConstants.paddingXLarge,
-                  bottom: MediaQuery.of(context).padding.bottom+_OnboardingConstants.paddingXLarge,
+                  left: AppSpacing.xl,
+                  right: AppSpacing.xl,
+                  top: AppSpacing.xl,
+                  bottom: MediaQuery.of(context).padding.bottom + AppSpacing.xl,
                 ),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.white.withOpacity(0.0),
-                      Colors.white.withOpacity(0.9),
-                      Colors.white,
+                      theme.scaffoldBackgroundColor.withOpacity(0.0),
+                      theme.scaffoldBackgroundColor.withOpacity(0.9),
+                      theme.scaffoldBackgroundColor,
                     ],
                   ),
                 ),
@@ -127,43 +128,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         (index) => _buildPageIndicator(index == _currentPage),
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: AppSpacing.xxl),
                     _buildGetStartedButton(),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "Don't have an account? ",
-                          style: TextStyle(
-                            color: Colors.black.withOpacity(0.7),
-                            fontSize: 14,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => const RegisterPage(),
-                              ),
-                            );
-                          },
-                          child: const Text(
-                            "Register",
-                            style: TextStyle(
-                              color: Color(0xFF4CAF50),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
               ),
             ],
           ),
+
           // Skip button
           if (_currentPage < _pages.length - 1)
             Positioned(
@@ -173,10 +145,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 onPressed: _skipOnboarding,
                 child: Text(
                   'Skip',
-                  style: TextStyle(
-                    color: Colors.black.withOpacity(0.7),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -187,55 +160,60 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildPage(OnboardingPageData pageData, int pageIndex) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: _OnboardingConstants.paddingLarge,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SizedBox(height: 20), // Further reduced top space
+          const SizedBox(height: 60), // Top spacing
           // Hero Image
           Expanded(
             child: Transform.scale(
-              scale: 1.5, // Even larger image size
+              scale: 1.0,
               child: Image.asset(
                 'assets/png/onboarding.png',
                 fit: BoxFit.contain,
               ),
             ),
           ),
-          const SizedBox(height: 30),
+          const SizedBox(height: AppSpacing.xxl),
+
           // Title
           Text(
             pageData.title,
-            style: const TextStyle(
-              color: Colors.black,
-              fontSize: 28,
+            style: theme.textTheme.headlineLarge?.copyWith(
               fontWeight: FontWeight.bold,
-              height: 1.3,
-              letterSpacing: -0.5,
+              height: 1.2,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.lg),
+
           // Description
           Text(
             pageData.description,
-            style: TextStyle(
-              color: Colors.black.withOpacity(0.7),
-              fontSize: 16,
-              height: 1.6,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: isDark
+                  ? AppColors.textSecondaryDark
+                  : AppColors.textSecondaryLight,
+              height: 1.5,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 40),
+          // Extra spacing at bottom to push content up from gradient/buttons
+          const SizedBox(height: 80),
         ],
       ),
     );
   }
 
   Widget _buildPageIndicator(bool isActive) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -243,13 +221,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       height: 8,
       decoration: BoxDecoration(
         color: isActive
-            ? const Color(0xFF4CAF50)
-            : Colors.black.withOpacity(0.1),
+            ? AppColors.primary
+            : (isDark
+                  ? Colors.white.withOpacity(0.2)
+                  : Colors.black.withOpacity(0.1)),
         borderRadius: BorderRadius.circular(4),
         boxShadow: isActive
             ? [
                 BoxShadow(
-                  color: const Color(0xFF4CAF50).withOpacity(0.5),
+                  color: AppColors.primary.withOpacity(0.5),
                   blurRadius: 8,
                   spreadRadius: 0,
                 ),
@@ -260,24 +240,36 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildGetStartedButton() {
-    return SizedBox(
+    return Container(
       width: double.infinity,
+      height: AppSpacing.buttonHeight,
+      decoration: BoxDecoration(
+        gradient: AppColors.primaryGradient,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: ElevatedButton(
         onPressed: _handleGetStarted,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF4CAF50),
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 18),
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              _OnboardingConstants.radiusLarge,
-            ),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
           ),
-          elevation: 0,
         ),
         child: const Text(
           'Get Started',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
       ),
     );

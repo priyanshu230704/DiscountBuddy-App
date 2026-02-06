@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import '../../providers/theme_provider.dart';
 import '../../models/user_interactions.dart' as interaction;
 import '../../services/restaurant_service.dart';
 import '../restaurant_details_page.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_spacing.dart';
 
 /// Bookings Screen - Integrated with real API
 class BookingsPage extends StatefulWidget {
@@ -53,9 +53,12 @@ class _BookingsPageState extends State<BookingsPage>
         setState(() {
           _isLoading = false;
         });
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to load bookings: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to load bookings: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
       }
     }
   }
@@ -85,23 +88,29 @@ class _BookingsPageState extends State<BookingsPage>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: NeoTasteColors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           'My Bookings',
-          style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold),
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        backgroundColor: NeoTasteColors.white,
+        backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
         bottom: TabBar(
           controller: _tabController,
-          labelColor: Colors.green,
-          unselectedLabelColor: NeoTasteColors.textSecondary,
-          indicatorColor: Colors.green,
+          labelColor: AppColors.primary,
+          unselectedLabelColor: isDark
+              ? AppColors.textSecondaryDark
+              : AppColors.textSecondaryLight,
+          indicatorColor: AppColors.primary,
           indicatorWeight: 3,
-          labelStyle: GoogleFonts.inter(
-            fontSize: 14,
+          labelStyle: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.bold,
           ),
           tabs: const [
@@ -112,7 +121,9 @@ class _BookingsPageState extends State<BookingsPage>
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.green))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            )
           : TabBarView(
               controller: _tabController,
               children: [
@@ -150,9 +161,13 @@ class _BookingList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     if (bookings.isEmpty) {
       return RefreshIndicator(
         onRefresh: onRefresh,
+        color: AppColors.primary,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: SizedBox(
@@ -164,13 +179,17 @@ class _BookingList extends StatelessWidget {
                   Icon(
                     Icons.calendar_today_outlined,
                     size: 64,
-                    color: NeoTasteColors.textDisabled,
+                    color: isDark
+                        ? AppColors.textSecondaryDark.withOpacity(0.5)
+                        : AppColors.textSecondaryLight.withOpacity(0.5),
                   ),
                   const SizedBox(height: 16),
                   Text(
                     emptyMessage,
-                    style: GoogleFonts.inter(
-                      color: NeoTasteColors.textSecondary,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                     ),
                   ),
                 ],
@@ -183,8 +202,9 @@ class _BookingList extends StatelessWidget {
 
     return RefreshIndicator(
       onRefresh: onRefresh,
+      color: AppColors.primary,
       child: ListView.builder(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         itemCount: bookings.length,
         itemBuilder: (context, index) {
           return _BookingCard(booking: bookings[index]);
@@ -201,12 +221,17 @@ class _BookingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: AppSpacing.lg),
       decoration: BoxDecoration(
-        color: NeoTasteColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: NeoTasteColors.textDisabled.withOpacity(0.3)),
+        color: theme.cardTheme.color,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+        border: Border.all(
+          color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -217,9 +242,9 @@ class _BookingCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () => _showBookingDetails(context, booking.id),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -229,30 +254,31 @@ class _BookingCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       booking.restaurantName,
-                      style: GoogleFonts.inter(
-                        fontSize: 18,
+                      style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
-                        color: NeoTasteColors.textPrimary,
                       ),
                     ),
                   ),
                   _StatusBadge(status: booking.status),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               Row(
                 children: [
                   Icon(
                     Icons.calendar_today,
                     size: 16,
-                    color: NeoTasteColors.textSecondary,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     DateFormat('EEEE, MMM d, yyyy').format(booking.bookingDate),
-                    style: GoogleFonts.inter(
-                      color: NeoTasteColors.textSecondary,
-                      fontSize: 14,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                     ),
                   ),
                 ],
@@ -263,42 +289,49 @@ class _BookingCard extends StatelessWidget {
                   Icon(
                     Icons.access_time,
                     size: 16,
-                    color: NeoTasteColors.textSecondary,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     DateFormat('HH:mm').format(booking.bookingDate),
-                    style: GoogleFonts.inter(
-                      color: NeoTasteColors.textSecondary,
-                      fontSize: 14,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                     ),
                   ),
                   const SizedBox(width: 24),
                   Icon(
                     Icons.people_outline,
                     size: 16,
-                    color: NeoTasteColors.textSecondary,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     '${booking.numberOfGuests} Guests',
-                    style: GoogleFonts.inter(
-                      color: NeoTasteColors.textSecondary,
-                      fontSize: 14,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: isDark
+                          ? AppColors.textSecondaryDark
+                          : AppColors.textSecondaryLight,
                     ),
                   ),
                 ],
               ),
               if (booking.specialRequests.isNotEmpty) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md),
                 const Divider(),
                 const SizedBox(height: 4),
                 Text(
                   'Note: ${booking.specialRequests}',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
+                  style: theme.textTheme.bodySmall?.copyWith(
                     fontStyle: FontStyle.italic,
-                    color: NeoTasteColors.textSecondary,
+                    color: isDark
+                        ? AppColors.textSecondaryDark
+                        : AppColors.textSecondaryLight,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -352,49 +385,57 @@ class _BookingDetailModalState extends State<_BookingDetailModal> {
     } catch (e) {
       if (mounted) {
         Navigator.pop(context);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
-      decoration: const BoxDecoration(
-        color: NeoTasteColors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(AppSpacing.radiusXxl),
+          topRight: Radius.circular(AppSpacing.radiusXxl),
         ),
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
           child: _isLoading
               ? const SizedBox(
                   height: 200,
                   child: Center(
-                    child: CircularProgressIndicator(color: Colors.green),
+                    child: CircularProgressIndicator(color: AppColors.primary),
                   ),
                 )
               : Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     Center(
                       child: Container(
                         width: 40,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: NeoTasteColors.textDisabled,
+                          color: isDark
+                              ? AppColors.dividerDark
+                              : AppColors.dividerLight,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.xxl),
                     Flexible(
                       child: SingleChildScrollView(
                         child: Column(
@@ -407,16 +448,14 @@ class _BookingDetailModalState extends State<_BookingDetailModal> {
                                 Expanded(
                                   child: Text(
                                     _booking!.restaurantName,
-                                    style: GoogleFonts.inter(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    style: theme.textTheme.headlineSmall
+                                        ?.copyWith(fontWeight: FontWeight.bold),
                                   ),
                                 ),
                                 _StatusBadge(status: _booking!.status),
                               ],
                             ),
-                            const SizedBox(height: 32),
+                            const SizedBox(height: AppSpacing.xxl),
                             _DetailRow(
                               icon: Icons.calendar_today,
                               label: 'Date',
@@ -424,7 +463,7 @@ class _BookingDetailModalState extends State<_BookingDetailModal> {
                                 'EEEE, MMM d, yyyy',
                               ).format(_booking!.bookingDate),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: AppSpacing.lg),
                             _DetailRow(
                               icon: Icons.access_time,
                               label: 'Time',
@@ -432,21 +471,21 @@ class _BookingDetailModalState extends State<_BookingDetailModal> {
                                 'HH:mm',
                               ).format(_booking!.bookingDate),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: AppSpacing.lg),
                             _DetailRow(
                               icon: Icons.people_outline,
                               label: 'Number of Guests',
                               value: '${_booking!.numberOfGuests} People',
                             ),
                             if (_booking!.specialRequests.isNotEmpty) ...[
-                              const SizedBox(height: 16),
+                              const SizedBox(height: AppSpacing.lg),
                               _DetailRow(
                                 icon: Icons.edit_note,
                                 label: 'Special Requests',
                                 value: _booking!.specialRequests,
                               ),
                             ],
-                            const SizedBox(height: 32),
+                            const SizedBox(height: AppSpacing.xxl),
                           ],
                         ),
                       ),
@@ -465,10 +504,24 @@ class _BookingDetailModalState extends State<_BookingDetailModal> {
                             ),
                           );
                         },
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(
+                            color: isDark
+                                ? AppColors.dividerDark
+                                : AppColors.dividerLight,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              AppSpacing.radiusLg,
+                            ),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          foregroundColor: theme.textTheme.bodyMedium?.color,
+                        ),
                         child: const Text('View Restaurant'),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md),
                     if (_booking!.canCancel) ...[
                       SizedBox(
                         width: double.infinity,
@@ -481,24 +534,34 @@ class _BookingDetailModalState extends State<_BookingDetailModal> {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                     content: Text('Booking cancelled'),
+                                    backgroundColor: AppColors.error,
                                   ),
                                 );
                               }
                             } catch (e) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Failed to cancel: $e')),
+                                SnackBar(
+                                  content: Text('Failed to cancel: $e'),
+                                  backgroundColor: AppColors.error,
+                                ),
                               );
                             }
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
+                            backgroundColor: AppColors.error,
                             foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                AppSpacing.radiusLg,
+                              ),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
                           child: const Text('Cancel Booking'),
                         ),
                       ),
                     ],
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.xxl),
                   ],
                 ),
         ),
@@ -520,10 +583,19 @@ class _DetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: NeoTasteColors.textSecondary),
+        Icon(
+          icon,
+          size: 20,
+          color: isDark
+              ? AppColors.textSecondaryDark
+              : AppColors.textSecondaryLight,
+        ),
         const SizedBox(width: 16),
         Expanded(
           child: Column(
@@ -531,19 +603,14 @@ class _DetailRow extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  color: NeoTasteColors.textDisabled,
+                style: theme.textTheme.bodySmall?.copyWith(
                   fontWeight: FontWeight.w600,
+                  color: isDark
+                      ? AppColors.textSecondaryDark.withOpacity(0.7)
+                      : AppColors.textSecondaryLight.withOpacity(0.7),
                 ),
               ),
-              Text(
-                value,
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  color: NeoTasteColors.textPrimary,
-                ),
-              ),
+              Text(value, style: theme.textTheme.bodyLarge),
             ],
           ),
         ),
@@ -564,20 +631,20 @@ class _StatusBadge extends StatelessWidget {
 
     switch (status) {
       case interaction.BookingStatus.confirmed:
-        color = Colors.green;
+        color = AppColors.success;
         text = 'Confirmed';
         break;
       case interaction.BookingStatus.cancelled:
-        color = Colors.red;
+        color = AppColors.error;
         text = 'Cancelled';
         break;
       case interaction.BookingStatus.completed:
-        color = NeoTasteColors.textSecondary;
+        color = Colors.grey;
         text = 'Completed';
         break;
       case interaction.BookingStatus.pending:
       default:
-        color = Colors.orange;
+        color = AppColors.warning;
         text = 'Pending';
         break;
     }
@@ -586,12 +653,12 @@ class _StatusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
         border: Border.all(color: color.withOpacity(0.5)),
       ),
       child: Text(
         text,
-        style: GoogleFonts.inter(
+        style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.bold,
           color: color,

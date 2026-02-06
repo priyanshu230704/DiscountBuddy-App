@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'config/environment.dart';
 import 'pages/main_navigation.dart';
 import 'pages/auth/login_page.dart';
 import 'pages/splash_screen.dart';
 import 'pages/onboarding_check_screen.dart';
-import 'providers/theme_provider.dart';
+import 'theme/theme_provider.dart';
 import 'providers/auth_provider.dart';
 import 'services/auth_service.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
@@ -21,55 +22,41 @@ void main() async {
 
   // Initialize auth service to load stored tokens
   await AuthService().initializeAuth();
-  MapboxOptions.setAccessToken("pk.eyJ1Ijoia2V0YW5jaGF2ZGEyMSIsImEiOiJjbWwzbzhkZzIwM3dkM2Vxc2FxNmhvNjduIn0.ujNsfSEeeW3Ad862r3PGQQ");
-  runApp(const DiscountBuddyApp());
+  MapboxOptions.setAccessToken(
+    "pk.eyJ1Ijoia2V0YW5jaGF2ZGEyMSIsImEiOiJjbWwzbzhkZzIwM3dkM2Vxc2FxNmhvNjduIn0.ujNsfSEeeW3Ad862r3PGQQ",
+  );
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+      ],
+      child: const DiscountBuddyApp(),
+    ),
+  );
 }
 
-class DiscountBuddyApp extends StatefulWidget {
+class DiscountBuddyApp extends StatelessWidget {
   const DiscountBuddyApp({super.key});
 
   @override
-  State<DiscountBuddyApp> createState() => _DiscountBuddyAppState();
-}
-
-class _DiscountBuddyAppState extends State<DiscountBuddyApp> {
-  final ThemeProvider _themeProvider = ThemeProvider();
-  final AuthProvider _authProvider = AuthProvider();
-
-  @override
-  void initState() {
-    super.initState();
-    _authProvider.addListener(_authStateChanged);
-  }
-
-  @override
-  void dispose() {
-    _authProvider.removeListener(_authStateChanged);
-    super.dispose();
-  }
-
-  void _authStateChanged() {
-    setState(() {});
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: _themeProvider,
-      builder: (context, child) {
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
         return MaterialApp(
           title: Environment.appName,
           debugShowCheckedModeBanner: Environment.enableDebugMode,
-          theme: _themeProvider.lightTheme,
-          darkTheme: _themeProvider.darkTheme,
-          themeMode: _themeProvider.isDarkMode
+          theme: themeProvider.lightTheme,
+          darkTheme: themeProvider.darkTheme,
+          themeMode: themeProvider.isDarkMode
               ? ThemeMode.dark
               : ThemeMode.light,
           home: const SplashScreen(),
           routes: {
             '/onboarding-check': (context) => const OnboardingCheckScreen(),
             '/login': (context) => const LoginPage(),
-            '/home': (context) => MainNavigation(themeProvider: _themeProvider),
+            '/home': (context) => const MainNavigation(),
           },
         );
       },

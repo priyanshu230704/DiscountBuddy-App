@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import '../providers/theme_provider.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_spacing.dart';
 
 class GenericBottomSheet extends StatelessWidget {
   final String title;
@@ -26,10 +26,22 @@ class GenericBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
-      decoration: const BoxDecoration(
-        color: NeoTasteColors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(AppSpacing.radiusXxl),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
       child: SafeArea(
         child: Column(
@@ -42,7 +54,9 @@ class GenericBottomSheet extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: NeoTasteColors.textDisabled,
+                  color: isDark
+                      ? AppColors.dividerDark
+                      : AppColors.dividerLight,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -50,18 +64,14 @@ class GenericBottomSheet extends StatelessWidget {
             // Header (Title + Action + Close Button)
             if (title.isNotEmpty || showCloseButton || headerAction != null)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                 child: Row(
                   children: [
                     if (title.isNotEmpty)
                       Expanded(
                         child: Text(
                           title,
-                          style: GoogleFonts.inter(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: NeoTasteColors.textPrimary,
-                          ),
+                          style: theme.textTheme.headlineSmall,
                         ),
                       )
                     else
@@ -71,7 +81,7 @@ class GenericBottomSheet extends StatelessWidget {
                       IconButton(
                         icon: const Icon(Icons.close),
                         onPressed: onClose ?? () => Navigator.pop(context),
-                        color: NeoTasteColors.textPrimary,
+                        color: theme.iconTheme.color,
                       ),
                   ],
                 ),

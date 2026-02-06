@@ -23,7 +23,8 @@ class ApiUser {
       username: json['username'] as String? ?? '',
       isMerchant: json['is_merchant'] as bool? ?? false,
       isCustomer: json['is_customer'] as bool? ?? true,
-      profile: json['profile'] != null && json['profile'] is Map<String, dynamic>
+      profile:
+          json['profile'] != null && json['profile'] is Map<String, dynamic>
           ? UserProfile.fromJson(json['profile'] as Map<String, dynamic>)
           : null,
     );
@@ -90,7 +91,7 @@ class LoginResponse {
     // Extract role from response
     final role = json['role'] as String? ?? 'customer';
     final username = json['username'] as String? ?? '';
-    
+
     // Handle case where 'user' might be null or missing
     ApiUser? user;
     if (json['user'] != null && json['user'] is Map<String, dynamic>) {
@@ -99,7 +100,7 @@ class LoginResponse {
       // Construct user from available fields
       final isMerchant = role == 'merchant';
       final isCustomer = role == 'customer';
-      
+
       user = ApiUser(
         id: json['id'] as int? ?? 0,
         email: json['email'] as String? ?? '',
@@ -113,10 +114,12 @@ class LoginResponse {
         ),
       );
     }
-    
+
     return LoginResponse(
-      accessToken: json['access'] as String? ?? json['access_token'] as String? ?? '',
-      refreshToken: json['refresh'] as String? ?? json['refresh_token'] as String? ?? '',
+      accessToken:
+          json['access'] as String? ?? json['access_token'] as String? ?? '',
+      refreshToken:
+          json['refresh'] as String? ?? json['refresh_token'] as String? ?? '',
       username: username,
       role: role,
       user: user,
@@ -149,20 +152,24 @@ class RegisterResponse {
   });
 
   factory RegisterResponse.fromJson(Map<String, dynamic> json) {
+    String role = 'customer';
+    if (json['role'] != null) {
+      role = json['role'] as String;
+    } else if (json['profile'] != null &&
+        json['profile'] is Map<String, dynamic> &&
+        json['profile']['role'] != null) {
+      role = json['profile']['role'] as String;
+    }
+
     return RegisterResponse(
-      id: json['id'] as int,
-      email: json['email'] as String,
-      username: json['username'] as String,
-      role: json['role'] as String,
+      id: json['id'] as int? ?? 0,
+      email: json['email'] as String? ?? '',
+      username: json['username'] as String? ?? '',
+      role: role,
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'email': email,
-      'username': username,
-      'role': role,
-    };
+    return {'id': id, 'email': email, 'username': username, 'role': role};
   }
 }

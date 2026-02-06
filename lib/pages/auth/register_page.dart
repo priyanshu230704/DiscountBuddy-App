@@ -17,28 +17,35 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
+
+  // Step 0 Fields (Request OTP)
   final _emailController = TextEditingController();
+  final _emailFocusNode = FocusNode();
+  String _selectedRole = 'customer'; // 'customer' or 'merchant'
+  bool _agreeToTerms = false;
+
+  // Step 1 Fields (Verify & Complete)
+  final _otpController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  final _nameFocusNode = FocusNode();
-  final _emailFocusNode = FocusNode();
+  final _otpFocusNode = FocusNode();
   final _passwordFocusNode = FocusNode();
   final _confirmPasswordFocusNode = FocusNode();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  bool _agreeToTerms = false;
+
+  // State
+  int _currentStep = 0; // 0: Request OTP, 1: Complete Registration
   bool _isLoading = false;
   bool _isFormValid = false;
-  String _selectedRole = 'customer'; // 'customer' or 'merchant'
 
   AuthProvider? _authProvider;
 
   @override
   void initState() {
     super.initState();
-    _nameController.addListener(_validateForm);
     _emailController.addListener(_validateForm);
+    _otpController.addListener(_validateForm);
     _passwordController.addListener(_validateForm);
     _confirmPasswordController.addListener(_validateForm);
   }
@@ -46,12 +53,12 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   void dispose() {
     _authProvider?.removeListener(_authListener);
-    _nameController.dispose();
     _emailController.dispose();
+    _otpController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _nameFocusNode.dispose();
     _emailFocusNode.dispose();
+    _otpFocusNode.dispose();
     _passwordFocusNode.dispose();
     _confirmPasswordFocusNode.dispose();
     super.dispose();
@@ -65,13 +72,22 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void _validateForm() {
-    final isValid =
-        _nameController.text.isNotEmpty &&
-        _emailController.text.isNotEmpty &&
-        _passwordController.text.length >= 4 &&
-        _confirmPasswordController.text == _passwordController.text &&
-        _agreeToTerms &&
-        _selectedRole.isNotEmpty;
+    bool isValid = false;
+    if (_currentStep == 0) {
+      // Step 1: Email + Role + Terms
+      isValid =
+          _emailController.text.isNotEmpty &&
+          _selectedRole.isNotEmpty &&
+          _agreeToTerms &&
+          RegExp(r'^[a-zA-Z0-9.@]*$').hasMatch(_emailController.text);
+    } else {
+      // Step 2: OTP + Password
+      isValid =
+          _otpController.text.length == 4 &&
+          _passwordController.text.length >= 6 &&
+          _confirmPasswordController.text == _passwordController.text;
+    }
+
     if (isValid != _isFormValid) {
       setState(() {
         _isFormValid = isValid;
@@ -133,14 +149,46 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
-  Future<void> _handleRegister() async {
+  Future<void> _handleSubmit() async {
     if (_formKey.currentState!.validate() && _authProvider != null) {
-      await _authProvider!.register(
-        email: _emailController.text.trim(),
-        username: _nameController.text.trim(),
-        password: _passwordController.text,
-        role: _selectedRole,
-      );
+      if (_currentStep == 0) {
+        // Request OTP
+        final success = await _authProvider!.registerInit(
+          email: _emailController.text.trim(),
+          role: _selectedRole,
+        );
+        if (success) {
+          setState(() {
+            _currentStep = 1;
+            // Reset validation for next step
+            _isFormValid = false;
+          });
+          // Auto-focus OTP field
+          Future.delayed(const Duration(milliseconds: 300), () {
+            if (mounted) _otpFocusNode.requestFocus();
+          });
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'OTP code sent to ${_emailController.text}',
+                  style: AuthTheme.bodyText,
+                ),
+                backgroundColor: Colors.green,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        }
+      } else {
+        // Verify & Complete
+        await _authProvider!.registerComplete(
+          email: _emailController.text.trim(),
+          otp: _otpController.text.trim(),
+          password: _passwordController.text,
+        );
+      }
     }
   }
 
@@ -156,422 +204,451 @@ class _RegisterPageState extends State<RegisterPage> {
       canPop: false,
       child: Scaffold(
         backgroundColor: AuthTheme.background,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: _currentStep > 0
+              ? IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.black),
+                  onPressed: () {
+                    setState(() {
+                      _currentStep = 0;
+                      _validateForm();
+                    });
+                  },
+                )
+              : null,
+        ),
         body: SafeArea(
           child: SingleChildScrollView(
-            physics: const NeverScrollableScrollPhysics(),
+            physics:
+                const ClampingScrollPhysics(), // Allow scrolling if keyboard opens
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Form(
               key: _formKey,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 16),
-
                   // Title
                   Text('Create your account', style: AuthTheme.headingLarge),
                   const SizedBox(height: 8),
 
                   // Subtitle
                   Text(
-                    'Unlock exclusive restaurant offers',
+                    _currentStep == 0
+                        ? 'Unlock exclusive restaurant offers'
+                        : 'Enter the code sent to your email',
                     style: AuthTheme.subtitle,
                   ),
                   const SizedBox(height: 48),
 
-                  // Full Name Input
-                  AuthTextField(
-                    controller: _nameController,
-                    placeholder: 'Full Name',
-                    focusNode: _nameFocusNode,
-                    onChanged: (value) {
-                      _sanitizeField(
-                        _nameController,
-                        RegExp(r'[a-zA-Z\s]'),
-                        maxLength: 20,
-                      );
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your full name';
-                      }
-                      if (value.length > 20) {
-                        return 'Name cannot exceed 20 characters';
-                      }
-                      if (!RegExp(r'^[a-zA-Z\s]*$').hasMatch(value)) {
-                        return 'Only letters and spaces are allowed';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
+                  if (_currentStep == 0) ...[
+                    // --- STEP 1: Email & Role ---
 
-                  // Email / Mobile Input
-                  AuthTextField(
-                    controller: _emailController,
-                    placeholder: 'Email / Mobile',
-                    keyboardType: TextInputType.emailAddress,
-                    focusNode: _emailFocusNode,
-                    onChanged: (value) {
-                      _sanitizeField(
-                        _emailController,
-                        RegExp(r'[a-zA-Z0-9.@]'),
-                      );
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your email or mobile';
-                      }
-                      if (!RegExp(r'^[a-zA-Z0-9.@]*$').hasMatch(value)) {
-                        return 'Only letters, numbers, . and @ are allowed';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
+                    // Email / Mobile Input
+                    AuthTextField(
+                      controller: _emailController,
+                      placeholder: 'Email',
+                      keyboardType: TextInputType.emailAddress,
+                      focusNode: _emailFocusNode,
+                      onChanged: (value) {
+                        _sanitizeField(
+                          _emailController,
+                          RegExp(r'[a-zA-Z0-9.@]'),
+                        );
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your email';
+                        }
+                        if (!RegExp(r'^[a-zA-Z0-9.@]*$').hasMatch(value)) {
+                          return 'Only letters, numbers, . and @ are allowed';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 24),
 
-                  // Password Input
-                  AuthTextField(
-                    controller: _passwordController,
-                    placeholder: 'Password',
-                    obscureText: _obscurePassword,
-                    showToggle: true,
-                    focusNode: _passwordFocusNode,
-                    onToggleVisibility: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a password';
-                      }
-                      if (value.length < 4) {
-                        return 'Password must be at least 4 characters';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Confirm Password Input
-                  AuthTextField(
-                    controller: _confirmPasswordController,
-                    placeholder: 'Confirm Password',
-                    obscureText: _obscureConfirmPassword,
-                    showToggle: true,
-                    focusNode: _confirmPasswordFocusNode,
-                    onToggleVisibility: () {
-                      setState(() {
-                        _obscureConfirmPassword = !_obscureConfirmPassword;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please confirm your password';
-                      }
-                      if (value != _passwordController.text) {
-                        return 'Passwords do not match';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Role Selection
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    // Role Selection
+                    Text(
+                      'Account Type',
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: NeoTasteColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
                       children: [
-                        Text(
-                          'Account Type',
-                          style: GoogleFonts.inter(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: NeoTasteColors.textPrimary,
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _selectedRole = 'customer';
+                                _validateForm();
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: _selectedRole == 'customer'
+                                    ? NeoTasteColors.accent.withOpacity(0.1)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: _selectedRole == 'customer'
+                                      ? NeoTasteColors.accent
+                                      : NeoTasteColors.textDisabled.withOpacity(
+                                          0.3,
+                                        ),
+                                  width: 2,
+                                ),
+                              ),
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.person_outline,
+                                    color: _selectedRole == 'customer'
+                                        ? NeoTasteColors.accent
+                                        : NeoTasteColors.textSecondary,
+                                    size: 28,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Customer',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: _selectedRole == 'customer'
+                                          ? NeoTasteColors.textPrimary
+                                          : NeoTasteColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _selectedRole = 'customer';
-                                    _validateForm();
-                                  });
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: _selectedRole == 'customer'
-                                        ? NeoTasteColors.accent.withOpacity(0.2)
-                                        : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: _selectedRole == 'customer'
-                                          ? NeoTasteColors.accent
-                                          : NeoTasteColors.textDisabled
-                                                .withOpacity(0.3),
-                                      width: 2,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.person,
-                                        color: _selectedRole == 'customer'
-                                            ? NeoTasteColors.accent
-                                            : NeoTasteColors.textSecondary,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'Customer',
-                                        style: GoogleFonts.inter(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                          color: _selectedRole == 'customer'
-                                              ? NeoTasteColors.textPrimary
-                                              : NeoTasteColors.textSecondary,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _selectedRole = 'merchant';
+                                _validateForm();
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: _selectedRole == 'merchant'
+                                    ? NeoTasteColors.accent.withOpacity(0.1)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: _selectedRole == 'merchant'
+                                      ? NeoTasteColors.accent
+                                      : NeoTasteColors.textDisabled.withOpacity(
+                                          0.3,
                                         ),
-                                      ),
-                                    ],
-                                  ),
+                                  width: 2,
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _selectedRole = 'merchant';
-                                    _validateForm();
-                                  });
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.store_outlined,
                                     color: _selectedRole == 'merchant'
-                                        ? NeoTasteColors.accent.withOpacity(0.2)
-                                        : Colors.transparent,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
+                                        ? NeoTasteColors.accent
+                                        : NeoTasteColors.textSecondary,
+                                    size: 28,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Merchant',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
                                       color: _selectedRole == 'merchant'
-                                          ? NeoTasteColors.accent
-                                          : NeoTasteColors.textDisabled
-                                                .withOpacity(0.3),
-                                      width: 2,
+                                          ? NeoTasteColors.textPrimary
+                                          : NeoTasteColors.textSecondary,
                                     ),
                                   ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.store,
-                                        color: _selectedRole == 'merchant'
-                                            ? NeoTasteColors.accent
-                                            : NeoTasteColors.textSecondary,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'Merchant',
-                                        style: GoogleFonts.inter(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                          color: _selectedRole == 'merchant'
-                                              ? NeoTasteColors.textPrimary
-                                              : NeoTasteColors.textSecondary,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                                ],
                               ),
                             ),
-                          ],
+                          ),
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-                  // Terms Checkbox
-                  Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _agreeToTerms = !_agreeToTerms;
-                            _validateForm();
-                          });
-                        },
-                        child: Container(
-                          width: 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            color: _agreeToTerms
-                                ? AuthTheme.accent
-                                : Colors.transparent,
-                            border: Border.all(
-                              color: _agreeToTerms
-                                  ? AuthTheme.accent
-                                  : AuthTheme.textGrey,
-                              width: 2,
-                            ),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: _agreeToTerms
-                              ? const Icon(
-                                  Icons.check,
-                                  color: AuthTheme.background,
-                                  size: 16,
-                                )
-                              : null,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: GestureDetector(
+                    // Terms Checkbox
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        GestureDetector(
                           onTap: () {
                             setState(() {
                               _agreeToTerms = !_agreeToTerms;
                               _validateForm();
                             });
                           },
-                          child: Text(
-                            'I agree to Terms & Privacy Policy',
-                            style: AuthTheme.subtitle.copyWith(fontSize: 14),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
-
-                  // Create Account Button
-                  AuthButton(
-                    text: 'Create Account',
-                    onPressed: _isFormValid && !_isLoading
-                        ? _handleRegister
-                        : null,
-                    isLoading: _isLoading,
-                  ),
-                  const SizedBox(height: 24),
-
-                  // OR Divider
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Divider(color: Colors.grey.withOpacity(0.3)),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          'OR',
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Divider(color: Colors.grey.withOpacity(0.3)),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Google Login Button
-                  OutlinedButton(
-                    onPressed: _isLoading ? null : _handleGoogleLogin,
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: BorderSide(color: Colors.grey.shade300),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      backgroundColor: Colors.white,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text(
-                          'G',
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Roboto',
+                          child: Container(
+                            width: 24,
+                            height: 24,
+                            margin: const EdgeInsets.only(top: 2),
+                            decoration: BoxDecoration(
+                              color: _agreeToTerms
+                                  ? AuthTheme.accent
+                                  : Colors.transparent,
+                              border: Border.all(
+                                color: _agreeToTerms
+                                    ? AuthTheme.accent
+                                    : AuthTheme.textGrey,
+                                width: 2,
+                              ),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: _agreeToTerms
+                                ? const Icon(
+                                    Icons.check,
+                                    color: AuthTheme.background,
+                                    size: 16,
+                                  )
+                                : null,
                           ),
                         ),
                         const SizedBox(width: 12),
-                        const Text(
-                          'Continue with Google',
-                          style: TextStyle(
-                            color: Colors.black87,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _agreeToTerms = !_agreeToTerms;
+                                _validateForm();
+                              });
+                            },
+                            child: Text(
+                              'I agree to the Terms of Service & Privacy Policy',
+                              style: AuthTheme.subtitle.copyWith(fontSize: 14),
+                            ),
                           ),
                         ),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 24),
+                  ] else ...[
+                    // --- STEP 2: OTP & Password ---
+                    Text(
+                      'Sent to ${_emailController.text}',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: NeoTasteColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
 
-                  // Footer
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Already have an account?',
-                        style: AuthTheme.subtitle,
-                      ),
-                      TextButton(
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          minimumSize: Size.zero,
-                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            PageRouteBuilder(
-                              pageBuilder:
-                                  (context, animation, secondaryAnimation) =>
-                                      const LoginPage(),
-                              transitionsBuilder:
-                                  (
-                                    context,
-                                    animation,
-                                    secondaryAnimation,
-                                    child,
-                                  ) {
-                                    return SlideTransition(
-                                      position:
-                                          Tween<Offset>(
-                                            begin: const Offset(1.0, 0.0),
-                                            end: Offset.zero,
-                                          ).animate(
-                                            CurvedAnimation(
-                                              parent: animation,
-                                              curve: Curves.easeInOut,
-                                            ),
-                                          ),
-                                      child: child,
-                                    );
-                                  },
-                            ),
-                          );
-                        },
-                        child: Text('Log in', style: AuthTheme.linkText),
-                      ),
-                    ],
-                  ),
+                    // OTP Input
+                    AuthTextField(
+                      controller: _otpController,
+                      placeholder: '4-Digit Code',
+                      keyboardType: TextInputType.number,
+                      focusNode: _otpFocusNode,
+                      maxLength: 4,
+                      onChanged: (value) {
+                        // Only numbers
+                        _sanitizeField(
+                          _otpController,
+                          RegExp(r'[0-9]'),
+                          maxLength: 4,
+                        );
+                      },
+                      validator: (value) {
+                        if (value == null || value.length != 4) {
+                          return 'Enter 4-digit code';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Password Input
+                    AuthTextField(
+                      controller: _passwordController,
+                      placeholder: 'Create Password',
+                      obscureText: _obscurePassword,
+                      showToggle: true,
+                      focusNode: _passwordFocusNode,
+                      onToggleVisibility: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a password';
+                        }
+                        if (value.length < 6) {
+                          return 'Password must be at least 6 characters';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Confirm Password Input
+                    AuthTextField(
+                      controller: _confirmPasswordController,
+                      placeholder: 'Confirm Password',
+                      obscureText: _obscureConfirmPassword,
+                      showToggle: true,
+                      focusNode: _confirmPasswordFocusNode,
+                      onToggleVisibility: () {
+                        setState(() {
+                          _obscureConfirmPassword = !_obscureConfirmPassword;
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please confirm your password';
+                        }
+                        if (value != _passwordController.text) {
+                          return 'Passwords do not match';
+                        }
+                        return null;
+                      },
+                    ),
+                  ],
+
                   const SizedBox(height: 32),
+
+                  // Action Button
+                  AuthButton(
+                    text: _currentStep == 0
+                        ? 'Send Verification Code'
+                        : 'Complete Registration',
+                    onPressed: _isFormValid && !_isLoading
+                        ? _handleSubmit
+                        : null,
+                    isLoading: _isLoading,
+                  ),
+
+                  // Back to Login (Only show on step 0 to avoid navigation confusion, or keep it?)
+                  if (_currentStep == 0) ...[
+                    const SizedBox(height: 24),
+
+                    // OR Divider
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Divider(color: Colors.grey.withOpacity(0.3)),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            'OR',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Divider(color: Colors.grey.withOpacity(0.3)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Google Login Button
+                    OutlinedButton(
+                      onPressed: _isLoading ? null : _handleGoogleLogin,
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: BorderSide(color: Colors.grey.shade300),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        backgroundColor: Colors.white,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'G',
+                            style: TextStyle(
+                              color: Colors.blue,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'Roboto',
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          const Text(
+                            'Continue with Google',
+                            style: TextStyle(
+                              color: Colors.black87,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Footer
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Already have an account?',
+                          style: AuthTheme.subtitle,
+                        ),
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              PageRouteBuilder(
+                                pageBuilder:
+                                    (context, animation, secondaryAnimation) =>
+                                        const LoginPage(),
+                                transitionsBuilder:
+                                    (
+                                      context,
+                                      animation,
+                                      secondaryAnimation,
+                                      child,
+                                    ) {
+                                      return SlideTransition(
+                                        position:
+                                            Tween<Offset>(
+                                              begin: const Offset(1.0, 0.0),
+                                              end: Offset.zero,
+                                            ).animate(
+                                              CurvedAnimation(
+                                                parent: animation,
+                                                curve: Curves.easeInOut,
+                                              ),
+                                            ),
+                                        child: child,
+                                      );
+                                    },
+                              ),
+                            );
+                          },
+                          child: Text('Log in', style: AuthTheme.linkText),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 32),
+                  ],
                 ],
               ),
             ),

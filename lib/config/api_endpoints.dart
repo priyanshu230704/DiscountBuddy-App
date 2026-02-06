@@ -1,6 +1,8 @@
 class ApiEndpoints {
   // Auth Routes
   static const String register = '/users/register/';
+  static const String registerInit = '/users/register/init';
+  static const String registerComplete = '/users/register/complete';
   static const String login = '/users/token/';
   static const String refreshToken = '/users/token/refresh/';
   static const String googleLogin = '/users/google';
@@ -52,6 +54,7 @@ class ApiEndpoints {
 
   static const String merchantReviews = '/restaurants/restaurant/reviews/';
   static const String merchantBookings = '/restaurants/restaurant/bookings/';
+  static const String merchantRedeemDeal = '/restaurants/deals/redeem/';
 
   // Common/Reference Routes
   static const String cities = '/restaurants/cities/';

@@ -77,6 +77,69 @@ class AuthService {
     }
   }
 
+  /// Stage 1: Request OTP
+  Future<void> registerInit({
+    required String email,
+    required String role,
+  }) async {
+    try {
+      await _apiService.post(
+        ApiEndpoints.registerInit,
+        body: {'email': email, 'role': role},
+        type: ApiType.user, // Using user API for registration init as per doc
+      );
+    } catch (e) {
+      if (e is ApiException) {
+        String errorMessage = 'OTP Request failed';
+        if (e.data != null) {
+          final data = e.data as Map<String, dynamic>;
+          if (data.containsKey('detail')) {
+            errorMessage = data['detail'].toString();
+          }
+        }
+        throw ApiException(
+          errorMessage,
+          statusCode: e.statusCode,
+          data: e.data,
+        );
+      }
+      rethrow;
+    }
+  }
+
+  /// Stage 2: Verify OTP and create account
+  Future<RegisterResponse> registerComplete({
+    required String email,
+    required String otp,
+    required String password,
+  }) async {
+    try {
+      final response = await _apiService.post(
+        ApiEndpoints.registerComplete,
+        body: {'email': email, 'otp': otp, 'password': password},
+        type: ApiType.user,
+      );
+
+      return RegisterResponse.fromJson(response);
+    } catch (e) {
+      if (e is ApiException) {
+        String errorMessage = 'Registration failed';
+        if (e.data != null) {
+          final data = e.data as Map<String, dynamic>;
+          if (data.containsKey('detail')) {
+            errorMessage = data['detail'].toString();
+          }
+        }
+        throw ApiException(
+          errorMessage,
+          statusCode: e.statusCode,
+          data: e.data,
+        );
+      }
+      rethrow;
+    }
+  }
+
   /// Login with email and password
   Future<LoginResponse> login({
     required String email,

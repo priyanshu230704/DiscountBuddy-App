@@ -40,5 +40,5 @@ class Environment {
 
   // Feature Flags
   static bool get enableLogging => currentEnvironment != production;
-  static bool get enableDebugMode => true; // currentEnvironment == production;
+  static bool get enableDebugMode => true;  // currentEnvironment == production;
 }

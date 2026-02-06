@@ -94,9 +94,9 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadCityName() async {
     try {
       final city = await _locationService.getUserCity();
-      setState(() => _cityName = city);
+      if (mounted) setState(() => _cityName = city);
     } catch (_) {
-      setState(() => _cityName = 'London');
+      if (mounted) setState(() => _cityName = 'London');
     }
   }
 
@@ -115,17 +115,20 @@ class _HomePageState extends State<HomePage> {
             final cuisine = cuisineGroup['cuisine'] as Map<String, dynamic>?;
             final cuisineName = cuisine?['name'] as String? ?? 'Restaurant';
 
-            final restaurants = cuisineGroup['restaurants'] as List<dynamic>? ?? [];
+            final restaurants =
+                cuisineGroup['restaurants'] as List<dynamic>? ?? [];
             for (final restaurant in restaurants) {
               if (restaurant is Map<String, dynamic>) {
                 final restaurantId = restaurant['id'] as int?;
-                if (restaurantId != null) cuisineMap[restaurantId] = cuisineName;
+                if (restaurantId != null)
+                  cuisineMap[restaurantId] = cuisineName;
               }
             }
           }
         }
 
-        final allRestaurantsJson = homeData['all_restaurants'] as List<dynamic>? ?? [];
+        final allRestaurantsJson =
+            homeData['all_restaurants'] as List<dynamic>? ?? [];
 
         final allRestaurants = allRestaurantsJson
             .map(
@@ -141,7 +144,8 @@ class _HomePageState extends State<HomePage> {
           if (group is Map<String, dynamic>) {
             final cuisine = group['cuisine'] as Map<String, dynamic>?;
             if (cuisine != null) {
-              final restaurantsJson = group['restaurants'] as List<dynamic>? ?? [];
+              final restaurantsJson =
+                  group['restaurants'] as List<dynamic>? ?? [];
               final restaurants = restaurantsJson
                   .map(
                     (r) => _restaurantService.convertApiRestaurantToModel(
@@ -161,6 +165,7 @@ class _HomePageState extends State<HomePage> {
           }
         }
 
+        if (!mounted) return;
         setState(() {
           _restaurants = allRestaurants;
           _filteredRestaurants = _applyFilter(allRestaurants);
@@ -173,6 +178,7 @@ class _HomePageState extends State<HomePage> {
           longitude: -0.1278,
         );
 
+        if (!mounted) return;
         setState(() {
           _restaurants = restaurants;
           _filteredRestaurants = _applyFilter(restaurants);
@@ -180,7 +186,7 @@ class _HomePageState extends State<HomePage> {
         });
       }
     } catch (_) {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -198,12 +204,15 @@ class _HomePageState extends State<HomePage> {
         tags.add("${restaurant.discount.percentage?.toInt() ?? 0}% OFF");
         break;
       case 'fixed':
-        tags.add("£${restaurant.discount.fixedAmount?.toStringAsFixed(0) ?? "0"} OFF");
+        tags.add(
+          "£${restaurant.discount.fixedAmount?.toStringAsFixed(0) ?? "0"} OFF",
+        );
         break;
     }
 
     if (desc.contains('dessert')) tags.add("FREE Dessert");
-    if (desc.contains('drink') || desc.contains('soft drink')) tags.add("FREE Drink");
+    if (desc.contains('drink') || desc.contains('soft drink'))
+      tags.add("FREE Drink");
     if (desc.contains('side')) tags.add("FREE Side");
 
     return tags;
@@ -213,8 +222,10 @@ class _HomePageState extends State<HomePage> {
     final copy = [...list];
 
     int score(Restaurant r) {
-      if (r.discount.type == 'percentage') return ((r.discount.percentage ?? 0) * 10).toInt();
-      if (r.discount.type == 'fixed') return ((r.discount.fixedAmount ?? 0) * 8).toInt();
+      if (r.discount.type == 'percentage')
+        return ((r.discount.percentage ?? 0) * 10).toInt();
+      if (r.discount.type == 'fixed')
+        return ((r.discount.fixedAmount ?? 0) * 8).toInt();
       if (r.discount.type == '2for1') return 700;
       return 0;
     }
@@ -257,7 +268,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final list = _isSearching ? _filteredRestaurants : _applyFilter(_restaurants);
+    final list = _isSearching
+        ? _filteredRestaurants
+        : _applyFilter(_restaurants);
 
     return PopScope(
       canPop: !_isSearching,
@@ -291,212 +304,228 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildHeader() {
-  return SliverAppBar(
-    pinned: true,
-    floating: false,
-    snap: false,
-    elevation: 0,
-    backgroundColor: bg,
-    automaticallyImplyLeading: false,
-    toolbarHeight: 70,
-    expandedHeight: 240,
+    return SliverAppBar(
+      pinned: true,
+      floating: false,
+      snap: false,
+      elevation: 0,
+      backgroundColor: bg,
+      automaticallyImplyLeading: false,
+      toolbarHeight: 70,
+      expandedHeight: 190,
 
-    flexibleSpace: FlexibleSpaceBar(
-      background: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Colors.white,
-              buddyPink.withOpacity(0.09),
-              buddyOrange.withOpacity(0.09),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+      flexibleSpace: FlexibleSpaceBar(
+        background: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.white,
+                buddyPink.withOpacity(0.09),
+                buddyOrange.withOpacity(0.09),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
           ),
-        ),
-        child: SafeArea(
-          bottom: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(14),
-                        gradient: const LinearGradient(colors: buddyGradient),
-                        boxShadow: [
-                          BoxShadow(
-                            color: buddyPink.withOpacity(0.20),
-                            blurRadius: 16,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: Image.asset(
-                          "assets/png/db_logo.png",
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Icon(Icons.local_offer, color: Colors.white),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        "Discount Buddy",
-                        style: GoogleFonts.inter(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w900,
-                          color: textPrimary,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: Colors.black.withOpacity(0.06)),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Row(
-                        children: [
-                          ShaderMask(
-                            shaderCallback: (bounds) {
-                              return const LinearGradient(colors: buddyGradient)
-                                  .createShader(bounds);
-                            },
-                            child: const Icon(Icons.flash_on,
-                                size: 16, color: Colors.white),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            "Live Deals",
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w800,
-                              color: textPrimary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 12),
-
-                Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: Colors.transparent,
-                          builder: (context) => CitySelectorModal(
-                            selectedCity: _cityName,
-                            onCitySelected: (city) {
-                              setState(() {
-                                _cityId = city.id;
-                                _cityName = city.name;
-                              });
-                              _loadRestaurants();
-                            },
-                          ),
-                        );
-                      },
-                      child: Row(
-                        children: [
-                          ShaderMask(
-                            shaderCallback: (bounds) {
-                              return const LinearGradient(colors: buddyGradient)
-                                  .createShader(bounds);
-                            },
-                            child: const Icon(Icons.location_on,
-                                size: 18, color: Colors.white),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            _cityName,
-                            style: GoogleFonts.inter(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w800,
-                              color: textPrimary,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          const Icon(Icons.keyboard_arrow_down,
-                              color: textSecondary),
-                        ],
-                      ),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      onPressed: () {
-                        setState(() => _isSearching = true);
-                        WidgetsBinding.instance.addPostFrameCallback(
-                          (_) => _searchFocusNode.requestFocus(),
-                        );
-                      },
-                      icon: const Icon(Icons.search, color: textPrimary),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 10),
-                _SearchBar(
-                  controller: _searchController,
-                  focusNode: _searchFocusNode,
-                  onClose: () {
-                    _searchController.clear();
-                    _searchFocusNode.unfocus();
-                    setState(() => _isSearching = false);
-                  },
-                ),
-
-                const SizedBox(height: 12),
-                SizedBox(
-                  height: 44,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
+          child: SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      _FilterChipX(
-                        text: "🔥 Best Offers",
-                        active: _activeFilter == HomeFilter.offers,
-                        onTap: () => _toggleFilter(HomeFilter.offers),
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(14),
+                          gradient: const LinearGradient(colors: buddyGradient),
+                          boxShadow: [
+                            BoxShadow(
+                              color: buddyPink.withOpacity(0.20),
+                              blurRadius: 16,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Image.asset(
+                            "assets/png/db_logo.png",
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Icon(
+                                  Icons.local_offer,
+                                  color: Colors.white,
+                                ),
+                          ),
+                        ),
                       ),
-                      _FilterChipX(
-                        text: "⭐ Top Rated",
-                        active: _activeFilter == HomeFilter.rating,
-                        onTap: () => _toggleFilter(HomeFilter.rating),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          "Discount Buddy",
+                          style: GoogleFonts.inter(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                            color: textPrimary,
+                          ),
+                        ),
                       ),
-                      _FilterChipX(
-                        text: "📍 Nearest",
-                        active: _activeFilter == HomeFilter.nearest,
-                        onTap: () => _toggleFilter(HomeFilter.nearest),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(
+                            color: Colors.black.withOpacity(0.06),
+                          ),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Row(
+                          children: [
+                            ShaderMask(
+                              shaderCallback: (bounds) {
+                                return const LinearGradient(
+                                  colors: buddyGradient,
+                                ).createShader(bounds);
+                              },
+                              child: const Icon(
+                                Icons.flash_on,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              "Live Deals",
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w800,
+                                color: textPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
-                ),
-              ],
+
+                  const SizedBox(height: 12),
+
+                  _isSearching
+                      ? _SearchBar(
+                          controller: _searchController,
+                          focusNode: _searchFocusNode,
+                          onClose: () {
+                            _searchController.clear();
+                            _searchFocusNode.unfocus();
+                            setState(() => _isSearching = false);
+                          },
+                        )
+                      : Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  backgroundColor: Colors.transparent,
+                                  builder: (context) => CitySelectorModal(
+                                    selectedCity: _cityName,
+                                    onCitySelected: (city) {
+                                      setState(() {
+                                        _cityId = city.id;
+                                        _cityName = city.name;
+                                      });
+                                      _loadRestaurants();
+                                    },
+                                  ),
+                                );
+                              },
+                              child: Row(
+                                children: [
+                                  ShaderMask(
+                                    shaderCallback: (bounds) {
+                                      return const LinearGradient(
+                                        colors: buddyGradient,
+                                      ).createShader(bounds);
+                                    },
+                                    child: const Icon(
+                                      Icons.location_on,
+                                      size: 18,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    _cityName,
+                                    style: GoogleFonts.inter(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w800,
+                                      color: textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  const Icon(
+                                    Icons.keyboard_arrow_down,
+                                    color: textSecondary,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Spacer(),
+                            IconButton(
+                              onPressed: () {
+                                setState(() => _isSearching = true);
+                                WidgetsBinding.instance.addPostFrameCallback(
+                                  (_) => _searchFocusNode.requestFocus(),
+                                );
+                              },
+                              icon: const Icon(
+                                Icons.search,
+                                color: textPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    height: 44,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        _FilterChipX(
+                          text: "🔥 Best Offers",
+                          active: _activeFilter == HomeFilter.offers,
+                          onTap: () => _toggleFilter(HomeFilter.offers),
+                        ),
+                        _FilterChipX(
+                          text: "⭐ Top Rated",
+                          active: _activeFilter == HomeFilter.rating,
+                          onTap: () => _toggleFilter(HomeFilter.rating),
+                        ),
+                        _FilterChipX(
+                          text: "📍 Nearest",
+                          active: _activeFilter == HomeFilter.nearest,
+                          onTap: () => _toggleFilter(HomeFilter.nearest),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
       ),
-    ),
-  );
-}
-
+    );
+  }
 
   Widget _buildBanners() {
     return SliverToBoxAdapter(
@@ -571,7 +600,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildCuisineRow() {
-    if (_cuisineSections.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+    if (_cuisineSections.isEmpty)
+      return const SliverToBoxAdapter(child: SizedBox.shrink());
 
     return SliverToBoxAdapter(
       child: Padding(
@@ -626,7 +656,10 @@ class _HomePageState extends State<HomePage> {
         child: Padding(
           padding: EdgeInsets.only(top: 40),
           child: Center(
-            child: Text("No restaurants found 😅", style: TextStyle(color: textSecondary)),
+            child: Text(
+              "No restaurants found 😅",
+              style: TextStyle(color: textSecondary),
+            ),
           ),
         ),
       );
@@ -635,19 +668,16 @@ class _HomePageState extends State<HomePage> {
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 10),
       sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 14),
-              child: _FeedTile(
-                restaurant: list[index],
-                kmToMiles: _kmToMiles,
-                offerTags: _getOfferTags,
-              ),
-            );
-          },
-          childCount: list.length,
-        ),
+        delegate: SliverChildBuilderDelegate((context, index) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 14),
+            child: _FeedTile(
+              restaurant: list[index],
+              kmToMiles: _kmToMiles,
+              offerTags: _getOfferTags,
+            ),
+          );
+        }, childCount: list.length),
       ),
     );
   }
@@ -705,11 +735,10 @@ class _SearchBar extends StatelessWidget {
               ),
             ),
           ),
-          if (controller.text.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.close, size: 18, color: Color(0xFF6B7280)),
-              onPressed: onClose,
-            ),
+          IconButton(
+            icon: const Icon(Icons.close, size: 18, color: Color(0xFF6B7280)),
+            onPressed: onClose,
+          ),
         ],
       ),
     );
@@ -831,7 +860,10 @@ class _GradientBanner extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 7,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.18),
                     borderRadius: BorderRadius.circular(12),
@@ -882,7 +914,9 @@ class _CuisineChipX extends StatelessWidget {
                 ),
               ],
             ),
-            child: Center(child: Text(icon, style: const TextStyle(fontSize: 24))),
+            child: Center(
+              child: Text(icon, style: const TextStyle(fontSize: 24)),
+            ),
           ),
           const SizedBox(height: 8),
           SizedBox(
@@ -933,7 +967,9 @@ class _BestOfferCard extends StatelessWidget {
         final slug = restaurant.slug ?? restaurant.id;
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => RestaurantDetailsPage(slug: slug)),
+          MaterialPageRoute(
+            builder: (context) => RestaurantDetailsPage(slug: slug),
+          ),
         );
       },
       child: Container(
@@ -961,7 +997,9 @@ class _BestOfferCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16),
+                  ),
                   child: AspectRatio(
                     aspectRatio: 4 / 3,
                     child: Stack(
@@ -978,7 +1016,10 @@ class _BestOfferCard extends StatelessWidget {
                           ),
                           errorWidget: (context, url, error) => Container(
                             color: Colors.black.withOpacity(0.03),
-                            child: const Icon(Icons.restaurant, color: Color(0xFF6B7280)),
+                            child: const Icon(
+                              Icons.restaurant,
+                              color: Color(0xFF6B7280),
+                            ),
                           ),
                         ),
                         if (tags.isNotEmpty)
@@ -986,9 +1027,14 @@ class _BestOfferCard extends StatelessWidget {
                             left: 10,
                             bottom: 10,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
                               decoration: BoxDecoration(
-                                gradient: const LinearGradient(colors: buddyGradient),
+                                gradient: const LinearGradient(
+                                  colors: buddyGradient,
+                                ),
                                 borderRadius: BorderRadius.circular(14),
                               ),
                               child: Text(
@@ -1027,7 +1073,10 @@ class _BestOfferCard extends StatelessWidget {
                         "${restaurant.rating.toStringAsFixed(1)} (${restaurant.reviewCount}) • ${distanceMiles.toStringAsFixed(2)} mi • ${restaurant.cuisine}",
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF6B7280)),
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: const Color(0xFF6B7280),
+                        ),
                       ),
                       const SizedBox(height: 10),
                       if (tags.length > 1)
@@ -1036,7 +1085,10 @@ class _BestOfferCard extends StatelessWidget {
                           runSpacing: 8,
                           children: tags.skip(1).take(2).map((t) {
                             return Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFF3F4F6),
                                 borderRadius: BorderRadius.circular(14),
@@ -1047,8 +1099,12 @@ class _BestOfferCard extends StatelessWidget {
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700,
                                   foreground: Paint()
-                                    ..shader = const LinearGradient(colors: buddyGradient)
-                                        .createShader(const Rect.fromLTWH(0, 0, 140, 20)),
+                                    ..shader =
+                                        const LinearGradient(
+                                          colors: buddyGradient,
+                                        ).createShader(
+                                          const Rect.fromLTWH(0, 0, 140, 20),
+                                        ),
                                 ),
                               ),
                             );
@@ -1094,7 +1150,9 @@ class _FeedTile extends StatelessWidget {
         final slug = restaurant.slug ?? restaurant.id;
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => RestaurantDetailsPage(slug: slug)),
+          MaterialPageRoute(
+            builder: (context) => RestaurantDetailsPage(slug: slug),
+          ),
         );
       },
       child: Container(
@@ -1114,7 +1172,9 @@ class _FeedTile extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(18),
+              ),
               child: AspectRatio(
                 aspectRatio: 16 / 9,
                 child: CachedNetworkImage(
@@ -1123,11 +1183,16 @@ class _FeedTile extends StatelessWidget {
                   width: double.infinity,
                   placeholder: (context, url) => Container(
                     color: Colors.black.withOpacity(0.03),
-                    child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                    child: const Center(
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
                   ),
                   errorWidget: (context, url, error) => Container(
                     color: Colors.black.withOpacity(0.03),
-                    child: const Icon(Icons.restaurant, color: Color(0xFF6B7280)),
+                    child: const Icon(
+                      Icons.restaurant,
+                      color: Color(0xFF6B7280),
+                    ),
                   ),
                 ),
               ),
@@ -1150,7 +1215,10 @@ class _FeedTile extends StatelessWidget {
                     "${restaurant.rating.toStringAsFixed(1)} (${restaurant.reviewCount}) • ${distanceMiles.toStringAsFixed(2)} mi • ${restaurant.cuisine}",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF6B7280)),
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: const Color(0xFF6B7280),
+                    ),
                   ),
                   if (tags.isNotEmpty) ...[
                     const SizedBox(height: 10),
@@ -1159,7 +1227,10 @@ class _FeedTile extends StatelessWidget {
                       runSpacing: 8,
                       children: tags.take(3).map((t) {
                         return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.black.withOpacity(0.04),
                             borderRadius: BorderRadius.circular(14),
@@ -1170,8 +1241,12 @@ class _FeedTile extends StatelessWidget {
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
                               foreground: Paint()
-                                ..shader = const LinearGradient(colors: buddyGradient)
-                                    .createShader(const Rect.fromLTWH(0, 0, 140, 20)),
+                                ..shader =
+                                    const LinearGradient(
+                                      colors: buddyGradient,
+                                    ).createShader(
+                                      const Rect.fromLTWH(0, 0, 140, 20),
+                                    ),
                             ),
                           ),
                         );

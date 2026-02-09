@@ -283,20 +283,18 @@ class _HomePageState extends State<HomePage> {
       },
       child: Scaffold(
         backgroundColor: bg,
-        body: SafeArea(
-          child: RefreshIndicator(
-            onRefresh: _loadRestaurants,
-            color: buddyOrange,
-            child: CustomScrollView(
-              slivers: [
-                _buildHeader(),
-                if (!_isSearching) _buildBanners(),
-                if (!_isSearching) _buildBestOffers(),
-                if (!_isSearching) _buildCuisineRow(),
-                _buildRestaurantFeed(list),
-                const SliverToBoxAdapter(child: SizedBox(height: 80)),
-              ],
-            ),
+        body: RefreshIndicator(
+          onRefresh: _loadRestaurants,
+          color: buddyOrange,
+          child: CustomScrollView(
+            slivers: [
+              _buildHeader(),
+              if (!_isSearching) _buildBanners(),
+              if (!_isSearching) _buildBestOffers(),
+              if (!_isSearching) _buildCuisineRow(),
+              _buildRestaurantFeed(list),
+              const SliverToBoxAdapter(child: SizedBox(height: 80)),
+            ],
           ),
         ),
       ),
@@ -305,7 +303,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildHeader() {
     return SliverAppBar(
-      pinned: true,
+      pinned: false,
       floating: false,
       snap: false,
       elevation: 0,

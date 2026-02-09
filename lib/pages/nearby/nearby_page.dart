@@ -24,7 +24,7 @@ class NearbyPage extends StatefulWidget {
 }
 
 class _NearbyPageState extends State<NearbyPage>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   final RestaurantService _restaurantService = RestaurantService();
   final LocationService _locationService = LocationService();
 
@@ -68,6 +68,7 @@ class _NearbyPageState extends State<NearbyPage>
 
   bool _isProgrammaticMove = false;
   bool _isUserMovingMap = false;
+  bool _isMapReady = false;
 
   static const int _pinNormalSize = 140;
   static const int _pinSelectedSize = 170;
@@ -81,6 +82,9 @@ class _NearbyPageState extends State<NearbyPage>
 
   late AnimationController _cardController;
   late Animation<Offset> _cardSlide;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -701,6 +705,7 @@ class _NearbyPageState extends State<NearbyPage>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       backgroundColor: NeoTasteColors.background,
       body: Stack(
@@ -711,6 +716,10 @@ class _NearbyPageState extends State<NearbyPage>
             styleUri: MapboxStyles.LIGHT,
             onMapCreated: (mapboxMap) async {
               _mapboxMap = mapboxMap;
+
+              if (mounted) {
+                setState(() => _isMapReady = true);
+              }
 
               _pointManager = await _mapboxMap!.annotations
                   .createPointAnnotationManager();
@@ -783,6 +792,14 @@ class _NearbyPageState extends State<NearbyPage>
               }
             },
           ),
+
+          if (!_isMapReady)
+            Container(
+              color: NeoTasteColors.background,
+              child: const Center(
+                child: CircularProgressIndicator(color: Color(0xFF2F80ED)),
+              ),
+            ),
 
           SafeArea(
             child: Padding(

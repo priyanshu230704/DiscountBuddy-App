@@ -4,6 +4,7 @@ import '../../models/restaurant.dart';
 import '../../services/restaurant_service.dart';
 import '../../providers/theme_provider.dart';
 import '../../widgets/generic_bottom_sheet.dart';
+import '../../config/environment.dart';
 
 /// Redeem Offer Modal - NeoTaste style bottom sheet
 class RedeemOfferModal extends StatefulWidget {
@@ -18,6 +19,7 @@ class RedeemOfferModal extends StatefulWidget {
 class _RedeemOfferModalState extends State<RedeemOfferModal> {
   bool _isRedeeming = false;
   late Discount _selectedDeal;
+  Map<String, dynamic>? _redemptionResult;
 
   @override
   void initState() {
@@ -30,6 +32,10 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
 
   @override
   Widget build(BuildContext context) {
+    if (_redemptionResult != null) {
+      return _buildSuccessView();
+    }
+
     final deals = widget.restaurant.activeDeals.isNotEmpty
         ? widget.restaurant.activeDeals
         : [widget.restaurant.discount];
@@ -187,20 +193,15 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                           try {
                             final RestaurantService restaurantService =
                                 RestaurantService();
-                            await restaurantService.claimDeal(dealId);
+                            final result = await restaurantService.claimDeal(
+                              dealId,
+                            );
 
                             if (mounted) {
-                              Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Offer redeemed successfully!',
-                                    style: GoogleFonts.inter(),
-                                  ),
-                                  backgroundColor: Colors.green,
-                                  behavior: SnackBarBehavior.floating,
-                                ),
-                              );
+                              setState(() {
+                                _isRedeeming = false;
+                                _redemptionResult = result;
+                              });
                             }
                           } catch (e) {
                             if (mounted) {
@@ -245,6 +246,147 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
             const SizedBox(height: 24),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSuccessView() {
+    String qrUrl = _redemptionResult!['qr_code_url'] ?? '';
+    final code = _redemptionResult!['redemption_code'] ?? 'Unknown';
+
+    // Replace localhost/127.0.0.1 with correct base URL if needed
+    if (qrUrl.contains('127.0.0.1') || qrUrl.contains('localhost')) {
+      // Remove generic ports if present to be safe or just string replace
+      qrUrl = qrUrl.replaceAll('http://127.0.0.1:8000', Environment.baseUrl);
+      qrUrl = qrUrl.replaceAll('http://localhost:8000', Environment.baseUrl);
+    }
+
+    return GenericBottomSheet(
+      title: 'Redemption Successful',
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.green.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.check_circle,
+              color: Colors.green,
+              size: 48,
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Show this QR code to the staff',
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              color: NeoTasteColors.textSecondary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          // QR Code
+          if (qrUrl.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: NeoTasteColors.textDisabled.withOpacity(0.2),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Image.network(
+                qrUrl,
+                width: 200,
+                height: 200,
+                fit: BoxFit.contain,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return const SizedBox(
+                    width: 200,
+                    height: 200,
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  return const SizedBox(
+                    width: 200,
+                    height: 200,
+                    child: Center(
+                      child: Icon(
+                        Icons.qr_code_2,
+                        size: 64,
+                        color: NeoTasteColors.textDisabled,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          const SizedBox(height: 24),
+          Text(
+            'Or provide this code:',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: NeoTasteColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF5F5F5),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: NeoTasteColors.textDisabled.withOpacity(0.2),
+              ),
+            ),
+            child: Text(
+              code.toString(),
+              style: GoogleFonts.inter(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: NeoTasteColors.textPrimary,
+                letterSpacing: 4,
+              ),
+            ),
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: NeoTasteColors.textPrimary,
+                foregroundColor: NeoTasteColors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                'Done',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+        ],
       ),
     );
   }

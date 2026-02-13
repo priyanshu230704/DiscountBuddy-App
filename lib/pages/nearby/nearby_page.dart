@@ -35,7 +35,7 @@ class _NearbyPageState extends State<NearbyPage>
   PointAnnotationManager? _pointManager;
 
   bool _isLoading = true;
-  bool _showList = false;
+
   bool _isSearching = false;
 
   String _cityName = "London";
@@ -295,22 +295,10 @@ class _NearbyPageState extends State<NearbyPage>
     await _mapboxMap!.compass.updateSettings(CompassSettings(enabled: false));
     await _mapboxMap!.scaleBar.updateSettings(ScaleBarSettings(enabled: false));
 
-    await _mapboxMap!.logo.updateSettings(
-      LogoSettings(
-        enabled: true,
-        position: OrnamentPosition.BOTTOM_RIGHT,
-        marginRight: 10,
-        marginBottom: 10,
-      ),
-    );
+    await _mapboxMap!.logo.updateSettings(LogoSettings(enabled: false));
 
     await _mapboxMap!.attribution.updateSettings(
-      AttributionSettings(
-        enabled: true,
-        position: OrnamentPosition.BOTTOM_RIGHT,
-        marginRight: 10,
-        marginBottom: 40,
-      ),
+      AttributionSettings(enabled: false),
     );
   }
 
@@ -551,153 +539,162 @@ class _NearbyPageState extends State<NearbyPage>
     _isMarkerAnimating = false;
   }
 
-  Widget _restaurantListSheet() {
-    return DraggableScrollableSheet(
-      initialChildSize: 0.55,
-      minChildSize: 0.35,
-      maxChildSize: 0.92,
-      builder: (context, scrollController) {
-        return GenericBottomSheet(
-          title: "Restaurants in $_cityName",
-          onClose: () => setState(() => _showList = false),
-          expandChild: true,
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 18),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    _isCityListLoading
-                        ? "Loading..."
-                        : "${_cityRestaurants.length} places",
-                    style: GoogleFonts.inter(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black54,
+  void _showRestaurantListModal() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      useSafeArea: true,
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.55,
+          minChildSize: 0.35,
+          maxChildSize: 0.92,
+          builder: (context, scrollController) {
+            return GenericBottomSheet(
+              title: "Restaurants in $_cityName",
+              onClose: () => Navigator.pop(context),
+              expandChild: true,
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        _isCityListLoading
+                            ? "Loading..."
+                            : "${_cityRestaurants.length} places",
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black54,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 10),
-              Expanded(
-                child: _isCityListLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : _cityRestaurants.isEmpty
-                    ? Center(
-                        child: Text(
-                          "No restaurants found in $_cityName 😕",
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black54,
-                          ),
-                        ),
-                      )
-                    : ListView.builder(
-                        controller: scrollController,
-                        padding: const EdgeInsets.fromLTRB(14, 6, 14, 20),
-                        itemCount: _cityRestaurants.length,
-                        itemBuilder: (context, index) {
-                          final r = _cityRestaurants[index];
-
-                          return GestureDetector(
-                            onTap: () async {
-                              setState(() {
-                                _selectedRestaurant = r;
-                                _selectedRestaurantId = r.id;
-                                _showList = false;
-                              });
-
-                              _cardController.forward(from: 0);
-
-                              await _syncPinsWithList();
-                              await _refreshPinsStateOnly();
-                              await _bounceSelectedMarker(r.id);
-                              await _moveToRestaurant(r);
-                            },
-                            child: Container(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(18),
-                                border: Border.all(
-                                  color: Colors.black.withOpacity(0.06),
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    blurRadius: 14,
-                                    color: Colors.black.withOpacity(0.06),
-                                    offset: const Offset(0, 6),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(14),
-                                    child: CachedNetworkImage(
-                                      imageUrl: r.imageUrl,
-                                      width: 62,
-                                      height: 62,
-                                      fit: BoxFit.cover,
-                                      placeholder: (_, _) => Container(
-                                        width: 62,
-                                        height: 62,
-                                        color: Colors.grey.shade200,
-                                      ),
-                                      errorWidget: (_, _, _) => Container(
-                                        width: 62,
-                                        height: 62,
-                                        color: Colors.grey.shade200,
-                                        child: const Icon(Icons.restaurant),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          r.name,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: GoogleFonts.inter(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w900,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 6),
-                                        Text(
-                                          _cityName,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: GoogleFonts.inter(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.black54,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const Icon(
-                                    Icons.chevron_right,
-                                    color: Colors.black54,
-                                  ),
-                                ],
+                  const SizedBox(height: 10),
+                  Expanded(
+                    child: _isCityListLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : _cityRestaurants.isEmpty
+                        ? Center(
+                            child: Text(
+                              "No restaurants found in $_cityName 😕",
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black54,
                               ),
                             ),
-                          );
-                        },
-                      ),
+                          )
+                        : ListView.builder(
+                            controller: scrollController,
+                            padding: const EdgeInsets.fromLTRB(14, 6, 14, 20),
+                            itemCount: _cityRestaurants.length,
+                            itemBuilder: (context, index) {
+                              final r = _cityRestaurants[index];
+
+                              return GestureDetector(
+                                onTap: () async {
+                                  Navigator.pop(context);
+
+                                  setState(() {
+                                    _selectedRestaurant = r;
+                                    _selectedRestaurantId = r.id;
+                                  });
+
+                                  _cardController.forward(from: 0);
+
+                                  await _syncPinsWithList();
+                                  await _refreshPinsStateOnly();
+                                  await _bounceSelectedMarker(r.id);
+                                  await _moveToRestaurant(r);
+                                },
+                                child: Container(
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(18),
+                                    border: Border.all(
+                                      color: Colors.black.withOpacity(0.06),
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        blurRadius: 14,
+                                        color: Colors.black.withOpacity(0.06),
+                                        offset: const Offset(0, 6),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(14),
+                                        child: CachedNetworkImage(
+                                          imageUrl: r.imageUrl,
+                                          width: 62,
+                                          height: 62,
+                                          fit: BoxFit.cover,
+                                          placeholder: (_, _) => Container(
+                                            width: 62,
+                                            height: 62,
+                                            color: Colors.grey.shade200,
+                                          ),
+                                          errorWidget: (_, _, _) => Container(
+                                            width: 62,
+                                            height: 62,
+                                            color: Colors.grey.shade200,
+                                            child: const Icon(Icons.restaurant),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              r.name,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: GoogleFonts.inter(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w900,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 6),
+                                            Text(
+                                              _cityName,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: GoogleFonts.inter(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.black54,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const Icon(
+                                        Icons.chevron_right,
+                                        color: Colors.black54,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -819,24 +816,13 @@ class _NearbyPageState extends State<NearbyPage>
               ),
             ),
 
-          if (_showList)
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: () => setState(() => _showList = false),
-                child: Container(
-                  color: Colors.black.withOpacity(0.25),
-                  child: GestureDetector(
-                    onTap: () {},
-                    child: Align(
-                      alignment: Alignment.bottomCenter,
-                      child: _restaurantListSheet(),
-                    ),
-                  ),
-                ),
-              ),
+          if (_selectedRestaurant == null && !_isSearching)
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 110,
+              child: _bottomButtons(),
             ),
-
-          Positioned(left: 16, right: 16, bottom: 20, child: _bottomButtons()),
 
           if (_isLoading)
             Positioned(top: 95, left: 16, right: 16, child: _loadingPill()),
@@ -856,7 +842,7 @@ class _NearbyPageState extends State<NearbyPage>
             onTap: () {
               showModalBottomSheet(
                 context: context,
-                isScrollControlled: true,
+                isScrollControlled: false,
                 backgroundColor: Colors.transparent,
                 builder: (context) => CitySelectorModal(
                   selectedCity: _cityName,
@@ -873,7 +859,6 @@ class _NearbyPageState extends State<NearbyPage>
 
                       _selectedRestaurant = null;
                       _selectedRestaurantId = null;
-                      _showList = false;
                     });
 
                     _cardController.reverse();
@@ -1029,10 +1014,7 @@ class _NearbyPageState extends State<NearbyPage>
           child: _bottomPillButton(
             icon: Icons.list,
             label: "List",
-            onTap: () async {
-              setState(() => _showList = true);
-              await _loadCityRestaurants();
-            },
+            onTap: _showRestaurantListModal,
           ),
         ),
         const SizedBox(width: 12),
@@ -1047,7 +1029,7 @@ class _NearbyPageState extends State<NearbyPage>
     required VoidCallback onTap,
   }) {
     return Container(
-      height: 58,
+      height: 40,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(30),
@@ -1067,12 +1049,12 @@ class _NearbyPageState extends State<NearbyPage>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 22, color: Colors.black),
-              const SizedBox(width: 10),
+              Icon(icon, size: 18, color: Colors.black),
+              const SizedBox(width: 8),
               Text(
                 label,
                 style: GoogleFonts.inter(
-                  fontSize: 16,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: Colors.black,
                 ),
@@ -1086,8 +1068,8 @@ class _NearbyPageState extends State<NearbyPage>
 
   Widget _gpsCircleButton() {
     return Container(
-      width: 58,
-      height: 58,
+      width: 40,
+      height: 40,
       decoration: BoxDecoration(
         color: Colors.white,
         shape: BoxShape.circle,
@@ -1104,7 +1086,7 @@ class _NearbyPageState extends State<NearbyPage>
         child: InkWell(
           onTap: _centerMapOnLocation,
           borderRadius: BorderRadius.circular(60),
-          child: const Icon(Icons.navigation, size: 24, color: Colors.black),
+          child: const Icon(Icons.navigation, size: 20, color: Colors.black),
         ),
       ),
     );

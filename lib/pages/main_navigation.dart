@@ -10,6 +10,7 @@ import 'bookings/bookings_page.dart';
 import 'profile_page.dart';
 import 'merchant/merchant_deals_page.dart';
 import 'merchant/merchant_dashboard_page.dart';
+import '../widgets/adaptive_navbar_scaffold.dart';
 
 /// Main navigation with new floating bottom navigation bar
 class MainNavigation extends StatefulWidget {
@@ -70,173 +71,31 @@ class _MainNavigationState extends State<MainNavigation> {
   @override
   Widget build(BuildContext context) {
     final isMerchant = _authProvider.isMerchant;
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    // final theme = Theme.of(context);
+    // final isDark = theme.brightness == Brightness.dark;
 
-    return Scaffold(
-      extendBody: true, // Important for floating nav bar
-      body: IndexedStack(
-        index: _currentIndex,
-        children: List.generate(isMerchant ? 3 : 4, (index) {
-          if (index == _currentIndex || _pageCache.containsKey(index)) {
-            return _getPage(index);
-          }
-          return const SizedBox.shrink();
-        }),
-      ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.only(bottom: 24, left: 16, right: 16),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(32), // Floating pill shape
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              height: 72,
-              decoration: BoxDecoration(
-                color: isDark
-                    ? AppColors.surfaceDark.withOpacity(0.8)
-                    : AppColors.surfaceLight.withOpacity(0.9),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-                borderRadius: BorderRadius.circular(32),
-                border: Border.all(
-                  color: isDark
-                      ? Colors.white.withOpacity(0.1)
-                      : Colors.white.withOpacity(0.5),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: isMerchant
-                    ? [
-                        _buildNavItem(
-                          context,
-                          icon: Icons.dashboard_outlined,
-                          selectedIcon: Icons.dashboard,
-                          label: 'Dashboard',
-                          index: 0,
-                        ),
-                        _buildNavItem(
-                          context,
-                          icon: Icons.local_offer_outlined,
-                          selectedIcon: Icons.local_offer,
-                          label: 'Deals',
-                          index: 1,
-                        ),
-                        _buildNavItem(
-                          context,
-                          icon: Icons.person_outline,
-                          selectedIcon: Icons.person,
-                          label: 'Profile',
-                          index: 2,
-                        ),
-                      ]
-                    : [
-                        _buildNavItem(
-                          context,
-                          icon: Icons.home_outlined,
-                          selectedIcon: Icons.home,
-                          label: 'Home',
-                          index: 0,
-                        ),
-                        _buildNavItem(
-                          context,
-                          icon: Icons.near_me_outlined,
-                          selectedIcon: Icons.near_me,
-                          label: 'Nearby',
-                          index: 1,
-                        ),
-                        _buildNavItem(
-                          context,
-                          icon: Icons.event_note_outlined,
-                          selectedIcon: Icons.event_note,
-                          label: 'Bookings',
-                          index: 2,
-                        ),
-                        _buildNavItem(
-                          context,
-                          icon: Icons.person_outline,
-                          selectedIcon: Icons.person,
-                          label: 'Profile',
-                          index: 3,
-                        ),
-                      ],
-              ),
-            ),
-          ),
-        ),
-      ),
+    // Prepare Pages List
+    // We match the count and order defined in AdaptiveNavbarScaffold
+    final List<Widget> pages = List.generate(
+      isMerchant ? 3 : 4,
+      (index) => _getPage(index),
     );
-  }
-
-  Widget _buildNavItem(
-    BuildContext context, {
-    required IconData icon,
-    required IconData selectedIcon,
-    required String label,
-    required int index,
-  }) {
-    final isSelected = _currentIndex == index;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return GestureDetector(
-      onTap: () {
+    return AdaptiveNavbarScaffold(
+      selectedIndex: _currentIndex,
+      onDestinationSelected: (index) {
         setState(() {
           _currentIndex = index;
         });
       },
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: isSelected
-            ? BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: AppColors.primary.withOpacity(0.3),
-                          blurRadius: 12,
-                          spreadRadius: -2,
-                          offset: const Offset(0, 4),
-                        ),
-                      ]
-                    : [],
-              )
-            : null,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              isSelected ? selectedIcon : icon,
-              size: 24,
-              color: isSelected
-                  ? AppColors.primary
-                  : (isDark
-                        ? AppColors.textSecondaryDark
-                        : AppColors.textSecondaryLight),
-            ),
-            if (isSelected) ...[
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
+      isMerchant: isMerchant,
+      pages: pages,
+      selectedItemColor: AppColors.primary,
+      unselectedItemColor: isDark
+          ? AppColors.textSecondaryDark
+          : AppColors.textSecondaryLight,
     );
   }
 }

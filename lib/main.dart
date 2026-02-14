@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'config/environment.dart';
 import 'pages/main_navigation.dart';
 import 'pages/auth/login_page.dart';
@@ -8,10 +10,25 @@ import 'pages/onboarding_check_screen.dart';
 import 'providers/theme_provider.dart';
 import 'providers/auth_provider.dart';
 import 'services/auth_service.dart';
+import 'services/firebase_messaging_service.dart'; // Import the service
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+
+// Background message handler - must be top-level function
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  print('Handling background message: ${message.messageId}');
+  // You can process the notification here if needed
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase
+  await Firebase.initializeApp();
+
+  // Set up background message handler
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   // Lock app to portrait orientation
   await SystemChrome.setPreferredOrientations([
@@ -21,7 +38,12 @@ void main() async {
 
   // Initialize auth service to load stored tokens
   await AuthService().initializeAuth();
-  MapboxOptions.setAccessToken("pk.eyJ1Ijoia2V0YW5jaGF2ZGEyMSIsImEiOiJjbWwzbzhkZzIwM3dkM2Vxc2FxNmhvNjduIn0.ujNsfSEeeW3Ad862r3PGQQ");
+
+  // Initialize Firebase Messaging Service (which uses NotificationService)
+  final firebaseService = FirebaseMessagingService();
+  await firebaseService.initialize();
+
+  MapboxOptions.setAccessToken(Environment.mapboxAccessToken);
   runApp(const DiscountBuddyApp());
 }
 

@@ -75,12 +75,26 @@ class ApiService {
     if (endpoint == '/') {
       return endpoint;
     }
-    // Ensure endpoint starts with / if not common API
-    String normalized = endpoint.replaceAll(RegExp(r'/+$'), '');
-    if (!normalized.startsWith('/')) {
-      normalized = '/$normalized';
+
+    String path = endpoint;
+    String query = '';
+
+    // Split query parameters if present
+    if (endpoint.contains('?')) {
+      int queryIndex = endpoint.indexOf('?');
+      path = endpoint.substring(0, queryIndex);
+      query = endpoint.substring(queryIndex);
     }
-    return normalized;
+
+    // Ensure path starts with /
+    if (!path.startsWith('/')) {
+      path = '/$path';
+    }
+
+    // NOTE: We do NOT force trailing slash here anymore.
+    // The caller is responsible for adding it if needed (e.g. for Django list views).
+
+    return path + query;
   }
 
   /// Get base URL based on ApiType

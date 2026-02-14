@@ -5,8 +5,10 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../models/restaurant.dart';
 import '../../services/restaurant_service.dart';
 import '../../services/location_service.dart';
+import '../../services/notification_service.dart';
 import '../../providers/auth_provider.dart';
 import '../restaurant_details_page.dart';
+import '../notifications_page.dart';
 import '../../widgets/city_selector_modal.dart';
 
 class HomePage extends StatefulWidget {
@@ -21,6 +23,7 @@ enum HomeFilter { offers, rating, nearest, openNow }
 class _HomePageState extends State<HomePage> {
   final RestaurantService _restaurantService = RestaurantService();
   final LocationService _locationService = LocationService();
+  final NotificationService _notificationService = NotificationService();
   final AuthProvider _authProvider = AuthProvider();
 
   final TextEditingController _searchController = TextEditingController();
@@ -35,6 +38,7 @@ class _HomePageState extends State<HomePage> {
 
   String _cityName = 'London';
   int _cityId = 1;
+  int _notificationCount = 0;
 
   HomeFilter? _activeFilter;
   static const Color buddyPink = Color(0xFFFF2D83);
@@ -59,6 +63,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _loadCityName();
     _loadRestaurants();
+    _loadNotificationCount();
     _searchController.addListener(_onSearchChanged);
   }
 
@@ -97,6 +102,16 @@ class _HomePageState extends State<HomePage> {
       if (mounted) setState(() => _cityName = city);
     } catch (_) {
       if (mounted) setState(() => _cityName = 'London');
+    }
+  }
+
+  Future<void> _loadNotificationCount() async {
+    try {
+      final count = await _notificationService.getUnreadCount();
+      if (mounted) setState(() => _notificationCount = count);
+    } catch (_) {
+      // Silently fail - notification count is not critical
+      if (mounted) setState(() => _notificationCount = 0);
     }
   }
 
@@ -408,6 +423,80 @@ class _HomePageState extends State<HomePage> {
                               ),
                             ),
                           ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Notification Icon with Badge
+                      GestureDetector(
+                        onTap: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const NotificationsPage(),
+                            ),
+                          );
+                          // Reload notification count when returning
+                          _loadNotificationCount();
+                        },
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border.all(
+                              color: Colors.black.withOpacity(0.06),
+                            ),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Stack(
+                            children: [
+                              Center(
+                                child: Icon(
+                                  Icons.notifications_outlined,
+                                  size: 22,
+                                  color: textPrimary,
+                                ),
+                              ),
+                              if (_notificationCount > 0)
+                                Positioned(
+                                  top: 8,
+                                  right: 8,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        colors: buddyGradient,
+                                      ),
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: buddyOrange.withOpacity(0.4),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 18,
+                                      minHeight: 18,
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        _notificationCount > 99
+                                            ? '99+'
+                                            : _notificationCount.toString(),
+                                        style: GoogleFonts.inter(
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w900,
+                                          color: Colors.white,
+                                          height: 1,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
                       ),
                     ],

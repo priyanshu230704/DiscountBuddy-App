@@ -40,5 +40,8 @@ class Environment {
 
   // Feature Flags
   static bool get enableLogging => currentEnvironment != production;
-  static bool get enableDebugMode => false;  // currentEnvironment == production;
+  static bool get enableDebugMode => false; // currentEnvironment == production;
+
+  // Mapbox Configuration
+  static const String mapboxAccessToken = ''; // TODO: Add Mapbox Access Token
 }

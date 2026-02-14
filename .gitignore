@@ -54,3 +54,4 @@ secrets.json
 .env.*.local
 config/secrets.dart
 lib/config/secrets.dart
+android/app/google-services.json

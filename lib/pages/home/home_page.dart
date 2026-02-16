@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import '../../models/restaurant.dart';
 import '../../services/restaurant_service.dart';
@@ -39,6 +41,7 @@ class _HomePageState extends State<HomePage> {
   String _cityName = 'London';
   int _cityId = 1;
   int _notificationCount = 0;
+  StreamSubscription<RemoteMessage>? _notificationSubscription;
 
   HomeFilter? _activeFilter;
   static const Color buddyPink = Color(0xFFFF2D83);
@@ -65,10 +68,31 @@ class _HomePageState extends State<HomePage> {
     _loadRestaurants();
     _loadNotificationCount();
     _searchController.addListener(_onSearchChanged);
+
+    debugPrint("🔔 Setting up FCM listener in HomePage");
+    _notificationSubscription = FirebaseMessaging.onMessage.listen((
+      RemoteMessage message,
+    ) {
+      debugPrint("🔔 FCM Message Received: ${message.messageId}");
+      if (message.notification != null) {
+        debugPrint("   Title: ${message.notification?.title}");
+        debugPrint("   Body: ${message.notification?.body}");
+      }
+
+      if (mounted) {
+        debugPrint(
+          "   Updating notification count: $_notificationCount -> ${_notificationCount + 1}",
+        );
+        setState(() {
+          _notificationCount++;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
+    _notificationSubscription?.cancel();
     _searchController.dispose();
     _searchFocusNode.dispose();
     super.dispose();

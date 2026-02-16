@@ -3,6 +3,7 @@ import '../models/restaurant_detail.dart';
 import '../models/review.dart';
 import '../models/menu_item.dart';
 import '../models/user_interactions.dart';
+import '../models/deal_redemption.dart';
 import '../config/api_endpoints.dart';
 import 'api_service.dart';
 
@@ -91,6 +92,22 @@ class RestaurantService {
     }
   }
 
+  /// Get user's deal redemptions
+  Future<List<DealRedemption>> getUserDealRedemptions() async {
+    try {
+      final response = await _apiService.get(ApiEndpoints.dealUses);
+
+      final List<dynamic> results =
+          (response['results'] ?? response['data'] ?? []) as List<dynamic>;
+
+      return results
+          .map((json) => DealRedemption.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to load deal redemptions: ${e.toString()}');
+    }
+  }
+
   /// Get detail for a specific booking
   Future<Booking> getBookingDetail(int bookingId) async {
     try {
@@ -157,6 +174,11 @@ class RestaurantService {
       );
       return response;
     } catch (e) {
+      if (e.toString().contains(
+        'You have reached the maximum uses for this deal',
+      )) {
+        rethrow;
+      }
       throw Exception('Failed to claim deal: ${e.toString()}');
     }
   }

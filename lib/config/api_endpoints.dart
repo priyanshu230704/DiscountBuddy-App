@@ -17,6 +17,7 @@ class ApiEndpoints {
   static const String nearbyRestaurants = '/restaurants/nearby';
   static const String searchRestaurants = '/restaurants/search';
   static const String homeData = '/restaurants/home';
+  static const String dealUses = '/restaurants/deal-uses';
 
   // Dynamic Routes
   static String bookingDetail(int bookingId) =>

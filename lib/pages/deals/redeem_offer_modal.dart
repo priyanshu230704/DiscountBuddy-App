@@ -208,9 +208,44 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                               setState(() {
                                 _isRedeeming = false;
                               });
+
+                              String errorMessage = e.toString();
+                              // Check specifically for the maximum uses error
+                              if (errorMessage.contains('maximum uses') ||
+                                  errorMessage.contains(
+                                    'You have reached the maximum uses for this deal',
+                                  )) {
+                                errorMessage = "You've used offer already";
+                              } else {
+                                // Clean up error message if needed (remove Exception: prefix)
+                                errorMessage = errorMessage.replaceAll(
+                                  'Exception: ',
+                                  '',
+                                );
+                              }
+
+                              /*
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(e.toString())),
+                                SnackBar(content: Text(errorMessage)),
                               );
+                              */
+
+                              // Show error in a dialog instead of snackbar to ensure it's visible over the modal
+                              if (mounted) {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Redemption Failed'),
+                                    content: Text(errorMessage),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: const Text('OK'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
                             }
                           }
                         },

@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../providers/theme_provider.dart';
-import '../../models/user_interactions.dart' as interaction;
+import '../../models/deal_redemption.dart';
 import '../../services/restaurant_service.dart';
 import '../restaurant_details_page.dart';
 
-/// Bookings Screen - Integrated with real API
+/// Bookings/Redemptions Screen - Integrated with deal uses API
 class BookingsPage extends StatefulWidget {
   const BookingsPage({super.key});
 
@@ -17,15 +17,15 @@ class BookingsPage extends StatefulWidget {
 class _BookingsPageState extends State<BookingsPage>
     with SingleTickerProviderStateMixin {
   final RestaurantService _restaurantService = RestaurantService();
-  List<interaction.Booking> _bookings = [];
+  List<DealRedemption> _redemptions = [];
   bool _isLoading = true;
   late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-    _loadBookings();
+    _tabController = TabController(length: 2, vsync: this);
+    _loadRedemptions();
   }
 
   @override
@@ -34,17 +34,17 @@ class _BookingsPageState extends State<BookingsPage>
     super.dispose();
   }
 
-  Future<void> _loadBookings() async {
+  Future<void> _loadRedemptions() async {
     if (!mounted) return;
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final bookings = await _restaurantService.getUserBookings();
+      final redemptions = await _restaurantService.getUserDealRedemptions();
       if (mounted) {
         setState(() {
-          _bookings = bookings;
+          _redemptions = redemptions;
           _isLoading = false;
         });
       }
@@ -55,29 +55,24 @@ class _BookingsPageState extends State<BookingsPage>
         });
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Failed to load bookings: $e')));
+        ).showSnackBar(SnackBar(content: Text('Failed to load history: $e')));
       }
     }
   }
 
-  List<interaction.Booking> _getBookingsByTab(int index) {
+  List<DealRedemption> _getRedemptionsByTab(int index) {
+    // Sort by date descending
+    final sortedList = List<DealRedemption>.from(_redemptions)
+      ..sort((a, b) => b.usedAt.compareTo(a.usedAt));
+
     switch (index) {
-      case 0: // Upcoming (Pending & Confirmed)
-        return _bookings
-            .where(
-              (b) =>
-                  b.status == interaction.BookingStatus.pending ||
-                  b.status == interaction.BookingStatus.confirmed,
-            )
-            .toList();
-      case 1: // Completed
-        return _bookings
-            .where((b) => b.status == interaction.BookingStatus.completed)
-            .toList();
-      case 2: // Cancelled
-        return _bookings
-            .where((b) => b.status == interaction.BookingStatus.cancelled)
-            .toList();
+      case 0: // Active (Not redeemed/Complete if logical)
+        // Assuming "Active" means not yet confirmed by restaurant or redeemed
+        // But the user just wants to see the list.
+        // Let's filter by: restaurant_confirmed == false -> Active?
+        return sortedList.where((r) => !r.restaurantConfirmed).toList();
+      case 1: // History (Redeemed/Confirmed)
+        return sortedList.where((r) => r.restaurantConfirmed).toList();
       default:
         return [];
     }
@@ -89,7 +84,7 @@ class _BookingsPageState extends State<BookingsPage>
       backgroundColor: NeoTasteColors.white,
       appBar: AppBar(
         title: Text(
-          'My Bookings',
+          'My Coupons & Offers',
           style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         backgroundColor: NeoTasteColors.white,
@@ -105,9 +100,8 @@ class _BookingsPageState extends State<BookingsPage>
             fontWeight: FontWeight.bold,
           ),
           tabs: const [
-            Tab(text: 'Upcoming'),
+            Tab(text: 'Active'),
             Tab(text: 'History'),
-            Tab(text: 'Cancelled'),
           ],
         ),
       ),
@@ -116,20 +110,15 @@ class _BookingsPageState extends State<BookingsPage>
           : TabBarView(
               controller: _tabController,
               children: [
-                _BookingList(
-                  bookings: _getBookingsByTab(0),
-                  onRefresh: _loadBookings,
-                  emptyMessage: 'No upcoming bookings',
+                _RedemptionList(
+                  redemptions: _getRedemptionsByTab(0),
+                  onRefresh: _loadRedemptions,
+                  emptyMessage: 'No active coupons',
                 ),
-                _BookingList(
-                  bookings: _getBookingsByTab(1),
-                  onRefresh: _loadBookings,
-                  emptyMessage: 'No past bookings',
-                ),
-                _BookingList(
-                  bookings: _getBookingsByTab(2),
-                  onRefresh: _loadBookings,
-                  emptyMessage: 'No cancelled bookings',
+                _RedemptionList(
+                  redemptions: _getRedemptionsByTab(1),
+                  onRefresh: _loadRedemptions,
+                  emptyMessage: 'No history',
                 ),
               ],
             ),
@@ -137,20 +126,20 @@ class _BookingsPageState extends State<BookingsPage>
   }
 }
 
-class _BookingList extends StatelessWidget {
-  final List<interaction.Booking> bookings;
+class _RedemptionList extends StatelessWidget {
+  final List<DealRedemption> redemptions;
   final Future<void> Function() onRefresh;
   final String emptyMessage;
 
-  const _BookingList({
-    required this.bookings,
+  const _RedemptionList({
+    required this.redemptions,
     required this.onRefresh,
     required this.emptyMessage,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (bookings.isEmpty) {
+    if (redemptions.isEmpty) {
       return RefreshIndicator(
         onRefresh: onRefresh,
         child: SingleChildScrollView(
@@ -162,7 +151,7 @@ class _BookingList extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Icons.calendar_today_outlined,
+                    Icons.local_offer_outlined,
                     size: 64,
                     color: NeoTasteColors.textDisabled,
                   ),
@@ -185,19 +174,19 @@ class _BookingList extends StatelessWidget {
       onRefresh: onRefresh,
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: bookings.length,
+        itemCount: redemptions.length,
         itemBuilder: (context, index) {
-          return _BookingCard(booking: bookings[index]);
+          return _RedemptionCard(redemption: redemptions[index]);
         },
       ),
     );
   }
 }
 
-class _BookingCard extends StatelessWidget {
-  final interaction.Booking booking;
+class _RedemptionCard extends StatelessWidget {
+  final DealRedemption redemption;
 
-  const _BookingCard({required this.booking});
+  const _RedemptionCard({required this.redemption});
 
   @override
   Widget build(BuildContext context) {
@@ -216,7 +205,7 @@ class _BookingCard extends StatelessWidget {
         ],
       ),
       child: InkWell(
-        onTap: () => _showBookingDetails(context, booking.id),
+        onTap: () => _showRedemptionDetails(context, redemption),
         borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -227,19 +216,36 @@ class _BookingCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: Text(
-                      booking.restaurantName,
-                      style: GoogleFonts.inter(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: NeoTasteColors.textPrimary,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          redemption.deal.restaurantName,
+                          style: GoogleFonts.inter(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: NeoTasteColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          redemption.deal.title,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: NeoTasteColors.textSecondary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
                   ),
-                  _StatusBadge(status: booking.status),
+                  _StatusBadge(isConfirmed: redemption.restaurantConfirmed),
                 ],
               ),
               const SizedBox(height: 12),
+              const Divider(),
+              const SizedBox(height: 8),
               Row(
                 children: [
                   Icon(
@@ -249,59 +255,34 @@ class _BookingCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    DateFormat('EEEE, MMM d, yyyy').format(booking.bookingDate),
+                    'Used: ${DateFormat('MMM d, yyyy HH:mm').format(redemption.usedAt)}',
                     style: GoogleFonts.inter(
                       color: NeoTasteColors.textSecondary,
-                      fontSize: 14,
+                      fontSize: 13,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(
-                    Icons.access_time,
-                    size: 16,
-                    color: NeoTasteColors.textSecondary,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    DateFormat('HH:mm').format(booking.bookingDate),
-                    style: GoogleFonts.inter(
+              if (redemption.redemptionCode != null) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.qr_code,
+                      size: 16,
                       color: NeoTasteColors.textSecondary,
-                      fontSize: 14,
                     ),
-                  ),
-                  const SizedBox(width: 24),
-                  Icon(
-                    Icons.people_outline,
-                    size: 16,
-                    color: NeoTasteColors.textSecondary,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${booking.numberOfGuests} Guests',
-                    style: GoogleFonts.inter(
-                      color: NeoTasteColors.textSecondary,
-                      fontSize: 14,
+                    const SizedBox(width: 8),
+                    Text(
+                      'Code: ${redemption.redemptionCode}',
+                      style: GoogleFonts.inter(
+                        color: NeoTasteColors.textPrimary,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              if (booking.specialRequests.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                const Divider(),
-                const SizedBox(height: 4),
-                Text(
-                  'Note: ${booking.specialRequests}',
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    fontStyle: FontStyle.italic,
-                    color: NeoTasteColors.textSecondary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  ],
                 ),
               ],
             ],
@@ -311,53 +292,19 @@ class _BookingCard extends StatelessWidget {
     );
   }
 
-  void _showBookingDetails(BuildContext context, int bookingId) {
+  void _showRedemptionDetails(BuildContext context, DealRedemption redemption) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _BookingDetailModal(bookingId: bookingId),
+      builder: (context) => _RedemptionDetailModal(redemption: redemption),
     );
   }
 }
 
-class _BookingDetailModal extends StatefulWidget {
-  final int bookingId;
-  const _BookingDetailModal({required this.bookingId});
-
-  @override
-  State<_BookingDetailModal> createState() => _BookingDetailModalState();
-}
-
-class _BookingDetailModalState extends State<_BookingDetailModal> {
-  final RestaurantService _service = RestaurantService();
-  interaction.Booking? _booking;
-  bool _isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchDetail();
-  }
-
-  Future<void> _fetchDetail() async {
-    try {
-      final detail = await _service.getBookingDetail(widget.bookingId);
-      if (mounted) {
-        setState(() {
-          _booking = detail;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
-    }
-  }
+class _RedemptionDetailModal extends StatelessWidget {
+  final DealRedemption redemption;
+  const _RedemptionDetailModal({required this.redemption});
 
   @override
   Widget build(BuildContext context) {
@@ -372,135 +319,175 @@ class _BookingDetailModalState extends State<_BookingDetailModal> {
       child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: _isLoading
-              ? const SizedBox(
-                  height: 200,
-                  child: Center(
-                    child: CircularProgressIndicator(color: Colors.green),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 12),
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: NeoTasteColors.textDisabled,
+                    borderRadius: BorderRadius.circular(2),
                   ),
-                )
-              : Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 12),
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: NeoTasteColors.textDisabled,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Flexible(
-                      child: SingleChildScrollView(
+                ),
+              ),
+              const SizedBox(height: 24),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Center(
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    _booking!.restaurantName,
-                                    style: GoogleFonts.inter(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                _StatusBadge(status: _booking!.status),
-                              ],
-                            ),
-                            const SizedBox(height: 32),
-                            _DetailRow(
-                              icon: Icons.calendar_today,
-                              label: 'Date',
-                              value: DateFormat(
-                                'EEEE, MMM d, yyyy',
-                              ).format(_booking!.bookingDate),
-                            ),
-                            const SizedBox(height: 16),
-                            _DetailRow(
-                              icon: Icons.access_time,
-                              label: 'Time',
-                              value: DateFormat(
-                                'HH:mm',
-                              ).format(_booking!.bookingDate),
-                            ),
-                            const SizedBox(height: 16),
-                            _DetailRow(
-                              icon: Icons.people_outline,
-                              label: 'Number of Guests',
-                              value: '${_booking!.numberOfGuests} People',
-                            ),
-                            if (_booking!.specialRequests.isNotEmpty) ...[
-                              const SizedBox(height: 16),
-                              _DetailRow(
-                                icon: Icons.edit_note,
-                                label: 'Special Requests',
-                                value: _booking!.specialRequests,
+                            Text(
+                              redemption.deal.restaurantName,
+                              style: GoogleFonts.inter(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
                               ),
-                            ],
-                            const SizedBox(height: 32),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 8),
+                            _StatusBadge(
+                              isConfirmed: redemption.restaurantConfirmed,
+                            ),
                           ],
                         ),
                       ),
-                    ),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => RestaurantDetailsPage(
-                                slug: _booking!.restaurantSlug,
+                      const SizedBox(height: 32),
+
+                      // QR Code Logic
+                      if (redemption.qrCodeUrl != null &&
+                          redemption.qrCodeUrl!.isNotEmpty) ...[
+                        Center(
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: NeoTasteColors.textDisabled.withOpacity(
+                                  0.2,
+                                ),
                               ),
                             ),
-                          );
-                        },
-                        child: const Text('View Restaurant'),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    if (_booking!.canCancel) ...[
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            try {
-                              await _service.cancelBooking(_booking!.id);
-                              if (mounted) {
-                                Navigator.pop(context);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Booking cancelled'),
-                                  ),
-                                );
-                              }
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Failed to cancel: $e')),
-                              );
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            foregroundColor: Colors.white,
+                            child: Image.network(
+                              // Handle localhost replacement if strictly needed,
+                              // but ideally backend sends accessible URLs
+                              redemption.qrCodeUrl!
+                                  .replaceAll(
+                                    'localhost',
+                                    '10.0.2.2',
+                                  ) // Android emulator fix just in case
+                                  .replaceAll('127.0.0.1', '10.0.2.2'),
+                              width: 200,
+                              height: 200,
+                              fit: BoxFit.contain,
+                              errorBuilder: (_, __, ___) => const Icon(
+                                Icons.broken_image,
+                                size: 64,
+                                color: Colors.grey,
+                              ),
+                            ),
                           ),
-                          child: const Text('Cancel Booking'),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
+                      if (redemption.redemptionCode != null) ...[
+                        Center(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF5F5F5),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              redemption.redemptionCode!,
+                              style: GoogleFonts.inter(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 4,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                      ],
+
+                      _DetailRow(
+                        icon: Icons.local_offer,
+                        label: 'Offer',
+                        value: redemption.deal.title, // or displayText logic
+                      ),
+                      const SizedBox(height: 16),
+                      // Deal Details
+                      if (redemption.deal.discountPercentage != null)
+                        _DetailRow(
+                          icon: Icons.percent,
+                          label: 'Discount',
+                          value:
+                              '${redemption.deal.discountPercentage!.toStringAsFixed(0)}% OFF',
+                        ),
+                      if (redemption.deal.discountAmount != null)
+                        _DetailRow(
+                          icon: Icons.attach_money,
+                          label: 'Fixed Discount',
+                          value: '£${redemption.deal.discountAmount}',
+                        ),
+
+                      const SizedBox(height: 16),
+                      _DetailRow(
+                        icon: Icons.calendar_today,
+                        label: 'Used On',
+                        value: DateFormat(
+                          'EEEE, MMM d, yyyy HH:mm',
+                        ).format(redemption.usedAt),
+                      ),
+
+                      if (redemption.notes != null &&
+                          redemption.notes!.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        _DetailRow(
+                          icon: Icons.note,
+                          label: 'Notes',
+                          value: redemption.notes!,
+                        ),
+                      ],
+
+                      const SizedBox(height: 32),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => RestaurantDetailsPage(
+                          slug: redemption.deal.restaurantSlug,
                         ),
                       ),
-                    ],
-                    const SizedBox(height: 24),
-                  ],
+                    );
+                  },
+                  child: const Text('View Restaurant'),
                 ),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
         ),
       ),
     );
@@ -553,34 +540,17 @@ class _DetailRow extends StatelessWidget {
 }
 
 class _StatusBadge extends StatelessWidget {
-  final interaction.BookingStatus status;
+  final bool isConfirmed;
 
-  const _StatusBadge({required this.status});
+  const _StatusBadge({required this.isConfirmed});
 
   @override
   Widget build(BuildContext context) {
-    Color color;
-    String text;
+    // If restaurant_confirmed is true -> Confirmed (Green)
+    // If false -> Pending/Active (Orange)
 
-    switch (status) {
-      case interaction.BookingStatus.confirmed:
-        color = Colors.green;
-        text = 'Confirmed';
-        break;
-      case interaction.BookingStatus.cancelled:
-        color = Colors.red;
-        text = 'Cancelled';
-        break;
-      case interaction.BookingStatus.completed:
-        color = NeoTasteColors.textSecondary;
-        text = 'Completed';
-        break;
-      case interaction.BookingStatus.pending:
-      default:
-        color = Colors.orange;
-        text = 'Pending';
-        break;
-    }
+    final color = isConfirmed ? Colors.green : Colors.orange;
+    final text = isConfirmed ? 'Confirmed' : 'Active';
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

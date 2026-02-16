@@ -129,6 +129,43 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     }
   }
 
+  // Show add review dialog
+  void _showAddReviewDialog() {
+    if (_restaurantDetail == null) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => _AddReviewDialog(
+        restaurantId: int.tryParse(_restaurantDetail!.restaurant.id) ?? 0,
+        onSubmit: (rating, comment) async {
+          try {
+            await _restaurantService.addReview(
+              restaurantId: int.tryParse(_restaurantDetail!.restaurant.id) ?? 0,
+              rating: rating,
+              comment: comment,
+            );
+            // Reload restaurant to show new review
+            if (mounted) {
+              Navigator.pop(context); // Close dialog first
+              _loadRestaurant();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Review added successfully!')),
+              );
+            }
+          } catch (e) {
+            if (mounted) {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(e.toString())));
+            }
+            // Rethrow to let dialog know
+            throw e;
+          }
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -513,46 +550,67 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Ratings & reviews',
-                    style: GoogleFonts.inter(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: NeoTasteColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Overall Rating
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        restaurant.rating.toStringAsFixed(1),
+                        'Ratings & reviews',
                         style: GoogleFonts.inter(
-                          fontSize: 32,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: NeoTasteColors.textPrimary,
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      // Stars
-                      Row(
-                        children: List.generate(5, (index) {
-                          final rating = restaurant.rating;
-                          final filled = index < rating.floor();
-                          final halfFilled =
-                              index == rating.floor() && rating % 1 >= 0.5;
-                          return Icon(
-                            halfFilled
-                                ? Icons.star_half
-                                : filled
-                                ? Icons.star
-                                : Icons.star_border,
-                            color: Colors.green,
-                            size: 24,
-                          );
-                        }),
+                      TextButton.icon(
+                        onPressed: _showAddReviewDialog,
+                        icon: const Icon(Icons.edit, size: 16),
+                        label: const Text('Write a review'),
+                        style: TextButton.styleFrom(
+                          foregroundColor: NeoTasteColors.primary,
+                        ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Overall Rating
+                  InkWell(
+                    onTap: _showAddReviewDialog,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            restaurant.rating.toStringAsFixed(1),
+                            style: GoogleFonts.inter(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: NeoTasteColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          // Stars
+                          Row(
+                            children: List.generate(5, (index) {
+                              final rating = restaurant.rating;
+                              final filled = index < rating.floor();
+                              final halfFilled =
+                                  index == rating.floor() && rating % 1 >= 0.5;
+                              return Icon(
+                                halfFilled
+                                    ? Icons.star_half
+                                    : filled
+                                    ? Icons.star
+                                    : Icons.star_border,
+                                color: Colors.green,
+                                size: 24,
+                              );
+                            }),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -1442,6 +1500,138 @@ class _OpeningHoursSection extends StatelessWidget {
               );
             },
           ),
+        ),
+      ],
+    );
+  }
+}
+
+class _AddReviewDialog extends StatefulWidget {
+  final int restaurantId;
+  final Function(int rating, String comment) onSubmit;
+
+  const _AddReviewDialog({required this.restaurantId, required this.onSubmit});
+
+  @override
+  State<_AddReviewDialog> createState() => _AddReviewDialogState();
+}
+
+class _AddReviewDialogState extends State<_AddReviewDialog> {
+  int _rating = 5;
+  final TextEditingController _commentController = TextEditingController();
+  bool _isSubmitting = false;
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleSubmit() async {
+    if (_commentController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please enter a comment')));
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      await widget.onSubmit(_rating, _commentController.text);
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(
+        'Write a Review',
+        style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+      ),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(5, (index) {
+                  return IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _rating = index + 1;
+                      });
+                    },
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    icon: Icon(
+                      index < _rating ? Icons.star : Icons.star_border,
+                      color: Colors.amber,
+                      size: 32,
+                    ),
+                  );
+                }),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Your Comment',
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _commentController,
+              decoration: InputDecoration(
+                hintText: 'Share your experience...',
+                hintStyle: GoogleFonts.inter(color: Colors.grey),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                contentPadding: const EdgeInsets.all(12),
+              ),
+              maxLines: 4,
+              textCapitalization: TextCapitalization.sentences,
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isSubmitting ? null : () => Navigator.pop(context),
+          child: Text('Cancel', style: GoogleFonts.inter(color: Colors.grey)),
+        ),
+        ElevatedButton(
+          onPressed: _isSubmitting ? null : _handleSubmit,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: NeoTasteColors.primary,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          child: _isSubmitting
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : Text('Submit', style: GoogleFonts.inter()),
         ),
       ],
     );

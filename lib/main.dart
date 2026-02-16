@@ -16,7 +16,11 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 // Background message handler - must be top-level function
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    print('Error initializing Firebase in background handler: $e');
+  }
   print('Handling background message: ${message.messageId}');
   // You can process the notification here if needed
 }
@@ -25,10 +29,21 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Firebase
-  await Firebase.initializeApp();
+  try {
+    debugPrint('Initializing Firebase...');
+    await Firebase.initializeApp();
+    debugPrint('Firebase initialized successfully');
+  } catch (e) {
+    debugPrint('❌ Firebase initialization failed: $e');
+    debugPrint(
+      'Please ensure you have added google-services.json (Android) or GoogleService-Info.plist (iOS)',
+    );
+  }
 
   // Set up background message handler
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  if (Firebase.apps.isNotEmpty) {
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  }
 
   // Lock app to portrait orientation
   await SystemChrome.setPreferredOrientations([
@@ -39,9 +54,19 @@ void main() async {
   // Initialize auth service to load stored tokens
   await AuthService().initializeAuth();
 
-  // Initialize Firebase Messaging Service (which uses NotificationService)
-  final firebaseService = FirebaseMessagingService();
-  await firebaseService.initialize();
+  // Initialize Firebase Messaging Service if Firebase is initialized
+  if (Firebase.apps.isNotEmpty) {
+    try {
+      final firebaseService = FirebaseMessagingService();
+      await firebaseService.initialize();
+    } catch (e) {
+      debugPrint('❌ Error initializing Firebase Messaging: $e');
+    }
+  } else {
+    debugPrint(
+      '⚠️ Skipping Firebase Messaging initialization as Firebase is not initialized',
+    );
+  }
 
   MapboxOptions.setAccessToken(Environment.mapboxAccessToken);
   runApp(const DiscountBuddyApp());

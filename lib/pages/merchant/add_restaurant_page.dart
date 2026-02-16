@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../providers/theme_provider.dart';
 import '../../widgets/auth/auth_text_field.dart';
 import '../../services/merchant_service.dart';
+import 'merchant_menu_page.dart';
 
 /// Add/Edit Restaurant Page for Merchants
 class AddRestaurantPage extends StatefulWidget {
@@ -172,7 +173,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                                     fontWeight: FontWeight.w500,
                                     color: NeoTasteColors.textPrimary,
                                   ),
-                                ),              
+                                ),
                                 onTap: () {
                                   setState(() {
                                     _cityController.text = cityName;
@@ -407,6 +408,25 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
         elevation: 0,
         actions: widget.restaurant != null
             ? [
+                IconButton(
+                  icon: const Icon(Icons.menu_book),
+                  tooltip: 'Manage Menu',
+                  onPressed: () {
+                    final restaurantId = widget.restaurant!['id'];
+                    final id = restaurantId is int
+                        ? restaurantId
+                        : int.parse(restaurantId.toString());
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MerchantMenuPage(
+                          restaurantId: id,
+                          restaurantName: widget.restaurant!['name'],
+                        ),
+                      ),
+                    );
+                  },
+                ),
                 IconButton(
                   icon: const Icon(Icons.delete),
                   onPressed: () async {

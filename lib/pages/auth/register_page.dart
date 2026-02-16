@@ -96,6 +96,7 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void _authListener() {
+    if (!mounted) return;
     if (_authProvider?.isAuthenticated ?? false) {
       Navigator.of(context).pushReplacementNamed('/home');
     } else if ((_authProvider?.isLoading ?? false) != _isLoading) {

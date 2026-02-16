@@ -341,6 +341,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildHeader() {
+    final double topPadding = MediaQuery.of(context).padding.top;
+    final double headerHeight = 176 + topPadding;
+
     return SliverAppBar(
       pinned: false,
       floating: false,
@@ -349,7 +352,7 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: bg,
       automaticallyImplyLeading: false,
       toolbarHeight: 70,
-      expandedHeight: 190,
+      expandedHeight: headerHeight,
 
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
@@ -367,7 +370,7 @@ class _HomePageState extends State<HomePage> {
           child: SafeArea(
             bottom: false,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -607,7 +610,7 @@ class _HomePageState extends State<HomePage> {
 
                   const SizedBox(height: 12),
                   SizedBox(
-                    height: 44,
+                    height: 42,
                     child: ListView(
                       scrollDirection: Axis.horizontal,
                       children: [
@@ -641,7 +644,7 @@ class _HomePageState extends State<HomePage> {
   Widget _buildBanners() {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.only(top: 14),
+        padding: const EdgeInsets.only(top: 6),
         child: SizedBox(
           height: 150,
           child: PageView(
@@ -878,30 +881,36 @@ class _FilterChipX extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(right: 10),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(22),
-          color: active ? null : Colors.white,
-          gradient: active ? const LinearGradient(colors: buddyGradient) : null,
-          border: Border.all(color: Colors.black.withOpacity(0.06)),
-          boxShadow: active
-              ? [
-                  BoxShadow(
-                    color: buddyGradient.first.withOpacity(0.22),
-                    blurRadius: 18,
-                    offset: const Offset(0, 10),
-                  ),
-                ]
-              : null,
-        ),
-        child: Text(
-          text,
-          style: GoogleFonts.inter(
-            fontSize: 12,
-            fontWeight: FontWeight.w800,
-            color: active ? Colors.white : const Color(0xFF111827),
+      child: Center(
+        child: Container(
+          height: 36,
+          margin: const EdgeInsets.only(right: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(22),
+            color: active ? null : Colors.white,
+            gradient: active
+                ? const LinearGradient(colors: buddyGradient)
+                : null,
+            border: Border.all(color: Colors.black.withOpacity(0.06)),
+            boxShadow: active
+                ? [
+                    BoxShadow(
+                      color: buddyGradient.first.withOpacity(0.22),
+                      blurRadius: 18,
+                      offset: const Offset(0, 10),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Text(
+            text,
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: active ? Colors.white : const Color(0xFF111827),
+            ),
           ),
         ),
       ),

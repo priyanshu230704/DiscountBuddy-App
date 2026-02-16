@@ -205,12 +205,47 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
     });
 
     try {
+      // Fetch all restaurants for this merchant
+      // Passing cityId here in case the API supports it, but we'll also filter client-side for robustness
       final restaurants = await _merchantService.getMerchantRestaurants(
         cityId: _selectedCityId,
       );
+
       if (mounted) {
         setState(() {
-          _restaurants = restaurants;
+          // Store the results
+          List<Map<String, dynamic>> processedRestaurants = List.from(
+            restaurants,
+          );
+
+          // 1. Filter by selected city (client-side matching)
+          if (_selectedCityId != null) {
+            processedRestaurants = processedRestaurants.where((r) {
+              final city = r['city'];
+              if (city is Map) {
+                // Support both int and String IDs if necessary, though screenshot shows int
+                final cityId = city['id'];
+                return cityId.toString() == _selectedCityId.toString();
+              }
+              return false;
+            }).toList();
+          }
+
+          // 2. Sort the restaurants (by city name then by restaurant name)
+          processedRestaurants.sort((a, b) {
+            final cityA = (a['city'] as Map?)?['name'] as String? ?? '';
+            final cityB = (b['city'] as Map?)?['name'] as String? ?? '';
+            int cityCompare = cityA.toLowerCase().compareTo(
+              cityB.toLowerCase(),
+            );
+            if (cityCompare != 0) return cityCompare;
+
+            final nameA = a['name'] as String? ?? '';
+            final nameB = b['name'] as String? ?? '';
+            return nameA.toLowerCase().compareTo(nameB.toLowerCase());
+          });
+
+          _restaurants = processedRestaurants;
           _isLoading = false;
         });
       }
@@ -278,7 +313,7 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
                     key: _cityFieldKey,
                     controller: _cityController,
                     focusNode: _cityFocusNode,
-                    readOnly: true,
+                    readOnly: false,
                     onTap: () {
                       if (!_cityFocusNode.hasFocus) {
                         _cityFocusNode.requestFocus();
@@ -287,7 +322,7 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
                       }
                     },
                     decoration: InputDecoration(
-                      hintText: 'Search City...',
+                      hintText: 'Choose City...',
                       hintStyle: GoogleFonts.inter(
                         color: NeoTasteColors.textDisabled,
                       ),

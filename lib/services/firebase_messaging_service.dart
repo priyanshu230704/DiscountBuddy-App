@@ -10,7 +10,7 @@ class FirebaseMessagingService {
   factory FirebaseMessagingService() => _instance;
   FirebaseMessagingService._internal();
 
-  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+  FirebaseMessaging get _messaging => FirebaseMessaging.instance;
   final NotificationService _notificationService = NotificationService();
   final AuthService _authService = AuthService();
 

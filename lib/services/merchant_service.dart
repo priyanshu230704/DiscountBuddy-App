@@ -418,6 +418,23 @@ class MerchantService {
     }
   }
 
+  /// Redeem a deal using a code
+  Future<Map<String, dynamic>> redeemDeal(String code) async {
+    try {
+      await _ensureAuthenticated();
+      return await _apiService.post(
+        ApiEndpoints.merchantRedeemDeal,
+        body: {'code': code},
+        type: ApiType.merchant,
+      );
+    } catch (e) {
+      if (e is ApiException) {
+        throw Exception('Redemption failed: ${e.message}');
+      }
+      throw Exception('Redemption failed: ${e.toString()}');
+    }
+  }
+
   /// Get reference data - Cities
   Future<List<Map<String, dynamic>>> getCities({
     int? countryId,

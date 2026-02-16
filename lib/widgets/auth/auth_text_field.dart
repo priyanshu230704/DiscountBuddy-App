@@ -18,6 +18,7 @@ class AuthTextField extends StatelessWidget {
   final VoidCallback? onTap;
   final List<TextInputFormatter>? inputFormatters;
   final int? maxLength;
+  final int? maxLines;
   final AutovalidateMode? autovalidateMode;
 
   const AuthTextField({
@@ -35,6 +36,7 @@ class AuthTextField extends StatelessWidget {
     this.onTap,
     this.inputFormatters,
     this.maxLength,
+    this.maxLines = 1,
     this.autovalidateMode = AutovalidateMode.onUserInteraction,
   });
 
@@ -44,6 +46,7 @@ class AuthTextField extends StatelessWidget {
       controller: controller,
       focusNode: focusNode,
       obscureText: obscureText,
+      maxLines: maxLines,
       keyboardType: keyboardType,
       onChanged: onChanged,
       readOnly: readOnly,

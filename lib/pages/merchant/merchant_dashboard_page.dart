@@ -5,6 +5,7 @@ import 'merchant_restaurants_page.dart';
 import 'merchant_deals_page.dart';
 import 'merchant_bookings_page.dart';
 import 'merchant_reviews_page.dart';
+import 'qr_scanner_page.dart';
 import '../../services/merchant_service.dart';
 
 /// Merchant Dashboard Page - Central hub for restaurant owners
@@ -62,88 +63,6 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
         });
       }
     }
-  }
-
-  Future<void> _showRedeemDialog(BuildContext context) async {
-    final codeController = TextEditingController();
-    bool isRedeeming = false;
-
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setDialogState) => AlertDialog(
-          title: const Text('Redeem Deal'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text('Enter the customer\'s deal code to redeem:'),
-              const SizedBox(height: 16),
-              TextField(
-                controller: codeController,
-                decoration: InputDecoration(
-                  hintText: 'e.g. DISCOUNT20',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                textCapitalization: TextCapitalization.characters,
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: isRedeeming
-                  ? null
-                  : () async {
-                      if (codeController.text.isEmpty) return;
-                      setDialogState(() => isRedeeming = true);
-                      try {
-                        final result = await _merchantService.redeemDeal(
-                          codeController.text.trim(),
-                        );
-                        if (mounted) {
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Succesfully redeemed: ${result['deal_title'] ?? 'Deal'}',
-                              ),
-                              backgroundColor: Colors.green,
-                            ),
-                          );
-                        }
-                      } catch (e) {
-                        if (mounted) {
-                          setDialogState(() => isRedeeming = false);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(e.toString()),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        }
-                      }
-                    },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: NeoTasteColors.accent,
-                foregroundColor: NeoTasteColors.primary,
-              ),
-              child: isRedeeming
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Redeem'),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   @override
@@ -245,10 +164,15 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                     ),
                     _DashboardCard(
                       title: 'Redeem',
-                      subtitle: 'Scan/Enter Code',
+                      subtitle: 'Scan QR Code',
                       icon: Icons.qr_code_scanner,
                       color: Colors.red,
-                      onTap: () => _showRedeemDialog(context),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const QRScannerPage(),
+                        ),
+                      ).then((_) => _fetchDashboardData()),
                     ),
                   ]),
                 ),

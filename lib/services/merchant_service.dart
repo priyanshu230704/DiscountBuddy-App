@@ -418,15 +418,35 @@ class MerchantService {
     }
   }
 
-  /// Redeem a deal using a code
-  Future<Map<String, dynamic>> redeemDeal(String code) async {
+  /// Redeem a deal using QR code data
+  /// QR data format: DEALUSE:<deal_use_id>:<redemption_code>
+  Future<Map<String, dynamic>> redeemDealByQR(String qrData) async {
     try {
       await _ensureAuthenticated();
-      return await _apiService.post(
+      final response = await _apiService.post(
         ApiEndpoints.merchantRedeemDeal,
-        body: {'code': code},
+        body: {'qr_data': qrData},
         type: ApiType.merchant,
       );
+      return response;
+    } catch (e) {
+      if (e is ApiException) {
+        throw Exception('Redemption failed: ${e.message}');
+      }
+      throw Exception('Redemption failed: ${e.toString()}');
+    }
+  }
+
+  /// Redeem a deal using manual redemption code
+  Future<Map<String, dynamic>> redeemDealByCode(String redemptionCode) async {
+    try {
+      await _ensureAuthenticated();
+      final response = await _apiService.post(
+        ApiEndpoints.merchantRedeemDeal,
+        body: {'redemption_code': redemptionCode},
+        type: ApiType.merchant,
+      );
+      return response;
     } catch (e) {
       if (e is ApiException) {
         throw Exception('Redemption failed: ${e.message}');

@@ -52,6 +52,10 @@ dependencies:
   # Firebase for push notifications
   firebase_core: ^3.8.1
   firebase_messaging: ^15.1.5
+  
+  # QR Code scanning
+  mobile_scanner: ^5.0.0
+  permission_handler: ^11.0.0
 
 dev_dependencies:
   flutter_test:

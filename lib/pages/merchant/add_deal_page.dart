@@ -218,14 +218,17 @@ class _AddDealPageState extends State<AddDealPage> {
                     ),
                     const SizedBox(height: 16),
                     _buildLabel('Deal Type'),
-                    Row(
-                      children: [
-                        _buildTypeChip('percentage', 'Percentage'),
-                        const SizedBox(width: 8),
-                        _buildTypeChip('fixed', 'Fixed Amount'),
-                        const SizedBox(width: 8),
-                        _buildTypeChip('two_for_one', '2 for 1'),
-                      ],
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _buildTypeChip('percentage', 'Percentage'),
+                          const SizedBox(width: 8),
+                          _buildTypeChip('fixed', 'Fixed Amount'),
+                          const SizedBox(width: 8),
+                          _buildTypeChip('two_for_one', '2 for 1'),
+                        ],
+                      ),
                     ),
                     if (_dealType != 'two_for_one') ...[
                       const SizedBox(height: 16),

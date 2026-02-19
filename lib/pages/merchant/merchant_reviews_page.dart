@@ -48,11 +48,13 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
       backgroundColor: NeoTasteColors.background,
       appBar: AppBar(
         title: Text(
-          'Customer Reviews',
+          'Reviews',
           style: GoogleFonts.inter(fontWeight: FontWeight.bold),
         ),
+        centerTitle: true,
         backgroundColor: NeoTasteColors.white,
         elevation: 0,
+        surfaceTintColor: Colors.transparent,
       ),
       body: _isLoading
           ? _buildLoadingState()
@@ -60,9 +62,12 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
           ? _buildEmptyState()
           : RefreshIndicator(
               onRefresh: _loadReviews,
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
+              color: NeoTasteColors.accent,
+              child: ListView.separated(
+                padding: const EdgeInsets.all(20),
                 itemCount: _reviews.length,
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 16),
                 itemBuilder: (context, index) {
                   final review = _reviews[index];
                   return _ReviewCard(review: review);
@@ -74,13 +79,13 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
 
   Widget _buildLoadingState() {
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       itemCount: 5,
       itemBuilder: (context, index) => Padding(
         padding: const EdgeInsets.only(bottom: 16),
         child: SkeletonLoader(
-          height: 120,
-          borderRadius: BorderRadius.circular(12),
+          height: 140,
+          borderRadius: BorderRadius.circular(20),
         ),
       ),
     );
@@ -91,11 +96,27 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.rate_review, size: 64, color: NeoTasteColors.textDisabled),
+          Icon(
+            Icons.rate_review_rounded,
+            size: 64,
+            color: NeoTasteColors.textDisabled,
+          ),
           const SizedBox(height: 16),
           Text(
             'No reviews yet',
-            style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold),
+            style: GoogleFonts.inter(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: NeoTasteColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Customer feedback will appear here',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: NeoTasteColors.textSecondary,
+            ),
           ),
         ],
       ),
@@ -117,13 +138,16 @@ class _ReviewCard extends StatelessWidget {
     final date = review['created_at'] ?? '';
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: NeoTasteColors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
         ],
       ),
       child: Column(
@@ -132,13 +156,24 @@ class _ReviewCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(user, style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+              Expanded(
+                child: Text(
+                  user,
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: NeoTasteColors.textPrimary,
+                  ),
+                ),
+              ),
               Row(
                 children: List.generate(
                   5,
                   (index) => Icon(
-                    index < rating ? Icons.star : Icons.star_border,
-                    size: 16,
+                    index < rating
+                        ? Icons.star_rounded
+                        : Icons.star_outline_rounded,
+                    size: 18,
                     color: Colors.amber,
                   ),
                 ),
@@ -151,18 +186,24 @@ class _ReviewCard extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 12,
               color: NeoTasteColors.textSecondary,
+              fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            comment,
-            style: GoogleFonts.inter(color: NeoTasteColors.textPrimary),
-          ),
-          const SizedBox(height: 8),
+          if (comment.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              comment,
+              style: GoogleFonts.inter(
+                color: NeoTasteColors.textPrimary,
+                height: 1.5,
+              ),
+            ),
+          ],
+          const SizedBox(height: 12),
           Text(
             date,
             style: GoogleFonts.inter(
-              fontSize: 10,
+              fontSize: 11,
               color: NeoTasteColors.textDisabled,
             ),
           ),

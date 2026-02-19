@@ -116,7 +116,10 @@ class _DiscountBuddyAppState extends State<DiscountBuddyApp> {
           routes: {
             '/onboarding-check': (context) => const OnboardingCheckScreen(),
             '/login': (context) => const LoginPage(),
-            '/home': (context) => MainNavigation(themeProvider: _themeProvider),
+            '/home': (context) => MainNavigation(
+              key: ValueKey(_authProvider.isMerchant),
+              themeProvider: _themeProvider,
+            ),
           },
         );
       },

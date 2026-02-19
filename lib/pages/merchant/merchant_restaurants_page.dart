@@ -20,251 +20,59 @@ class MerchantRestaurantsPage extends StatefulWidget {
 class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
   final MerchantService _merchantService = MerchantService();
   List<Map<String, dynamic>> _restaurants = [];
-  List<Map<String, dynamic>> _cities = [];
-  List<Map<String, dynamic>> _filteredCities = [];
-  int? _selectedCityId;
-  String _selectedCityName = '';
-  final _cityController = TextEditingController();
-  final _cityFocusNode = FocusNode();
-  final LayerLink _cityLayerLink = LayerLink();
-  OverlayEntry? _cityOverlayEntry;
-  final GlobalKey _cityFieldKey = GlobalKey();
+  List<Map<String, dynamic>> _filteredRestaurants = [];
   bool _isLoading = true;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    // Defer data loading to avoid blocking main thread
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadInitialData();
-    });
-    _cityFocusNode.addListener(_onCityFocusChange);
-  }
-
-  void _onCityFocusChange() {
-    if (_cityFocusNode.hasFocus) {
-      _showOverlay();
-    } else {
-      _hideOverlay();
-    }
-  }
-
-  void _showOverlay() {
-    if (_cityOverlayEntry != null) return;
-    _cityOverlayEntry = _createOverlayEntry();
-    Overlay.of(context).insert(_cityOverlayEntry!);
-  }
-
-  void _hideOverlay() {
-    _cityOverlayEntry?.remove();
-    _cityOverlayEntry = null;
-  }
-
-  OverlayEntry _createOverlayEntry() {
-    RenderBox? renderBox =
-        _cityFieldKey.currentContext?.findRenderObject() as RenderBox?;
-    var size = renderBox?.size ?? Size.zero;
-
-    return OverlayEntry(
-      builder: (context) => Stack(
-        children: [
-          Positioned(
-            width: size.width,
-            child: CompositedTransformFollower(
-              link: _cityLayerLink,
-              showWhenUnlinked: false,
-              targetAnchor: Alignment.bottomLeft,
-              followerAnchor: Alignment.topLeft,
-              offset: const Offset(0, 4.0),
-              child: Material(
-                elevation: 8,
-                borderRadius: BorderRadius.circular(12),
-                shadowColor: Colors.black.withOpacity(0.3),
-                child: Container(
-                  constraints: const BoxConstraints(maxHeight: 250),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: NeoTasteColors.textDisabled.withOpacity(0.2),
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (_filteredCities.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.all(20.0),
-                          child: Column(
-                            children: [
-                              Icon(
-                                Icons.search_off,
-                                color: NeoTasteColors.textDisabled,
-                                size: 32,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                _cityController.text.isEmpty
-                                    ? 'Loading cities...'
-                                    : 'No results found for "${_cityController.text}"',
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.inter(
-                                  color: NeoTasteColors.textSecondary,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      else
-                        Flexible(
-                          child: ListView.separated(
-                            padding: EdgeInsets.zero,
-                            shrinkWrap: true,
-                            itemCount: _filteredCities.length,
-                            separatorBuilder: (context, index) => Divider(
-                              height: 1,
-                              color: NeoTasteColors.textDisabled.withOpacity(
-                                0.1,
-                              ),
-                            ),
-                            itemBuilder: (context, index) {
-                              final city = _filteredCities[index];
-                              final cityName =
-                                  city['name'] as String? ?? 'Unknown';
-                              return ListTile(
-                                leading: const Icon(
-                                  Icons.location_city,
-                                  size: 20,
-                                  color: NeoTasteColors.accent,
-                                ),
-                                title: Text(
-                                  cityName,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w500,
-                                    color: NeoTasteColors.textPrimary,
-                                  ),
-                                ),
-                                onTap: () {
-                                  setState(() {
-                                    _cityController.text = cityName;
-                                    _selectedCityId = city['id'] as int;
-                                    _selectedCityName = cityName;
-                                  });
-                                  _cityFocusNode.unfocus();
-                                  _hideOverlay();
-                                  _loadRestaurants();
-                                },
-                              );
-                            },
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    _loadRestaurants();
   }
 
   @override
   void dispose() {
-    _cityController.dispose();
-    _cityFocusNode.removeListener(_onCityFocusChange);
-    _cityFocusNode.dispose();
-    _hideOverlay();
+    _searchController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadInitialData() async {
-    await Future.wait([_loadCities(), _loadRestaurants()]);
-  }
-
-  Future<void> _loadCities() async {
-    try {
-      final cities = await _merchantService.getCities();
-      if (mounted) {
-        setState(() {
-          _cities = cities;
-          _filteredCities = cities;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {});
-      }
-    }
-  }
-
   Future<void> _loadRestaurants() async {
-    if (!mounted) return;
-
-    setState(() {
-      _isLoading = true;
-    });
-
+    setState(() => _isLoading = true);
     try {
-      // Fetch all restaurants for this merchant
-      // Passing cityId here in case the API supports it, but we'll also filter client-side for robustness
-      final restaurants = await _merchantService.getMerchantRestaurants(
-        cityId: _selectedCityId,
-      );
-
+      final restaurants = await _merchantService.getMerchantRestaurants();
       if (mounted) {
         setState(() {
-          // Store the results
-          List<Map<String, dynamic>> processedRestaurants = List.from(
-            restaurants,
-          );
-
-          // 1. Filter by selected city (client-side matching)
-          if (_selectedCityId != null) {
-            processedRestaurants = processedRestaurants.where((r) {
-              final city = r['city'];
-              if (city is Map) {
-                // Support both int and String IDs if necessary, though screenshot shows int
-                final cityId = city['id'];
-                return cityId.toString() == _selectedCityId.toString();
-              }
-              return false;
-            }).toList();
-          }
-
-          // 2. Sort the restaurants (by city name then by restaurant name)
-          processedRestaurants.sort((a, b) {
-            final cityA = (a['city'] as Map?)?['name'] as String? ?? '';
-            final cityB = (b['city'] as Map?)?['name'] as String? ?? '';
-            int cityCompare = cityA.toLowerCase().compareTo(
-              cityB.toLowerCase(),
-            );
-            if (cityCompare != 0) return cityCompare;
-
-            final nameA = a['name'] as String? ?? '';
-            final nameB = b['name'] as String? ?? '';
-            return nameA.toLowerCase().compareTo(nameB.toLowerCase());
-          });
-
-          _restaurants = processedRestaurants;
+          _restaurants = restaurants;
+          _filteredRestaurants = restaurants;
           _isLoading = false;
         });
+        _filterRestaurants(_searchController.text);
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to load restaurants: ${e.toString()}'),
-            backgroundColor: Colors.red,
           ),
         );
       }
     }
+  }
+
+  void _filterRestaurants(String query) {
+    if (query.isEmpty) {
+      setState(() => _filteredRestaurants = _restaurants);
+      return;
+    }
+    setState(() {
+      _filteredRestaurants = _restaurants.where((restaurant) {
+        final name = (restaurant['name'] as String? ?? '').toLowerCase();
+        final city = (restaurant['city'] as Map?)?['name'] as String? ?? '';
+        return name.contains(query.toLowerCase()) ||
+            city.toLowerCase().contains(query.toLowerCase());
+      }).toList();
+    });
   }
 
   @override
@@ -273,16 +81,18 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
       backgroundColor: NeoTasteColors.background,
       appBar: AppBar(
         title: Text(
-          widget.selectMenuMode ? 'Select Restaurant' : 'My Restaurants',
-          style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold),
+          widget.selectMenuMode ? 'Select Restaurant' : 'Restaurants',
+          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
         ),
+        centerTitle: true,
         backgroundColor: NeoTasteColors.white,
         elevation: 0,
+        surfaceTintColor: Colors.transparent,
         actions: widget.selectMenuMode
             ? null
             : [
                 IconButton(
-                  icon: const Icon(Icons.add),
+                  icon: const Icon(Icons.add_rounded),
                   onPressed: () {
                     Navigator.push(
                       context,
@@ -296,257 +106,158 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
       ),
       body: Column(
         children: [
-          // Filter Section
-          Container(
+          Padding(
             padding: const EdgeInsets.all(16),
-            color: NeoTasteColors.white,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Filter by Location',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: NeoTasteColors.textPrimary,
-                  ),
+            child: TextField(
+              controller: _searchController,
+              onChanged: _filterRestaurants,
+              decoration: InputDecoration(
+                hintText: 'Search restaurants...',
+                hintStyle: GoogleFonts.inter(
+                  color: NeoTasteColors.textDisabled,
                 ),
-                const SizedBox(height: 8),
-                CompositedTransformTarget(
-                  link: _cityLayerLink,
-                  child: TextField(
-                    key: _cityFieldKey,
-                    controller: _cityController,
-                    focusNode: _cityFocusNode,
-                    readOnly: false,
-                    onTap: () {
-                      if (!_cityFocusNode.hasFocus) {
-                        _cityFocusNode.requestFocus();
-                      } else {
-                        _showOverlay();
-                      }
-                    },
-                    decoration: InputDecoration(
-                      hintText: 'Choose City...',
-                      hintStyle: GoogleFonts.inter(
-                        color: NeoTasteColors.textDisabled,
-                      ),
-                      prefixIcon: const Icon(
-                        Icons.location_on,
-                        size: 20,
-                        color: NeoTasteColors.accent,
-                      ),
-                      suffixIcon:
-                          _selectedCityId != null ||
-                              _cityController.text.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.clear, size: 20),
-                              onPressed: () {
-                                setState(() {
-                                  _cityController.clear();
-                                  _selectedCityId = null;
-                                  _selectedCityName = '';
-                                  _hideOverlay();
-                                });
-                                _loadRestaurants();
-                              },
-                            )
-                          : null,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                          color: NeoTasteColors.textDisabled.withOpacity(0.3),
-                        ),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                          color: NeoTasteColors.textDisabled.withOpacity(0.3),
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(
-                          color: NeoTasteColors.accent,
-                        ),
-                      ),
-                      filled: true,
-                      fillColor: NeoTasteColors.background,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                    style: GoogleFonts.inter(fontSize: 14),
-                    onChanged: (value) {
-                      setState(() {
-                        if (value.isEmpty) {
-                          _filteredCities = _cities;
-                          if (_selectedCityId != null) {
-                            _selectedCityId = null;
-                            _selectedCityName = '';
-                            _loadRestaurants();
-                          }
-                        } else {
-                          _filteredCities = _cities.where((city) {
-                            final cityName = (city['name'] as String? ?? '')
-                                .toLowerCase();
-                            return cityName.contains(value.toLowerCase());
-                          }).toList();
-
-                          if (_selectedCityName.toLowerCase() !=
-                              value.toLowerCase()) {
-                            _selectedCityId = null;
-                          }
-                        }
-                        _cityOverlayEntry?.markNeedsBuild();
-                      });
-                    },
-                  ),
+                prefixIcon: const Icon(
+                  Icons.search,
+                  color: NeoTasteColors.textSecondary,
                 ),
-              ],
+                filled: true,
+                fillColor: NeoTasteColors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              ),
             ),
           ),
           Expanded(
             child: _isLoading
-                ? ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: 5,
-                    itemBuilder: (context, index) => Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: SkeletonLoader(
-                        height: 120,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                  )
-                : _restaurants.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.restaurant,
-                          size: 64,
-                          color: NeoTasteColors.textDisabled,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No restaurants yet',
-                          style: GoogleFonts.inter(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: NeoTasteColors.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Add your first restaurant to get started',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: NeoTasteColors.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const AddRestaurantPage(),
-                              ),
-                            ).then((_) => _loadRestaurants());
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: NeoTasteColors.accent,
-                            foregroundColor: NeoTasteColors.primary,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 16,
-                            ),
-                          ),
-                          child: Text(
-                            'Add Restaurant',
-                            style: GoogleFonts.inter(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
+                ? _buildLoadingState()
+                : _filteredRestaurants.isEmpty
+                ? _buildEmptyState()
                 : RefreshIndicator(
                     onRefresh: _loadRestaurants,
-                    child: ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _restaurants.length,
+                    color: NeoTasteColors.accent,
+                    child: ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                      itemCount: _filteredRestaurants.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 12),
                       itemBuilder: (context, index) {
-                        final restaurant = _restaurants[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: _RestaurantCard(
-                            restaurant: restaurant,
-                            onTap: () async {
-                              final restaurantId = restaurant['id'];
-                              final id = restaurantId is int
-                                  ? restaurantId
-                                  : int.tryParse(restaurantId.toString());
-
-                              if (id != null) {
-                                if (widget.selectMenuMode) {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => MerchantMenuPage(
-                                        restaurantId: id,
-                                        restaurantName:
-                                            restaurant['name'] ?? 'Restaurant',
-                                      ),
-                                    ),
-                                  );
-                                } else {
-                                  try {
-                                    final fullRestaurant =
-                                        await _merchantService
-                                            .getRestaurantDetails(id);
-                                    if (mounted) {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              AddRestaurantPage(
-                                                restaurant: fullRestaurant,
-                                              ),
-                                        ),
-                                      ).then((refresh) {
-                                        if (refresh == true) {
-                                          _loadRestaurants();
-                                        }
-                                      });
-                                    }
-                                  } catch (e) {
-                                    if (mounted) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            'Failed to load restaurant: ${e.toString()}',
-                                          ),
-                                          backgroundColor: Colors.red,
-                                        ),
-                                      );
-                                    }
-                                  }
-                                }
-                              }
-                            },
-                          ),
+                        final restaurant = _filteredRestaurants[index];
+                        return _RestaurantCard(
+                          restaurant: restaurant,
+                          onTap: () => _handleRestaurantTap(restaurant),
                         );
                       },
                     ),
                   ),
           ),
+        ],
+      ),
+    );
+  }
+
+  void _handleRestaurantTap(Map<String, dynamic> restaurant) async {
+    final restaurantId = restaurant['id'];
+    final id = restaurantId is int
+        ? restaurantId
+        : int.tryParse(restaurantId.toString());
+
+    if (id == null) return;
+
+    if (widget.selectMenuMode) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MerchantMenuPage(
+            restaurantId: id,
+            restaurantName: restaurant['name'] ?? 'Restaurant',
+          ),
+        ),
+      );
+    } else {
+      try {
+        final fullRestaurant = await _merchantService.getRestaurantDetails(id);
+        if (mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  AddRestaurantPage(restaurant: fullRestaurant),
+            ),
+          ).then((refresh) {
+            if (refresh == true) {
+              _loadRestaurants();
+            }
+          });
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to load restaurant: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  Widget _buildLoadingState() {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: 4,
+      itemBuilder: (context, index) => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: SkeletonLoader(
+          height: 100,
+          borderRadius: BorderRadius.circular(16),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.store_mall_directory_rounded,
+            size: 64,
+            color: NeoTasteColors.textDisabled,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'No restaurants found',
+            style: GoogleFonts.inter(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: NeoTasteColors.textPrimary,
+            ),
+          ),
+          if (!widget.selectMenuMode) ...[
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AddRestaurantPage(),
+                  ),
+                ).then((_) => _loadRestaurants());
+              },
+              child: Text(
+                'Add Restaurant',
+                style: GoogleFonts.inter(
+                  color: NeoTasteColors.accent,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -561,75 +272,77 @@ class _RestaurantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: NeoTasteColors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 2),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: NeoTasteColors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: NeoTasteColors.textDisabled.withOpacity(0.1),
             ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    restaurant['name'] as String? ?? 'Unknown',
-                    style: GoogleFonts.inter(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: NeoTasteColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  if (restaurant['categories'] != null &&
-                      (restaurant['categories'] as List).isNotEmpty)
-                    Text(
-                      (restaurant['categories'] as List).first['name']
-                              as String? ??
-                          '',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: NeoTasteColors.textSecondary,
-                      ),
-                    ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.location_on,
-                        size: 14,
-                        color: NeoTasteColors.textSecondary,
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          restaurant['address'] as String? ?? '',
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            color: NeoTasteColors.textSecondary,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: NeoTasteColors.background,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.restaurant_rounded,
+                  color: NeoTasteColors.textSecondary,
+                ),
               ),
-            ),
-            const SizedBox(width: 12),
-            Icon(Icons.chevron_right, color: NeoTasteColors.textDisabled),
-          ],
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      restaurant['name'] as String? ?? 'Unknown',
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: NeoTasteColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on_outlined,
+                          size: 14,
+                          color: NeoTasteColors.textSecondary,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            restaurant['address'] as String? ?? '',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: NeoTasteColors.textSecondary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: NeoTasteColors.textDisabled,
+              ),
+            ],
+          ),
         ),
       ),
     );

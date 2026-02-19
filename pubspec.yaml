@@ -60,6 +60,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_native_splash: ^2.4.6
 
 flutter_icons:
   android: true
@@ -115,3 +116,14 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: "assets/png/db_logo.png"
+  android: true
+  android_gravity: center
+  android_12:
+    image: "assets/png/db_logo.png"
+    icon_background_color: "#FFFFFF"
+  ios: true
+  ios_content_mode: center

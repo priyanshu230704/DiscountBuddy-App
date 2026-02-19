@@ -27,7 +27,6 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
     _authProvider.addListener(_onAuthStateChanged);
-    _authProvider.refreshUser(); // Refresh user data (email, etc.)
     _loadWallet();
     _loadStats();
   }
@@ -54,8 +53,7 @@ class _ProfilePageState extends State<ProfilePage> {
     try {
       await _walletService.getWallet();
       if (mounted) {
-        setState(() {
-        });
+        setState(() {});
       }
     } catch (e) {
       // Silently fail
@@ -186,89 +184,92 @@ class _ProfilePageState extends State<ProfilePage> {
               const SizedBox(height: 24),
 
               // Statistics Cards Row
-              SizedBox(
-                height: 130,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: [
-                    _StatCard(
-                      icon: Icons.favorite,
-                      value: _stats?.favouriteRestaurants.toString() ?? '0',
-                      label: 'Favourites',
-                    ),
-                    const SizedBox(width: 12),
-                    _StatCard(
-                      icon: Icons.account_balance_wallet,
-                      value: '£${_stats?.moneySaved.toStringAsFixed(0) ?? '0'}',
-                      label: 'Saved',
-                    ),
-                    const SizedBox(width: 12),
-                    _StatCard(
-                      icon: Icons.local_offer,
-                      value: _stats?.dealsClaimed.toString() ?? '0',
-                      label: 'Deals',
-                    ),
-                    const SizedBox(width: 12),
-                    _StatCard(
-                      icon: Icons.star,
-                      value: _stats?.userLevel ?? 'Bronze',
-                      label: 'Level',
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Invitation Banner
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2E7D32), // Dark green
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              if (!_authProvider.isMerchant) ...[
+                SizedBox(
+                  height: 130,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     children: [
-                      Text(
-                        'Earn €10 for every friend you invite!',
-                        style: GoogleFonts.inter(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: NeoTasteColors.white,
-                        ),
+                      _StatCard(
+                        icon: Icons.favorite,
+                        value: _stats?.favouriteRestaurants.toString() ?? '0',
+                        label: 'Favourites',
                       ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            // Handle invite friends
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.lightGreen,
-                            foregroundColor: NeoTasteColors.textPrimary,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: Text(
-                            'Invite friends',
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
+                      const SizedBox(width: 12),
+                      _StatCard(
+                        icon: Icons.account_balance_wallet,
+                        value:
+                            '£${_stats?.moneySaved.toStringAsFixed(0) ?? '0'}',
+                        label: 'Saved',
+                      ),
+                      const SizedBox(width: 12),
+                      _StatCard(
+                        icon: Icons.local_offer,
+                        value: _stats?.dealsClaimed.toString() ?? '0',
+                        label: 'Deals',
+                      ),
+                      const SizedBox(width: 12),
+                      _StatCard(
+                        icon: Icons.star,
+                        value: _stats?.userLevel ?? 'Bronze',
+                        label: 'Level',
                       ),
                     ],
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
+                const SizedBox(height: 24),
+
+                // Invitation Banner
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2E7D32), // Dark green
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Earn €10 for every friend you invite!',
+                          style: GoogleFonts.inter(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: NeoTasteColors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              // Handle invite friends
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.lightGreen,
+                              foregroundColor: NeoTasteColors.textPrimary,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              'Invite friends',
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
 
               // Navigation List Items
               Padding(

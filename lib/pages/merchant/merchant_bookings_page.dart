@@ -58,6 +58,7 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
             content: Text(
               'Booking ${status == 'confirmed' ? 'confirmed' : 'rejected'} successfully',
             ),
+            behavior: SnackBarBehavior.floating,
           ),
         );
         _loadBookings();
@@ -77,11 +78,14 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
       backgroundColor: NeoTasteColors.background,
       appBar: AppBar(
         title: Text(
-          'Manage Bookings',
+          'Bookings',
           style: GoogleFonts.inter(fontWeight: FontWeight.bold),
         ),
+        centerTitle: true,
         backgroundColor: NeoTasteColors.white,
         elevation: 0,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
       ),
       body: _isLoading
           ? _buildLoadingState()
@@ -89,9 +93,12 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
           ? _buildEmptyState()
           : RefreshIndicator(
               onRefresh: _loadBookings,
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
+              color: NeoTasteColors.accent,
+              child: ListView.separated(
+                padding: const EdgeInsets.all(20),
                 itemCount: _bookings.length,
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 16),
                 itemBuilder: (context, index) {
                   final booking = _bookings[index];
                   return _BookingCard(
@@ -106,13 +113,13 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
 
   Widget _buildLoadingState() {
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       itemCount: 5,
       itemBuilder: (context, index) => Padding(
         padding: const EdgeInsets.only(bottom: 16),
         child: SkeletonLoader(
-          height: 100,
-          borderRadius: BorderRadius.circular(12),
+          height: 120,
+          borderRadius: BorderRadius.circular(20),
         ),
       ),
     );
@@ -123,11 +130,34 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.event_busy, size: 64, color: NeoTasteColors.textDisabled),
-          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: NeoTasteColors.white,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.calendar_today_rounded,
+              size: 48,
+              color: NeoTasteColors.textDisabled,
+            ),
+          ),
+          const SizedBox(height: 24),
           Text(
-            'No bookings yet',
-            style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold),
+            'No bookings found',
+            style: GoogleFonts.inter(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: NeoTasteColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Your upcoming reservations will appear here',
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: NeoTasteColors.textSecondary,
+            ),
           ),
         ],
       ),
@@ -154,92 +184,166 @@ class _BookingCard extends StatelessWidget {
       date = DateTime.tryParse(dateStr);
     }
 
+    final isPending = status.toLowerCase() == 'pending';
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: NeoTasteColors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
         ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                customer,
-                style: GoogleFonts.inter(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              _StatusBadge(status: status),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '$restaurant • $guests guests',
-            style: GoogleFonts.inter(color: NeoTasteColors.textSecondary),
-          ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Icon(
-                Icons.calendar_today,
-                size: 14,
-                color: NeoTasteColors.textSecondary,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                date != null
-                    ? DateFormat('MMM d, yyyy HH:mm').format(date.toLocal())
-                    : (dateStr ?? ''),
-                style: GoogleFonts.inter(
-                  color: NeoTasteColors.textSecondary,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-
-          if (status.toLowerCase() == 'pending') ...[
-            const Divider(height: 24),
-            Row(
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => onReview(booking['id'], 'cancelled'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      side: const BorderSide(color: Colors.red),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            customer,
+                            style: GoogleFonts.inter(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: NeoTasteColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            restaurant,
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              color: NeoTasteColors.textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    child: const Text('Reject'),
-                  ),
+                    _StatusBadge(status: status),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => onReview(booking['id'], 'confirmed'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    _InfoChip(
+                      icon: Icons.calendar_today_rounded,
+                      label: date != null
+                          ? DateFormat('MMM d, h:mm a').format(date.toLocal())
+                          : 'No date',
                     ),
-                    child: const Text('Confirm'),
-                  ),
+                    const SizedBox(width: 12),
+                    _InfoChip(
+                      icon: Icons.people_outline_rounded,
+                      label: '$guests guests',
+                    ),
+                  ],
                 ),
               ],
             ),
+          ),
+          if (isPending) ...[
+            Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(
+                    color: NeoTasteColors.textDisabled.withOpacity(0.1),
+                  ),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => onReview(booking['id'], 'cancelled'),
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(20),
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        alignment: Alignment.center,
+                        child: Text(
+                          'Decline',
+                          style: GoogleFonts.inter(
+                            color: Colors.red,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    width: 1,
+                    height: 50,
+                    color: NeoTasteColors.textDisabled.withOpacity(0.1),
+                  ),
+                  Expanded(
+                    child: InkWell(
+                      onTap: () => onReview(booking['id'], 'confirmed'),
+                      borderRadius: const BorderRadius.only(
+                        bottomRight: Radius.circular(20),
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        alignment: Alignment.center,
+                        child: Text(
+                          'Confirm Booking',
+                          style: GoogleFonts.inter(
+                            color: Colors.green,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _InfoChip({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: NeoTasteColors.background,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: NeoTasteColors.textSecondary),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              color: NeoTasteColors.textSecondary,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ],
       ),
     );
@@ -253,29 +357,50 @@ class _StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Color color;
+    Color bg;
+    IconData icon;
+    String label;
+
     switch (status.toLowerCase()) {
       case 'confirmed':
-        color = Colors.green;
+        color = const Color(0xFF2E7D32);
+        bg = const Color(0xFFE8F5E9);
+        icon = Icons.check_circle_outline_rounded;
+        label = 'Confirmed';
         break;
       case 'cancelled':
-        color = Colors.red;
+        color = const Color(0xFFC62828);
+        bg = const Color(0xFFFFEBEE);
+        icon = Icons.cancel_outlined;
+        label = 'Cancelled';
         break;
       default:
-        color = Colors.orange;
+        color = const Color(0xFFEF6C00);
+        bg = const Color(0xFFFFF3E0);
+        icon = Icons.hourglass_empty_rounded;
+        label = 'Pending';
     }
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
+        color: bg,
+        borderRadius: BorderRadius.circular(20),
       ),
-      child: Text(
-        status.toUpperCase(),
-        style: GoogleFonts.inter(
-          color: color,
-          fontWeight: FontWeight.bold,
-          fontSize: 10,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              color: color,
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+          ),
+        ],
       ),
     );
   }

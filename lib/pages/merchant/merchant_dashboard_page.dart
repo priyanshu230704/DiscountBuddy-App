@@ -21,7 +21,6 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
   bool _isLoading = true;
   int _totalBookings = 0;
   double _averageRating = 0.0;
-  String? _error;
 
   @override
   void initState() {
@@ -33,7 +32,6 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
     try {
       setState(() {
         _isLoading = true;
-        _error = null;
       });
 
       final bookings = await _merchantService.getMerchantBookings();
@@ -58,7 +56,6 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = e.toString();
           _isLoading = false;
         });
       }
@@ -70,32 +67,36 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
     return Scaffold(
       backgroundColor: NeoTasteColors.background,
       body: SafeArea(
+        bottom: false,
         child: RefreshIndicator(
           onRefresh: _fetchDashboardData,
           color: NeoTasteColors.accent,
           child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
             slivers: [
               // Header
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.all(24.0),
+                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Business Dashboard',
+                        'Dashboard',
                         style: GoogleFonts.inter(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 32,
+                          fontWeight: FontWeight.w800,
                           color: NeoTasteColors.textPrimary,
+                          letterSpacing: -1.0,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Manage your restaurants and track performance',
+                        'Overview of your business performance',
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           color: NeoTasteColors.textSecondary,
+                          height: 1.5,
                         ),
                       ),
                     ],
@@ -103,22 +104,99 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                 ),
               ),
 
-              // Main Actions Grid
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 16,
-                    childAspectRatio: 1.0,
+              // Quick Actions (Scan)
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: _ScanActionCard(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const QRScannerPage(),
+                      ),
+                    ).then((_) => _fetchDashboardData()),
                   ),
-                  delegate: SliverChildListDelegate([
-                    _DashboardCard(
-                      title: 'Restaurants',
-                      subtitle: 'Manage profiles',
-                      icon: Icons.restaurant,
+                ),
+              ),
+
+              const SliverToBoxAdapter(child: SizedBox(height: 24)),
+
+              // Stats Section
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _StatCard(
+                          label: 'Total Bookings',
+                          value: _totalBookings.toString(),
+                          isLoading: _isLoading,
+                          icon: Icons.calendar_today_rounded,
+                          color: Colors.blue,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _StatCard(
+                          label: 'Average Rating',
+                          value: _averageRating.toStringAsFixed(1),
+                          isLoading: _isLoading,
+                          icon: Icons.star_rounded,
+                          color: Colors.orange,
+                          isRating: true,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SliverToBoxAdapter(child: SizedBox(height: 32)),
+
+              // Menu Grid Header
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Text(
+                    'Manage',
+                    style: GoogleFonts.inter(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: NeoTasteColors.textPrimary,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SliverToBoxAdapter(child: SizedBox(height: 16)),
+
+              // Menu Grid
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 100),
+                sliver: SliverGrid.count(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                  childAspectRatio: 1.0,
+                  children: [
+                    _MenuCard(
+                      title: 'Bookings',
+                      subtitle: 'View reservations',
+                      icon: Icons.event_note_rounded,
                       color: Colors.blue,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MerchantBookingsPage(),
+                        ),
+                      ).then((_) => _fetchDashboardData()),
+                    ),
+                    _MenuCard(
+                      title: 'Restaurants',
+                      subtitle: 'Edit details',
+                      icon: Icons.storefront_rounded,
+                      color: Colors.purple,
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -126,11 +204,11 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                         ),
                       ).then((_) => _fetchDashboardData()),
                     ),
-                    _DashboardCard(
-                      title: 'Menu',
-                      subtitle: 'Manage food items',
-                      icon: Icons.menu_book,
-                      color: Colors.teal,
+                    _MenuCard(
+                      title: 'Menu Items',
+                      subtitle: 'Update food',
+                      icon: Icons.restaurant_menu_rounded,
+                      color: Colors.orange,
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -140,11 +218,11 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                         ),
                       ).then((_) => _fetchDashboardData()),
                     ),
-                    _DashboardCard(
+                    _MenuCard(
                       title: 'Active Deals',
-                      subtitle: 'Manage offers',
-                      icon: Icons.local_offer,
-                      color: Colors.orange,
+                      subtitle: 'Promotions',
+                      icon: Icons.local_offer_rounded,
+                      color: Colors.red,
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -152,23 +230,11 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                         ),
                       ).then((_) => _fetchDashboardData()),
                     ),
-                    _DashboardCard(
-                      title: 'Bookings',
-                      subtitle: 'View reservations',
-                      icon: Icons.event_available,
-                      color: Colors.green,
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const MerchantBookingsPage(),
-                        ),
-                      ).then((_) => _fetchDashboardData()),
-                    ),
-                    _DashboardCard(
+                    _MenuCard(
                       title: 'Reviews',
-                      subtitle: 'Customer feedback',
-                      icon: Icons.rate_review,
-                      color: Colors.purple,
+                      subtitle: 'Feedback',
+                      icon: Icons.rate_review_rounded,
+                      color: Colors.teal,
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -176,86 +242,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                         ),
                       ).then((_) => _fetchDashboardData()),
                     ),
-                    _DashboardCard(
-                      title: 'Redeem',
-                      subtitle: 'Scan QR Code',
-                      icon: Icons.qr_code_scanner,
-                      color: Colors.red,
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const QRScannerPage(),
-                        ),
-                      ).then((_) => _fetchDashboardData()),
-                    ),
-                  ]),
-                ),
-              ),
-
-              // Quick Stats Section
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Quick Insights',
-                        style: GoogleFonts.inter(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: NeoTasteColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: NeoTasteColors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: _isLoading
-                            ? const Center(
-                                child: CircularProgressIndicator(
-                                  color: NeoTasteColors.accent,
-                                ),
-                              )
-                            : Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
-                                children: [
-                                  _QuickStat(
-                                    label: 'Bookings',
-                                    value: _totalBookings.toString(),
-                                  ),
-                                  _QuickStat(
-                                    label: 'Avg Rating',
-                                    value:
-                                        '${_averageRating.toStringAsFixed(1)}★',
-                                  ),
-                                ],
-                              ),
-                      ),
-                      if (_error != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 16),
-                          child: Text(
-                            'Error: $_error',
-                            style: const TextStyle(
-                              color: Colors.red,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
+                  ],
                 ),
               ),
             ],
@@ -266,14 +253,175 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
   }
 }
 
-class _DashboardCard extends StatelessWidget {
+class _ScanActionCard extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _ScanActionCard({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: NeoTasteColors.primary,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: NeoTasteColors.primary.withOpacity(0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(24),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(
+                    Icons.qr_code_scanner_rounded,
+                    color: Colors.white,
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Scan Redemption',
+                        style: GoogleFonts.inter(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Process customer codes',
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: Colors.white.withOpacity(0.7),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_rounded,
+                  color: Colors.white.withOpacity(0.5),
+                  size: 24,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool isLoading;
+  final IconData icon;
+  final Color color;
+  final bool isRating;
+
+  const _StatCard({
+    required this.label,
+    required this.value,
+    required this.isLoading,
+    required this.icon,
+    required this.color,
+    this.isRating = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: NeoTasteColors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(height: 16),
+          if (isLoading)
+            SizedBox(
+              height: 28,
+              width: 28,
+              child: CircularProgressIndicator(strokeWidth: 2, color: color),
+            )
+          else
+            Row(
+              children: [
+                Text(
+                  value,
+                  style: GoogleFonts.inter(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: NeoTasteColors.textPrimary,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                if (isRating) ...[
+                  const SizedBox(width: 4),
+                  const Icon(Icons.star_rounded, size: 18, color: Colors.amber),
+                ],
+              ],
+            ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: NeoTasteColors.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MenuCard extends StatelessWidget {
   final String title;
   final String subtitle;
   final IconData icon;
   final Color color;
   final VoidCallback onTap;
 
-  const _DashboardCard({
+  const _MenuCard({
     required this.title,
     required this.subtitle,
     required this.icon,
@@ -283,82 +431,64 @@ class _DashboardCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: NeoTasteColors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+    return Container(
+      decoration: BoxDecoration(
+        color: NeoTasteColors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(24),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.08),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, color: color, size: 28),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: NeoTasteColors.textPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: NeoTasteColors.textSecondary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: color, size: 32),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: GoogleFonts.inter(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: NeoTasteColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                color: NeoTasteColors.textSecondary,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
-    );
-  }
-}
-
-class _QuickStat extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _QuickStat({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: GoogleFonts.inter(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: NeoTasteColors.accent,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            fontSize: 12,
-            color: NeoTasteColors.textSecondary,
-          ),
-        ),
-      ],
     );
   }
 }

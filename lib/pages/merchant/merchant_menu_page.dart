@@ -4,6 +4,8 @@ import '../../providers/theme_provider.dart';
 import '../../services/merchant_service.dart';
 import '../../widgets/skeleton_loader.dart';
 
+import 'merchant_category_items_page.dart';
+
 class MerchantMenuPage extends StatefulWidget {
   final int restaurantId;
   final String restaurantName;
@@ -108,6 +110,92 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
     }
   }
 
+  Future<void> _addDefaultCategory() async {
+    try {
+      await _merchantService.createMenuCategory({
+        'restaurant': widget.restaurantId,
+        'name': 'Classic Burgers',
+        'description': 'Our signature beef and chicken burgers',
+        'order': _categories.length,
+        'is_active': true,
+      });
+      _loadMenu();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Category "Classic Burgers" added successfully'),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to add default category: ${e.toString()}'),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _editCategory(Map<String, dynamic> category) async {
+    final nameController = TextEditingController(text: category['name']);
+    final descriptionController = TextEditingController(
+      text: category['description'],
+    );
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Menu Category'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(labelText: 'Name *'),
+            ),
+            TextField(
+              controller: descriptionController,
+              decoration: const InputDecoration(labelText: 'Description'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              if (nameController.text.isEmpty) return;
+              Navigator.pop(context, true);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true) {
+      try {
+        await _merchantService.updateMenuCategory(category['id'], {
+          'name': nameController.text,
+          'description': descriptionController.text,
+        });
+        _loadMenu();
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to update category: ${e.toString()}'),
+            ),
+          );
+        }
+      }
+    }
+  }
+
   Future<void> _deleteCategory(int id) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -154,7 +242,23 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
         backgroundColor: NeoTasteColors.white,
         elevation: 0,
         actions: [
-          IconButton(icon: const Icon(Icons.add), onPressed: _addCategory),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.add),
+            onSelected: (value) {
+              if (value == 'add') {
+                _addCategory();
+              } else if (value == 'default') {
+                _addDefaultCategory();
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: 'add', child: Text('Add Category')),
+              const PopupMenuItem(
+                value: 'default',
+                child: Text('Quick Add Default'),
+              ),
+            ],
+          ),
         ],
       ),
       body: _isLoading
@@ -170,6 +274,18 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
                   final category = _categories[index];
                   return _CategoryCard(
                     category: category,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MerchantCategoryItemsPage(
+                            categoryId: category['id'],
+                            categoryName: category['name'],
+                          ),
+                        ),
+                      ).then((_) => _loadMenu());
+                    },
+                    onEdit: () => _editCategory(category),
                     onDelete: () => _deleteCategory(category['id']),
                   );
                 },
@@ -219,64 +335,83 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
 
 class _CategoryCard extends StatelessWidget {
   final Map<String, dynamic> category;
+  final VoidCallback onTap;
+  final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _CategoryCard({required this.category, required this.onDelete});
+  const _CategoryCard({
+    required this.category,
+    required this.onTap,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: NeoTasteColors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  category['name'] ?? 'Category',
-                  style: GoogleFonts.inter(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                if (category['description'] != null &&
-                    category['description'].isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      category['description'],
-                      style: GoogleFonts.inter(
-                        color: NeoTasteColors.textSecondary,
-                        fontSize: 12,
-                      ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: NeoTasteColors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    category['name'] ?? 'Category',
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
                     ),
                   ),
-                Text(
-                  '${category['items_count'] ?? 0} items',
-                  style: GoogleFonts.inter(
-                    color: NeoTasteColors.accent,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                  if (category['description'] != null &&
+                      category['description'].isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        category['description'],
+                        style: GoogleFonts.inter(
+                          color: NeoTasteColors.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  Text(
+                    '${category['items_count'] ?? 0} items',
+                    style: GoogleFonts.inter(
+                      color: NeoTasteColors.accent,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
+                ],
+              ),
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.edit, color: Colors.blue),
+                  onPressed: onEdit,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, color: Colors.grey),
+                  onPressed: onDelete,
                 ),
               ],
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline, color: Colors.grey),
-            onPressed: onDelete,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

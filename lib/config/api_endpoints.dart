@@ -50,11 +50,17 @@ class ApiEndpoints {
   static String merchantMenuDetail(int id) =>
       '/restaurants/restaurant/menu/$id';
 
+  static const String merchantMenuItems = '/restaurants/restaurant/menu-items';
+  static String merchantMenuItemDetail(int id) =>
+      '/restaurants/restaurant/menu-items/$id';
+
   static const String merchantOpeningSlots =
       '/restaurants/restaurant/opening-slots';
 
   static const String merchantReviews = '/restaurants/restaurant/reviews';
   static const String merchantBookings = '/restaurants/restaurant/bookings';
+  static String merchantBookingDetail(int id) =>
+      '/restaurants/restaurant/bookings/$id';
   static const String merchantRedeemDeal = '/restaurants/deals/redeem';
 
   // Common/Reference Routes

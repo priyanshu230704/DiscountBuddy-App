@@ -4,10 +4,13 @@ import '../../providers/theme_provider.dart';
 import '../../services/merchant_service.dart';
 import '../../widgets/skeleton_loader.dart';
 import 'add_restaurant_page.dart';
+import 'merchant_menu_page.dart';
 
 /// Merchant Restaurants Management Page
 class MerchantRestaurantsPage extends StatefulWidget {
-  const MerchantRestaurantsPage({super.key});
+  final bool selectMenuMode;
+
+  const MerchantRestaurantsPage({super.key, this.selectMenuMode = false});
 
   @override
   State<MerchantRestaurantsPage> createState() =>
@@ -270,24 +273,26 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
       backgroundColor: NeoTasteColors.background,
       appBar: AppBar(
         title: Text(
-          'My Restaurants',
+          widget.selectMenuMode ? 'Select Restaurant' : 'My Restaurants',
           style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         backgroundColor: NeoTasteColors.white,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AddRestaurantPage(),
+        actions: widget.selectMenuMode
+            ? null
+            : [
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AddRestaurantPage(),
+                      ),
+                    ).then((_) => _loadRestaurants());
+                  },
                 ),
-              ).then((_) => _loadRestaurants());
-            },
-          ),
-        ],
+              ],
       ),
       body: Column(
         children: [
@@ -482,40 +487,56 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
                           child: _RestaurantCard(
                             restaurant: restaurant,
                             onTap: () async {
-                              // Use existing restaurant data or fetch full details
                               final restaurantId = restaurant['id'];
                               final id = restaurantId is int
                                   ? restaurantId
                                   : int.tryParse(restaurantId.toString());
 
                               if (id != null) {
-                                try {
-                                  final fullRestaurant = await _merchantService
-                                      .getRestaurantDetails(id);
-                                  if (mounted) {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => AddRestaurantPage(
-                                          restaurant: fullRestaurant,
-                                        ),
+                                if (widget.selectMenuMode) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => MerchantMenuPage(
+                                        restaurantId: id,
+                                        restaurantName:
+                                            restaurant['name'] ?? 'Restaurant',
                                       ),
-                                    ).then((refresh) {
-                                      if (refresh == true) {
-                                        _loadRestaurants();
-                                      }
-                                    });
-                                  }
-                                } catch (e) {
-                                  if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          'Failed to load restaurant: ${e.toString()}',
+                                    ),
+                                  );
+                                } else {
+                                  try {
+                                    final fullRestaurant =
+                                        await _merchantService
+                                            .getRestaurantDetails(id);
+                                    if (mounted) {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              AddRestaurantPage(
+                                                restaurant: fullRestaurant,
+                                              ),
                                         ),
-                                        backgroundColor: Colors.red,
-                                      ),
-                                    );
+                                      ).then((refresh) {
+                                        if (refresh == true) {
+                                          _loadRestaurants();
+                                        }
+                                      });
+                                    }
+                                  } catch (e) {
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Failed to load restaurant: ${e.toString()}',
+                                          ),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
                                   }
                                 }
                               }

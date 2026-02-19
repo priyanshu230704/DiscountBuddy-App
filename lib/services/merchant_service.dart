@@ -272,6 +272,19 @@ class MerchantService {
     }
   }
 
+  /// Get menu category details
+  Future<Map<String, dynamic>> getMenuCategoryDetails(int id) async {
+    try {
+      await _ensureAuthenticated();
+      return await _apiService.get(
+        ApiEndpoints.merchantMenuDetail(id),
+        type: ApiType.merchant,
+      );
+    } catch (e) {
+      throw Exception('Failed to load menu category: ${e.toString()}');
+    }
+  }
+
   /// Create menu category
   Future<Map<String, dynamic>> createMenuCategory(
     Map<String, dynamic> data,
@@ -302,6 +315,50 @@ class MerchantService {
       );
     } catch (e) {
       throw Exception('Failed to update menu category: ${e.toString()}');
+    }
+  }
+
+  /// Create menu item
+  Future<Map<String, dynamic>> createMenuItem(Map<String, dynamic> data) async {
+    try {
+      await _ensureAuthenticated();
+      return await _apiService.post(
+        ApiEndpoints.merchantMenuItems,
+        body: data,
+        type: ApiType.merchant,
+      );
+    } catch (e) {
+      throw Exception('Failed to create menu item: ${e.toString()}');
+    }
+  }
+
+  /// Update menu item
+  Future<Map<String, dynamic>> updateMenuItem(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
+    try {
+      await _ensureAuthenticated();
+      return await _apiService.patch(
+        ApiEndpoints.merchantMenuItemDetail(id),
+        body: data,
+        type: ApiType.merchant,
+      );
+    } catch (e) {
+      throw Exception('Failed to update menu item: ${e.toString()}');
+    }
+  }
+
+  /// Delete menu item
+  Future<void> deleteMenuItem(int id) async {
+    try {
+      await _ensureAuthenticated();
+      await _apiService.delete(
+        ApiEndpoints.merchantMenuItemDetail(id),
+        type: ApiType.merchant,
+      );
+    } catch (e) {
+      throw Exception('Failed to delete menu item: ${e.toString()}');
     }
   }
 
@@ -415,6 +472,23 @@ class MerchantService {
       return [];
     } catch (e) {
       throw Exception('Failed to load bookings: ${e.toString()}');
+    }
+  }
+
+  /// Review booking (Confirm/Reject)
+  Future<Map<String, dynamic>> reviewBooking(
+    int bookingId,
+    String status,
+  ) async {
+    try {
+      await _ensureAuthenticated();
+      return await _apiService.patch(
+        ApiEndpoints.merchantBookingDetail(bookingId),
+        body: {'status': status},
+        type: ApiType.merchant,
+      );
+    } catch (e) {
+      throw Exception('Failed to update booking: ${e.toString()}');
     }
   }
 

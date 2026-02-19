@@ -13,6 +13,7 @@ import 'package:share_plus/share_plus.dart';
 import '../widgets/generic_bottom_sheet.dart';
 import 'deals/redeem_offer_modal.dart';
 import 'bookings/booking_selection_modal.dart';
+import 'bookings/create_booking_page.dart';
 
 /// Restaurant details page - NeoTaste style
 class RestaurantDetailsPage extends StatefulWidget {
@@ -215,6 +216,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
 
     return Scaffold(
       backgroundColor: NeoTasteColors.white,
+
       body: CustomScrollView(
         cacheExtent:
             500, // Limit off-screen rendering to reduce memory pressure
@@ -846,41 +848,80 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
           ],
         ),
         child: SafeArea(
-          child: ElevatedButton(
-            onPressed: () {
-              if (restaurant.requiresBooking) {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (context) =>
-                      BookingSelectionModal(restaurant: restaurant),
-                );
-              } else {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: Colors.transparent,
-                  builder: (context) =>
-                      RedeemOfferModal(restaurant: restaurant),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              foregroundColor: NeoTasteColors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+          child: Row(
+            children: [
+              // Book Table Button
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CreateBookingPage(
+                          restaurantId: int.parse(restaurant.id),
+                          restaurantName: restaurant.name,
+                        ),
+                      ),
+                    );
+                  },
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    side: const BorderSide(color: NeoTasteColors.primary),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Book Table',
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: NeoTasteColors.primary,
+                    ),
+                  ),
+                ),
               ),
-            ),
-            child: Text(
-              'Redeem Offer',
-              style: GoogleFonts.inter(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+              const SizedBox(width: 12),
+              // Redeem Offer Button
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (restaurant.requiresBooking) {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (context) =>
+                            BookingSelectionModal(restaurant: restaurant),
+                      );
+                    } else {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (context) =>
+                            RedeemOfferModal(restaurant: restaurant),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: NeoTasteColors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Redeem Offer',
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),

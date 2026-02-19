@@ -127,6 +127,20 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                       ).then((_) => _fetchDashboardData()),
                     ),
                     _DashboardCard(
+                      title: 'Menu',
+                      subtitle: 'Manage food items',
+                      icon: Icons.menu_book,
+                      color: Colors.teal,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MerchantRestaurantsPage(
+                            selectMenuMode: true,
+                          ),
+                        ),
+                      ).then((_) => _fetchDashboardData()),
+                    ),
+                    _DashboardCard(
                       title: 'Active Deals',
                       subtitle: 'Manage offers',
                       icon: Icons.local_offer,

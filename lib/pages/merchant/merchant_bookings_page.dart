@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/merchant_service.dart';
 import '../../widgets/skeleton_loader.dart';
@@ -26,6 +27,12 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
     setState(() => _isLoading = true);
     try {
       final bookings = await _merchantService.getMerchantBookings();
+      // Sort by date desc
+      bookings.sort((a, b) {
+        final dateA = DateTime.tryParse(a['booking_date'] ?? '') ?? DateTime(0);
+        final dateB = DateTime.tryParse(b['booking_date'] ?? '') ?? DateTime(0);
+        return dateB.compareTo(dateA);
+      });
       if (mounted) {
         setState(() {
           _bookings = bookings;
@@ -37,6 +44,28 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to load bookings: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
+  Future<void> _reviewBooking(int id, String status) async {
+    try {
+      await _merchantService.reviewBooking(id, status);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Booking ${status == 'confirmed' ? 'confirmed' : 'rejected'} successfully',
+            ),
+          ),
+        );
+        _loadBookings();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update: ${e.toString()}')),
         );
       }
     }
@@ -65,7 +94,10 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
                 itemCount: _bookings.length,
                 itemBuilder: (context, index) {
                   final booking = _bookings[index];
-                  return _BookingCard(booking: booking);
+                  return _BookingCard(
+                    booking: booking,
+                    onReview: _reviewBooking,
+                  );
                 },
               ),
             ),
@@ -105,16 +137,22 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
 
 class _BookingCard extends StatelessWidget {
   final Map<String, dynamic> booking;
+  final Function(int, String) onReview;
 
-  const _BookingCard({required this.booking});
+  const _BookingCard({required this.booking, required this.onReview});
 
   @override
   Widget build(BuildContext context) {
     final restaurant = booking['restaurant_name'] ?? 'Restaurant';
     final customer = booking['contact_name'] ?? 'Guest';
-    final date = booking['booking_date'] ?? '';
+    final dateStr = booking['booking_date'];
     final guests = booking['number_of_guests'] ?? 0;
     final status = booking['status'] ?? 'pending';
+
+    DateTime? date;
+    if (dateStr != null) {
+      date = DateTime.tryParse(dateStr);
+    }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -148,13 +186,60 @@ class _BookingCard extends StatelessWidget {
             style: GoogleFonts.inter(color: NeoTasteColors.textSecondary),
           ),
           const SizedBox(height: 4),
-          Text(
-            date,
-            style: GoogleFonts.inter(
-              color: NeoTasteColors.textSecondary,
-              fontSize: 12,
-            ),
+          Row(
+            children: [
+              Icon(
+                Icons.calendar_today,
+                size: 14,
+                color: NeoTasteColors.textSecondary,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                date != null
+                    ? DateFormat('MMM d, yyyy HH:mm').format(date.toLocal())
+                    : (dateStr ?? ''),
+                style: GoogleFonts.inter(
+                  color: NeoTasteColors.textSecondary,
+                  fontSize: 12,
+                ),
+              ),
+            ],
           ),
+
+          if (status.toLowerCase() == 'pending') ...[
+            const Divider(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => onReview(booking['id'], 'cancelled'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text('Reject'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => onReview(booking['id'], 'confirmed'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text('Confirm'),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );

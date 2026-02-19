@@ -5,6 +5,7 @@ import '../../providers/theme_provider.dart';
 import '../../models/deal_redemption.dart';
 import '../../services/restaurant_service.dart';
 import '../restaurant_details_page.dart';
+import 'user_bookings_page.dart';
 
 /// Bookings/Redemptions Screen - Integrated with deal uses API
 class BookingsPage extends StatefulWidget {
@@ -24,7 +25,7 @@ class _BookingsPageState extends State<BookingsPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _loadRedemptions();
   }
 
@@ -84,7 +85,7 @@ class _BookingsPageState extends State<BookingsPage>
       backgroundColor: NeoTasteColors.white,
       appBar: AppBar(
         title: Text(
-          'My Coupons & Offers',
+          'My Activity',
           style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         backgroundColor: NeoTasteColors.white,
@@ -99,9 +100,11 @@ class _BookingsPageState extends State<BookingsPage>
             fontSize: 14,
             fontWeight: FontWeight.bold,
           ),
+          isScrollable: true,
           tabs: const [
-            Tab(text: 'Active'),
-            Tab(text: 'History'),
+            Tab(text: 'Reservations'),
+            Tab(text: 'Active Coupons'),
+            Tab(text: 'Coupon History'),
           ],
         ),
       ),
@@ -110,6 +113,7 @@ class _BookingsPageState extends State<BookingsPage>
           : TabBarView(
               controller: _tabController,
               children: [
+                const UserBookingsView(),
                 _RedemptionList(
                   redemptions: _getRedemptionsByTab(0),
                   onRefresh: _loadRedemptions,
@@ -173,7 +177,7 @@ class _RedemptionList extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: onRefresh,
       child: ListView.builder(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
         itemCount: redemptions.length,
         itemBuilder: (context, index) {
           return _RedemptionCard(redemption: redemptions[index]);

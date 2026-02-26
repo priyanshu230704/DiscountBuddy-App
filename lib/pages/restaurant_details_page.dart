@@ -14,6 +14,10 @@ import '../widgets/generic_bottom_sheet.dart';
 import 'deals/redeem_offer_modal.dart';
 import 'bookings/booking_selection_modal.dart';
 import 'bookings/create_booking_page.dart';
+import '../models/mystery_visit.dart';
+import '../services/mystery_guest_service.dart';
+import '../providers/auth_provider.dart';
+import 'mystery_guest/mystery_audit_modal.dart';
 
 /// Restaurant details page - NeoTaste style
 class RestaurantDetailsPage extends StatefulWidget {
@@ -27,7 +31,13 @@ class RestaurantDetailsPage extends StatefulWidget {
 
 class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
   final RestaurantService _restaurantService = RestaurantService();
+  final MysteryGuestService _mysteryGuestService = MysteryGuestService();
+  final AuthProvider _authProvider = AuthProvider();
+
   RestaurantDetail? _restaurantDetail;
+  MysteryVisit? _activeVisit;
+  List<MysteryVisit> _allVisits = [];
+  bool _isMysteryGuest = false;
   bool _isLoading = true;
   bool _isFavorite = false;
   String? _errorMessage;
@@ -36,6 +46,19 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
   @override
   void initState() {
     super.initState();
+    // Check multiple sources for mystery_guest role to be safe
+    final roleFromProvider = _authProvider.userRole;
+    final roleFromProfile = _authProvider.user?.profile?.role;
+    final isMysteryFromUser = _authProvider.user?.isMysteryGuest ?? false;
+    _isMysteryGuest =
+        _authProvider.isMysteryGuest ||
+        roleFromProfile == 'mystery_guest' ||
+        isMysteryFromUser;
+    debugPrint('DEBUG RestaurantDetails.initState:');
+    debugPrint('  roleFromProvider="$roleFromProvider"');
+    debugPrint('  roleFromProfile="$roleFromProfile"');
+    debugPrint('  isMysteryFromUser=$isMysteryFromUser');
+    debugPrint('  FINAL _isMysteryGuest=$_isMysteryGuest');
     _loadRestaurant();
   }
 
@@ -59,12 +82,87 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
         _isFavorite = restaurantDetail.restaurant.isFavourite;
         _isLoading = false;
       });
+
+      // Check for mystery visit if user is a mystery guest
+      if (_isMysteryGuest) {
+        debugPrint('DEBUG: User is mystery guest, checking visits...');
+        _checkMysteryVisit();
+      } else {
+        debugPrint(
+          'DEBUG: User is NOT mystery guest (role: ${_authProvider.userRole})',
+        );
+      }
     } catch (e) {
       setState(() {
         _errorMessage = e.toString();
         _isLoading = false;
       });
     }
+  }
+
+  Future<void> _checkMysteryVisit() async {
+    if (_restaurantDetail == null) return;
+    try {
+      final restaurantId = int.tryParse(_restaurantDetail!.restaurant.id) ?? 0;
+      debugPrint(
+        'DEBUG: Fetching mystery visits for restaurant ID: $restaurantId',
+      );
+      final visits = await _mysteryGuestService.getAssignedVisits(
+        restaurantId: restaurantId,
+      );
+
+      debugPrint('DEBUG: Got ${visits.length} mystery visits');
+      for (final v in visits) {
+        debugPrint(
+          'DEBUG: Visit #${v.id} status="${v.status}" restaurantId=${v.restaurantId}',
+        );
+      }
+
+      if (mounted) {
+        setState(() {
+          _allVisits = visits;
+          // Find active visit (assigned or in_progress)
+          final activeVisits = visits
+              .where((v) => v.status == 'assigned' || v.status == 'in_progress')
+              .toList();
+          if (activeVisits.isNotEmpty) {
+            _activeVisit = activeVisits.first;
+            debugPrint(
+              'DEBUG: Active visit found: #${_activeVisit!.id} status="${_activeVisit!.status}"',
+            );
+          } else {
+            debugPrint(
+              'DEBUG: No active visit found. Statuses: ${visits.map((v) => v.status).toList()}',
+            );
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('DEBUG: Error checking mystery visit: $e');
+    }
+  }
+
+  void _showMysteryAuditModal() {
+    if (_activeVisit == null) return;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => MysteryAuditModal(
+        visit: _activeVisit!,
+        onUpdate: (updatedVisit) {
+          setState(() {
+            if (updatedVisit.status == 'submitted' ||
+                updatedVisit.status == 'cancelled') {
+              _activeVisit = null;
+            } else {
+              _activeVisit = updatedVisit;
+            }
+          });
+        },
+      ),
+    );
   }
 
   // Convert km to miles
@@ -295,13 +393,50 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Restaurant Name
-                  Text(
-                    restaurant.name,
-                    style: GoogleFonts.inter(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: NeoTasteColors.textPrimary,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          restaurant.name,
+                          style: GoogleFonts.inter(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: NeoTasteColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                      if (restaurant.leaderboardScore > 0)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.amber.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.amber.shade200),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.leaderboard,
+                                size: 16,
+                                color: Colors.amber,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                restaurant.leaderboardScore.toStringAsFixed(1),
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.amber.shade800,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
                   const SizedBox(height: 12),
                   // Details Rows
@@ -489,6 +624,161 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
               ),
             ),
           ),
+
+          // Mystery Audit Section - only show if assigned for this restaurant
+          if (_isMysteryGuest && _allVisits.isNotEmpty)
+            SliverToBoxAdapter(
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.purple.shade50, Colors.blue.shade50],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.purple.shade100),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.psychology, color: Colors.purple),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _activeVisit != null
+                                ? 'Mystery Audit'
+                                : 'Mystery Guest',
+                            style: GoogleFonts.inter(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.purple.shade900,
+                            ),
+                          ),
+                        ),
+                        if (_activeVisit != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _activeVisit!.status == 'in_progress'
+                                  ? Colors.green.shade100
+                                  : Colors.blue.shade100,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              _activeVisit!.status.toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: _activeVisit!.status == 'in_progress'
+                                    ? Colors.green.shade800
+                                    : Colors.blue.shade800,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Show different content based on visit state
+                    if (_activeVisit != null) ...[
+                      Text(
+                        'Complete your anonymous audit to help improve quality and earn rewards.',
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: Colors.purple.shade700,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _showMysteryAuditModal,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.purple,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text(
+                            _activeVisit!.status == 'assigned'
+                                ? 'Start Audit'
+                                : 'Continue Audit',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ] else if (_allVisits.any(
+                      (v) => v.status == 'submitted',
+                    )) ...[
+                      // Show submitted visit summary
+                      ...(_allVisits
+                          .where((v) => v.status == 'submitted')
+                          .take(1)
+                          .map(
+                            (v) => Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.check_circle,
+                                      color: Colors.green.shade600,
+                                      size: 18,
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'Audit Submitted',
+                                      style: GoogleFonts.inter(
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.green.shade700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                if (v.overallScore != null) ...[
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        'Overall Score: ',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 14,
+                                          color: Colors.purple.shade700,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${v.overallScore!.toStringAsFixed(1)}/100',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.purple.shade900,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ],
+                            ),
+                          )),
+                    ] else ...[
+                      Text(
+                        'No audit is currently assigned for this restaurant. You can view and manage your visits from the dashboard.',
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: Colors.purple.shade700,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
 
           // Offer Card Section
           SliverToBoxAdapter(

@@ -24,7 +24,9 @@ class AuthProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   String get userRole => _userRole;
   bool get isMerchant => _userRole == 'merchant';
-  bool get isCustomer => _userRole == 'customer';
+  bool get isCustomer =>
+      _userRole == 'customer' || _userRole == 'mystery_guest';
+  bool get isMysteryGuest => _userRole == 'mystery_guest';
 
   /// Initialize authentication state
   Future<void> _initializeAuth() async {
@@ -43,19 +45,27 @@ class AuthProvider extends ChangeNotifier {
           _userRole =
               user.profile?.role ?? (user.isMerchant ? 'merchant' : 'customer');
           _isAuthenticated = true;
+          debugPrint(
+            'DEBUG AuthProvider._initializeAuth: user=${user.email}, profile.role=${user.profile?.role}, isMerchant=${user.isMerchant}, FINAL _userRole=$_userRole',
+          );
         } else {
           // Token might be invalid, clear auth
           await _authService.logout();
           _isAuthenticated = false;
           _userRole = 'customer';
+          debugPrint(
+            'DEBUG AuthProvider._initializeAuth: user is null, defaulting to customer',
+          );
         }
       } else {
         _isAuthenticated = false;
         _userRole = 'customer';
+        debugPrint('DEBUG AuthProvider._initializeAuth: not logged in');
       }
     } catch (e) {
       _errorMessage = 'Failed to initialize authentication';
       _isAuthenticated = false;
+      debugPrint('DEBUG AuthProvider._initializeAuth: ERROR: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -154,6 +164,9 @@ class AuthProvider extends ChangeNotifier {
 
       _user = loginResponse.user;
       _userRole = loginResponse.role; // Store role from login response
+      debugPrint(
+        'DEBUG AuthProvider.login: loginResponse.role="${loginResponse.role}", _userRole="$_userRole", isMysteryGuest=$isMysteryGuest',
+      );
       _isAuthenticated = true;
       _isLoading = false;
       notifyListeners();

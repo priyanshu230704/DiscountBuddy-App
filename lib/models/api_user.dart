@@ -30,6 +30,10 @@ class ApiUser {
     );
   }
 
+  bool get isMysteryGuest {
+    return profile?.role == UserProfile.roleMysteryGuest;
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -44,6 +48,11 @@ class ApiUser {
 
 /// User Profile model
 class UserProfile {
+  static const String roleAdmin = 'admin';
+  static const String roleMerchant = 'merchant';
+  static const String roleCustomer = 'customer';
+  static const String roleMysteryGuest = 'mystery_guest';
+
   final String role;
   final String? phoneNumber;
   final bool marketingOptIn;

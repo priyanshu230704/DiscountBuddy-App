@@ -18,6 +18,7 @@ class ApiEndpoints {
   static const String searchRestaurants = '/restaurants/search';
   static const String homeData = '/restaurants/home';
   static const String dealUses = '/restaurants/deal-uses';
+  static const String mysteryVisits = '/restaurants/mystery-visits';
 
   // Dynamic Routes
   static String bookingDetail(int bookingId) =>
@@ -29,6 +30,14 @@ class ApiEndpoints {
       '/restaurants/restaurant-detail/$slug/favourite';
 
   static String claimDeal(int dealId) => '/restaurants/deals/$dealId/use';
+
+  static String mysteryVisitDetail(int id) => '/restaurants/mystery-visits/$id';
+  static String startMysteryVisit(int id) =>
+      '/restaurants/mystery-visits/$id/start';
+  static String submitMysteryVisit(int id) =>
+      '/restaurants/mystery-visits/$id/submit';
+  static String uploadMysteryEvidence(int id) =>
+      '/restaurants/mystery-visits/$id/evidence';
 
   static String restaurantById(String id) => '/restaurants/$id';
 

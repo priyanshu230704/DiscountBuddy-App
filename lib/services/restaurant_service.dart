@@ -215,15 +215,24 @@ class RestaurantService {
       final response = await _apiService.get(
         ApiEndpoints.nearbyRestaurants,
         queryParameters: {
-          'lat': latitude.toString(),
-          'lng': longitude.toString(),
+          'latitude': latitude.toString(),
+          'longitude': longitude.toString(),
           'radius': radius.toString(),
         },
       );
 
-      final List<dynamic> restaurantsJson = response['data'] as List<dynamic>;
+      // The response is a list directly, but ApiService might wrap it in 'data'
+      final List<dynamic> restaurantsJson = response is List
+          ? response as List<dynamic>
+          : ((response as Map<String, dynamic>)['data'] ??
+                    (response as Map<String, dynamic>)['results'] ??
+                    [])
+                as List<dynamic>;
+
       return restaurantsJson
-          .map((json) => Restaurant.fromJson(json as Map<String, dynamic>))
+          .map(
+            (json) => convertApiRestaurantToModel(json as Map<String, dynamic>),
+          )
           .toList();
     } catch (e) {
       // For demo purposes, return mock data
@@ -239,9 +248,18 @@ class RestaurantService {
         queryParameters: {'q': query},
       );
 
-      final List<dynamic> restaurantsJson = response['data'] as List<dynamic>;
+      // The response is a list directly, but ApiService might wrap it in 'data'
+      final List<dynamic> restaurantsJson = response is List
+          ? response as List<dynamic>
+          : ((response as Map<String, dynamic>)['data'] ??
+                    (response as Map<String, dynamic>)['results'] ??
+                    [])
+                as List<dynamic>;
+
       return restaurantsJson
-          .map((json) => Restaurant.fromJson(json as Map<String, dynamic>))
+          .map(
+            (json) => convertApiRestaurantToModel(json as Map<String, dynamic>),
+          )
           .toList();
     } catch (e) {
       // For demo purposes, return mock data
@@ -345,6 +363,7 @@ class RestaurantService {
       discount: discount,
       slug: slug,
       isFavourite: json['is_favourite'] as bool? ?? false,
+      leaderboardScore: _parseDouble(json['leaderboard_score']) ?? 0.0,
     );
   }
 
@@ -511,6 +530,7 @@ class RestaurantService {
               .toList() ??
           [],
       activeDeals: activeDeals,
+      leaderboardScore: _parseDouble(json['leaderboard_score']) ?? 0.0,
     );
   }
 
@@ -531,6 +551,7 @@ class RestaurantService {
         rating: 4.5,
         reviewCount: 234,
         distance: 0.5,
+        slug: 'the-golden-spoon',
         discount: Discount(
           type: '2for1',
           description: '2 FOR 1 on main courses',
@@ -551,6 +572,7 @@ class RestaurantService {
         rating: 4.3,
         reviewCount: 189,
         distance: 1.2,
+        slug: 'pasta-paradise',
         discount: Discount(
           type: 'percentage',
           percentage: 25,
@@ -571,6 +593,7 @@ class RestaurantService {
         rating: 4.1,
         reviewCount: 456,
         distance: 0.8,
+        slug: 'sushi-zen',
         discount: Discount(
           type: 'percentage',
           percentage: 25,
@@ -590,6 +613,7 @@ class RestaurantService {
         rating: 4.2,
         reviewCount: 312,
         distance: 1.5,
+        slug: 'eds-easy-diner',
         discount: Discount(
           type: '2for1',
           description: '2 FOR 1 on desserts',

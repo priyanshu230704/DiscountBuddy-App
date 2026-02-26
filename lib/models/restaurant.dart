@@ -67,6 +67,7 @@ class Restaurant {
   final List<String> openingHours;
   final bool requiresBooking;
   final List<String> restrictions;
+  final double leaderboardScore; // 0-100 score
   final String? slug; // Optional slug for API calls
   final int? priceRange; // Price range 1-4
   final String? postcode;
@@ -101,6 +102,7 @@ class Restaurant {
     this.isFavourite = false,
     this.openingSlots = const [],
     this.activeDeals = const [],
+    this.leaderboardScore = 0.0,
   });
 
   factory Restaurant.fromJson(Map<String, dynamic> json) {
@@ -149,6 +151,7 @@ class Restaurant {
               .toList() ??
           [],
       slug: json['slug'] as String?,
+      leaderboardScore: _parseDouble(json['leaderboard_score']) ?? 0.0,
     );
   }
 
@@ -172,6 +175,7 @@ class Restaurant {
       'openingHours': openingHours,
       'requiresBooking': requiresBooking,
       'restrictions': restrictions,
+      'leaderboard_score': leaderboardScore,
       if (slug != null) 'slug': slug,
     };
   }

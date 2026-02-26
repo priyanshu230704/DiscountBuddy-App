@@ -60,6 +60,7 @@ class Restaurant {
   final double rating;
   final int reviewCount;
   final double distance; // in km
+  final double? distanceMiles; // directly from API
   final Discount discount;
   final List<String> images;
   final String phoneNumber;
@@ -88,6 +89,7 @@ class Restaurant {
     required this.rating,
     required this.reviewCount,
     required this.distance,
+    this.distanceMiles,
     required this.discount,
     this.images = const [],
     this.phoneNumber = '',
@@ -118,6 +120,7 @@ class Restaurant {
       rating: _parseDouble(json['rating']) ?? 0.0,
       reviewCount: _parseInt(json['reviewCount']) ?? 0,
       distance: _parseDouble(json['distance']) ?? 0.0,
+      distanceMiles: _parseDouble(json['distance_miles']),
       discount: json['discount'] != null
           ? Discount.fromJson(json['discount'] as Map<String, dynamic>)
           : Discount(type: 'none', description: ''),
@@ -168,6 +171,7 @@ class Restaurant {
       'rating': rating,
       'reviewCount': reviewCount,
       'distance': distance,
+      if (distanceMiles != null) 'distance_miles': distanceMiles,
       'discount': discount.toJson(),
       'images': images,
       'phoneNumber': phoneNumber,

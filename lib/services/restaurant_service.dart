@@ -224,9 +224,7 @@ class RestaurantService {
       // The response is a list directly, but ApiService might wrap it in 'data'
       final List<dynamic> restaurantsJson = response is List
           ? response as List<dynamic>
-          : ((response as Map<String, dynamic>)['data'] ??
-                    (response as Map<String, dynamic>)['results'] ??
-                    [])
+          : ((response)['data'] ?? (response)['results'] ?? [])
                 as List<dynamic>;
 
       return restaurantsJson
@@ -251,9 +249,7 @@ class RestaurantService {
       // The response is a list directly, but ApiService might wrap it in 'data'
       final List<dynamic> restaurantsJson = response is List
           ? response as List<dynamic>
-          : ((response as Map<String, dynamic>)['data'] ??
-                    (response as Map<String, dynamic>)['results'] ??
-                    [])
+          : ((response)['data'] ?? (response)['results'] ?? [])
                 as List<dynamic>;
 
       return restaurantsJson
@@ -279,9 +275,18 @@ class RestaurantService {
 
   /// Get home page data for customer
   /// Returns a map with: now_open, nearby, cuisines, top_10, all_restaurants
-  Future<Map<String, dynamic>> getHomeData() async {
+  Future<Map<String, dynamic>> getHomeData({
+    double? latitude,
+    double? longitude,
+  }) async {
     try {
-      final response = await _apiService.get(ApiEndpoints.homeData);
+      final response = await _apiService.get(
+        ApiEndpoints.homeData,
+        queryParameters: {
+          if (latitude != null) 'latitude': latitude.toString(),
+          if (longitude != null) 'longitude': longitude.toString(),
+        },
+      );
       return response;
     } catch (e) {
       throw Exception('Failed to load home data: ${e.toString()}');
@@ -324,12 +329,8 @@ class RestaurantService {
     final averageRating = _parseDouble(json['average_rating']) ?? 4.0;
     final reviewsCount = _parseInt(json['reviews_count']) ?? 0;
 
-    // Discount from active_deals
-    Discount discount = Discount(
-      type: 'percentage',
-      percentage: 10.0,
-      description: 'Special discount available',
-    );
+    // Discount from active_deals - default to none if not present
+    Discount discount = Discount(type: 'none', description: '');
 
     final activeDeals = json['active_deals'] as List<dynamic>? ?? [];
     if (activeDeals.isNotEmpty) {
@@ -360,6 +361,7 @@ class RestaurantService {
       rating: averageRating.toDouble(),
       reviewCount: reviewsCount,
       distance: _parseDouble(json['distance']) ?? 0.0,
+      distanceMiles: _parseDouble(json['distance_miles']),
       discount: discount,
       slug: slug,
       isFavourite: json['is_favourite'] as bool? ?? false,
@@ -368,11 +370,19 @@ class RestaurantService {
   }
 
   /// Get restaurant details by slug
-  Future<Restaurant> getRestaurantBySlug(String slug) async {
+  Future<Restaurant> getRestaurantBySlug(
+    String slug, {
+    double? latitude,
+    double? longitude,
+  }) async {
     try {
       // Endpoint logic handled in ApiEndpoints
       final response = await _apiService.get(
         ApiEndpoints.restaurantDetail(slug),
+        queryParameters: {
+          if (latitude != null) 'lat': latitude.toString(),
+          if (longitude != null) 'lon': longitude.toString(),
+        },
       );
       return _convertDetailResponseToModel(response);
     } catch (e) {
@@ -381,11 +391,19 @@ class RestaurantService {
   }
 
   /// Get full restaurant details including reviews and menu
-  Future<RestaurantDetail> getRestaurantDetailBySlug(String slug) async {
+  Future<RestaurantDetail> getRestaurantDetailBySlug(
+    String slug, {
+    double? latitude,
+    double? longitude,
+  }) async {
     try {
       // Endpoint logic handled in ApiEndpoints
       final response = await _apiService.get(
         ApiEndpoints.restaurantDetail(slug),
+        queryParameters: {
+          if (latitude != null) 'lat': latitude.toString(),
+          if (longitude != null) 'lon': longitude.toString(),
+        },
       );
 
       final restaurant = _convertDetailResponseToModel(response);
@@ -512,6 +530,7 @@ class RestaurantService {
       rating: averageRating.toDouble(),
       reviewCount: reviewsCount,
       distance: distance,
+      distanceMiles: _parseDouble(json['distance_miles']),
       discount: discount,
       images: imageUrls,
       phoneNumber: json['phone'] as String? ?? '',

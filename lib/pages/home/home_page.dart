@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:geolocator/geolocator.dart'
+    hide LocationServiceDisabledException;
 
 import '../../models/restaurant.dart';
 import '../../services/restaurant_service.dart';
@@ -22,7 +24,7 @@ class HomePage extends StatefulWidget {
 
 enum HomeFilter { offers, rating, nearest, openNow }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   final RestaurantService _restaurantService = RestaurantService();
   final LocationService _locationService = LocationService();
   final NotificationService _notificationService = NotificationService();
@@ -32,15 +34,19 @@ class _HomePageState extends State<HomePage> {
   final FocusNode _searchFocusNode = FocusNode();
 
   List<Restaurant> _restaurants = [];
+  List<Restaurant> _nearbyRestaurants = [];
   List<Restaurant> _filteredRestaurants = [];
   List<Map<String, dynamic>> _cuisineSections = [];
 
   bool _isLoading = true;
   bool _isSearching = false;
 
-  String _cityName = 'London';
+  String _cityName = 'Detecting...';
   int _notificationCount = 0;
   StreamSubscription<RemoteMessage>? _notificationSubscription;
+
+  double _userLatitude = 0;
+  double _userLongitude = 0;
 
   HomeFilter? _activeFilter;
   static const Color buddyPink = Color(0xFFFF2D83);
@@ -63,8 +69,8 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _loadCityName();
-    _loadRestaurants();
+    WidgetsBinding.instance.addObserver(this);
+    _initLocationAndLoadData();
     _loadNotificationCount();
     _searchController.addListener(_onSearchChanged);
 
@@ -91,10 +97,48 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _notificationSubscription?.cancel();
     _searchController.dispose();
     _searchFocusNode.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // If we are currently on fallback (coords are 0 or London), try to get real location
+      if (_userLatitude == 0 ||
+          (_userLatitude == 51.5074 && _userLongitude == -0.1278)) {
+        _onReturnedFromSettings();
+      }
+    }
+  }
+
+  /// Called when user returns to the app after visiting settings
+  Future<void> _onReturnedFromSettings() async {
+    try {
+      final location = await _locationService.getUserLocation();
+      if (mounted) {
+        setState(() {
+          _userLatitude = location.position.latitude;
+          _userLongitude = location.position.longitude;
+          _cityName = location.cityName;
+        });
+        // Reload restaurants with the new coordinates
+        await _loadRestaurants();
+      }
+    } catch (_) {
+      debugPrint('📍 Still no location after settings, using defaults');
+      if (mounted) {
+        setState(() {
+          _userLatitude = 51.5074;
+          _userLongitude = -0.1278;
+          _cityName = 'London';
+        });
+        await _loadRestaurants();
+      }
+    }
   }
 
   void _onSearchChanged() => _filterRestaurants();
@@ -119,13 +163,70 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future<void> _loadCityName() async {
+  /// Fetch user location first (system dialog handles permission prompt),
+  /// then load restaurants using the real lat/lon.
+  Future<void> _initLocationAndLoadData() async {
     try {
-      final city = await _locationService.getUserCity();
-      if (mounted) setState(() => _cityName = city);
-    } catch (_) {
-      if (mounted) setState(() => _cityName = 'London');
+      final location = await _locationService.getUserLocation();
+      if (mounted) {
+        setState(() {
+          _userLatitude = location.position.latitude;
+          _userLongitude = location.position.longitude;
+          _cityName = location.cityName;
+        });
+      }
+    } on LocationServiceDisabledException {
+      debugPrint('📍 Location services disabled');
+      if (mounted) {
+        setState(() => _cityName = 'Location Off');
+        _promptToEnableLocation(
+          'Location services are off.',
+          isServiceOff: true,
+        );
+      }
+    } on LocationPermissionDeniedException {
+      debugPrint('📍 Location permission denied');
+      if (mounted) {
+        setState(() => _cityName = 'No Permission');
+        _promptToEnableLocation(
+          'Location permission denied.',
+          isServiceOff: false,
+        );
+      }
+    } catch (e) {
+      debugPrint('📍 Location unavailable, using defaults: $e');
+      if (mounted) {
+        setState(() {
+          _userLatitude = 51.5074;
+          _userLongitude = -0.1278;
+          _cityName = 'London';
+        });
+      }
+    } finally {
+      await _loadRestaurants();
     }
+  }
+
+  /// Show a snackbar or subtle indicator to enable location if it's currently off
+  void _promptToEnableLocation(String message, {required bool isServiceOff}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        action: SnackBarAction(
+          label: 'Settings',
+          onPressed: () async {
+            if (isServiceOff) {
+              await Geolocator.openLocationSettings();
+            } else {
+              await Geolocator.openAppSettings();
+            }
+          },
+        ),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
   }
 
   Future<void> _loadNotificationCount() async {
@@ -143,7 +244,10 @@ class _HomePageState extends State<HomePage> {
 
     try {
       if (_authProvider.isCustomer) {
-        final homeData = await _restaurantService.getHomeData();
+        final homeData = await _restaurantService.getHomeData(
+          latitude: _userLatitude,
+          longitude: _userLongitude,
+        );
 
         final Map<int, String> cuisineMap = {};
         final cuisinesJson = homeData['cuisines'] as List<dynamic>? ?? [];
@@ -167,6 +271,8 @@ class _HomePageState extends State<HomePage> {
 
         final allRestaurantsJson =
             homeData['all_restaurants'] as List<dynamic>? ?? [];
+        final nearbyRestaurantsJson =
+            homeData['nearby'] as List<dynamic>? ?? [];
 
         final allRestaurants = allRestaurantsJson
             .map(
@@ -177,8 +283,20 @@ class _HomePageState extends State<HomePage> {
             )
             .toList();
 
+        final nearbyRestaurants = nearbyRestaurantsJson
+            .map(
+              (json) => _restaurantService.convertApiRestaurantToModel(
+                json as Map<String, dynamic>,
+                cuisineMap: cuisineMap,
+              ),
+            )
+            .toList();
+
         // Sort by leaderboard score (highest first)
         allRestaurants.sort(
+          (a, b) => b.leaderboardScore.compareTo(a.leaderboardScore),
+        );
+        nearbyRestaurants.sort(
           (a, b) => b.leaderboardScore.compareTo(a.leaderboardScore),
         );
 
@@ -216,14 +334,16 @@ class _HomePageState extends State<HomePage> {
         if (!mounted) return;
         setState(() {
           _restaurants = allRestaurants;
+          _nearbyRestaurants = nearbyRestaurants;
           _filteredRestaurants = _applyFilter(allRestaurants);
           _cuisineSections = cuisineSections;
           _isLoading = false;
         });
       } else {
+        // Use real user coordinates from location permission
         final restaurants = await _restaurantService.getNearbyRestaurants(
-          latitude: 51.5074,
-          longitude: -0.1278,
+          latitude: _userLatitude,
+          longitude: _userLongitude,
         );
 
         if (!mounted) return;
@@ -266,34 +386,13 @@ class _HomePageState extends State<HomePage> {
     return tags;
   }
 
-  List<Restaurant> _bestOffersNearYou(List<Restaurant> list) {
-    final copy = [...list];
-
-    int score(Restaurant r) {
-      if (r.discount.type == 'percentage')
-        return ((r.discount.percentage ?? 0) * 10).toInt();
-      if (r.discount.type == 'fixed')
-        return ((r.discount.fixedAmount ?? 0) * 8).toInt();
-      if (r.discount.type == '2for1') return 700;
-      return 0;
-    }
-
-    copy.sort((a, b) {
-      final sb = score(b);
-      final sa = score(a);
-      if (sb != sa) return sb.compareTo(sa);
-      return a.distance.compareTo(b.distance);
-    });
-
-    return copy.take(10).toList();
-  }
-
   List<Restaurant> _applyFilter(List<Restaurant> list) {
     final copy = [...list];
 
     switch (_activeFilter) {
       case HomeFilter.offers:
-        return _bestOffersNearYou(copy);
+        copy.sort((a, b) => b.leaderboardScore.compareTo(a.leaderboardScore));
+        return copy;
       case HomeFilter.rating:
         copy.sort((a, b) => b.rating.compareTo(a.rating));
         return copy;
@@ -554,6 +653,16 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             GestureDetector(
                               onTap: () {
+                                if (_cityName == 'Location Off' ||
+                                    _cityName == 'No Permission') {
+                                  _promptToEnableLocation(
+                                    _cityName == 'Location Off'
+                                        ? 'Location services are disabled'
+                                        : 'Location permission is denied',
+                                    isServiceOff: _cityName == 'Location Off',
+                                  );
+                                  return;
+                                }
                                 showModalBottomSheet(
                                   context: context,
                                   isScrollControlled: true,
@@ -577,8 +686,11 @@ class _HomePageState extends State<HomePage> {
                                         colors: buddyGradient,
                                       ).createShader(bounds);
                                     },
-                                    child: const Icon(
-                                      Icons.location_on,
+                                    child: Icon(
+                                      _cityName == 'Location Off' ||
+                                              _cityName == 'No Permission'
+                                          ? Icons.location_off
+                                          : Icons.location_on,
                                       size: 18,
                                       color: Colors.white,
                                     ),
@@ -589,14 +701,20 @@ class _HomePageState extends State<HomePage> {
                                     style: GoogleFonts.inter(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w800,
-                                      color: textPrimary,
+                                      color:
+                                          _cityName == 'Location Off' ||
+                                              _cityName == 'No Permission'
+                                          ? Colors.redAccent
+                                          : textPrimary,
                                     ),
                                   ),
                                   const SizedBox(width: 4),
-                                  const Icon(
-                                    Icons.keyboard_arrow_down,
-                                    color: textSecondary,
-                                  ),
+                                  if (_cityName != 'Location Off' &&
+                                      _cityName != 'No Permission')
+                                    const Icon(
+                                      Icons.keyboard_arrow_down,
+                                      color: textSecondary,
+                                    ),
                                 ],
                               ),
                             ),
@@ -623,7 +741,7 @@ class _HomePageState extends State<HomePage> {
                       scrollDirection: Axis.horizontal,
                       children: [
                         _FilterChipX(
-                          text: "🔥 Best Offers",
+                          text: "✨ Best Near You",
                           active: _activeFilter == HomeFilter.offers,
                           onTap: () => _toggleFilter(HomeFilter.offers),
                         ),
@@ -659,9 +777,9 @@ class _HomePageState extends State<HomePage> {
             controller: PageController(viewportFraction: 0.92),
             children: const [
               _GradientBanner(
-                title: "Offer Hunter Mode",
-                subtitle: "Best discounts near you instantly",
-                emoji: "🏷️",
+                title: "Best Recommendations",
+                subtitle: "Top-rated restaurants near you",
+                emoji: "✨",
               ),
               _GradientBanner(
                 title: "Buddy Picks",
@@ -683,8 +801,9 @@ class _HomePageState extends State<HomePage> {
   Widget _buildBestOffers() {
     if (_isLoading) return const SliverToBoxAdapter(child: SizedBox.shrink());
 
-    final best = _bestOffersNearYou(_restaurants);
-    if (best.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+    final nearby = _nearbyRestaurants;
+    if (nearby.isEmpty)
+      return const SliverToBoxAdapter(child: SizedBox.shrink());
 
     return SliverToBoxAdapter(
       child: Column(
@@ -693,7 +812,7 @@ class _HomePageState extends State<HomePage> {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 22, 16, 10),
             child: Text(
-              "Best Offers Near You ✨",
+              "Best Restaurants Near You ✨",
               style: GoogleFonts.inter(
                 fontSize: 20,
                 fontWeight: FontWeight.w900,
@@ -706,12 +825,14 @@ class _HomePageState extends State<HomePage> {
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: best.length,
+              itemCount: nearby.length,
               itemBuilder: (context, index) {
                 return _BestOfferCard(
-                  restaurant: best[index],
+                  restaurant: nearby[index],
                   kmToMiles: _kmToMiles,
                   offerTags: _getOfferTags,
+                  userLat: _userLatitude,
+                  userLon: _userLongitude,
                 );
               },
             ),
@@ -797,6 +918,8 @@ class _HomePageState extends State<HomePage> {
               restaurant: list[index],
               kmToMiles: _kmToMiles,
               offerTags: _getOfferTags,
+              userLat: _userLatitude,
+              userLon: _userLongitude,
             ),
           );
         }, childCount: list.length),
@@ -1071,11 +1194,15 @@ class _BestOfferCard extends StatelessWidget {
   final Restaurant restaurant;
   final double Function(double) kmToMiles;
   final List<String> Function(Restaurant) offerTags;
+  final double? userLat;
+  final double? userLon;
 
   const _BestOfferCard({
     required this.restaurant,
     required this.kmToMiles,
     required this.offerTags,
+    this.userLat,
+    this.userLon,
   });
 
   static const List<Color> buddyGradient = [
@@ -1088,7 +1215,7 @@ class _BestOfferCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tags = offerTags(restaurant);
-    final distanceMiles = kmToMiles(restaurant.distance);
+    final dist = restaurant.distanceMiles ?? kmToMiles(restaurant.distance);
 
     return GestureDetector(
       onTap: () {
@@ -1096,7 +1223,11 @@ class _BestOfferCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => RestaurantDetailsPage(slug: slug),
+            builder: (context) => RestaurantDetailsPage(
+              slug: slug,
+              latitude: userLat,
+              longitude: userLon,
+            ),
           ),
         );
       },
@@ -1229,7 +1360,7 @@ class _BestOfferCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    "${restaurant.rating.toStringAsFixed(1)} (${restaurant.reviewCount}) • ${distanceMiles.toStringAsFixed(2)} mi • ${restaurant.cuisine}",
+                    "${restaurant.rating.toStringAsFixed(1)} (${restaurant.reviewCount}) • ${dist.toStringAsFixed(2)} miles • ${restaurant.cuisine}",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.inter(
@@ -1283,11 +1414,15 @@ class _FeedTile extends StatelessWidget {
   final Restaurant restaurant;
   final double Function(double) kmToMiles;
   final List<String> Function(Restaurant) offerTags;
+  final double? userLat;
+  final double? userLon;
 
   const _FeedTile({
     required this.restaurant,
     required this.kmToMiles,
     required this.offerTags,
+    this.userLat,
+    this.userLon,
   });
 
   static const List<Color> buddyGradient = [
@@ -1300,7 +1435,7 @@ class _FeedTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tags = offerTags(restaurant);
-    final distanceMiles = kmToMiles(restaurant.distance);
+    final dist = restaurant.distanceMiles ?? kmToMiles(restaurant.distance);
 
     return GestureDetector(
       onTap: () {
@@ -1308,7 +1443,11 @@ class _FeedTile extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => RestaurantDetailsPage(slug: slug),
+            builder: (context) => RestaurantDetailsPage(
+              slug: slug,
+              latitude: userLat,
+              longitude: userLon,
+            ),
           ),
         );
       },
@@ -1406,7 +1545,7 @@ class _FeedTile extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    "${restaurant.rating.toStringAsFixed(1)} (${restaurant.reviewCount}) • ${distanceMiles.toStringAsFixed(2)} mi • ${restaurant.cuisine}",
+                    "${restaurant.rating.toStringAsFixed(1)} (${restaurant.reviewCount}) • ${dist.toStringAsFixed(2)} miles • ${restaurant.cuisine}",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.inter(

@@ -22,8 +22,15 @@ import 'mystery_guest/mystery_audit_modal.dart';
 /// Restaurant details page - NeoTaste style
 class RestaurantDetailsPage extends StatefulWidget {
   final String slug;
+  final double? latitude;
+  final double? longitude;
 
-  const RestaurantDetailsPage({super.key, required this.slug});
+  const RestaurantDetailsPage({
+    super.key,
+    required this.slug,
+    this.latitude,
+    this.longitude,
+  });
 
   @override
   State<RestaurantDetailsPage> createState() => _RestaurantDetailsPageState();
@@ -76,7 +83,11 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
 
     try {
       final restaurantDetail = await _restaurantService
-          .getRestaurantDetailBySlug(widget.slug);
+          .getRestaurantDetailBySlug(
+            widget.slug,
+            latitude: widget.latitude,
+            longitude: widget.longitude,
+          );
       setState(() {
         _restaurantDetail = restaurantDetail;
         _isFavorite = restaurantDetail.restaurant.isFavourite;
@@ -310,7 +321,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     final restaurant = _restaurantDetail!.restaurant;
     final reviews = _restaurantDetail!.reviews;
     final menuCategories = _restaurantDetail!.menuCategories;
-    final distanceMiles = _kmToMiles(restaurant.distance);
+    final dist = restaurant.distanceMiles ?? _kmToMiles(restaurant.distance);
 
     return Scaffold(
       backgroundColor: NeoTasteColors.white,
@@ -467,7 +478,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
-                              '${restaurant.address.split(',').first} (${distanceMiles.toStringAsFixed(2)} mi)',
+                              '${restaurant.address.split(',').first} (${dist.toStringAsFixed(2)} miles)',
                               style: GoogleFonts.inter(
                                 fontSize: 14,
                                 color: NeoTasteColors.textPrimary,

@@ -1,315 +1,64 @@
 {
-  "search_query": "",
-  "now_open": [],
-  "nearby": [],
-  "cuisines": [
-    {
-      "cuisine": {
-        "id": 1,
-        "name": "Italian",
-        "slug": "italian",
-        "icon": "🍝",
-        "is_active": true,
-        "restaurants_count": 2,
-        "created_at": "2026-01-26T18:04:39.624958Z"
-      },
-      "restaurants": [
-        {
-          "id": 3,
-          "name": "Bella Italia",
-          "slug": "bella-italia",
-          "city_name": "Manchester",
-          "country_name": "United Kingdom",
-          "latitude": "53.480800",
-          "longitude": "-2.242600",
-          "price_range": 2,
-          "verified": true,
-          "is_featured": false,
-          "primary_image": null,
-          "active_deals_count": 3
-        },
-        {
-          "id": 5,
-          "name": "Mumbai Spice",
-          "slug": "mumbai-spice",
-          "city_name": "Mumbai",
-          "country_name": "India",
-          "latitude": "19.076000",
-          "longitude": "72.877700",
-          "price_range": 1,
-          "verified": true,
-          "is_featured": false,
-          "primary_image": null,
-          "active_deals_count": 3
-        }
-      ]
+  "teams": {
+    "BOSSxDhRuV": {
+      "shortName": "BOSSxDhRuV",
+      "players": {
+        "player1": "BOSSxDhRuV"
+      }
     },
-    {
-      "cuisine": {
-        "id": 2,
-        "name": "Chinese",
-        "slug": "chinese",
-        "icon": "🥢",
-        "is_active": true,
-        "restaurants_count": 3,
-        "created_at": "2026-01-26T18:04:39.633968Z"
-      },
-      "restaurants": [
-        {
-          "id": 1,
-          "name": "The Golden Fork",
-          "slug": "the-golden-fork",
-          "city_name": "London",
-          "country_name": "United Kingdom",
-          "latitude": "51.507400",
-          "longitude": "-0.127800",
-          "price_range": 4,
-          "verified": true,
-          "is_featured": true,
-          "primary_image": null,
-          "active_deals_count": 3
-        },
-        {
-          "id": 3,
-          "name": "Bella Italia",
-          "slug": "bella-italia",
-          "city_name": "Manchester",
-          "country_name": "United Kingdom",
-          "latitude": "53.480800",
-          "longitude": "-2.242600",
-          "price_range": 2,
-          "verified": true,
-          "is_featured": false,
-          "primary_image": null,
-          "active_deals_count": 3
-        },
-        {
-          "id": 4,
-          "name": "Dragon Palace",
-          "slug": "dragon-palace",
-          "city_name": "New York",
-          "country_name": "United States",
-          "latitude": "40.712800",
-          "longitude": "-74.006000",
-          "price_range": 2,
-          "verified": true,
-          "is_featured": false,
-          "primary_image": null,
-          "active_deals_count": 2
-        }
-      ]
+    "PatelSmit121": {
+      "shortName": "PatelSmit121",
+      "players": {
+        "player1": "PatelSmit121"
+      }
     },
-    {
-      "cuisine": {
-        "id": 4,
-        "name": "Mexican",
-        "slug": "mexican",
-        "icon": "🌮",
-        "is_active": true,
-        "restaurants_count": 1,
-        "created_at": "2026-01-26T18:04:39.654969Z"
-      },
-      "restaurants": [
-        {
-          "id": 5,
-          "name": "Mumbai Spice",
-          "slug": "mumbai-spice",
-          "city_name": "Mumbai",
-          "country_name": "India",
-          "latitude": "19.076000",
-          "longitude": "72.877700",
-          "price_range": 1,
-          "verified": true,
-          "is_featured": false,
-          "primary_image": null,
-          "active_deals_count": 3
-        }
-      ]
+    "pap256": {
+      "shortName": "pap256",
+      "players": {
+        "player1": "pap256"
+      }
     },
-    {
-      "cuisine": {
-        "id": 6,
-        "name": "American",
-        "slug": "american",
-        "icon": "🍔",
-        "is_active": true,
-        "restaurants_count": 2,
-        "created_at": "2026-01-26T18:04:39.674582Z"
-      },
-      "restaurants": [
-        {
-          "id": 2,
-          "name": "Spice Garden",
-          "slug": "spice-garden",
-          "city_name": "London",
-          "country_name": "United Kingdom",
-          "latitude": "51.515000",
-          "longitude": "-0.141900",
-          "price_range": 3,
-          "verified": true,
-          "is_featured": true,
-          "primary_image": null,
-          "active_deals_count": 2
-        },
-        {
-          "id": 4,
-          "name": "Dragon Palace",
-          "slug": "dragon-palace",
-          "city_name": "New York",
-          "country_name": "United States",
-          "latitude": "40.712800",
-          "longitude": "-74.006000",
-          "price_range": 2,
-          "verified": true,
-          "is_featured": false,
-          "primary_image": null,
-          "active_deals_count": 2
-        }
-      ]
+    "cHuTcHaHak": {
+      "shortName": "cHuTcHaHak",
+      "players": {
+        "player1": "cHuTcHaHak"
+      }
+    },
+    "TEAMRAWxCHAVADA": {
+      "shortName": "TEAMRAWxCHAVADA",
+      "players": {
+        "player1": "TEAMRAWxCHAVADA"
+      }
+    },
+    "Rust x SD": {
+      "shortName": "Rust x SD",
+      "players": {
+        "player1": "Rust x SD"
+      }
+    },
+    "TEAMRAWxARUJNA": {
+      "shortName": "TEAMRAWxARUJNA",
+      "players": {
+        "player1": "TEAMRAWxARUJNA"
+      }
+    },
+    "TEAMRAWxBRO": {
+      "shortName": "TEAMRAWxBRO",
+      "players": {
+        "player1": "TEAMRAWxBRO"
+      }
+    },
+    "Abhay942590": {
+      "shortName": "Abhay942590",
+      "players": {
+        "player1": "Abhay942590"
+      }
+    },
+    "bHoSbHeDaK": {
+      "shortName": "bHoSbHeDaK",
+      "players": {
+        "player1": "bHoSbHeDaK"
+      }
     }
-  ],
-  "top_10": [
-    {
-      "id": 1,
-      "name": "The Golden Fork",
-      "slug": "the-golden-fork",
-      "city_name": "London",
-      "country_name": "United Kingdom",
-      "latitude": "51.507400",
-      "longitude": "-0.127800",
-      "price_range": 4,
-      "verified": true,
-      "is_featured": true,
-      "primary_image": null,
-      "active_deals_count": 3
-    },
-    {
-      "id": 2,
-      "name": "Spice Garden",
-      "slug": "spice-garden",
-      "city_name": "London",
-      "country_name": "United Kingdom",
-      "latitude": "51.515000",
-      "longitude": "-0.141900",
-      "price_range": 3,
-      "verified": true,
-      "is_featured": true,
-      "primary_image": null,
-      "active_deals_count": 2
-    },
-    {
-      "id": 5,
-      "name": "Mumbai Spice",
-      "slug": "mumbai-spice",
-      "city_name": "Mumbai",
-      "country_name": "India",
-      "latitude": "19.076000",
-      "longitude": "72.877700",
-      "price_range": 1,
-      "verified": true,
-      "is_featured": false,
-      "primary_image": null,
-      "active_deals_count": 3
-    },
-    {
-      "id": 4,
-      "name": "Dragon Palace",
-      "slug": "dragon-palace",
-      "city_name": "New York",
-      "country_name": "United States",
-      "latitude": "40.712800",
-      "longitude": "-74.006000",
-      "price_range": 2,
-      "verified": true,
-      "is_featured": false,
-      "primary_image": null,
-      "active_deals_count": 2
-    },
-    {
-      "id": 3,
-      "name": "Bella Italia",
-      "slug": "bella-italia",
-      "city_name": "Manchester",
-      "country_name": "United Kingdom",
-      "latitude": "53.480800",
-      "longitude": "-2.242600",
-      "price_range": 2,
-      "verified": true,
-      "is_featured": false,
-      "primary_image": null,
-      "active_deals_count": 3
-    }
-  ],
-  "all_restaurants": [
-    {
-      "id": 1,
-      "name": "The Golden Fork",
-      "slug": "the-golden-fork",
-      "city_name": "London",
-      "country_name": "United Kingdom",
-      "latitude": "51.507400",
-      "longitude": "-0.127800",
-      "price_range": 4,
-      "verified": true,
-      "is_featured": true,
-      "primary_image": null,
-      "active_deals_count": 3
-    },
-    {
-      "id": 2,
-      "name": "Spice Garden",
-      "slug": "spice-garden",
-      "city_name": "London",
-      "country_name": "United Kingdom",
-      "latitude": "51.515000",
-      "longitude": "-0.141900",
-      "price_range": 3,
-      "verified": true,
-      "is_featured": true,
-      "primary_image": null,
-      "active_deals_count": 2
-    },
-    {
-      "id": 5,
-      "name": "Mumbai Spice",
-      "slug": "mumbai-spice",
-      "city_name": "Mumbai",
-      "country_name": "India",
-      "latitude": "19.076000",
-      "longitude": "72.877700",
-      "price_range": 1,
-      "verified": true,
-      "is_featured": false,
-      "primary_image": null,
-      "active_deals_count": 3
-    },
-    {
-      "id": 4,
-      "name": "Dragon Palace",
-      "slug": "dragon-palace",
-      "city_name": "New York",
-      "country_name": "United States",
-      "latitude": "40.712800",
-      "longitude": "-74.006000",
-      "price_range": 2,
-      "verified": true,
-      "is_featured": false,
-      "primary_image": null,
-      "active_deals_count": 2
-    },
-    {
-      "id": 3,
-      "name": "Bella Italia",
-      "slug": "bella-italia",
-      "city_name": "Manchester",
-      "country_name": "United Kingdom",
-      "latitude": "53.480800",
-      "longitude": "-2.242600",
-      "price_range": 2,
-      "verified": true,
-      "is_featured": false,
-      "primary_image": null,
-      "active_deals_count": 3
-    }
-  ]
+  }
 }

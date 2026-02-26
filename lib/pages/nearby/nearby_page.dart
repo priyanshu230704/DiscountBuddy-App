@@ -124,11 +124,19 @@ class _NearbyPageState extends State<NearbyPage>
     setState(() => _isLoading = true);
 
     try {
-      final detectedCity = await _locationService.getUserCity();
+      final location = await _locationService.getUserLocation();
       if (!mounted) return;
 
       if (!_isManualCitySelected) {
-        setState(() => _cityName = detectedCity);
+        setState(() {
+          _cityName = location.cityName;
+          _center = Point(
+            coordinates: Position(
+              location.position.longitude,
+              location.position.latitude,
+            ),
+          );
+        });
       }
 
       await _loadCityRestaurants();
@@ -253,9 +261,15 @@ class _NearbyPageState extends State<NearbyPage>
 
   void _openRestaurant(Restaurant restaurant) {
     final slug = restaurant.slug ?? restaurant.id;
+    final lat = _center.coordinates.lat.toDouble();
+    final lon = _center.coordinates.lng.toDouble();
+
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => RestaurantDetailsPage(slug: slug)),
+      MaterialPageRoute(
+        builder: (_) =>
+            RestaurantDetailsPage(slug: slug, latitude: lat, longitude: lon),
+      ),
     );
   }
 
@@ -1093,7 +1107,7 @@ class _NearbyPageState extends State<NearbyPage>
   }
 
   Widget _restaurantPreviewCard(Restaurant restaurant) {
-    final distanceMiles = _kmToMiles(restaurant.distance);
+    final dist = restaurant.distanceMiles ?? _kmToMiles(restaurant.distance);
     final tags = _getOfferTags(restaurant);
 
     return GestureDetector(
@@ -1166,7 +1180,7 @@ class _NearbyPageState extends State<NearbyPage>
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        "${distanceMiles.toStringAsFixed(2)} mi",
+                        "${dist.toStringAsFixed(2)} miles",
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,

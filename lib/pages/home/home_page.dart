@@ -14,6 +14,7 @@ import '../../providers/auth_provider.dart';
 import '../restaurant_details_page.dart';
 import '../notifications_page.dart';
 import '../../widgets/city_selector_modal.dart';
+import '../../widgets/occupancy_tag.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -1326,6 +1327,7 @@ class _BestOfferCard extends StatelessWidget {
                           ),
                         ),
                       ),
+                      const SizedBox(width: 8),
                       if (restaurant.leaderboardScore > 0)
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -1356,6 +1358,10 @@ class _BestOfferCard extends StatelessWidget {
                             ],
                           ),
                         ),
+                      OccupancyTag(
+                        occupancy: restaurant.occupancy,
+                        isSmall: true,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 6),
@@ -1511,6 +1517,7 @@ class _FeedTile extends StatelessWidget {
                           ),
                         ),
                       ),
+                      const SizedBox(width: 8),
                       if (restaurant.leaderboardScore > 0)
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -1541,6 +1548,10 @@ class _FeedTile extends StatelessWidget {
                             ],
                           ),
                         ),
+                      OccupancyTag(
+                        occupancy: restaurant.occupancy,
+                        isSmall: true,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 6),

@@ -18,6 +18,7 @@ import '../models/mystery_visit.dart';
 import '../services/mystery_guest_service.dart';
 import '../providers/auth_provider.dart';
 import 'mystery_guest/mystery_audit_modal.dart';
+import '../widgets/occupancy_tag.dart';
 
 /// Restaurant details page - NeoTaste style
 class RestaurantDetailsPage extends StatefulWidget {
@@ -417,6 +418,8 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                           ),
                         ),
                       ),
+                      const SizedBox(width: 8),
+                      OccupancyTag(occupancy: restaurant.occupancy),
                       if (restaurant.leaderboardScore > 0)
                         Container(
                           padding: const EdgeInsets.symmetric(

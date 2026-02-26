@@ -57,6 +57,7 @@ class Restaurant {
   final double latitude;
   final double longitude;
   final String cuisine;
+  final String? occupancy; // available, busy, full
   final double rating;
   final int reviewCount;
   final double distance; // in km
@@ -86,6 +87,7 @@ class Restaurant {
     required this.latitude,
     required this.longitude,
     required this.cuisine,
+    this.occupancy,
     required this.rating,
     required this.reviewCount,
     required this.distance,
@@ -117,6 +119,7 @@ class Restaurant {
       latitude: _parseDouble(json['latitude']) ?? 0.0,
       longitude: _parseDouble(json['longitude']) ?? 0.0,
       cuisine: json['cuisine'] as String? ?? '',
+      occupancy: json['occupancy'] as String?,
       rating: _parseDouble(json['rating']) ?? 0.0,
       reviewCount: _parseInt(json['reviewCount']) ?? 0,
       distance: _parseDouble(json['distance']) ?? 0.0,
@@ -168,6 +171,7 @@ class Restaurant {
       'latitude': latitude,
       'longitude': longitude,
       'cuisine': cuisine,
+      if (occupancy != null) 'occupancy': occupancy,
       'rating': rating,
       'reviewCount': reviewCount,
       'distance': distance,

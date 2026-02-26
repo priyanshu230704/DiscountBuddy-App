@@ -15,6 +15,7 @@ import '../restaurant_details_page.dart';
 import '../../widgets/city_selector_modal.dart';
 import '../../widgets/filter_modal.dart';
 import '../../widgets/generic_bottom_sheet.dart';
+import '../../widgets/occupancy_tag.dart';
 
 class NearbyPage extends StatefulWidget {
   const NearbyPage({super.key});
@@ -1155,15 +1156,27 @@ class _NearbyPageState extends State<NearbyPage>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    restaurant.name,
-                    style: GoogleFonts.inter(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.black,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          restaurant.name,
+                          style: GoogleFonts.inter(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.black,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      OccupancyTag(
+                        occupancy: restaurant.occupancy,
+                        isSmall: true,
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   Row(

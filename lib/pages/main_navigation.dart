@@ -94,11 +94,11 @@ class _MainNavigationState extends State<MainNavigation> {
               height: 72,
               decoration: BoxDecoration(
                 color: isDark
-                    ? AppColors.surfaceDark.withOpacity(0.8)
-                    : AppColors.surfaceLight.withOpacity(0.9),
+                    ? AppColors.cardBackground.withOpacity(0.8)
+                    : AppColors.cardBackground.withOpacity(0.9),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: AppColors.textPrimary.withOpacity(0.1),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
@@ -106,8 +106,8 @@ class _MainNavigationState extends State<MainNavigation> {
                 borderRadius: BorderRadius.circular(32),
                 border: Border.all(
                   color: isDark
-                      ? Colors.white.withOpacity(0.1)
-                      : Colors.white.withOpacity(0.5),
+                      ? AppColors.white.withOpacity(0.1)
+                      : AppColors.white.withOpacity(0.5),
                   width: 1,
                 ),
               ),
@@ -221,8 +221,8 @@ class _MainNavigationState extends State<MainNavigation> {
               color: isSelected
                   ? AppColors.primary
                   : (isDark
-                        ? AppColors.textSecondaryDark
-                        : AppColors.textSecondaryLight),
+                        ? AppColors.textSecondary
+                        : AppColors.textSecondary),
             ),
             if (isSelected) ...[
               const SizedBox(width: 8),

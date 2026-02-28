@@ -1,3 +1,4 @@
+import 'package:discount_buddy/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -146,11 +147,11 @@ class _LivePageState extends State<LivePage> {
 
   Color _getUrgencyColor(Duration remaining) {
     if (remaining.inMinutes < 5) {
-      return Colors.red;
+      return AppColors.error;
     } else if (remaining.inMinutes < 15) {
-      return Colors.orange;
+      return AppColors.accent;
     } else {
-      return Colors.green;
+      return AppColors.success;
     }
   }
 
@@ -187,10 +188,10 @@ class _LivePageState extends State<LivePage> {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.red.withOpacity(0.2),
+                              color: AppColors.error.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: Colors.red,
+                                color: AppColors.error,
                                 width: 1.5,
                               ),
                             ),
@@ -201,7 +202,7 @@ class _LivePageState extends State<LivePage> {
                                   width: 8,
                                   height: 8,
                                   decoration: const BoxDecoration(
-                                    color: Colors.red,
+                                    color: AppColors.error,
                                     shape: BoxShape.circle,
                                   ),
                                 ),
@@ -209,7 +210,7 @@ class _LivePageState extends State<LivePage> {
                                 const Text(
                                   'LIVE',
                                   style: TextStyle(
-                                    color: Colors.red,
+                                    color: AppColors.error,
                                     fontSize: 11,
                                     fontWeight: FontWeight.bold,
                                     letterSpacing: 1.2,
@@ -226,7 +227,7 @@ class _LivePageState extends State<LivePage> {
                                 const Text(
                                   "Flash Deals",
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color: AppColors.white,
                                     fontSize: 24,
                                     fontWeight: FontWeight.bold,
                                     letterSpacing: -0.5,
@@ -235,7 +236,7 @@ class _LivePageState extends State<LivePage> {
                                 Text(
                                   '${activeOffers.length} active deals • Act fast!',
                                   style: TextStyle(
-                                    color: Colors.grey[400],
+                                    color: AppColors.textDisabled,
                                     fontSize: 12,
                                   ),
                                 ),
@@ -243,7 +244,7 @@ class _LivePageState extends State<LivePage> {
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.refresh, color: Colors.white),
+                            icon: const Icon(Icons.refresh, color: AppColors.white),
                             onPressed: _refreshOffers,
                             tooltip: 'Refresh offers',
                           ),
@@ -311,12 +312,12 @@ class _LivePageState extends State<LivePage> {
         decoration: BoxDecoration(
           color: isSelected
               ? const Color(0xFF3E25F6).withOpacity(0.2)
-              : Colors.grey[900],
+              : AppColors.textDisabled,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected
                 ? const Color(0xFF3E25F6)
-                : Colors.grey[800]!,
+                : AppColors.textDisabled,
             width: 1,
           ),
         ),
@@ -326,13 +327,13 @@ class _LivePageState extends State<LivePage> {
             Icon(
               icon,
               size: 14,
-              color: isSelected ? const Color(0xFF3E25F6) : Colors.grey[400],
+              color: isSelected ? const Color(0xFF3E25F6) : AppColors.textDisabled,
             ),
             const SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? Colors.white : Colors.grey[400],
+                color: isSelected ? AppColors.white : AppColors.textDisabled,
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
@@ -351,13 +352,13 @@ class _LivePageState extends State<LivePage> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.grey[900],
+              color: AppColors.textDisabled,
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.local_fire_department_outlined,
               size: 64,
-              color: Colors.grey[600],
+              color: AppColors.textDisabled,
             ),
           ),
           const SizedBox(height: 24),
@@ -366,7 +367,7 @@ class _LivePageState extends State<LivePage> {
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: Colors.grey[300],
+              color: AppColors.textDisabled,
             ),
           ),
           const SizedBox(height: 8),
@@ -374,7 +375,7 @@ class _LivePageState extends State<LivePage> {
             'Check back soon for new offers!',
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey[500],
+              color: AppColors.textDisabled,
             ),
           ),
           const SizedBox(height: 32),
@@ -384,7 +385,7 @@ class _LivePageState extends State<LivePage> {
             label: const Text('Refresh'),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF3E25F6),
-              foregroundColor: Colors.white,
+              foregroundColor: AppColors.white,
               padding: const EdgeInsets.symmetric(
                 horizontal: 24,
                 vertical: 12,
@@ -456,7 +457,7 @@ class _LivePageState extends State<LivePage> {
                         child: const Icon(
                           Icons.restaurant,
                           size: 32,
-                          color: Colors.grey,
+                          color: AppColors.textSecondary,
                         ),
                       ),
                     ),
@@ -504,7 +505,7 @@ class _LivePageState extends State<LivePage> {
                         child: Text(
                           offer.discount,
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.white,
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
                           ),
@@ -532,7 +533,7 @@ class _LivePageState extends State<LivePage> {
                                 child: Text(
                                   offer.restaurantName,
                                   style: const TextStyle(
-                                    color: Colors.white,
+                                    color: AppColors.white,
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -548,17 +549,17 @@ class _LivePageState extends State<LivePage> {
                                     vertical: 3,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.red.withOpacity(0.15),
+                                    color: AppColors.error.withOpacity(0.15),
                                     borderRadius: BorderRadius.circular(6),
                                     border: Border.all(
-                                      color: Colors.red.withOpacity(0.3),
+                                      color: AppColors.error.withOpacity(0.3),
                                       width: 1,
                                     ),
                                   ),
                                   child: Text(
                                     '${offer.remainingRedemptions}',
                                     style: const TextStyle(
-                                      color: Colors.red,
+                                      color: AppColors.error,
                                       fontSize: 9,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -571,7 +572,7 @@ class _LivePageState extends State<LivePage> {
                             Text(
                               offer.description,
                               style: TextStyle(
-                                color: Colors.grey[400],
+                                color: AppColors.textDisabled,
                                 fontSize: 12,
                               ),
                               maxLines: 1,
@@ -622,13 +623,13 @@ class _LivePageState extends State<LivePage> {
                           Icon(
                             Icons.location_on,
                             size: 14,
-                            color: Colors.grey[500],
+                            color: AppColors.textDisabled,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             '${offer.distance.toStringAsFixed(1)} km',
                             style: TextStyle(
-                              color: Colors.grey[400],
+                              color: AppColors.textDisabled,
                               fontSize: 11,
                             ),
                           ),
@@ -663,7 +664,7 @@ class _LivePageState extends State<LivePage> {
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.transparent,
-                                foregroundColor: Colors.white,
+                                foregroundColor: AppColors.white,
                                 shadowColor: Colors.transparent,
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 16,

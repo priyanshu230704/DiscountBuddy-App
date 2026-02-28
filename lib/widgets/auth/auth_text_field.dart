@@ -1,9 +1,10 @@
+import 'package:discount_buddy/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'auth_theme.dart';
 
-/// NeoTaste-style Auth Text Field - Minimal rounded input with placeholder only
+/// Discount Buddy-style Auth Text Field - Minimal rounded input with placeholder only
 class AuthTextField extends StatelessWidget {
   final TextEditingController? controller;
   final String? placeholder;
@@ -90,18 +91,18 @@ class AuthTextField extends StatelessWidget {
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AuthTheme.inputBorderRadius),
           borderSide: const BorderSide(
-            color: Colors.red,
+            color: AppColors.error,
             width: AuthTheme.inputBorderWidth,
           ),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AuthTheme.inputBorderRadius),
           borderSide: const BorderSide(
-            color: Colors.red,
+            color: AppColors.error,
             width: AuthTheme.inputBorderWidth,
           ),
         ),
-        errorStyle: GoogleFonts.inter(color: Colors.red, fontSize: 12),
+        errorStyle: GoogleFonts.inter(color: AppColors.error, fontSize: 12),
         suffixIcon: showToggle && onToggleVisibility != null
             ? IconButton(
                 icon: Icon(

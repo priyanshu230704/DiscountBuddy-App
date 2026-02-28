@@ -1,4 +1,4 @@
-/// Deal model for NeoTaste-style deals
+/// Deal model for Discount Buddy-style deals
 class Deal {
   final String id;
   final String restaurantId;

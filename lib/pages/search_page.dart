@@ -1,3 +1,4 @@
+import 'package:discount_buddy/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import '../models/restaurant.dart';
 import '../services/restaurant_service.dart';
@@ -95,7 +96,7 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppColors.textDisabled,
       body: CustomScrollView(
         slivers: [
           // Search App Bar
@@ -108,7 +109,7 @@ class _SearchPageState extends State<SearchPage> {
               title: const Text(
                 'Discover',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.white,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -142,7 +143,7 @@ class _SearchPageState extends State<SearchPage> {
                         )
                       : null,
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: AppColors.white,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(_SearchConstants.radiusMedium),
                     borderSide: BorderSide.none,
@@ -177,7 +178,7 @@ class _SearchPageState extends State<SearchPage> {
                       },
                       selectedColor: const Color(0xFF1A73E8),
                       labelStyle: TextStyle(
-                        color: isSelected ? Colors.white : Colors.black87,
+                        color: isSelected ? AppColors.white : AppColors.textPrimary87,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                       ),
                     ),
@@ -196,7 +197,7 @@ class _SearchPageState extends State<SearchPage> {
               child: Text(
                 '${_filteredRestaurants.length} restaurants found',
                 style: TextStyle(
-                  color: Colors.grey[600],
+                  color: AppColors.textDisabled,
                   fontSize: 14,
                 ),
               ),
@@ -216,14 +217,14 @@ class _SearchPageState extends State<SearchPage> {
                     Icon(
                       Icons.search_off,
                       size: 64,
-                      color: Colors.grey[400],
+                      color: AppColors.textDisabled,
                     ),
                     const SizedBox(height: 16),
                     Text(
                       'No restaurants found',
                       style: TextStyle(
                         fontSize: 18,
-                        color: Colors.grey[600],
+                        color: AppColors.textDisabled,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -231,7 +232,7 @@ class _SearchPageState extends State<SearchPage> {
                       'Try a different search term',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[500],
+                        color: AppColors.textDisabled,
                       ),
                     ),
                   ],

@@ -7,6 +7,7 @@ import '../../providers/theme_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../deals/redeem_offer_modal.dart';
 import '../../widgets/generic_bottom_sheet.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
 
 class BookingSelectionModal extends StatefulWidget {
   final Restaurant restaurant;
@@ -127,7 +128,7 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Booking confirmed! Ready to redeem offer.'),
-            backgroundColor: NeoTasteColors.accent,
+            backgroundColor: AppColors.primary,
           ),
         );
       }
@@ -165,7 +166,7 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                   'Select your preferred date and time',
                   style: GoogleFonts.inter(
                     fontSize: 14,
-                    color: NeoTasteColors.textSecondary,
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ),
@@ -191,13 +192,13 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                         margin: const EdgeInsets.symmetric(horizontal: 8),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? NeoTasteColors.accent
-                              : NeoTasteColors.background,
+                              ? AppColors.primary
+                              : AppColors.background,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: isSelected
-                                ? NeoTasteColors.accent
-                                : NeoTasteColors.textDisabled.withOpacity(0.3),
+                                ? AppColors.primary
+                                : AppColors.textDisabled.withOpacity(0.3),
                           ),
                         ),
                         child: Column(
@@ -209,8 +210,8 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                                 color: isSelected
-                                    ? NeoTasteColors.primary
-                                    : NeoTasteColors.textSecondary,
+                                    ? AppColors.textPrimary
+                                    : AppColors.textSecondary,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -220,8 +221,8 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                                 color: isSelected
-                                    ? NeoTasteColors.primary
-                                    : NeoTasteColors.textPrimary,
+                                    ? AppColors.textPrimary
+                                    : AppColors.textPrimary,
                               ),
                             ),
                           ],
@@ -244,7 +245,7 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                       style: GoogleFonts.inter(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: NeoTasteColors.textPrimary,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     Row(
@@ -281,7 +282,7 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                   style: GoogleFonts.inter(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: NeoTasteColors.textPrimary,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ),
@@ -292,7 +293,7 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                   child: Center(
                     child: Text(
                       'No available times for this day',
-                      style: GoogleFonts.inter(color: Colors.red),
+                      style: GoogleFonts.inter(color: AppColors.error),
                     ),
                   ),
                 )
@@ -313,21 +314,21 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                           ),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? NeoTasteColors.primary
-                                : NeoTasteColors.white,
+                                ? AppColors.textPrimary
+                                : AppColors.white,
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
                               color: isSelected
-                                  ? NeoTasteColors.primary
-                                  : NeoTasteColors.textDisabled,
+                                  ? AppColors.textPrimary
+                                  : AppColors.textDisabled,
                             ),
                           ),
                           child: Text(
                             time,
                             style: GoogleFonts.inter(
                               color: isSelected
-                                  ? NeoTasteColors.white
-                                  : NeoTasteColors.textPrimary,
+                                  ? AppColors.white
+                                  : AppColors.textPrimary,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -349,7 +350,7 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     filled: true,
-                    fillColor: NeoTasteColors.background,
+                    fillColor: AppColors.background,
                   ),
                   maxLines: 2,
                 ),
@@ -364,7 +365,7 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                   child: ElevatedButton(
                     onPressed: _isBooking ? null : _createBooking,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
+                      backgroundColor: AppColors.primary,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -376,7 +377,7 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                             width: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: Colors.white,
+                              color: AppColors.white,
                             ),
                           )
                         : Text(
@@ -384,7 +385,7 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                             style: GoogleFonts.inter(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: AppColors.white,
                             ),
                           ),
                   ),

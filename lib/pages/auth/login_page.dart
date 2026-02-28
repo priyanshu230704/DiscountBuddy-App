@@ -1,3 +1,4 @@
+import 'package:discount_buddy/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/auth/auth_theme.dart';
@@ -5,7 +6,7 @@ import '../../widgets/auth/auth_button.dart';
 import '../../widgets/auth/auth_text_field.dart';
 import 'register_page.dart';
 
-/// Login Screen - NeoTaste style
+/// Login Screen - Discount Buddy style
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -76,7 +77,7 @@ class _LoginPageState extends State<LoginPage> {
             _authProvider!.errorMessage!,
             style: AuthTheme.bodyText,
           ),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -188,21 +189,21 @@ class _LoginPageState extends State<LoginPage> {
                   Row(
                     children: [
                       Expanded(
-                        child: Divider(color: Colors.grey.withOpacity(0.3)),
+                        child: Divider(color: AppColors.textSecondary.withOpacity(0.3)),
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Text(
                           'OR',
                           style: TextStyle(
-                            color: Colors.grey,
+                            color: AppColors.textSecondary,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
                       Expanded(
-                        child: Divider(color: Colors.grey.withOpacity(0.3)),
+                        child: Divider(color: AppColors.textSecondary.withOpacity(0.3)),
                       ),
                     ],
                   ),
@@ -213,11 +214,11 @@ class _LoginPageState extends State<LoginPage> {
                     onPressed: _isLoading ? null : _handleGoogleLogin,
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      side: BorderSide(color: Colors.grey.shade300),
+                      side: BorderSide(color: AppColors.textSecondary),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      backgroundColor: Colors.white,
+                      backgroundColor: AppColors.white,
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -227,7 +228,7 @@ class _LoginPageState extends State<LoginPage> {
                         Text(
                           'G',
                           style: TextStyle(
-                            color: Colors.blue,
+                            color: AppColors.primary,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                             fontFamily: 'Roboto', // Google font usually
@@ -237,7 +238,7 @@ class _LoginPageState extends State<LoginPage> {
                         Text(
                           'Continue with Google',
                           style: TextStyle(
-                            color: Colors.black87,
+                            color: AppColors.textPrimary87,
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                           ),

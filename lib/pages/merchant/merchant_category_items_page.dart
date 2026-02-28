@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/merchant_service.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
 
 class MerchantCategoryItemsPage extends StatefulWidget {
   final int categoryId;
@@ -217,7 +218,7 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
             child: const Text('Delete'),
           ),
         ],
@@ -245,15 +246,15 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: NeoTasteColors.background,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
           widget.categoryName,
           style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: NeoTasteColors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(color: AppColors.textPrimary),
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
@@ -276,7 +277,7 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _addOrUpdateItem(),
-        backgroundColor: NeoTasteColors.accent,
+        backgroundColor: AppColors.primary,
         child: const Icon(Icons.add),
       ),
       body: _isLoading
@@ -298,7 +299,7 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
             Icon(
               Icons.restaurant_menu,
               size: 64,
-              color: NeoTasteColors.textDisabled,
+              color: AppColors.textDisabled,
             ),
             const SizedBox(height: 16),
             Text(
@@ -346,7 +347,7 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
                 Text(
                   '\$${item['price']}',
                   style: GoogleFonts.inter(
-                    color: NeoTasteColors.accent,
+                    color: AppColors.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -355,13 +356,13 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
                   spacing: 4,
                   children: [
                     if (item['is_vegetarian'] == true)
-                      _buildTag('Veg', Colors.green),
+                      _buildTag('Veg', AppColors.success),
                     if (item['is_vegan'] == true)
-                      _buildTag('Vegan', Colors.green),
+                      _buildTag('Vegan', AppColors.success),
                     if (item['is_gluten_free'] == true)
-                      _buildTag('GF', Colors.orange),
+                      _buildTag('GF', AppColors.accent),
                     if (item['is_available'] == false)
-                      _buildTag('Unavailable', Colors.grey),
+                      _buildTag('Unavailable', AppColors.textSecondary),
                   ],
                 ),
               ],
@@ -370,11 +371,11 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.blue),
+                  icon: const Icon(Icons.edit, color: AppColors.primary),
                   onPressed: () => _addOrUpdateItem(existingItem: item),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
+                  icon: const Icon(Icons.delete, color: AppColors.error),
                   onPressed: () => _deleteItem(item),
                 ),
               ],

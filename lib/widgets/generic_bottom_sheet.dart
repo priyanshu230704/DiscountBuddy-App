@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../providers/theme_provider.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
 
 class GenericBottomSheet extends StatelessWidget {
   final String title;
@@ -28,7 +29,7 @@ class GenericBottomSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: NeoTasteColors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: SafeArea(
@@ -42,7 +43,7 @@ class GenericBottomSheet extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: NeoTasteColors.textDisabled,
+                  color: AppColors.textDisabled,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -60,7 +61,7 @@ class GenericBottomSheet extends StatelessWidget {
                           style: GoogleFonts.inter(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: NeoTasteColors.textPrimary,
+                            color: AppColors.textPrimary,
                           ),
                         ),
                       )
@@ -71,7 +72,7 @@ class GenericBottomSheet extends StatelessWidget {
                       IconButton(
                         icon: const Icon(Icons.close),
                         onPressed: onClose ?? () => Navigator.pop(context),
-                        color: NeoTasteColors.textPrimary,
+                        color: AppColors.textPrimary,
                       ),
                   ],
                 ),

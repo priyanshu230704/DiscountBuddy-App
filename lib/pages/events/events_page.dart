@@ -1,3 +1,4 @@
+import 'package:discount_buddy/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
@@ -139,7 +140,7 @@ class _EventsPageState extends State<EventsPage> {
                           child: const Text(
                             'Comedy events',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: AppColors.white,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -190,7 +191,7 @@ class _EventsPageState extends State<EventsPage> {
                           child: const Text(
                             'Explore events',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: AppColors.white,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
@@ -263,7 +264,7 @@ class _EventsPageState extends State<EventsPage> {
                           child: Icon(
                             Icons.event,
                             size: 32,
-                            color: Colors.grey[700],
+                            color: AppColors.textDisabled,
                           ),
                         ),
                       ),
@@ -273,7 +274,7 @@ class _EventsPageState extends State<EventsPage> {
                           child: Icon(
                             Icons.event,
                             size: 32,
-                            color: Colors.grey[700],
+                            color: AppColors.textDisabled,
                           ),
                         ),
                       ),
@@ -288,7 +289,7 @@ class _EventsPageState extends State<EventsPage> {
                           end: Alignment.bottomCenter,
                           colors: [
                             Colors.transparent,
-                            Colors.black.withOpacity(0.4),
+                            AppColors.textPrimary.withOpacity(0.4),
                           ],
                         ),
                       ),
@@ -301,12 +302,12 @@ class _EventsPageState extends State<EventsPage> {
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
+                        color: AppColors.textPrimary.withOpacity(0.5),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
                         Icons.bookmark_border,
-                        color: Colors.white,
+                        color: AppColors.white,
                         size: 16,
                       ),
                     ),
@@ -328,7 +329,7 @@ class _EventsPageState extends State<EventsPage> {
                       child: Text(
                         event.title,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: AppColors.white,
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           height: 1.2,
@@ -344,14 +345,14 @@ class _EventsPageState extends State<EventsPage> {
                         Icon(
                           Icons.location_on,
                           size: 12,
-                          color: Colors.grey[500],
+                          color: AppColors.textDisabled,
                         ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             event.location,
                             style: TextStyle(
-                              color: Colors.grey[400],
+                              color: AppColors.textDisabled,
                               fontSize: 10,
                             ),
                             maxLines: 1,
@@ -367,14 +368,14 @@ class _EventsPageState extends State<EventsPage> {
                         Icon(
                           Icons.calendar_today,
                           size: 12,
-                          color: Colors.grey[500],
+                          color: AppColors.textDisabled,
                         ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             fullDate,
                             style: TextStyle(
-                              color: Colors.grey[400],
+                              color: AppColors.textDisabled,
                               fontSize: 10,
                             ),
                             maxLines: 1,
@@ -416,7 +417,7 @@ class _EventsPageState extends State<EventsPage> {
               child: Text(
               category.name,
               style: const TextStyle(
-                color: Colors.white,
+                color: AppColors.white,
                   fontSize: 10,
                   fontWeight: FontWeight.w500,
               ),

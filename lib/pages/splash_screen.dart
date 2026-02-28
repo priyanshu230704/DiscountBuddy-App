@@ -1,3 +1,4 @@
+import 'package:discount_buddy/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -126,7 +127,7 @@ class _SplashScreenState extends State<SplashScreen>
                                 height: 140,
                                 padding: const EdgeInsets.all(18),
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: AppColors.white,
                                   borderRadius: BorderRadius.circular(34),
                                   boxShadow: [
                                     BoxShadow(
@@ -145,7 +146,7 @@ class _SplashScreenState extends State<SplashScreen>
                                     ),
                                   ],
                                   border: Border.all(
-                                    color: Colors.black.withOpacity(0.05),
+                                    color: AppColors.textPrimary.withOpacity(0.05),
                                   ),
                                 ),
                                 child: Image.asset(
@@ -195,14 +196,14 @@ class _SplashScreenState extends State<SplashScreen>
                               vertical: 10,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: AppColors.white,
                               borderRadius: BorderRadius.circular(18),
                               border: Border.all(
-                                color: Colors.black.withOpacity(0.05),
+                                color: AppColors.textPrimary.withOpacity(0.05),
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
+                                  color: AppColors.textPrimary.withOpacity(0.05),
                                   blurRadius: 16,
                                   offset: const Offset(0, 10),
                                 ),

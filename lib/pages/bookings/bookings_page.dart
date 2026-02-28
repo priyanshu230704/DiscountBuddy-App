@@ -6,6 +6,7 @@ import '../../models/deal_redemption.dart';
 import '../../services/restaurant_service.dart';
 import '../restaurant_details_page.dart';
 import 'user_bookings_page.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
 
 /// Bookings/Redemptions Screen - Integrated with deal uses API
 class BookingsPage extends StatefulWidget {
@@ -82,19 +83,19 @@ class _BookingsPageState extends State<BookingsPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: NeoTasteColors.white,
+      backgroundColor: AppColors.white,
       appBar: AppBar(
         title: Text(
           'My Activity',
           style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: NeoTasteColors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
         bottom: TabBar(
           controller: _tabController,
-          labelColor: Colors.green,
-          unselectedLabelColor: NeoTasteColors.textSecondary,
-          indicatorColor: Colors.green,
+          labelColor: AppColors.primary,
+          unselectedLabelColor: AppColors.textSecondary,
+          indicatorColor: AppColors.primary,
           indicatorWeight: 3,
           labelStyle: GoogleFonts.inter(
             fontSize: 14,
@@ -109,7 +110,9 @@ class _BookingsPageState extends State<BookingsPage>
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.green))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            )
           : TabBarView(
               controller: _tabController,
               children: [
@@ -157,14 +160,12 @@ class _RedemptionList extends StatelessWidget {
                   Icon(
                     Icons.local_offer_outlined,
                     size: 64,
-                    color: NeoTasteColors.textDisabled,
+                    color: AppColors.textDisabled,
                   ),
                   const SizedBox(height: 16),
                   Text(
                     emptyMessage,
-                    style: GoogleFonts.inter(
-                      color: NeoTasteColors.textSecondary,
-                    ),
+                    style: GoogleFonts.inter(color: AppColors.textSecondary),
                   ),
                 ],
               ),
@@ -197,12 +198,12 @@ class _RedemptionCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: NeoTasteColors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: NeoTasteColors.textDisabled.withOpacity(0.3)),
+        border: Border.all(color: AppColors.textDisabled.withOpacity(0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColors.textPrimary.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -228,7 +229,7 @@ class _RedemptionCard extends StatelessWidget {
                           style: GoogleFonts.inter(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: NeoTasteColors.textPrimary,
+                            color: AppColors.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -236,7 +237,7 @@ class _RedemptionCard extends StatelessWidget {
                           redemption.deal.title,
                           style: GoogleFonts.inter(
                             fontSize: 14,
-                            color: NeoTasteColors.textSecondary,
+                            color: AppColors.textSecondary,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -255,13 +256,13 @@ class _RedemptionCard extends StatelessWidget {
                   Icon(
                     Icons.calendar_today,
                     size: 16,
-                    color: NeoTasteColors.textSecondary,
+                    color: AppColors.textSecondary,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'Used: ${DateFormat('MMM d, yyyy HH:mm').format(redemption.usedAt)}',
                     style: GoogleFonts.inter(
-                      color: NeoTasteColors.textSecondary,
+                      color: AppColors.textSecondary,
                       fontSize: 13,
                     ),
                   ),
@@ -274,13 +275,13 @@ class _RedemptionCard extends StatelessWidget {
                     Icon(
                       Icons.qr_code,
                       size: 16,
-                      color: NeoTasteColors.textSecondary,
+                      color: AppColors.textSecondary,
                     ),
                     const SizedBox(width: 8),
                     Text(
                       'Code: ${redemption.redemptionCode}',
                       style: GoogleFonts.inter(
-                        color: NeoTasteColors.textPrimary,
+                        color: AppColors.textPrimary,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         letterSpacing: 1,
@@ -314,7 +315,7 @@ class _RedemptionDetailModal extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: NeoTasteColors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
@@ -333,7 +334,7 @@ class _RedemptionDetailModal extends StatelessWidget {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: NeoTasteColors.textDisabled,
+                    color: AppColors.textDisabled,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -372,12 +373,10 @@ class _RedemptionDetailModal extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: AppColors.white,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
-                                color: NeoTasteColors.textDisabled.withOpacity(
-                                  0.2,
-                                ),
+                                color: AppColors.textDisabled.withOpacity(0.2),
                               ),
                             ),
                             child: Image.network(
@@ -395,7 +394,7 @@ class _RedemptionDetailModal extends StatelessWidget {
                               errorBuilder: (_, __, ___) => const Icon(
                                 Icons.broken_image,
                                 size: 64,
-                                color: Colors.grey,
+                                color: AppColors.textSecondary,
                               ),
                             ),
                           ),
@@ -514,7 +513,7 @@ class _DetailRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: NeoTasteColors.textSecondary),
+        Icon(icon, size: 20, color: AppColors.textSecondary),
         const SizedBox(width: 16),
         Expanded(
           child: Column(
@@ -524,7 +523,7 @@ class _DetailRow extends StatelessWidget {
                 label,
                 style: GoogleFonts.inter(
                   fontSize: 12,
-                  color: NeoTasteColors.textDisabled,
+                  color: AppColors.textDisabled,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -532,7 +531,7 @@ class _DetailRow extends StatelessWidget {
                 value,
                 style: GoogleFonts.inter(
                   fontSize: 16,
-                  color: NeoTasteColors.textPrimary,
+                  color: AppColors.textPrimary,
                 ),
               ),
             ],
@@ -553,7 +552,7 @@ class _StatusBadge extends StatelessWidget {
     // If restaurant_confirmed is true -> Confirmed (Green)
     // If false -> Pending/Active (Orange)
 
-    final color = isConfirmed ? Colors.green : Colors.orange;
+    final color = isConfirmed ? AppColors.success : AppColors.accent;
     final text = isConfirmed ? 'Confirmed' : 'Active';
 
     return Container(

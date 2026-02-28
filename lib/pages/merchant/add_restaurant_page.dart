@@ -4,6 +4,7 @@ import '../../providers/theme_provider.dart';
 import '../../widgets/auth/auth_text_field.dart';
 import '../../services/merchant_service.dart';
 import 'merchant_menu_page.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
 
 /// Add/Edit Restaurant Page for Merchants
 class AddRestaurantPage extends StatefulWidget {
@@ -107,14 +108,14 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
               child: Material(
                 elevation: 8,
                 borderRadius: BorderRadius.circular(12),
-                shadowColor: Colors.black.withOpacity(0.3),
+                shadowColor: AppColors.textPrimary.withOpacity(0.3),
                 child: Container(
                   constraints: const BoxConstraints(maxHeight: 250),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.white,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: NeoTasteColors.textDisabled.withOpacity(0.2),
+                      color: AppColors.textDisabled.withOpacity(0.2),
                     ),
                   ),
                   child: Column(
@@ -127,7 +128,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                             children: [
                               Icon(
                                 Icons.search_off,
-                                color: NeoTasteColors.textDisabled,
+                                color: AppColors.textDisabled,
                                 size: 32,
                               ),
                               const SizedBox(height: 8),
@@ -137,7 +138,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                                     : 'No cities found for "${_cityController.text}"',
                                 textAlign: TextAlign.center,
                                 style: GoogleFonts.inter(
-                                  color: NeoTasteColors.textSecondary,
+                                  color: AppColors.textSecondary,
                                   fontSize: 14,
                                 ),
                               ),
@@ -152,7 +153,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                             itemCount: _filteredCities.length,
                             separatorBuilder: (context, index) => Divider(
                               height: 1,
-                              color: NeoTasteColors.textDisabled.withOpacity(
+                              color: AppColors.textDisabled.withOpacity(
                                 0.1,
                               ),
                             ),
@@ -164,14 +165,14 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                                 leading: const Icon(
                                   Icons.location_city,
                                   size: 20,
-                                  color: NeoTasteColors.accent,
+                                  color: AppColors.primary,
                                 ),
                                 title: Text(
                                   cityName,
                                   style: GoogleFonts.inter(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w500,
-                                    color: NeoTasteColors.textPrimary,
+                                    color: AppColors.textPrimary,
                                   ),
                                 ),
                                 onTap: () {
@@ -240,7 +241,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to load reference data: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -359,7 +360,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Restaurant updated successfully'),
-              backgroundColor: Colors.green,
+              backgroundColor: AppColors.success,
             ),
           );
           Navigator.pop(context, true);
@@ -371,7 +372,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Restaurant created successfully'),
-              backgroundColor: Colors.green,
+              backgroundColor: AppColors.success,
             ),
           );
           Navigator.pop(context, true);
@@ -382,7 +383,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to save restaurant: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -398,13 +399,13 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: NeoTasteColors.background,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
           widget.restaurant != null ? 'Edit Restaurant' : 'Add Restaurant',
           style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: NeoTasteColors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
         actions: widget.restaurant != null
             ? [
@@ -445,7 +446,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                           TextButton(
                             onPressed: () => Navigator.pop(context, true),
                             style: TextButton.styleFrom(
-                              foregroundColor: Colors.red,
+                              foregroundColor: AppColors.error,
                             ),
                             child: const Text('Delete'),
                           ),
@@ -470,7 +471,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                               content: Text(
                                 'Failed to delete: ${e.toString()}',
                               ),
-                              backgroundColor: Colors.red,
+                              backgroundColor: AppColors.error,
                             ),
                           );
                         }
@@ -751,8 +752,8 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _saveRestaurant,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: NeoTasteColors.accent,
-                          foregroundColor: NeoTasteColors.primary,
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: AppColors.textPrimary,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -764,7 +765,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                    NeoTasteColors.primary,
+                                    AppColors.textPrimary,
                                   ),
                                 ),
                               )
@@ -795,7 +796,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
         style: GoogleFonts.inter(
           fontSize: 18,
           fontWeight: FontWeight.bold,
-          color: NeoTasteColors.textPrimary,
+          color: AppColors.textPrimary,
         ),
       ),
     );

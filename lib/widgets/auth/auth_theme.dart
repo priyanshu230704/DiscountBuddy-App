@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../providers/theme_provider.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
 
-/// NeoTaste Auth Theme - Centralized styling for authentication screens
+/// Discount Buddy Auth Theme - Centralized styling for authentication screens
 class AuthTheme {
-  // Colors - Using NeoTaste light theme colors
-  static const Color background = NeoTasteColors.background; // Light Grey #F6F6F6
-  static const Color accent = NeoTasteColors.accent; // NeoTaste Yellow
-  static const Color textPrimary = NeoTasteColors.textPrimary; // Black
-  static const Color textSecondary = NeoTasteColors.textSecondary; // Grey
-  static const Color textGrey = NeoTasteColors.textDisabled; // Light Grey
+  // Colors - Using Discount Buddy light theme colors
+  static const Color background = AppColors.background; // Light Grey #F6F6F6
+  static const Color accent = AppColors.primary; // Discount Buddy Yellow
+  static const Color textPrimary = AppColors.textPrimary; // Black
+  static const Color textSecondary = AppColors.textSecondary; // Grey
+  static const Color textGrey = AppColors.textDisabled; // Light Grey
   
   // Button Styles
   static const double buttonHeight = 56.0;

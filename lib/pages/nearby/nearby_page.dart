@@ -16,6 +16,7 @@ import '../../widgets/city_selector_modal.dart';
 import '../../widgets/filter_modal.dart';
 import '../../widgets/generic_bottom_sheet.dart';
 import '../../widgets/occupancy_tag.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
 
 class NearbyPage extends StatefulWidget {
   const NearbyPage({super.key});
@@ -328,7 +329,7 @@ class _NearbyPageState extends State<NearbyPage>
     final Offset topCenter = Offset(s / 2, s * 0.42);
 
     final shadowPaint = Paint()
-      ..color = Colors.black.withOpacity(selected ? 0.30 : 0.18)
+      ..color = AppColors.textPrimary.withOpacity(selected ? 0.30 : 0.18)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 16);
 
     canvas.drawOval(
@@ -377,7 +378,7 @@ class _NearbyPageState extends State<NearbyPage>
     final innerCirclePaint = Paint()..color = const Color(0xFF0D0F12);
     canvas.drawCircle(topCenter, topRadius * 0.75, innerCirclePaint);
 
-    final borderPaint = Paint()..color = Colors.white;
+    final borderPaint = Paint()..color = AppColors.white;
     canvas.drawCircle(topCenter, topRadius * 0.62, borderPaint);
 
     canvas.drawCircle(topCenter, topRadius * 0.54, innerCirclePaint);
@@ -388,7 +389,7 @@ class _NearbyPageState extends State<NearbyPage>
         style: TextStyle(
           fontSize: selected ? s * 0.19 : s * 0.175,
           fontWeight: FontWeight.w900,
-          color: Colors.white,
+          color: AppColors.white,
           letterSpacing: 2.0,
         ),
       ),
@@ -437,12 +438,12 @@ class _NearbyPageState extends State<NearbyPage>
     final center = const Offset(size / 2, size / 2);
 
     final shadowPaint = Paint()
-      ..color = Colors.black.withOpacity(0.18)
+      ..color = AppColors.textPrimary.withOpacity(0.18)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
 
     canvas.drawCircle(center.translate(0, 4), size * 0.30, shadowPaint);
 
-    final borderPaint = Paint()..color = Colors.white;
+    final borderPaint = Paint()..color = AppColors.white;
     canvas.drawCircle(center, size * 0.24, borderPaint);
 
     final fillPaint = Paint()..color = const Color(0xFF2F80ED);
@@ -583,7 +584,7 @@ class _NearbyPageState extends State<NearbyPage>
                         style: GoogleFonts.inter(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: Colors.black54,
+                          color: AppColors.textPrimary54,
                         ),
                       ),
                     ),
@@ -599,7 +600,7 @@ class _NearbyPageState extends State<NearbyPage>
                               style: GoogleFonts.inter(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
-                                color: Colors.black54,
+                                color: AppColors.textPrimary54,
                               ),
                             ),
                           )
@@ -630,15 +631,15 @@ class _NearbyPageState extends State<NearbyPage>
                                   margin: const EdgeInsets.only(bottom: 12),
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
+                                    color: AppColors.white,
                                     borderRadius: BorderRadius.circular(18),
                                     border: Border.all(
-                                      color: Colors.black.withOpacity(0.06),
+                                      color: AppColors.textPrimary.withOpacity(0.06),
                                     ),
                                     boxShadow: [
                                       BoxShadow(
                                         blurRadius: 14,
-                                        color: Colors.black.withOpacity(0.06),
+                                        color: AppColors.textPrimary.withOpacity(0.06),
                                         offset: const Offset(0, 6),
                                       ),
                                     ],
@@ -655,12 +656,12 @@ class _NearbyPageState extends State<NearbyPage>
                                           placeholder: (_, _) => Container(
                                             width: 62,
                                             height: 62,
-                                            color: Colors.grey.shade200,
+                                            color: AppColors.textSecondary,
                                           ),
                                           errorWidget: (_, _, _) => Container(
                                             width: 62,
                                             height: 62,
-                                            color: Colors.grey.shade200,
+                                            color: AppColors.textSecondary,
                                             child: const Icon(Icons.restaurant),
                                           ),
                                         ),
@@ -678,7 +679,7 @@ class _NearbyPageState extends State<NearbyPage>
                                               style: GoogleFonts.inter(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.w900,
-                                                color: Colors.black,
+                                                color: AppColors.textPrimary,
                                               ),
                                             ),
                                             const SizedBox(height: 6),
@@ -689,7 +690,7 @@ class _NearbyPageState extends State<NearbyPage>
                                               style: GoogleFonts.inter(
                                                 fontSize: 13,
                                                 fontWeight: FontWeight.w600,
-                                                color: Colors.black54,
+                                                color: AppColors.textPrimary54,
                                               ),
                                             ),
                                           ],
@@ -697,7 +698,7 @@ class _NearbyPageState extends State<NearbyPage>
                                       ),
                                       const Icon(
                                         Icons.chevron_right,
-                                        color: Colors.black54,
+                                        color: AppColors.textPrimary54,
                                       ),
                                     ],
                                   ),
@@ -719,7 +720,7 @@ class _NearbyPageState extends State<NearbyPage>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      backgroundColor: NeoTasteColors.background,
+      backgroundColor: AppColors.background,
       body: Stack(
         children: [
           MapWidget(
@@ -807,7 +808,7 @@ class _NearbyPageState extends State<NearbyPage>
 
           if (!_isMapReady)
             Container(
-              color: NeoTasteColors.background,
+              color: AppColors.background,
               child: const Center(
                 child: CircularProgressIndicator(color: Color(0xFF2F80ED)),
               ),
@@ -894,7 +895,7 @@ class _NearbyPageState extends State<NearbyPage>
                     style: GoogleFonts.inter(
                       fontSize: cityFontSize,
                       fontWeight: FontWeight.w900,
-                      color: Colors.black,
+                      color: AppColors.textPrimary,
                       height: 1.0,
                     ),
                   ),
@@ -913,14 +914,14 @@ class _NearbyPageState extends State<NearbyPage>
           ),
           child: Row(
             children: [
-              const Icon(Icons.card_giftcard, color: Colors.white, size: 18),
+              const Icon(Icons.card_giftcard, color: AppColors.white, size: 18),
               const SizedBox(width: 8),
               Text(
                 "Get €10",
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w800,
-                  color: Colors.white,
+                  color: AppColors.white,
                 ),
               ),
             ],
@@ -937,7 +938,7 @@ class _NearbyPageState extends State<NearbyPage>
           borderRadius: BorderRadius.circular(24),
           child: const Padding(
             padding: EdgeInsets.all(6.0),
-            child: Icon(Icons.search, size: 28, color: Colors.black),
+            child: Icon(Icons.search, size: 28, color: AppColors.textPrimary),
           ),
         ),
       ],
@@ -948,7 +949,7 @@ class _NearbyPageState extends State<NearbyPage>
     return Row(
       children: [
         IconButton(
-          icon: const Icon(Icons.arrow_back, size: 26, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, size: 26, color: AppColors.textPrimary),
           onPressed: () {
             _searchController.clear();
             _searchFocusNode.unfocus();
@@ -960,19 +961,19 @@ class _NearbyPageState extends State<NearbyPage>
             height: 46,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.white,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
                   blurRadius: 14,
-                  color: Colors.black.withOpacity(0.08),
+                  color: AppColors.textPrimary.withOpacity(0.08),
                   offset: const Offset(0, 6),
                 ),
               ],
             ),
             child: Row(
               children: [
-                const Icon(Icons.search, size: 20, color: Colors.black54),
+                const Icon(Icons.search, size: 20, color: AppColors.textPrimary54),
                 const SizedBox(width: 10),
                 Expanded(
                   child: TextField(
@@ -1046,12 +1047,12 @@ class _NearbyPageState extends State<NearbyPage>
     return Container(
       height: 40,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
             blurRadius: 18,
-            color: Colors.black.withOpacity(0.10),
+            color: AppColors.textPrimary.withOpacity(0.10),
             offset: const Offset(0, 10),
           ),
         ],
@@ -1064,14 +1065,14 @@ class _NearbyPageState extends State<NearbyPage>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 18, color: Colors.black),
+              Icon(icon, size: 18, color: AppColors.textPrimary),
               const SizedBox(width: 8),
               Text(
                 label,
                 style: GoogleFonts.inter(
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
-                  color: Colors.black,
+                  color: AppColors.textPrimary,
                 ),
               ),
             ],
@@ -1086,12 +1087,12 @@ class _NearbyPageState extends State<NearbyPage>
       width: 40,
       height: 40,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
             blurRadius: 18,
-            color: Colors.black.withOpacity(0.10),
+            color: AppColors.textPrimary.withOpacity(0.10),
             offset: const Offset(0, 10),
           ),
         ],
@@ -1101,7 +1102,7 @@ class _NearbyPageState extends State<NearbyPage>
         child: InkWell(
           onTap: _centerMapOnLocation,
           borderRadius: BorderRadius.circular(60),
-          child: const Icon(Icons.navigation, size: 20, color: Colors.black),
+          child: const Icon(Icons.navigation, size: 20, color: AppColors.textPrimary),
         ),
       ),
     );
@@ -1116,12 +1117,12 @@ class _NearbyPageState extends State<NearbyPage>
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.98),
+          color: AppColors.white.withOpacity(0.98),
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
               blurRadius: 22,
-              color: Colors.black.withOpacity(0.18),
+              color: AppColors.textPrimary.withOpacity(0.18),
               offset: const Offset(0, 10),
             ),
           ],
@@ -1138,7 +1139,7 @@ class _NearbyPageState extends State<NearbyPage>
                 placeholder: (_, _) => Container(
                   width: 90,
                   height: 90,
-                  color: Colors.grey.shade200,
+                  color: AppColors.textSecondary,
                   child: const Center(
                     child: CircularProgressIndicator(strokeWidth: 2),
                   ),
@@ -1146,7 +1147,7 @@ class _NearbyPageState extends State<NearbyPage>
                 errorWidget: (_, _, _) => Container(
                   width: 90,
                   height: 90,
-                  color: Colors.grey.shade200,
+                  color: AppColors.textSecondary,
                   child: const Icon(Icons.restaurant),
                 ),
               ),
@@ -1165,7 +1166,7 @@ class _NearbyPageState extends State<NearbyPage>
                           style: GoogleFonts.inter(
                             fontSize: 20,
                             fontWeight: FontWeight.w900,
-                            color: Colors.black,
+                            color: AppColors.textPrimary,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -1181,14 +1182,14 @@ class _NearbyPageState extends State<NearbyPage>
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.star, size: 18, color: Colors.green),
+                      const Icon(Icons.star, size: 18, color: AppColors.success),
                       const SizedBox(width: 6),
                       Text(
                         "${restaurant.rating.toStringAsFixed(1)} (${restaurant.reviewCount})",
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: Colors.black,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -1197,7 +1198,7 @@ class _NearbyPageState extends State<NearbyPage>
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: Colors.black54,
+                          color: AppColors.textPrimary54,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -1207,7 +1208,7 @@ class _NearbyPageState extends State<NearbyPage>
                           style: GoogleFonts.inter(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: Colors.black54,
+                            color: AppColors.textPrimary54,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -1234,7 +1235,7 @@ class _NearbyPageState extends State<NearbyPage>
                           style: GoogleFonts.inter(
                             fontSize: 14,
                             fontWeight: FontWeight.w800,
-                            color: Colors.black,
+                            color: AppColors.textPrimary,
                           ),
                         ),
                       );
@@ -1253,12 +1254,12 @@ class _NearbyPageState extends State<NearbyPage>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.95),
+        color: AppColors.white.withOpacity(0.95),
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
             blurRadius: 18,
-            color: Colors.black.withOpacity(0.10),
+            color: AppColors.textPrimary.withOpacity(0.10),
             offset: const Offset(0, 8),
           ),
         ],
@@ -1277,7 +1278,7 @@ class _NearbyPageState extends State<NearbyPage>
             style: GoogleFonts.inter(
               fontSize: 13,
               fontWeight: FontWeight.w700,
-              color: Colors.black,
+              color: AppColors.textPrimary,
             ),
           ),
         ],

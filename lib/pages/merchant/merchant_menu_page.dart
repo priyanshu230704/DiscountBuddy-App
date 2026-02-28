@@ -5,6 +5,7 @@ import '../../services/merchant_service.dart';
 import '../../widgets/skeleton_loader.dart';
 
 import 'merchant_category_items_page.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
 
 class MerchantMenuPage extends StatefulWidget {
   final int restaurantId;
@@ -209,7 +210,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
             child: const Text('Delete'),
           ),
         ],
@@ -233,13 +234,13 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: NeoTasteColors.background,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
           'Menu: ${widget.restaurantName}',
           style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: NeoTasteColors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
         actions: [
           PopupMenuButton<String>(
@@ -313,7 +314,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.menu_book, size: 64, color: NeoTasteColors.textDisabled),
+          Icon(Icons.menu_book, size: 64, color: AppColors.textDisabled),
           const SizedBox(height: 16),
           Text(
             'No menu categories yet',
@@ -323,7 +324,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
           ElevatedButton(
             onPressed: _addCategory,
             style: ElevatedButton.styleFrom(
-              backgroundColor: NeoTasteColors.accent,
+              backgroundColor: AppColors.primary,
             ),
             child: const Text('Add Category'),
           ),
@@ -354,10 +355,10 @@ class _CategoryCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: NeoTasteColors.white,
+          color: AppColors.white,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5),
+            BoxShadow(color: AppColors.textPrimary.withOpacity(0.05), blurRadius: 5),
           ],
         ),
         child: Row(
@@ -381,7 +382,7 @@ class _CategoryCard extends StatelessWidget {
                       child: Text(
                         category['description'],
                         style: GoogleFonts.inter(
-                          color: NeoTasteColors.textSecondary,
+                          color: AppColors.textSecondary,
                           fontSize: 12,
                         ),
                       ),
@@ -389,7 +390,7 @@ class _CategoryCard extends StatelessWidget {
                   Text(
                     '${category['items_count'] ?? 0} items',
                     style: GoogleFonts.inter(
-                      color: NeoTasteColors.accent,
+                      color: AppColors.primary,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -401,11 +402,11 @@ class _CategoryCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.blue),
+                  icon: const Icon(Icons.edit, color: AppColors.primary),
                   onPressed: onEdit,
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete_outline, color: Colors.grey),
+                  icon: const Icon(Icons.delete_outline, color: AppColors.textSecondary),
                   onPressed: onDelete,
                 ),
               ],

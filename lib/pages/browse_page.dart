@@ -1,3 +1,4 @@
+import 'package:discount_buddy/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -163,7 +164,7 @@ class _BrowsePageState extends State<BrowsePage> {
                           child: const Icon(
                             Icons.tune,
                             size: 20,
-                            color: Colors.grey,
+                            color: AppColors.textSecondary,
                           ),
                         ),
                       ),
@@ -187,7 +188,7 @@ class _BrowsePageState extends State<BrowsePage> {
                 backgroundColor: const Color(
                   0xFF34A853,
                 ), // Green like Tastecard
-                child: const Icon(Icons.map, color: Colors.white),
+                child: const Icon(Icons.map, color: AppColors.white),
               ),
             )
           else
@@ -197,7 +198,7 @@ class _BrowsePageState extends State<BrowsePage> {
               child: FloatingActionButton(
                 onPressed: _toggleView,
                 backgroundColor: const Color(0xFF34A853),
-                child: const Icon(Icons.list, color: Colors.white),
+                child: const Icon(Icons.list, color: AppColors.white),
               ),
             ),
         ],
@@ -215,11 +216,11 @@ class _BrowsePageState extends State<BrowsePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.search_off, size: 64, color: Colors.grey[400]),
+            Icon(Icons.search_off, size: 64, color: AppColors.textDisabled),
             const SizedBox(height: 16),
             Text(
               'No restaurants found',
-              style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+              style: TextStyle(fontSize: 18, color: AppColors.textDisabled),
             ),
           ],
         ),
@@ -310,12 +311,12 @@ class _BrowsePageState extends State<BrowsePage> {
                           placeholder: (context, url) => Container(
                             width: 120,
                             height: 120,
-                            color: Colors.grey[300],
+                            color: AppColors.textDisabled,
                           ),
                           errorWidget: (context, url, error) => Container(
                             width: 120,
                             height: 120,
-                            color: Colors.grey[300],
+                            color: AppColors.textDisabled,
                             child: const Icon(Icons.restaurant),
                           ),
                         ),
@@ -342,7 +343,7 @@ class _BrowsePageState extends State<BrowsePage> {
                                 child: Text(
                                   _filteredRestaurants[0].discount.displayText,
                                   style: const TextStyle(
-                                    color: Colors.white,
+                                    color: AppColors.white,
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -363,7 +364,7 @@ class _BrowsePageState extends State<BrowsePage> {
                                 _filteredRestaurants[0].address,
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: Colors.grey[600],
+                                  color: AppColors.textDisabled,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -379,7 +380,7 @@ class _BrowsePageState extends State<BrowsePage> {
                                     : 'Mon - Sun',
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: Colors.grey[600],
+                                  color: AppColors.textDisabled,
                                 ),
                               ),
                             ],

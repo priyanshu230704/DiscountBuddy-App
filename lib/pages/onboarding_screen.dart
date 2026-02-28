@@ -1,3 +1,4 @@
+import 'package:discount_buddy/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import '../services/onboarding_service.dart';
 import 'auth/login_page.dart';
@@ -79,11 +80,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.white,
       body: Stack(
         children: [
           // Background color
-          Positioned.fill(child: Container(color: Colors.white)),
+          Positioned.fill(child: Container(color: AppColors.white)),
           // Main Content
           Column(
             children: [
@@ -104,16 +105,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   left: _OnboardingConstants.paddingLarge,
                   right: _OnboardingConstants.paddingLarge,
                   top: _OnboardingConstants.paddingXLarge,
-                  bottom: MediaQuery.of(context).padding.bottom+_OnboardingConstants.paddingXLarge,
+                  bottom:
+                      MediaQuery.of(context).padding.bottom +
+                      _OnboardingConstants.paddingXLarge,
                 ),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.white.withOpacity(0.0),
-                      Colors.white.withOpacity(0.9),
-                      Colors.white,
+                      AppColors.white.withOpacity(0.0),
+                      AppColors.white.withOpacity(0.9),
+                      AppColors.white,
                     ],
                   ),
                 ),
@@ -136,7 +139,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         Text(
                           "Don't have an account? ",
                           style: TextStyle(
-                            color: Colors.black.withOpacity(0.7),
+                            color: AppColors.textPrimary.withOpacity(0.7),
                             fontSize: 14,
                           ),
                         ),
@@ -151,7 +154,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           child: const Text(
                             "Register",
                             style: TextStyle(
-                              color: Color(0xFF4CAF50),
+                              color: AppColors.primary,
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
@@ -174,7 +177,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: Text(
                   'Skip',
                   style: TextStyle(
-                    color: Colors.black.withOpacity(0.7),
+                    color: AppColors.textPrimary.withOpacity(0.7),
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                   ),
@@ -210,7 +213,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Text(
             pageData.title,
             style: const TextStyle(
-              color: Colors.black,
+              color: AppColors.textPrimary,
               fontSize: 28,
               fontWeight: FontWeight.bold,
               height: 1.3,
@@ -223,7 +226,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Text(
             pageData.description,
             style: TextStyle(
-              color: Colors.black.withOpacity(0.7),
+              color: AppColors.textPrimary.withOpacity(0.7),
               fontSize: 16,
               height: 1.6,
             ),
@@ -243,13 +246,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       height: 8,
       decoration: BoxDecoration(
         color: isActive
-            ? const Color(0xFF4CAF50)
-            : Colors.black.withOpacity(0.1),
+            ? AppColors.primary
+            : AppColors.textPrimary.withOpacity(0.1),
         borderRadius: BorderRadius.circular(4),
         boxShadow: isActive
             ? [
                 BoxShadow(
-                  color: const Color(0xFF4CAF50).withOpacity(0.5),
+                  color: AppColors.primary.withOpacity(0.5),
                   blurRadius: 8,
                   spreadRadius: 0,
                 ),
@@ -265,8 +268,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: ElevatedButton(
         onPressed: _handleGetStarted,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF4CAF50),
-          foregroundColor: Colors.white,
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.white,
           padding: const EdgeInsets.symmetric(vertical: 18),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(

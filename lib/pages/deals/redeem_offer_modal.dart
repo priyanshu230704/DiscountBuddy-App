@@ -5,8 +5,9 @@ import '../../services/restaurant_service.dart';
 import '../../providers/theme_provider.dart';
 import '../../widgets/generic_bottom_sheet.dart';
 import '../../config/environment.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
 
-/// Redeem Offer Modal - NeoTaste style bottom sheet
+/// Redeem Offer Modal - Discount Buddy style bottom sheet
 class RedeemOfferModal extends StatefulWidget {
   final Restaurant restaurant;
 
@@ -51,7 +52,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
               widget.restaurant.name,
               style: GoogleFonts.inter(
                 fontSize: 16,
-                color: NeoTasteColors.textSecondary,
+                color: AppColors.textSecondary,
               ),
             ),
             const SizedBox(height: 24),
@@ -67,7 +68,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: NeoTasteColors.textPrimary,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -79,13 +80,13 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                       margin: const EdgeInsets.only(bottom: 12),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? Colors.green.withOpacity(0.05)
-                            : Colors.white,
+                            ? AppColors.success.withOpacity(0.05)
+                            : AppColors.white,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: isSelected
-                              ? Colors.green
-                              : NeoTasteColors.textDisabled.withOpacity(0.3),
+                              ? AppColors.success
+                              : AppColors.textDisabled.withOpacity(0.3),
                           width: isSelected ? 2 : 1,
                         ),
                       ),
@@ -100,7 +101,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                           }
                         },
                         toggleable: true,
-                        activeColor: Colors.green,
+                        activeColor: AppColors.success,
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 8,
@@ -113,7 +114,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                           style: GoogleFonts.inter(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: NeoTasteColors.textPrimary,
+                            color: AppColors.textPrimary,
                           ),
                         ),
                         subtitle: Padding(
@@ -122,7 +123,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                             deal.description,
                             style: GoogleFonts.inter(
                               fontSize: 13,
-                              color: NeoTasteColors.textSecondary,
+                              color: AppColors.textSecondary,
                             ),
                           ),
                         ),
@@ -141,14 +142,14 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.amber.withOpacity(0.1),
+                  color: AppColors.accent.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   children: [
                     const Icon(
                       Icons.info_outline,
-                      color: Colors.amber,
+                      color: AppColors.accent,
                       size: 20,
                     ),
                     const SizedBox(width: 12),
@@ -250,8 +251,8 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                           }
                         },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: NeoTasteColors.white,
+                    backgroundColor: AppColors.success,
+                    foregroundColor: AppColors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -264,7 +265,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              NeoTasteColors.white,
+                              AppColors.white,
                             ),
                           ),
                         )
@@ -305,12 +306,12 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.1),
+              color: AppColors.success.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.check_circle,
-              color: Colors.green,
+              color: AppColors.success,
               size: 48,
             ),
           ),
@@ -319,7 +320,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
             'Show this QR code to the staff',
             style: GoogleFonts.inter(
               fontSize: 16,
-              color: NeoTasteColors.textSecondary,
+              color: AppColors.textSecondary,
             ),
             textAlign: TextAlign.center,
           ),
@@ -329,14 +330,14 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.white,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: NeoTasteColors.textDisabled.withOpacity(0.2),
+                  color: AppColors.textDisabled.withOpacity(0.2),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: AppColors.textPrimary.withOpacity(0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -363,7 +364,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                       child: Icon(
                         Icons.qr_code_2,
                         size: 64,
-                        color: NeoTasteColors.textDisabled,
+                        color: AppColors.textDisabled,
                       ),
                     ),
                   );
@@ -375,7 +376,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
             'Or provide this code:',
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: NeoTasteColors.textSecondary,
+              color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 8),
@@ -385,7 +386,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
               color: const Color(0xFFF5F5F5),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: NeoTasteColors.textDisabled.withOpacity(0.2),
+                color: AppColors.textDisabled.withOpacity(0.2),
               ),
             ),
             child: Text(
@@ -393,7 +394,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
               style: GoogleFonts.inter(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
-                color: NeoTasteColors.textPrimary,
+                color: AppColors.textPrimary,
                 letterSpacing: 4,
               ),
             ),
@@ -404,8 +405,8 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
             child: ElevatedButton(
               onPressed: () => Navigator.pop(context),
               style: ElevatedButton.styleFrom(
-                backgroundColor: NeoTasteColors.textPrimary,
-                foregroundColor: NeoTasteColors.white,
+                backgroundColor: AppColors.textPrimary,
+                foregroundColor: AppColors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),

@@ -6,8 +6,9 @@ import '../../widgets/auth/auth_theme.dart';
 import '../../widgets/auth/auth_button.dart';
 import '../../widgets/auth/auth_text_field.dart';
 import 'login_page.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
 
-/// Register Screen - NeoTaste style
+/// Register Screen - Discount Buddy style
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
@@ -112,7 +113,7 @@ class _RegisterPageState extends State<RegisterPage> {
             _authProvider!.errorMessage!,
             style: AuthTheme.bodyText,
           ),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -176,7 +177,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   'OTP code sent to ${_emailController.text}',
                   style: AuthTheme.bodyText,
                 ),
-                backgroundColor: Colors.green,
+                backgroundColor: AppColors.success,
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -210,7 +211,7 @@ class _RegisterPageState extends State<RegisterPage> {
           elevation: 0,
           leading: _currentStep > 0
               ? IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.black),
+                  icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
                   onPressed: () {
                     setState(() {
                       _currentStep = 0;
@@ -276,7 +277,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       style: GoogleFonts.inter(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: NeoTasteColors.textPrimary,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -294,13 +295,13 @@ class _RegisterPageState extends State<RegisterPage> {
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
                                 color: _selectedRole == 'customer'
-                                    ? NeoTasteColors.accent.withOpacity(0.1)
+                                    ? AppColors.primary.withOpacity(0.1)
                                     : Colors.transparent,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: _selectedRole == 'customer'
-                                      ? NeoTasteColors.accent
-                                      : NeoTasteColors.textDisabled.withOpacity(
+                                      ? AppColors.primary
+                                      : AppColors.textDisabled.withOpacity(
                                           0.3,
                                         ),
                                   width: 2,
@@ -311,8 +312,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                   Icon(
                                     Icons.person_outline,
                                     color: _selectedRole == 'customer'
-                                        ? NeoTasteColors.accent
-                                        : NeoTasteColors.textSecondary,
+                                        ? AppColors.primary
+                                        : AppColors.textSecondary,
                                     size: 28,
                                   ),
                                   const SizedBox(height: 8),
@@ -322,8 +323,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
                                       color: _selectedRole == 'customer'
-                                          ? NeoTasteColors.textPrimary
-                                          : NeoTasteColors.textSecondary,
+                                          ? AppColors.textPrimary
+                                          : AppColors.textSecondary,
                                     ),
                                   ),
                                 ],
@@ -344,13 +345,13 @@ class _RegisterPageState extends State<RegisterPage> {
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
                                 color: _selectedRole == 'merchant'
-                                    ? NeoTasteColors.accent.withOpacity(0.1)
+                                    ? AppColors.primary.withOpacity(0.1)
                                     : Colors.transparent,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: _selectedRole == 'merchant'
-                                      ? NeoTasteColors.accent
-                                      : NeoTasteColors.textDisabled.withOpacity(
+                                      ? AppColors.primary
+                                      : AppColors.textDisabled.withOpacity(
                                           0.3,
                                         ),
                                   width: 2,
@@ -361,8 +362,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                   Icon(
                                     Icons.store_outlined,
                                     color: _selectedRole == 'merchant'
-                                        ? NeoTasteColors.accent
-                                        : NeoTasteColors.textSecondary,
+                                        ? AppColors.primary
+                                        : AppColors.textSecondary,
                                     size: 28,
                                   ),
                                   const SizedBox(height: 8),
@@ -372,8 +373,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
                                       color: _selectedRole == 'merchant'
-                                          ? NeoTasteColors.textPrimary
-                                          : NeoTasteColors.textSecondary,
+                                          ? AppColors.textPrimary
+                                          : AppColors.textSecondary,
                                     ),
                                   ),
                                 ],
@@ -444,7 +445,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       'Sent to ${_emailController.text}',
                       style: GoogleFonts.inter(
                         fontSize: 14,
-                        color: NeoTasteColors.textSecondary,
+                        color: AppColors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -542,21 +543,21 @@ class _RegisterPageState extends State<RegisterPage> {
                     Row(
                       children: [
                         Expanded(
-                          child: Divider(color: Colors.grey.withOpacity(0.3)),
+                          child: Divider(color: AppColors.textSecondary.withOpacity(0.3)),
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Text(
                             'OR',
                             style: TextStyle(
-                              color: Colors.grey,
+                              color: AppColors.textSecondary,
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
                         Expanded(
-                          child: Divider(color: Colors.grey.withOpacity(0.3)),
+                          child: Divider(color: AppColors.textSecondary.withOpacity(0.3)),
                         ),
                       ],
                     ),
@@ -567,11 +568,11 @@ class _RegisterPageState extends State<RegisterPage> {
                       onPressed: _isLoading ? null : _handleGoogleLogin,
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        side: BorderSide(color: Colors.grey.shade300),
+                        side: BorderSide(color: AppColors.textSecondary),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        backgroundColor: Colors.white,
+                        backgroundColor: AppColors.white,
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -579,7 +580,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           const Text(
                             'G',
                             style: TextStyle(
-                              color: Colors.blue,
+                              color: AppColors.primary,
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                               fontFamily: 'Roboto',
@@ -589,7 +590,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           const Text(
                             'Continue with Google',
                             style: TextStyle(
-                              color: Colors.black87,
+                              color: AppColors.textPrimary87,
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
                             ),

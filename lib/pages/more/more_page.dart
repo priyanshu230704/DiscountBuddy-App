@@ -1,3 +1,4 @@
+import 'package:discount_buddy/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import '../../widgets/blurred_ellipse_background.dart';
 import '../../providers/theme_provider.dart';
@@ -93,7 +94,7 @@ class _MorePageState extends State<MorePage> {
                   child: const Text(
                     'More',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.white,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
@@ -241,11 +242,11 @@ class _MorePageState extends State<MorePage> {
                                 backgroundColor: const Color(0xFF1E1E1E),
                                 title: const Text(
                                   'Logout',
-                                  style: TextStyle(color: Colors.white),
+                                  style: TextStyle(color: AppColors.white),
                                 ),
                                 content: const Text(
                                   'Are you sure you want to logout?',
-                                  style: TextStyle(color: Colors.white70),
+                                  style: TextStyle(color: AppColors.white70),
                                 ),
                                 actions: [
                                   TextButton(
@@ -255,7 +256,7 @@ class _MorePageState extends State<MorePage> {
                                   TextButton(
                                     onPressed: () => Navigator.pop(context, true),
                                     style: TextButton.styleFrom(
-                                      foregroundColor: Colors.red,
+                                      foregroundColor: AppColors.error,
                                     ),
                                     child: const Text('Logout'),
                                   ),
@@ -279,8 +280,8 @@ class _MorePageState extends State<MorePage> {
                             }
                           },
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.red,
-                            side: const BorderSide(color: Colors.red),
+                            foregroundColor: AppColors.error,
+                            side: const BorderSide(color: AppColors.error),
                             padding: const EdgeInsets.symmetric(
                               vertical: _MoreConstants.paddingMedium,
                             ),
@@ -325,12 +326,12 @@ class _MorePageState extends State<MorePage> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.2),
+                color: AppColors.accent.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 icon,
-                color: Colors.orange,
+                color: AppColors.accent,
                 size: 18,
               ),
             ),
@@ -342,7 +343,7 @@ class _MorePageState extends State<MorePage> {
                   Text(
                     title,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: AppColors.white,
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                     ),
@@ -351,7 +352,7 @@ class _MorePageState extends State<MorePage> {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      color: Colors.grey[400],
+                      color: AppColors.textDisabled,
                       fontSize: 13,
                     ),
                   ),
@@ -360,7 +361,7 @@ class _MorePageState extends State<MorePage> {
             ),
             const Icon(
               Icons.arrow_forward_ios,
-              color: Colors.grey,
+              color: AppColors.textSecondary,
               size: 14,
             ),
           ],
@@ -394,12 +395,12 @@ class _MorePageState extends State<MorePage> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.2),
+                color: AppColors.success.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 icon,
-                color: Colors.green,
+                color: AppColors.success,
                 size: 18,
               ),
             ),
@@ -411,7 +412,7 @@ class _MorePageState extends State<MorePage> {
                   Text(
                     title,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: AppColors.white,
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                     ),
@@ -420,7 +421,7 @@ class _MorePageState extends State<MorePage> {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      color: Colors.grey[400],
+                      color: AppColors.textDisabled,
                       fontSize: 13,
                     ),
                   ),
@@ -429,7 +430,7 @@ class _MorePageState extends State<MorePage> {
             ),
             const Icon(
               Icons.arrow_forward_ios,
-              color: Colors.grey,
+              color: AppColors.textSecondary,
               size: 14,
             ),
           ],
@@ -457,7 +458,7 @@ class _MorePageState extends State<MorePage> {
               const Text(
                 'My Vouchers',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.white,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -466,7 +467,7 @@ class _MorePageState extends State<MorePage> {
                 Text(
                   '$_voucherCount vouchers',
                   style: TextStyle(
-                    color: Colors.grey[400],
+                    color: AppColors.textDisabled,
                     fontSize: 12,
                   ),
                 ),
@@ -492,7 +493,7 @@ class _MorePageState extends State<MorePage> {
                 child: Text(
                   'Vouchers are only available for merchants',
                   style: TextStyle(
-                    color: Colors.grey,
+                    color: AppColors.textSecondary,
                     fontSize: 14,
                   ),
                 ),
@@ -525,7 +526,7 @@ class _MorePageState extends State<MorePage> {
                 child: Text(
                   'No vouchers yet',
                   style: TextStyle(
-                    color: Colors.grey,
+                    color: AppColors.textSecondary,
                     fontSize: 14,
                   ),
                 ),
@@ -562,7 +563,7 @@ class _MorePageState extends State<MorePage> {
                                 Text(
                                   voucher.title,
                                   style: const TextStyle(
-                                    color: Colors.white,
+                                    color: AppColors.white,
                                     fontSize: 15,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -571,7 +572,7 @@ class _MorePageState extends State<MorePage> {
                                 Text(
                                   voucher.code,
                                   style: TextStyle(
-                                    color: Colors.grey[400],
+                                    color: AppColors.textDisabled,
                                     fontSize: 12,
                                   ),
                                 ),
@@ -585,16 +586,16 @@ class _MorePageState extends State<MorePage> {
                             ),
                             decoration: BoxDecoration(
                               color: voucher.isActive
-                                  ? Colors.green.withOpacity(0.2)
-                                  : Colors.grey.withOpacity(0.2),
+                                  ? AppColors.success.withOpacity(0.2)
+                                  : AppColors.textSecondary.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               voucher.isActive ? 'Active' : 'Inactive',
                               style: TextStyle(
                                 color: voucher.isActive
-                                    ? Colors.green
-                                    : Colors.grey,
+                                    ? AppColors.success
+                                    : AppColors.textSecondary,
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -608,13 +609,13 @@ class _MorePageState extends State<MorePage> {
                           Icon(
                             Icons.percent,
                             size: 14,
-                            color: Colors.grey[400],
+                            color: AppColors.textDisabled,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             '${voucher.discountPercent.toStringAsFixed(0)}% OFF',
                             style: TextStyle(
-                              color: Colors.grey[400],
+                              color: AppColors.textDisabled,
                               fontSize: 12,
                             ),
                           ),
@@ -622,13 +623,13 @@ class _MorePageState extends State<MorePage> {
                           Icon(
                             Icons.people,
                             size: 14,
-                            color: Colors.grey[400],
+                            color: AppColors.textDisabled,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             '${voucher.soldQuantity}/${voucher.totalQuantity} sold',
                             style: TextStyle(
-                              color: Colors.grey[400],
+                              color: AppColors.textDisabled,
                               fontSize: 12,
                             ),
                           ),
@@ -661,7 +662,7 @@ class _MorePageState extends State<MorePage> {
             child: Text(
               initials,
               style: const TextStyle(
-                color: Colors.white,
+                color: AppColors.white,
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
               ),
@@ -677,7 +678,7 @@ class _MorePageState extends State<MorePage> {
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: AppColors.white,
                   ),
                 ),
                 if (email.isNotEmpty) ...[
@@ -686,7 +687,7 @@ class _MorePageState extends State<MorePage> {
                     email,
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey[400],
+                      color: AppColors.textDisabled,
                     ),
                   ),
                 ],
@@ -694,7 +695,7 @@ class _MorePageState extends State<MorePage> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.chevron_right, color: Colors.grey),
+            icon: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
             onPressed: () {
               Navigator.push(
                 context,
@@ -733,7 +734,7 @@ class _MorePageState extends State<MorePage> {
           child: Text(
             title,
             style: const TextStyle(
-              color: Colors.white,
+              color: AppColors.white,
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
@@ -784,7 +785,7 @@ class _MorePageState extends State<MorePage> {
               child: Text(
                 title,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: AppColors.white,
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
                 ),
@@ -792,7 +793,7 @@ class _MorePageState extends State<MorePage> {
             ),
             const Icon(
               Icons.arrow_forward_ios,
-              color: Colors.grey,
+              color: AppColors.textSecondary,
               size: 14,
             ),
           ],
@@ -825,12 +826,12 @@ class _MorePageState extends State<MorePage> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.2),
+                color: AppColors.accent.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 icon,
-                color: Colors.orange,
+                color: AppColors.accent,
                 size: 18,
               ),
             ),
@@ -842,7 +843,7 @@ class _MorePageState extends State<MorePage> {
                   Text(
                     title,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: AppColors.white,
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                     ),
@@ -851,7 +852,7 @@ class _MorePageState extends State<MorePage> {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      color: Colors.grey[400],
+                      color: AppColors.textDisabled,
                       fontSize: 13,
                     ),
                   ),

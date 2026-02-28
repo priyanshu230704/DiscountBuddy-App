@@ -4,7 +4,7 @@ import '../../widgets/auth/auth_button.dart';
 import 'login_page.dart';
 import 'register_page.dart';
 
-/// Entry Screen - Login/Signup Selector (NeoTaste style)
+/// Entry Screen - Login/Signup Selector (Discount Buddy style)
 class EntryScreen extends StatelessWidget {
   const EntryScreen({super.key});
 
@@ -19,7 +19,7 @@ class EntryScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(),
-              // NeoTaste Logo
+              // Discount Buddy Logo
               Container(
                 width: 120,
                 height: 120,

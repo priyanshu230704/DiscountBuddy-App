@@ -8,8 +8,9 @@ import '../models/user_interactions.dart';
 import 'edit_profile_page.dart';
 import 'help_support_page.dart';
 import 'privacy_policy_page.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
 
-/// Profile Screen - NeoTaste style
+/// Profile Screen - Discount Buddy style
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -95,7 +96,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final initials = _getInitials(displayName);
 
     return Scaffold(
-      backgroundColor: NeoTasteColors.white,
+      backgroundColor: AppColors.white,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -109,7 +110,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   style: GoogleFonts.inter(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: NeoTasteColors.textPrimary,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ),
@@ -134,7 +135,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         width: 64,
                         height: 64,
                         decoration: BoxDecoration(
-                          color: Colors.green,
+                          color: AppColors.success,
                           shape: BoxShape.circle,
                         ),
                         child: Center(
@@ -143,7 +144,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             style: GoogleFonts.inter(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
-                              color: NeoTasteColors.white,
+                              color: AppColors.white,
                             ),
                           ),
                         ),
@@ -159,7 +160,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               style: GoogleFonts.inter(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color: NeoTasteColors.textPrimary,
+                                color: AppColors.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -167,7 +168,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               'Edit profile',
                               style: GoogleFonts.inter(
                                 fontSize: 14,
-                                color: NeoTasteColors.textSecondary,
+                                color: AppColors.textSecondary,
                               ),
                             ),
                           ],
@@ -175,7 +176,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       const Icon(
                         Icons.chevron_right,
-                        color: NeoTasteColors.textPrimary,
+                        color: AppColors.textPrimary,
                       ),
                     ],
                   ),
@@ -237,7 +238,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           style: GoogleFonts.inter(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: NeoTasteColors.white,
+                            color: AppColors.white,
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -249,7 +250,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.lightGreen,
-                              foregroundColor: NeoTasteColors.textPrimary,
+                              foregroundColor: AppColors.textPrimary,
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -338,7 +339,7 @@ class _ProfilePageState extends State<ProfilePage> {
             onPressed: () => Navigator.pop(context),
             child: Text(
               'Cancel',
-              style: GoogleFonts.inter(color: NeoTasteColors.textSecondary),
+              style: GoogleFonts.inter(color: AppColors.textSecondary),
             ),
           ),
           TextButton(
@@ -352,7 +353,7 @@ class _ProfilePageState extends State<ProfilePage> {
             child: Text(
               'Logout',
               style: GoogleFonts.inter(
-                color: Colors.red,
+                color: AppColors.error,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -385,10 +386,10 @@ class _MenuTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: NeoTasteColors.white,
+          color: AppColors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: NeoTasteColors.textDisabled.withOpacity(0.3),
+            color: AppColors.textDisabled.withOpacity(0.3),
             width: 1,
           ),
         ),
@@ -398,13 +399,13 @@ class _MenuTile extends StatelessWidget {
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: isDestructive
-                    ? Colors.red.withOpacity(0.1)
-                    : NeoTasteColors.textPrimary.withOpacity(0.05),
+                    ? AppColors.error.withOpacity(0.1)
+                    : AppColors.textPrimary.withOpacity(0.05),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
-                color: isDestructive ? Colors.red : NeoTasteColors.textPrimary,
+                color: isDestructive ? AppColors.error : AppColors.textPrimary,
                 size: 20,
               ),
             ),
@@ -416,16 +417,16 @@ class _MenuTile extends StatelessWidget {
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: isDestructive
-                      ? Colors.red
-                      : NeoTasteColors.textPrimary,
+                      ? AppColors.error
+                      : AppColors.textPrimary,
                 ),
               ),
             ),
             Icon(
               Icons.chevron_right,
               color: isDestructive
-                  ? Colors.red.withOpacity(0.5)
-                  : NeoTasteColors.textDisabled,
+                  ? AppColors.error.withOpacity(0.5)
+                  : AppColors.textDisabled,
             ),
           ],
         ),
@@ -452,24 +453,24 @@ class _StatCard extends StatelessWidget {
       constraints: const BoxConstraints(minWidth: 100),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: NeoTasteColors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: NeoTasteColors.textDisabled.withOpacity(0.3),
+          color: AppColors.textDisabled.withOpacity(0.3),
           width: 1,
         ),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: NeoTasteColors.textPrimary, size: 24),
+          Icon(icon, color: AppColors.textPrimary, size: 24),
           const SizedBox(height: 8),
           Text(
             value,
             style: GoogleFonts.inter(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: NeoTasteColors.textPrimary,
+              color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 4),
@@ -477,7 +478,7 @@ class _StatCard extends StatelessWidget {
             label,
             style: GoogleFonts.inter(
               fontSize: 12,
-              color: NeoTasteColors.textSecondary,
+              color: AppColors.textSecondary,
             ),
             textAlign: TextAlign.center,
           ),

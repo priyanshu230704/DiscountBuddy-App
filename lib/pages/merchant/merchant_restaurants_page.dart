@@ -5,6 +5,7 @@ import '../../services/merchant_service.dart';
 import '../../widgets/skeleton_loader.dart';
 import 'add_restaurant_page.dart';
 import 'merchant_menu_page.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
 
 /// Merchant Restaurants Management Page
 class MerchantRestaurantsPage extends StatefulWidget {
@@ -78,14 +79,14 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: NeoTasteColors.background,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
           widget.selectMenuMode ? 'Select Restaurant' : 'Restaurants',
           style: GoogleFonts.inter(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        backgroundColor: NeoTasteColors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         actions: widget.selectMenuMode
@@ -114,14 +115,14 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
               decoration: InputDecoration(
                 hintText: 'Search restaurants...',
                 hintStyle: GoogleFonts.inter(
-                  color: NeoTasteColors.textDisabled,
+                  color: AppColors.textDisabled,
                 ),
                 prefixIcon: const Icon(
                   Icons.search,
-                  color: NeoTasteColors.textSecondary,
+                  color: AppColors.textSecondary,
                 ),
                 filled: true,
-                fillColor: NeoTasteColors.white,
+                fillColor: AppColors.white,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -137,7 +138,7 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
                 ? _buildEmptyState()
                 : RefreshIndicator(
                     onRefresh: _loadRestaurants,
-                    color: NeoTasteColors.accent,
+                    color: AppColors.primary,
                     child: ListView.separated(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
                       itemCount: _filteredRestaurants.length,
@@ -197,7 +198,7 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Failed to load restaurant: ${e.toString()}'),
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.error,
             ),
           );
         }
@@ -227,7 +228,7 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
           Icon(
             Icons.store_mall_directory_rounded,
             size: 64,
-            color: NeoTasteColors.textDisabled,
+            color: AppColors.textDisabled,
           ),
           const SizedBox(height: 16),
           Text(
@@ -235,7 +236,7 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
             style: GoogleFonts.inter(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: NeoTasteColors.textPrimary,
+              color: AppColors.textPrimary,
             ),
           ),
           if (!widget.selectMenuMode) ...[
@@ -252,7 +253,7 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
               child: Text(
                 'Add Restaurant',
                 style: GoogleFonts.inter(
-                  color: NeoTasteColors.accent,
+                  color: AppColors.primary,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -280,10 +281,10 @@ class _RestaurantCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: NeoTasteColors.white,
+            color: AppColors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: NeoTasteColors.textDisabled.withOpacity(0.1),
+              color: AppColors.textDisabled.withOpacity(0.1),
             ),
           ),
           child: Row(
@@ -291,12 +292,12 @@ class _RestaurantCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: NeoTasteColors.background,
+                  color: AppColors.background,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
                   Icons.restaurant_rounded,
-                  color: NeoTasteColors.textSecondary,
+                  color: AppColors.textSecondary,
                 ),
               ),
               const SizedBox(width: 16),
@@ -309,7 +310,7 @@ class _RestaurantCard extends StatelessWidget {
                       style: GoogleFonts.inter(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: NeoTasteColors.textPrimary,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -318,7 +319,7 @@ class _RestaurantCard extends StatelessWidget {
                         const Icon(
                           Icons.location_on_outlined,
                           size: 14,
-                          color: NeoTasteColors.textSecondary,
+                          color: AppColors.textSecondary,
                         ),
                         const SizedBox(width: 4),
                         Expanded(
@@ -326,7 +327,7 @@ class _RestaurantCard extends StatelessWidget {
                             restaurant['address'] as String? ?? '',
                             style: GoogleFonts.inter(
                               fontSize: 12,
-                              color: NeoTasteColors.textSecondary,
+                              color: AppColors.textSecondary,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -339,7 +340,7 @@ class _RestaurantCard extends StatelessWidget {
               ),
               const Icon(
                 Icons.chevron_right_rounded,
-                color: NeoTasteColors.textDisabled,
+                color: AppColors.textDisabled,
               ),
             ],
           ),

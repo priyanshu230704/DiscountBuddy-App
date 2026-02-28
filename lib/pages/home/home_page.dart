@@ -1,3 +1,4 @@
+import 'package:discount_buddy/theme/app_colors.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -468,7 +469,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Colors.white,
+                AppColors.white,
                 buddyPink.withOpacity(0.09),
                 buddyOrange.withOpacity(0.09),
               ],
@@ -507,7 +508,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                             errorBuilder: (context, error, stackTrace) =>
                                 const Icon(
                                   Icons.local_offer,
-                                  color: Colors.white,
+                                  color: AppColors.white,
                                 ),
                           ),
                         ),
@@ -529,9 +530,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppColors.white,
                           border: Border.all(
-                            color: Colors.black.withOpacity(0.06),
+                            color: AppColors.textPrimary.withOpacity(0.06),
                           ),
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -546,7 +547,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                               child: const Icon(
                                 Icons.flash_on,
                                 size: 16,
-                                color: Colors.white,
+                                color: AppColors.white,
                               ),
                             ),
                             const SizedBox(width: 6),
@@ -578,9 +579,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                           width: 44,
                           height: 44,
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: AppColors.white,
                             border: Border.all(
-                              color: Colors.black.withOpacity(0.06),
+                              color: AppColors.textPrimary.withOpacity(0.06),
                             ),
                             borderRadius: BorderRadius.circular(14),
                           ),
@@ -624,7 +625,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                         style: GoogleFonts.inter(
                                           fontSize: 9,
                                           fontWeight: FontWeight.w900,
-                                          color: Colors.white,
+                                          color: AppColors.white,
                                           height: 1,
                                         ),
                                       ),
@@ -693,7 +694,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                           ? Icons.location_off
                                           : Icons.location_on,
                                       size: 18,
-                                      color: Colors.white,
+                                      color: AppColors.white,
                                     ),
                                   ),
                                   const SizedBox(width: 6),
@@ -705,7 +706,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                       color:
                                           _cityName == 'Location Off' ||
                                               _cityName == 'No Permission'
-                                          ? Colors.redAccent
+                                          ? AppColors.error
                                           : textPrimary,
                                     ),
                                   ),
@@ -947,12 +948,12 @@ class _SearchBar extends StatelessWidget {
     return Container(
       height: 48,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.black.withOpacity(0.06)),
+        border: Border.all(color: AppColors.textPrimary.withOpacity(0.06)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: AppColors.textPrimary.withOpacity(0.05),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
@@ -1021,11 +1022,11 @@ class _FilterChipX extends StatelessWidget {
           alignment: Alignment.center,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(22),
-            color: active ? null : Colors.white,
+            color: active ? null : AppColors.white,
             gradient: active
                 ? const LinearGradient(colors: buddyGradient)
                 : null,
-            border: Border.all(color: Colors.black.withOpacity(0.06)),
+            border: Border.all(color: AppColors.textPrimary.withOpacity(0.06)),
             boxShadow: active
                 ? [
                     BoxShadow(
@@ -1041,7 +1042,7 @@ class _FilterChipX extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 13,
               fontWeight: FontWeight.w700,
-              color: active ? Colors.white : const Color(0xFF111827),
+              color: active ? AppColors.white : const Color(0xFF111827),
             ),
           ),
         ),
@@ -1099,7 +1100,7 @@ class _GradientBanner extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 18,
                     fontWeight: FontWeight.w900,
-                    color: Colors.white,
+                    color: AppColors.white,
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -1107,7 +1108,7 @@ class _GradientBanner extends StatelessWidget {
                   subtitle,
                   style: GoogleFonts.inter(
                     fontSize: 13,
-                    color: Colors.white.withOpacity(0.95),
+                    color: AppColors.white.withOpacity(0.95),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -1117,7 +1118,7 @@ class _GradientBanner extends StatelessWidget {
                     vertical: 7,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.18),
+                    color: AppColors.white.withOpacity(0.18),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -1125,7 +1126,7 @@ class _GradientBanner extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w800,
-                      color: Colors.white,
+                      color: AppColors.white,
                     ),
                   ),
                 ),
@@ -1155,12 +1156,14 @@ class _CuisineChipX extends StatelessWidget {
             width: 56,
             height: 56,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.white,
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.black.withOpacity(0.06)),
+              border: Border.all(
+                color: AppColors.textPrimary.withOpacity(0.06),
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
+                  color: AppColors.textPrimary.withOpacity(0.06),
                   blurRadius: 14,
                   offset: const Offset(0, 6),
                 ),
@@ -1236,12 +1239,12 @@ class _BestOfferCard extends StatelessWidget {
         width: 240,
         margin: const EdgeInsets.only(right: 14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.white,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.black.withOpacity(0.06)),
+          border: Border.all(color: AppColors.textPrimary.withOpacity(0.06)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: AppColors.textPrimary.withOpacity(0.08),
               blurRadius: 18,
               offset: const Offset(0, 10),
             ),
@@ -1263,13 +1266,13 @@ class _BestOfferCard extends StatelessWidget {
                       fit: BoxFit.cover,
                       width: double.infinity,
                       placeholder: (context, url) => Container(
-                        color: Colors.black.withOpacity(0.03),
+                        color: AppColors.textPrimary.withOpacity(0.03),
                         child: const Center(
                           child: CircularProgressIndicator(strokeWidth: 2),
                         ),
                       ),
                       errorWidget: (context, url, error) => Container(
-                        color: Colors.black.withOpacity(0.03),
+                        color: AppColors.textPrimary.withOpacity(0.03),
                         child: const Icon(
                           Icons.restaurant,
                           color: Color(0xFF6B7280),
@@ -1298,7 +1301,7 @@ class _BestOfferCard extends StatelessWidget {
                             style: GoogleFonts.inter(
                               fontSize: 11,
                               fontWeight: FontWeight.w900,
-                              color: Colors.white,
+                              color: AppColors.white,
                             ),
                           ),
                         ),
@@ -1335,16 +1338,16 @@ class _BestOfferCard extends StatelessWidget {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.amber.shade50,
+                            color: AppColors.accent,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.amber.shade200),
+                            border: Border.all(color: AppColors.accent),
                           ),
                           child: Row(
                             children: [
                               const Icon(
                                 Icons.stars,
                                 size: 12,
-                                color: Colors.amber,
+                                color: AppColors.white,
                               ),
                               const SizedBox(width: 4),
                               Text(
@@ -1352,7 +1355,7 @@ class _BestOfferCard extends StatelessWidget {
                                 style: GoogleFonts.inter(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w900,
-                                  color: Colors.amber.shade800,
+                                  color: AppColors.white,
                                 ),
                               ),
                             ],
@@ -1459,12 +1462,12 @@ class _FeedTile extends StatelessWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.white,
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.black.withOpacity(0.06)),
+          border: Border.all(color: AppColors.textPrimary.withOpacity(0.06)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: AppColors.textPrimary.withOpacity(0.08),
               blurRadius: 18,
               offset: const Offset(0, 10),
             ),
@@ -1484,13 +1487,13 @@ class _FeedTile extends StatelessWidget {
                   fit: BoxFit.cover,
                   width: double.infinity,
                   placeholder: (context, url) => Container(
-                    color: Colors.black.withOpacity(0.03),
+                    color: AppColors.textPrimary.withOpacity(0.03),
                     child: const Center(
                       child: CircularProgressIndicator(strokeWidth: 2),
                     ),
                   ),
                   errorWidget: (context, url, error) => Container(
-                    color: Colors.black.withOpacity(0.03),
+                    color: AppColors.textPrimary.withOpacity(0.03),
                     child: const Icon(
                       Icons.restaurant,
                       color: Color(0xFF6B7280),
@@ -1525,16 +1528,16 @@ class _FeedTile extends StatelessWidget {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.amber.shade50,
+                            color: AppColors.accent,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.amber.shade200),
+                            border: Border.all(color: AppColors.accent),
                           ),
                           child: Row(
                             children: [
                               const Icon(
                                 Icons.stars,
                                 size: 12,
-                                color: Colors.amber,
+                                color: AppColors.white,
                               ),
                               const SizedBox(width: 4),
                               Text(
@@ -1542,7 +1545,7 @@ class _FeedTile extends StatelessWidget {
                                 style: GoogleFonts.inter(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w900,
-                                  color: Colors.amber.shade800,
+                                  color: AppColors.white,
                                 ),
                               ),
                             ],
@@ -1576,7 +1579,7 @@ class _FeedTile extends StatelessWidget {
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.04),
+                            color: AppColors.textPrimary.withOpacity(0.04),
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child: Text(

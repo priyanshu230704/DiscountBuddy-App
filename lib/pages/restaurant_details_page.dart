@@ -19,8 +19,9 @@ import '../services/mystery_guest_service.dart';
 import '../providers/auth_provider.dart';
 import 'mystery_guest/mystery_audit_modal.dart';
 import '../widgets/occupancy_tag.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
 
-/// Restaurant details page - NeoTaste style
+/// Restaurant details page - Discount Buddy style
 class RestaurantDetailsPage extends StatefulWidget {
   final String slug;
   final double? latitude;
@@ -281,14 +282,14 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        backgroundColor: NeoTasteColors.white,
+        backgroundColor: AppColors.white,
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (_errorMessage != null || _restaurantDetail == null) {
       return Scaffold(
-        backgroundColor: NeoTasteColors.white,
+        backgroundColor: AppColors.white,
         appBar: AppBar(title: const Text('Restaurant Details')),
         body: Center(
           child: Column(
@@ -297,14 +298,14 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
               const Icon(
                 Icons.error_outline,
                 size: 64,
-                color: NeoTasteColors.textSecondary,
+                color: AppColors.textSecondary,
               ),
               const SizedBox(height: 16),
               Text(
                 _errorMessage ?? 'Failed to load restaurant',
                 style: GoogleFonts.inter(
                   fontSize: 16,
-                  color: NeoTasteColors.textSecondary,
+                  color: AppColors.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -325,7 +326,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     final dist = restaurant.distanceMiles ?? _kmToMiles(restaurant.distance);
 
     return Scaffold(
-      backgroundColor: NeoTasteColors.white,
+      backgroundColor: AppColors.white,
 
       body: CustomScrollView(
         cacheExtent:
@@ -335,15 +336,15 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
           SliverAppBar(
             expandedHeight: 300,
             pinned: false,
-            backgroundColor: NeoTasteColors.white,
+            backgroundColor: AppColors.white,
             leading: Container(
               margin: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: NeoTasteColors.white,
+                color: AppColors.white,
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: AppColors.textPrimary.withOpacity(0.1),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -352,7 +353,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
               child: IconButton(
                 icon: const Icon(
                   Icons.arrow_back,
-                  color: NeoTasteColors.textPrimary,
+                  color: AppColors.textPrimary,
                 ),
                 onPressed: () => Navigator.pop(context),
               ),
@@ -366,11 +367,11 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                       imageUrl: restaurant.imageUrl,
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(
-                        color: NeoTasteColors.textDisabled,
+                        color: AppColors.textDisabled,
                         child: const Center(child: CircularProgressIndicator()),
                       ),
                       errorWidget: (context, url, error) => Container(
-                        color: NeoTasteColors.textDisabled,
+                        color: AppColors.textDisabled,
                         child: const Icon(Icons.restaurant, size: 64),
                       ),
                     ),
@@ -385,7 +386,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
-                            colors: [Colors.transparent, NeoTasteColors.white],
+                            colors: [Colors.transparent, AppColors.white],
                           ),
                         ),
                       ),
@@ -399,7 +400,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
           // Restaurant Info Section
           SliverToBoxAdapter(
             child: Container(
-              color: NeoTasteColors.white,
+              color: AppColors.white,
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -414,7 +415,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                           style: GoogleFonts.inter(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: NeoTasteColors.textPrimary,
+                            color: AppColors.textPrimary,
                           ),
                         ),
                       ),
@@ -427,16 +428,16 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.amber.shade50,
+                            color: AppColors.accent,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.amber.shade200),
+                            border: Border.all(color: AppColors.accent),
                           ),
                           child: Row(
                             children: [
                               const Icon(
                                 Icons.leaderboard,
                                 size: 16,
-                                color: Colors.amber,
+                                color: AppColors.accent,
                               ),
                               const SizedBox(width: 4),
                               Text(
@@ -444,7 +445,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                 style: GoogleFonts.inter(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.amber.shade800,
+                                  color: AppColors.accent,
                                 ),
                               ),
                             ],
@@ -464,19 +465,19 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             restaurant.cuisine,
                             style: GoogleFonts.inter(
                               fontSize: 14,
-                              color: NeoTasteColors.textPrimary,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                           Container(
                             width: 1,
                             height: 14,
                             margin: const EdgeInsets.symmetric(horizontal: 8),
-                            color: NeoTasteColors.textDisabled,
+                            color: AppColors.textDisabled,
                           ),
                           const Icon(
                             Icons.location_on,
                             size: 14,
-                            color: NeoTasteColors.textPrimary,
+                            color: AppColors.textPrimary,
                           ),
                           const SizedBox(width: 4),
                           Flexible(
@@ -484,7 +485,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                               '${restaurant.address.split(',').first} (${dist.toStringAsFixed(2)} miles)',
                               style: GoogleFonts.inter(
                                 fontSize: 14,
-                                color: NeoTasteColors.textPrimary,
+                                color: AppColors.textPrimary,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -499,14 +500,14 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             _getPriceRange(restaurant),
                             style: GoogleFonts.inter(
                               fontSize: 14,
-                              color: NeoTasteColors.textPrimary,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                           Text(
                             ' ${_getOpeningHours(restaurant)}',
                             style: GoogleFonts.inter(
                               fontSize: 14,
-                              color: NeoTasteColors.textPrimary,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                         ],
@@ -537,7 +538,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                 children: [
                                   const Icon(
                                     Icons.menu,
-                                    color: NeoTasteColors.textPrimary,
+                                    color: AppColors.textPrimary,
                                     size: 20,
                                   ),
                                   const SizedBox(width: 8),
@@ -546,7 +547,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                     style: GoogleFonts.inter(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
-                                      color: NeoTasteColors.textPrimary,
+                                      color: AppColors.textPrimary,
                                     ),
                                   ),
                                 ],
@@ -561,15 +562,15 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          color: NeoTasteColors.white,
+                          color: AppColors.white,
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: NeoTasteColors.textDisabled.withOpacity(0.3),
+                            color: AppColors.textDisabled.withOpacity(0.3),
                             width: 1,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
+                              color: AppColors.textPrimary.withOpacity(0.05),
                               blurRadius: 4,
                               offset: const Offset(0, 2),
                             ),
@@ -585,8 +586,8 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                   ? Icons.favorite
                                   : Icons.favorite_border,
                               color: _isFavorite
-                                  ? Colors.red
-                                  : NeoTasteColors.textPrimary,
+                                  ? AppColors.error
+                                  : AppColors.textPrimary,
                               size: 24,
                             ),
                           ),
@@ -598,15 +599,15 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          color: NeoTasteColors.white,
+                          color: AppColors.white,
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: NeoTasteColors.textDisabled.withOpacity(0.3),
+                            color: AppColors.textDisabled.withOpacity(0.3),
                             width: 1,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
+                              color: AppColors.textPrimary.withOpacity(0.05),
                               blurRadius: 4,
                               offset: const Offset(0, 2),
                             ),
@@ -620,13 +621,13 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                   'Check out this deal at ${restaurant.name}!\n\n'
                                   '${restaurant.discount.displayText} - ${restaurant.discount.description}\n\n'
                                   '📍 ${restaurant.address}\n'
-                                  'Found on NeoTaste';
+                                  'Found on Discount Buddy';
                               Share.share(message);
                             },
                             borderRadius: BorderRadius.circular(24),
                             child: const Icon(
                               Icons.share,
-                              color: NeoTasteColors.textPrimary,
+                              color: AppColors.textPrimary,
                               size: 24,
                             ),
                           ),
@@ -647,17 +648,17 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.purple.shade50, Colors.blue.shade50],
+                    colors: [AppColors.primary, AppColors.primary],
                   ),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.purple.shade100),
+                  border: Border.all(color: AppColors.primary),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.psychology, color: Colors.purple),
+                        const Icon(Icons.psychology, color: AppColors.primary),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -667,7 +668,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             style: GoogleFonts.inter(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
-                              color: Colors.purple.shade900,
+                              color: AppColors.primary,
                             ),
                           ),
                         ),
@@ -679,8 +680,8 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             ),
                             decoration: BoxDecoration(
                               color: _activeVisit!.status == 'in_progress'
-                                  ? Colors.green.shade100
-                                  : Colors.blue.shade100,
+                                  ? AppColors.success
+                                  : AppColors.primary,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -689,8 +690,8 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                                 color: _activeVisit!.status == 'in_progress'
-                                    ? Colors.green.shade800
-                                    : Colors.blue.shade800,
+                                    ? AppColors.success
+                                    : AppColors.primary,
                               ),
                             ),
                           ),
@@ -704,7 +705,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         'Complete your anonymous audit to help improve quality and earn rewards.',
                         style: GoogleFonts.inter(
                           fontSize: 13,
-                          color: Colors.purple.shade700,
+                          color: AppColors.primary,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -713,8 +714,8 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         child: ElevatedButton(
                           onPressed: _showMysteryAuditModal,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.purple,
-                            foregroundColor: Colors.white,
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: AppColors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
@@ -742,7 +743,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                   children: [
                                     Icon(
                                       Icons.check_circle,
-                                      color: Colors.green.shade600,
+                                      color: AppColors.success,
                                       size: 18,
                                     ),
                                     const SizedBox(width: 6),
@@ -750,7 +751,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                       'Audit Submitted',
                                       style: GoogleFonts.inter(
                                         fontWeight: FontWeight.w600,
-                                        color: Colors.green.shade700,
+                                        color: AppColors.success,
                                       ),
                                     ),
                                   ],
@@ -763,7 +764,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                         'Overall Score: ',
                                         style: GoogleFonts.inter(
                                           fontSize: 14,
-                                          color: Colors.purple.shade700,
+                                          color: AppColors.primary,
                                         ),
                                       ),
                                       Text(
@@ -771,7 +772,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                         style: GoogleFonts.inter(
                                           fontSize: 14,
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.purple.shade900,
+                                          color: AppColors.primary,
                                         ),
                                       ),
                                     ],
@@ -785,7 +786,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         'No audit is currently assigned for this restaurant. You can view and manage your visits from the dashboard.',
                         style: GoogleFonts.inter(
                           fontSize: 13,
-                          color: Colors.purple.shade700,
+                          color: AppColors.primary,
                         ),
                       ),
                     ],
@@ -807,7 +808,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                       style: GoogleFonts.inter(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: NeoTasteColors.textPrimary,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   ),
@@ -864,7 +865,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         style: GoogleFonts.inter(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: NeoTasteColors.textPrimary,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                       TextButton.icon(
@@ -872,7 +873,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         icon: const Icon(Icons.edit, size: 16),
                         label: const Text('Write a review'),
                         style: TextButton.styleFrom(
-                          foregroundColor: NeoTasteColors.primary,
+                          foregroundColor: AppColors.textPrimary,
                         ),
                       ),
                     ],
@@ -892,7 +893,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             style: GoogleFonts.inter(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
-                              color: NeoTasteColors.textPrimary,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -909,7 +910,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                     : filled
                                     ? Icons.star
                                     : Icons.star_border,
-                                color: Colors.green,
+                                color: AppColors.success,
                                 size: 24,
                               );
                             }),
@@ -923,7 +924,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     '${restaurant.reviewCount} ratings | ${restaurant.reviewCount} reviews',
                     style: GoogleFonts.inter(
                       fontSize: 14,
-                      color: NeoTasteColors.textSecondary,
+                      color: AppColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -936,7 +937,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                           'No reviews yet',
                           style: GoogleFonts.inter(
                             fontSize: 14,
-                            color: NeoTasteColors.textSecondary,
+                            color: AppColors.textSecondary,
                           ),
                         ),
                       ),
@@ -961,7 +962,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     children: [
                       const Icon(
                         Icons.location_on,
-                        color: NeoTasteColors.textPrimary,
+                        color: AppColors.textPrimary,
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -970,7 +971,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         style: GoogleFonts.inter(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: NeoTasteColors.textPrimary,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                     ],
@@ -980,7 +981,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     restaurant.address,
                     style: GoogleFonts.inter(
                       fontSize: 14,
-                      color: NeoTasteColors.textPrimary,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   if (restaurant.postcode != null &&
@@ -990,7 +991,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                       restaurant.postcode!,
                       style: GoogleFonts.inter(
                         fontSize: 14,
-                        color: NeoTasteColors.textPrimary,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   ],
@@ -1008,7 +1009,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                           children: [
                             const Icon(
                               Icons.phone,
-                              color: NeoTasteColors.textPrimary,
+                              color: AppColors.textPrimary,
                               size: 20,
                             ),
                             const SizedBox(width: 12),
@@ -1017,7 +1018,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                 restaurant.phoneNumber,
                                 style: GoogleFonts.inter(
                                   fontSize: 14,
-                                  color: NeoTasteColors.textPrimary,
+                                  color: AppColors.textPrimary,
                                 ),
                               ),
                             ),
@@ -1033,7 +1034,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                           children: [
                             const Icon(
                               Icons.email,
-                              color: NeoTasteColors.textPrimary,
+                              color: AppColors.textPrimary,
                               size: 20,
                             ),
                             const SizedBox(width: 12),
@@ -1042,7 +1043,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                 restaurant.email!,
                                 style: GoogleFonts.inter(
                                   fontSize: 14,
-                                  color: NeoTasteColors.textPrimary,
+                                  color: AppColors.textPrimary,
                                 ),
                               ),
                             ),
@@ -1057,7 +1058,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                           children: [
                             const Icon(
                               Icons.language,
-                              color: NeoTasteColors.textPrimary,
+                              color: AppColors.textPrimary,
                               size: 20,
                             ),
                             const SizedBox(width: 12),
@@ -1070,7 +1071,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                   restaurant.website,
                                   style: GoogleFonts.inter(
                                     fontSize: 14,
-                                    color: Colors.blue,
+                                    color: AppColors.primary,
                                     decoration: TextDecoration.underline,
                                   ),
                                 ),
@@ -1089,7 +1090,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: NeoTasteColors.textDisabled.withOpacity(0.3),
+                          color: AppColors.textDisabled.withOpacity(0.3),
                           width: 1,
                         ),
                       ),
@@ -1142,10 +1143,10 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: NeoTasteColors.white,
+          color: AppColors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: AppColors.textPrimary.withOpacity(0.1),
               blurRadius: 10,
               offset: const Offset(0, -2),
             ),
@@ -1170,7 +1171,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                   },
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    side: const BorderSide(color: NeoTasteColors.primary),
+                    side: const BorderSide(color: AppColors.textPrimary),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -1180,7 +1181,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: NeoTasteColors.primary,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ),
@@ -1209,8 +1210,8 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: NeoTasteColors.white,
+                    backgroundColor: AppColors.success,
+                    foregroundColor: AppColors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -1275,7 +1276,7 @@ class _ReviewItem extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: NeoTasteColors.textSecondary,
+                    color: AppColors.textSecondary,
                   ),
                 ),
               ),
@@ -1292,7 +1293,7 @@ class _ReviewItem extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: NeoTasteColors.textPrimary,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -1312,7 +1313,7 @@ class _ReviewItem extends StatelessWidget {
                                 : filled
                                 ? Icons.star
                                 : Icons.star_border,
-                            color: Colors.green,
+                            color: AppColors.success,
                             size: 16,
                           );
                         }),
@@ -1322,7 +1323,7 @@ class _ReviewItem extends StatelessWidget {
                         review.timeAgo,
                         style: GoogleFonts.inter(
                           fontSize: 12,
-                          color: NeoTasteColors.textSecondary,
+                          color: AppColors.textSecondary,
                         ),
                       ),
                       if (review.isVerified) ...[
@@ -1333,12 +1334,12 @@ class _ReviewItem extends StatelessWidget {
                               width: 16,
                               height: 16,
                               decoration: BoxDecoration(
-                                color: NeoTasteColors.textSecondary,
+                                color: AppColors.textSecondary,
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
                                 Icons.check,
-                                color: NeoTasteColors.white,
+                                color: AppColors.white,
                                 size: 12,
                               ),
                             ),
@@ -1347,7 +1348,7 @@ class _ReviewItem extends StatelessWidget {
                               'Verified',
                               style: GoogleFonts.inter(
                                 fontSize: 12,
-                                color: NeoTasteColors.textSecondary,
+                                color: AppColors.textSecondary,
                               ),
                             ),
                           ],
@@ -1361,7 +1362,7 @@ class _ReviewItem extends StatelessWidget {
                       review.comment!,
                       style: GoogleFonts.inter(
                         fontSize: 14,
-                        color: NeoTasteColors.textPrimary,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   ],
@@ -1420,7 +1421,7 @@ class _OfferCard extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: NeoTasteColors.textPrimary,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ),
@@ -1432,7 +1433,7 @@ class _OfferCard extends StatelessWidget {
             discount.description,
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: NeoTasteColors.textPrimary,
+              color: AppColors.textPrimary,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -1455,20 +1456,20 @@ class _OfferChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: NeoTasteColors.textSecondary,
+        color: AppColors.textSecondary,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: NeoTasteColors.white, size: 14),
+          Icon(icon, color: AppColors.white, size: 14),
           const SizedBox(width: 4),
           Text(
             text,
             style: GoogleFonts.inter(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: NeoTasteColors.white,
+              color: AppColors.white,
             ),
           ),
         ],
@@ -1499,7 +1500,7 @@ class MenuPopup extends StatelessWidget {
                     'No menu available',
                     style: GoogleFonts.inter(
                       fontSize: 14,
-                      color: NeoTasteColors.textSecondary,
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 )
@@ -1526,7 +1527,7 @@ class MenuPopup extends StatelessWidget {
                                 style: GoogleFonts.inter(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
-                                  color: NeoTasteColors.textPrimary,
+                                  color: AppColors.textPrimary,
                                 ),
                               ),
                               if (category.description.isNotEmpty) ...[
@@ -1535,7 +1536,7 @@ class MenuPopup extends StatelessWidget {
                                   category.description,
                                   style: GoogleFonts.inter(
                                     fontSize: 14,
-                                    color: NeoTasteColors.textSecondary,
+                                    color: AppColors.textSecondary,
                                   ),
                                 ),
                               ],
@@ -1568,10 +1569,10 @@ class _MenuItemCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: NeoTasteColors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: NeoTasteColors.textDisabled.withOpacity(0.2),
+          color: AppColors.textDisabled.withOpacity(0.2),
           width: 1,
         ),
       ),
@@ -1591,7 +1592,7 @@ class _MenuItemCard extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: NeoTasteColors.textPrimary,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ),
@@ -1606,7 +1607,7 @@ class _MenuItemCard extends StatelessWidget {
                     item.description,
                     style: GoogleFonts.inter(
                       fontSize: 14,
-                      color: NeoTasteColors.textSecondary,
+                      color: AppColors.textSecondary,
                       height: 1.4,
                     ),
                   ),
@@ -1624,7 +1625,7 @@ class _MenuItemCard extends StatelessWidget {
                       ),
                       margin: const EdgeInsets.only(right: 6),
                       decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.1),
+                        color: AppColors.success.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -1632,7 +1633,7 @@ class _MenuItemCard extends StatelessWidget {
                         style: GoogleFonts.inter(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
-                          color: Colors.green,
+                          color: AppColors.success,
                         ),
                       ),
                     ),
@@ -1644,7 +1645,7 @@ class _MenuItemCard extends StatelessWidget {
                       ),
                       margin: const EdgeInsets.only(right: 6),
                       decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.1),
+                        color: AppColors.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -1652,7 +1653,7 @@ class _MenuItemCard extends StatelessWidget {
                         style: GoogleFonts.inter(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
-                          color: Colors.blue,
+                          color: AppColors.primary,
                         ),
                       ),
                     ),
@@ -1666,7 +1667,7 @@ class _MenuItemCard extends StatelessWidget {
                     'Currently unavailable',
                     style: GoogleFonts.inter(
                       fontSize: 12,
-                      color: Colors.red,
+                      color: AppColors.error,
                       fontStyle: FontStyle.italic,
                     ),
                   ),
@@ -1685,7 +1686,7 @@ class _MenuItemCard extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: NeoTasteColors.textPrimary,
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -1707,10 +1708,8 @@ class _VegetarianSymbol extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isVegetarian ? Colors.green : Colors.red;
-    final darkColor = isVegetarian
-        ? Colors.green.shade700
-        : Colors.red.shade700;
+    final color = isVegetarian ? AppColors.success : AppColors.error;
+    final darkColor = isVegetarian ? AppColors.success : AppColors.error;
 
     return Container(
       width: 15,
@@ -1757,7 +1756,7 @@ class _OpeningHoursSection extends StatelessWidget {
           children: [
             const Icon(
               Icons.access_time_filled,
-              color: NeoTasteColors.textPrimary,
+              color: AppColors.textPrimary,
               size: 20,
             ),
             const SizedBox(width: 8),
@@ -1766,7 +1765,7 @@ class _OpeningHoursSection extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: NeoTasteColors.textPrimary,
+                color: AppColors.textPrimary,
               ),
             ),
           ],
@@ -1788,13 +1787,13 @@ class _OpeningHoursSection extends StatelessWidget {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: isToday
-                      ? Colors.green.withOpacity(0.05)
+                      ? AppColors.success.withOpacity(0.05)
                       : const Color(0xFFF8F9FA),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: isToday
-                        ? Colors.green.withOpacity(0.3)
-                        : NeoTasteColors.textDisabled.withOpacity(0.1),
+                        ? AppColors.success.withOpacity(0.3)
+                        : AppColors.textDisabled.withOpacity(0.1),
                     width: 1.5,
                   ),
                 ),
@@ -1807,8 +1806,8 @@ class _OpeningHoursSection extends StatelessWidget {
                         fontSize: 14,
                         fontWeight: isToday ? FontWeight.bold : FontWeight.w600,
                         color: isToday
-                            ? Colors.green
-                            : NeoTasteColors.textSecondary,
+                            ? AppColors.success
+                            : AppColors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -1818,7 +1817,7 @@ class _OpeningHoursSection extends StatelessWidget {
                         style: GoogleFonts.inter(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
-                          color: Colors.red.shade400,
+                          color: AppColors.error,
                         ),
                       )
                     else ...[
@@ -1827,7 +1826,7 @@ class _OpeningHoursSection extends StatelessWidget {
                         style: GoogleFonts.inter(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: NeoTasteColors.textPrimary,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 2),
@@ -1836,7 +1835,7 @@ class _OpeningHoursSection extends StatelessWidget {
                         style: GoogleFonts.inter(
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
-                          color: NeoTasteColors.textSecondary,
+                          color: AppColors.textSecondary,
                         ),
                       ),
                     ],
@@ -1921,7 +1920,7 @@ class _AddReviewDialogState extends State<_AddReviewDialog> {
                     constraints: const BoxConstraints(),
                     icon: Icon(
                       index < _rating ? Icons.star : Icons.star_border,
-                      color: Colors.amber,
+                      color: AppColors.accent,
                       size: 32,
                     ),
                   );
@@ -1941,7 +1940,7 @@ class _AddReviewDialogState extends State<_AddReviewDialog> {
               controller: _commentController,
               decoration: InputDecoration(
                 hintText: 'Share your experience...',
-                hintStyle: GoogleFonts.inter(color: Colors.grey),
+                hintStyle: GoogleFonts.inter(color: AppColors.textSecondary),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -1956,13 +1955,16 @@ class _AddReviewDialogState extends State<_AddReviewDialog> {
       actions: [
         TextButton(
           onPressed: _isSubmitting ? null : () => Navigator.pop(context),
-          child: Text('Cancel', style: GoogleFonts.inter(color: Colors.grey)),
+          child: Text(
+            'Cancel',
+            style: GoogleFonts.inter(color: AppColors.textSecondary),
+          ),
         ),
         ElevatedButton(
           onPressed: _isSubmitting ? null : _handleSubmit,
           style: ElevatedButton.styleFrom(
-            backgroundColor: NeoTasteColors.primary,
-            foregroundColor: Colors.white,
+            backgroundColor: AppColors.textPrimary,
+            foregroundColor: AppColors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
@@ -1973,7 +1975,7 @@ class _AddReviewDialogState extends State<_AddReviewDialog> {
                   height: 20,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: Colors.white,
+                    color: AppColors.white,
                   ),
                 )
               : Text('Submit', style: GoogleFonts.inter()),

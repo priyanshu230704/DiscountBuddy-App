@@ -1,3 +1,4 @@
+import 'package:discount_buddy/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/restaurant.dart';
@@ -47,14 +48,14 @@ class RestaurantCard extends StatelessWidget {
                     fit: BoxFit.cover,
                     placeholder: (context, url) => Container(
                       height: 180,
-                      color: Colors.grey[300],
+                      color: AppColors.textDisabled,
                       child: const Center(
                         child: CircularProgressIndicator(),
                       ),
                     ),
                     errorWidget: (context, url, error) => Container(
                       height: 180,
-                      color: Colors.grey[300],
+                      color: AppColors.textDisabled,
                       child: const Icon(Icons.restaurant, size: 48),
                     ),
                   ),
@@ -64,12 +65,12 @@ class RestaurantCard extends StatelessWidget {
                   top: _paddingMedium,
                   right: _paddingMedium,
                   child: IconButton(
-                    icon: const Icon(Icons.bookmark_border, color: Colors.white),
+                    icon: const Icon(Icons.bookmark_border, color: AppColors.white),
                     onPressed: () {
                       // Handle bookmark
                     },
                     style: IconButton.styleFrom(
-                      backgroundColor: Colors.black26,
+                      backgroundColor: AppColors.textPrimary26,
                     ),
                   ),
                 ),
@@ -89,7 +90,7 @@ class RestaurantCard extends StatelessWidget {
                     child: Text(
                       restaurant.discount.displayText,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),
@@ -106,7 +107,7 @@ class RestaurantCard extends StatelessWidget {
                       vertical: _paddingSmall,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.black54,
+                      color: AppColors.textPrimary54,
                       borderRadius: BorderRadius.circular(_radiusSmall),
                     ),
                     child: Row(
@@ -114,14 +115,14 @@ class RestaurantCard extends StatelessWidget {
                       children: [
                         const Icon(
                           Icons.location_on,
-                          color: Colors.white,
+                          color: AppColors.white,
                           size: 14,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           '${restaurant.distance.toStringAsFixed(1)} km',
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.white,
                             fontWeight: FontWeight.bold,
                             fontSize: 12,
                           ),
@@ -157,7 +158,7 @@ class RestaurantCard extends StatelessWidget {
                         children: [
                           const Icon(
                             Icons.star,
-                            color: Colors.amber,
+                            color: AppColors.accent,
                             size: 18,
                           ),
                           const SizedBox(width: 4),
@@ -170,7 +171,7 @@ class RestaurantCard extends StatelessWidget {
                           Text(
                             ' (${restaurant.reviewCount})',
                             style: TextStyle(
-                              color: Colors.grey[600],
+                              color: AppColors.textDisabled,
                               fontSize: 12,
                             ),
                           ),
@@ -185,13 +186,13 @@ class RestaurantCard extends StatelessWidget {
                       Icon(
                         Icons.restaurant_menu,
                         size: 16,
-                        color: Colors.grey[600],
+                        color: AppColors.textDisabled,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         restaurant.cuisine,
                         style: TextStyle(
-                          color: Colors.grey[600],
+                          color: AppColors.textDisabled,
                           fontSize: 14,
                         ),
                       ),
@@ -204,14 +205,14 @@ class RestaurantCard extends StatelessWidget {
                       Icon(
                         Icons.location_on,
                         size: 16,
-                        color: Colors.grey[600],
+                        color: AppColors.textDisabled,
                       ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           restaurant.address,
                           style: TextStyle(
-                            color: Colors.grey[600],
+                            color: AppColors.textDisabled,
                             fontSize: 12,
                           ),
                           maxLines: 1,
@@ -232,13 +233,13 @@ class RestaurantCard extends StatelessWidget {
                             Icon(
                               Icons.calendar_today,
                               size: 14,
-                              color: Colors.grey[600],
+                              color: AppColors.textDisabled,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               restaurant.discount.validDays.join(' - '),
                               style: TextStyle(
-                                color: Colors.grey[600],
+                                color: AppColors.textDisabled,
                                 fontSize: 12,
                               ),
                             ),
@@ -250,13 +251,13 @@ class RestaurantCard extends StatelessWidget {
                             Icon(
                               Icons.calendar_today,
                               size: 14,
-                              color: Colors.grey[600],
+                              color: AppColors.textDisabled,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               'Mon - Sun',
                               style: TextStyle(
-                                color: Colors.grey[600],
+                                color: AppColors.textDisabled,
                                 fontSize: 12,
                               ),
                             ),
@@ -268,13 +269,13 @@ class RestaurantCard extends StatelessWidget {
                           Icon(
                             Icons.thumb_up,
                             size: 16,
-                            color: Colors.grey[600],
+                            color: AppColors.textDisabled,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             '${restaurant.reviewCount}',
                             style: TextStyle(
-                              color: Colors.grey[600],
+                              color: AppColors.textDisabled,
                               fontSize: 12,
                             ),
                           ),

@@ -4,6 +4,7 @@ import '../../providers/theme_provider.dart';
 import '../../services/merchant_service.dart';
 import '../../widgets/skeleton_loader.dart';
 import 'add_deal_page.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
 
 /// Merchant Deals Management Page
 class MerchantDealsPage extends StatefulWidget {
@@ -51,14 +52,14 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: NeoTasteColors.background,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
           'Deals',
           style: GoogleFonts.inter(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        backgroundColor: NeoTasteColors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         actions: [
@@ -79,7 +80,7 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
           ? _buildEmptyState()
           : RefreshIndicator(
               onRefresh: _loadDeals,
-              color: NeoTasteColors.accent,
+              color: AppColors.primary,
               child: ListView.separated(
                 padding: const EdgeInsets.all(20),
                 itemCount: _deals.length,
@@ -116,7 +117,7 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
           Icon(
             Icons.local_offer_rounded,
             size: 64,
-            color: NeoTasteColors.textDisabled,
+            color: AppColors.textDisabled,
           ),
           const SizedBox(height: 16),
           Text(
@@ -124,7 +125,7 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
             style: GoogleFonts.inter(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: NeoTasteColors.textPrimary,
+              color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 8),
@@ -132,7 +133,7 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
             'Create a deal to attract more customers',
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: NeoTasteColors.textSecondary,
+              color: AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 24),
@@ -144,8 +145,8 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
               ).then((_) => _loadDeals());
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: NeoTasteColors.accent,
-              foregroundColor: NeoTasteColors.primary,
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.textPrimary,
               elevation: 0,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
@@ -194,11 +195,11 @@ class _DealCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: NeoTasteColors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: AppColors.textPrimary.withOpacity(0.04),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -219,7 +220,7 @@ class _DealCard extends StatelessWidget {
                       style: GoogleFonts.inter(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: NeoTasteColors.textPrimary,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -227,7 +228,7 @@ class _DealCard extends StatelessWidget {
                       restaurantName,
                       style: GoogleFonts.inter(
                         fontSize: 14,
-                        color: NeoTasteColors.textSecondary,
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ],
@@ -240,8 +241,8 @@ class _DealCard extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color: isActive
-                      ? Colors.green.withOpacity(0.1)
-                      : Colors.red.withOpacity(0.1),
+                      ? AppColors.success.withOpacity(0.1)
+                      : AppColors.error.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -249,7 +250,7 @@ class _DealCard extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: isActive ? Colors.green : Colors.red,
+                    color: isActive ? AppColors.success : AppColors.error,
                   ),
                 ),
               ),
@@ -286,20 +287,20 @@ class _InfoTag extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: NeoTasteColors.background,
+        color: AppColors.background,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: NeoTasteColors.textSecondary),
+          Icon(icon, size: 14, color: AppColors.textSecondary),
           const SizedBox(width: 6),
           Text(
             label,
             style: GoogleFonts.inter(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: NeoTasteColors.textSecondary,
+              color: AppColors.textSecondary,
             ),
           ),
         ],

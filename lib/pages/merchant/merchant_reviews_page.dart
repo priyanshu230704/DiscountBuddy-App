@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/merchant_service.dart';
 import '../../widgets/skeleton_loader.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
 
 class MerchantReviewsPage extends StatefulWidget {
   const MerchantReviewsPage({super.key});
@@ -45,14 +46,14 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: NeoTasteColors.background,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
           'Reviews',
           style: GoogleFonts.inter(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        backgroundColor: NeoTasteColors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
       ),
@@ -62,7 +63,7 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
           ? _buildEmptyState()
           : RefreshIndicator(
               onRefresh: _loadReviews,
-              color: NeoTasteColors.accent,
+              color: AppColors.primary,
               child: ListView.separated(
                 padding: const EdgeInsets.all(20),
                 itemCount: _reviews.length,
@@ -99,7 +100,7 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
           Icon(
             Icons.rate_review_rounded,
             size: 64,
-            color: NeoTasteColors.textDisabled,
+            color: AppColors.textDisabled,
           ),
           const SizedBox(height: 16),
           Text(
@@ -107,7 +108,7 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
             style: GoogleFonts.inter(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: NeoTasteColors.textPrimary,
+              color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 8),
@@ -115,7 +116,7 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
             'Customer feedback will appear here',
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: NeoTasteColors.textSecondary,
+              color: AppColors.textSecondary,
             ),
           ),
         ],
@@ -140,11 +141,11 @@ class _ReviewCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: NeoTasteColors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: AppColors.textPrimary.withOpacity(0.04),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -162,7 +163,7 @@ class _ReviewCard extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
-                    color: NeoTasteColors.textPrimary,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ),
@@ -174,7 +175,7 @@ class _ReviewCard extends StatelessWidget {
                         ? Icons.star_rounded
                         : Icons.star_outline_rounded,
                     size: 18,
-                    color: Colors.amber,
+                    color: AppColors.accent,
                   ),
                 ),
               ),
@@ -185,7 +186,7 @@ class _ReviewCard extends StatelessWidget {
             restaurant,
             style: GoogleFonts.inter(
               fontSize: 12,
-              color: NeoTasteColors.textSecondary,
+              color: AppColors.textSecondary,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -194,7 +195,7 @@ class _ReviewCard extends StatelessWidget {
             Text(
               comment,
               style: GoogleFonts.inter(
-                color: NeoTasteColors.textPrimary,
+                color: AppColors.textPrimary,
                 height: 1.5,
               ),
             ),
@@ -204,7 +205,7 @@ class _ReviewCard extends StatelessWidget {
             date,
             style: GoogleFonts.inter(
               fontSize: 11,
-              color: NeoTasteColors.textDisabled,
+              color: AppColors.textDisabled,
             ),
           ),
         ],

@@ -6,6 +6,7 @@ import '../../services/merchant_service.dart';
 import '../../models/deal_redemption.dart';
 import '../../providers/theme_provider.dart';
 import '../../widgets/generic_bottom_sheet.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
 
 /// QR Scanner Screen for merchants to scan and redeem customer deals
 class QRScannerPage extends StatefulWidget {
@@ -124,7 +125,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
                 height: 48,
                 width: 48,
                 child: CircularProgressIndicator(
-                  color: NeoTasteColors.accent,
+                  color: AppColors.primary,
                   strokeWidth: 3,
                 ),
               ),
@@ -133,7 +134,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
                 'Verifying deal...',
                 style: GoogleFonts.inter(
                   fontSize: 16,
-                  color: NeoTasteColors.textSecondary,
+                  color: AppColors.textSecondary,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -146,7 +147,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+      SnackBar(content: Text(message), backgroundColor: AppColors.error),
     );
   }
 
@@ -172,7 +173,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
                   padding: EdgeInsets.only(top: 8, bottom: 16),
                   child: Icon(
                     Icons.check_circle_rounded,
-                    color: Colors.green,
+                    color: AppColors.success,
                     size: 52,
                   ),
                 ),
@@ -181,7 +182,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
                   padding: const EdgeInsets.all(16),
                   margin: const EdgeInsets.symmetric(horizontal: 24),
                   decoration: BoxDecoration(
-                    color: NeoTasteColors.background,
+                    color: AppColors.background,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
@@ -193,7 +194,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: NeoTasteColors.textPrimary,
+                          color: AppColors.textPrimary,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -225,8 +226,8 @@ class _QRScannerPageState extends State<QRScannerPage> {
                         Navigator.of(context).pop(); // Go back to dashboard
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: NeoTasteColors.accent,
-                        foregroundColor: NeoTasteColors.primary,
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.textPrimary,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -262,7 +263,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
             child: Text(
               label,
               style: GoogleFonts.inter(
-                color: NeoTasteColors.textSecondary,
+                color: AppColors.textSecondary,
                 fontSize: 13,
               ),
             ),
@@ -271,7 +272,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
             child: Text(
               value,
               style: GoogleFonts.inter(
-                color: NeoTasteColors.textPrimary,
+                color: AppColors.textPrimary,
                 fontWeight: FontWeight.w500,
                 fontSize: 13,
               ),
@@ -284,11 +285,11 @@ class _QRScannerPageState extends State<QRScannerPage> {
 
   void _showErrorDialog(String message, dynamic errorType) {
     IconData icon = Icons.error_outline_rounded;
-    Color color = Colors.red;
+    Color color = AppColors.error;
 
     if (message.contains('already been redeemed')) {
       icon = Icons.warning_amber_rounded;
-      color = Colors.orange;
+      color = AppColors.accent;
     }
 
     showModalBottomSheet(
@@ -314,7 +315,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
                     fontSize: 15,
-                    color: NeoTasteColors.textPrimary,
+                    color: AppColors.textPrimary,
                     height: 1.4,
                   ),
                 ),
@@ -333,12 +334,12 @@ class _QRScannerPageState extends State<QRScannerPage> {
                       });
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: NeoTasteColors.background,
-                      foregroundColor: NeoTasteColors.textPrimary,
+                      backgroundColor: AppColors.background,
+                      foregroundColor: AppColors.textPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       elevation: 0,
                       side: const BorderSide(
-                        color: NeoTasteColors.textDisabled,
+                        color: AppColors.textDisabled,
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -371,21 +372,21 @@ class _QRScannerPageState extends State<QRScannerPage> {
   Widget build(BuildContext context) {
     if (!_hasPermission) {
       return Scaffold(
-        backgroundColor: NeoTasteColors.background,
+        backgroundColor: AppColors.background,
         appBar: AppBar(
           title: Text(
             'Scan QR Code',
             style: GoogleFonts.inter(fontWeight: FontWeight.bold),
           ),
-          backgroundColor: NeoTasteColors.white,
-          foregroundColor: NeoTasteColors.textPrimary,
+          backgroundColor: AppColors.white,
+          foregroundColor: AppColors.textPrimary,
           elevation: 0,
         ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.camera_alt, size: 64, color: Colors.grey),
+              const Icon(Icons.camera_alt, size: 64, color: AppColors.textSecondary),
               const SizedBox(height: 16),
               Text(
                 'Camera permission required',
@@ -395,8 +396,8 @@ class _QRScannerPageState extends State<QRScannerPage> {
               ElevatedButton(
                 onPressed: _checkPermission,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: NeoTasteColors.accent,
-                  foregroundColor: NeoTasteColors.primary,
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.textPrimary,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 32,
                     vertical: 16,
@@ -411,14 +412,14 @@ class _QRScannerPageState extends State<QRScannerPage> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.textPrimary,
       appBar: AppBar(
         title: Text(
           'Scan QR Code',
           style: GoogleFonts.inter(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.textPrimary,
+        foregroundColor: AppColors.white,
         elevation: 0,
         actions: [
           IconButton(
@@ -451,11 +452,11 @@ class _QRScannerPageState extends State<QRScannerPage> {
             right: 0,
             child: Container(
               padding: const EdgeInsets.all(16),
-              color: Colors.black54,
+              color: AppColors.textPrimary54,
               child: Text(
                 'Position the QR code within the frame',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.inter(color: Colors.white, fontSize: 16),
+                style: GoogleFonts.inter(color: AppColors.white, fontSize: 16),
               ),
             ),
           ),
@@ -526,8 +527,8 @@ class _QRScannerPageState extends State<QRScannerPage> {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: NeoTasteColors.accent,
-              foregroundColor: NeoTasteColors.primary,
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.textPrimary,
             ),
             child: const Text('Redeem'),
           ),
@@ -542,11 +543,11 @@ class ScannerOverlayPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.black54
+      ..color = AppColors.textPrimary54
       ..style = PaintingStyle.fill;
 
     final framePaint = Paint()
-      ..color = Colors.white
+      ..color = AppColors.white
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3;
 

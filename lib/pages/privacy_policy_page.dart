@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../providers/theme_provider.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
 
 class PrivacyPolicyPage extends StatelessWidget {
   const PrivacyPolicyPage({super.key});
@@ -8,19 +9,19 @@ class PrivacyPolicyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: NeoTasteColors.white,
+      backgroundColor: AppColors.white,
       appBar: AppBar(
         title: Text(
           'Privacy Policy',
           style: GoogleFonts.inter(
-            color: NeoTasteColors.textPrimary,
+            color: AppColors.textPrimary,
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: NeoTasteColors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: NeoTasteColors.textPrimary),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -32,7 +33,7 @@ class PrivacyPolicyPage extends StatelessWidget {
             Text(
               'Last Updated: October 2024',
               style: GoogleFonts.inter(
-                color: NeoTasteColors.textSecondary,
+                color: AppColors.textSecondary,
                 fontSize: 14,
               ),
             ),
@@ -75,7 +76,7 @@ class PrivacyPolicyPage extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: NeoTasteColors.textPrimary,
+              color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 12),
@@ -84,7 +85,7 @@ class PrivacyPolicyPage extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 15,
               height: 1.6,
-              color: NeoTasteColors.textSecondary,
+              color: AppColors.textSecondary,
             ),
           ),
         ],

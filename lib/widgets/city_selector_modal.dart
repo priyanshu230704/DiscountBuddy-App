@@ -4,6 +4,7 @@ import '../providers/theme_provider.dart';
 import 'package:discount_buddy/services/city_service.dart';
 import 'package:discount_buddy/models/city.dart';
 import 'generic_bottom_sheet.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
 
 class CitySelectorModal extends StatelessWidget {
   final String selectedCity;
@@ -46,7 +47,7 @@ class CitySelectorModal extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Colors.red,
+                      color: AppColors.error,
                     ),
                   ),
                 ),
@@ -63,7 +64,7 @@ class CitySelectorModal extends StatelessWidget {
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: NeoTasteColors.textSecondary,
+                  color: AppColors.textSecondary,
                 ),
               ),
             );
@@ -95,13 +96,13 @@ class CitySelectorModal extends StatelessWidget {
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? NeoTasteColors.accent.withOpacity(0.1)
+                            ? AppColors.primary.withOpacity(0.1)
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isSelected
-                              ? NeoTasteColors.accent
-                              : NeoTasteColors.textDisabled.withOpacity(0.2),
+                              ? AppColors.primary
+                              : AppColors.textDisabled.withOpacity(0.2),
                           width: isSelected ? 2 : 1,
                         ),
                       ),
@@ -117,7 +118,7 @@ class CitySelectorModal extends StatelessWidget {
                                   style: GoogleFonts.inter(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
-                                    color: NeoTasteColors.textPrimary,
+                                    color: AppColors.textPrimary,
                                   ),
                                 ),
                                 if (isCovered) ...[
@@ -126,7 +127,7 @@ class CitySelectorModal extends StatelessWidget {
                                     "$restaurantCount restaurants",
                                     style: GoogleFonts.inter(
                                       fontSize: 12,
-                                      color: NeoTasteColors.textSecondary,
+                                      color: AppColors.textSecondary,
                                     ),
                                   ),
                                 ],
@@ -142,7 +143,7 @@ class CitySelectorModal extends StatelessWidget {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.green,
+                                color: AppColors.success,
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Row(
@@ -150,7 +151,7 @@ class CitySelectorModal extends StatelessWidget {
                                 children: [
                                   const Icon(
                                     Icons.check_circle,
-                                    color: Colors.white,
+                                    color: AppColors.white,
                                     size: 16,
                                   ),
                                   const SizedBox(width: 4),
@@ -159,7 +160,7 @@ class CitySelectorModal extends StatelessWidget {
                                     style: GoogleFonts.inter(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                                      color: AppColors.white,
                                     ),
                                   ),
                                 ],
@@ -172,7 +173,7 @@ class CitySelectorModal extends StatelessWidget {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: NeoTasteColors.textDisabled.withOpacity(
+                                color: AppColors.textDisabled.withOpacity(
                                   0.3,
                                 ),
                                 borderRadius: BorderRadius.circular(20),
@@ -182,7 +183,7 @@ class CitySelectorModal extends StatelessWidget {
                                 style: GoogleFonts.inter(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
-                                  color: NeoTasteColors.textSecondary,
+                                  color: AppColors.textSecondary,
                                 ),
                               ),
                             ),
@@ -191,7 +192,7 @@ class CitySelectorModal extends StatelessWidget {
                             const SizedBox(width: 12),
                             Icon(
                               Icons.check_circle,
-                              color: NeoTasteColors.accent,
+                              color: AppColors.primary,
                               size: 24,
                             ),
                           ],

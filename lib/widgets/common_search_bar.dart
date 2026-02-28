@@ -1,3 +1,4 @@
+import 'package:discount_buddy/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
 /// Common search bar widget with gradient border
@@ -67,25 +68,25 @@ class _CommonSearchBarState extends State<CommonSearchBar> {
           controller: widget.controller,
           enabled: widget.enabled,
           style: const TextStyle(
-            color: Colors.white,
+            color: AppColors.white,
             fontSize: 14,
           ),
           decoration: InputDecoration(
             hintText: widget.hintText,
             hintStyle: TextStyle(
-              color: Colors.grey[500],
+              color: AppColors.textDisabled,
               fontSize: 14,
             ),
             prefixIcon: const Icon(
               Icons.search,
-              color: Colors.grey,
+              color: AppColors.textSecondary,
               size: 20,
             ),
             suffixIcon: widget.controller.text.isNotEmpty
                 ? IconButton(
                     icon: const Icon(
                       Icons.clear,
-                      color: Colors.grey,
+                      color: AppColors.textSecondary,
                       size: 18,
                     ),
                     padding: EdgeInsets.zero,

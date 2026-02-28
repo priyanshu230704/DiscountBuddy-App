@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../providers/theme_provider.dart';
 import '../providers/auth_provider.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
 
 /// Edit Profile Screen
 class EditProfilePage extends StatefulWidget {
@@ -71,7 +72,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               'Profile updated successfully',
               style: GoogleFonts.inter(),
             ),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.success,
           ),
         );
         Navigator.pop(context);
@@ -84,7 +85,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               'Failed to update profile',
               style: GoogleFonts.inter(),
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -100,12 +101,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: NeoTasteColors.white,
+      backgroundColor: AppColors.white,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back,
-            color: NeoTasteColors.textPrimary,
+            color: AppColors.textPrimary,
           ),
           onPressed: () => Navigator.pop(context),
         ),
@@ -114,10 +115,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
           style: GoogleFonts.inter(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: NeoTasteColors.textPrimary,
+            color: AppColors.textPrimary,
           ),
         ),
-        backgroundColor: NeoTasteColors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
       ),
       body: SafeArea(
@@ -135,7 +136,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     width: 120,
                     height: 120,
                     decoration: BoxDecoration(
-                      color: Colors.green,
+                      color: AppColors.success,
                       shape: BoxShape.circle,
                     ),
                     child: Center(
@@ -144,7 +145,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         style: GoogleFonts.inter(
                           fontSize: 48,
                           fontWeight: FontWeight.bold,
-                          color: NeoTasteColors.white,
+                          color: AppColors.white,
                         ),
                       ),
                     ),
@@ -160,13 +161,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         color: const Color(0xFF343A40),
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: NeoTasteColors.white,
+                          color: AppColors.white,
                           width: 3,
                         ),
                       ),
                       child: const Icon(
                         Icons.edit,
-                        color: NeoTasteColors.white,
+                        color: AppColors.white,
                         size: 18,
                       ),
                     ),
@@ -253,7 +254,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           label,
           style: GoogleFonts.inter(
             fontSize: 12,
-            color: NeoTasteColors.textSecondary,
+            color: AppColors.textSecondary,
           ),
         ),
         const SizedBox(height: 8),
@@ -269,7 +270,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             style: GoogleFonts.inter(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: NeoTasteColors.textPrimary,
+              color: AppColors.textPrimary,
             ),
             decoration: InputDecoration(
               border: InputBorder.none,

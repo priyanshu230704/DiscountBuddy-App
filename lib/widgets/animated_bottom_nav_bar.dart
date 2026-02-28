@@ -168,9 +168,9 @@ class BottomNavItem {
   final String? imageAsset;
   final String label;
 
-  const BottomNavItem({
-    this.icon,
-    this.imageAsset,
-    required this.label,
-  }) : assert(icon != null || imageAsset != null, 'Either icon or imageAsset must be provided');
+  const BottomNavItem({this.icon, this.imageAsset, required this.label})
+    : assert(
+        icon != null || imageAsset != null,
+        'Either icon or imageAsset must be provided',
+      );
 }

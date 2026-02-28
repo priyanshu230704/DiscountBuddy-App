@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../providers/theme_provider.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
 
 class HelpSupportPage extends StatelessWidget {
   const HelpSupportPage({super.key});
@@ -8,19 +9,19 @@ class HelpSupportPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: NeoTasteColors.white,
+      backgroundColor: AppColors.white,
       appBar: AppBar(
         title: Text(
           'Help & Support',
           style: GoogleFonts.inter(
-            color: NeoTasteColors.textPrimary,
+            color: AppColors.textPrimary,
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: NeoTasteColors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: NeoTasteColors.textPrimary),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -34,7 +35,7 @@ class HelpSupportPage extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: NeoTasteColors.textPrimary,
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 16),
@@ -60,17 +61,17 @@ class HelpSupportPage extends StatelessWidget {
               style: GoogleFonts.inter(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: NeoTasteColors.textPrimary,
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: NeoTasteColors.primaryLight.withOpacity(0.1),
+                color: AppColors.textSecondary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: NeoTasteColors.primary.withOpacity(0.3),
+                  color: AppColors.textPrimary.withOpacity(0.3),
                 ),
               ),
               child: Column(
@@ -78,7 +79,7 @@ class HelpSupportPage extends StatelessWidget {
                   Icon(
                     Icons.support_agent,
                     size: 48,
-                    color: NeoTasteColors.primary,
+                    color: AppColors.textPrimary,
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -86,7 +87,7 @@ class HelpSupportPage extends StatelessWidget {
                     style: GoogleFonts.inter(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: NeoTasteColors.textPrimary,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -94,7 +95,7 @@ class HelpSupportPage extends StatelessWidget {
                     'Our team is available 9 AM - 6 PM to assist you with any issues.',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.inter(
-                      color: NeoTasteColors.textSecondary,
+                      color: AppColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -105,7 +106,7 @@ class HelpSupportPage extends StatelessWidget {
                         // Implement contact action
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: NeoTasteColors.primary,
+                        backgroundColor: AppColors.textPrimary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -116,7 +117,7 @@ class HelpSupportPage extends StatelessWidget {
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: AppColors.white,
                         ),
                       ),
                     ),
@@ -135,12 +136,12 @@ class HelpSupportPage extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: NeoTasteColors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+        border: Border.all(color: AppColors.textSecondary.withOpacity(0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: AppColors.textPrimary.withOpacity(0.02),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -151,7 +152,7 @@ class HelpSupportPage extends StatelessWidget {
           question,
           style: GoogleFonts.inter(
             fontWeight: FontWeight.w600,
-            color: NeoTasteColors.textPrimary,
+            color: AppColors.textPrimary,
           ),
         ),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -159,7 +160,7 @@ class HelpSupportPage extends StatelessWidget {
           Text(
             answer,
             style: GoogleFonts.inter(
-              color: NeoTasteColors.textSecondary,
+              color: AppColors.textSecondary,
               height: 1.5,
             ),
           ),

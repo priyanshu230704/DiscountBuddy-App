@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/booking_service.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
 
 class CreateBookingPage extends StatefulWidget {
   final int restaurantId;
@@ -50,7 +51,7 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: NeoTasteColors.accent,
+              primary: AppColors.primary,
             ),
           ),
           child: child!,
@@ -72,7 +73,7 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: NeoTasteColors.accent,
+              primary: AppColors.primary,
             ),
           ),
           child: child!,
@@ -129,7 +130,7 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Booking request sent successfully!'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.success,
           ),
         );
         Navigator.pop(context, true);
@@ -148,15 +149,15 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: NeoTasteColors.white,
+      backgroundColor: AppColors.white,
       appBar: AppBar(
         title: Text(
           'Book Table',
           style: GoogleFonts.inter(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: NeoTasteColors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(color: AppColors.textPrimary),
       ),
       body: SafeArea(
         child: Form(
@@ -263,13 +264,13 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _submitBooking,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: NeoTasteColors.accent,
+                    backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                   child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
+                      ? const CircularProgressIndicator(color: AppColors.white)
                       : Text(
                           'Confirm Booking',
                           style: GoogleFonts.inter(
@@ -308,7 +309,7 @@ class _DetailSelector extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: AppColors.textSecondary),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -316,11 +317,11 @@ class _DetailSelector extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(icon, size: 16, color: Colors.grey),
+                Icon(icon, size: 16, color: AppColors.textSecondary),
                 const SizedBox(width: 8),
                 Text(
                   label,
-                  style: GoogleFonts.inter(fontSize: 12, color: Colors.grey),
+                  style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary),
                 ),
               ],
             ),

@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../models/mystery_visit.dart';
 import '../../services/mystery_guest_service.dart';
 import '../../providers/theme_provider.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
 
 class MysteryAuditModal extends StatefulWidget {
   final MysteryVisit visit;
@@ -144,7 +145,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.9,
       decoration: const BoxDecoration(
-        color: NeoTasteColors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       padding: const EdgeInsets.all(20),
@@ -161,7 +162,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
                     style: GoogleFonts.inter(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: NeoTasteColors.textPrimary,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   IconButton(
@@ -180,7 +181,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
           ),
           if (_isLoading)
             Container(
-              color: Colors.white60,
+              color: AppColors.white60,
               child: const Center(child: CircularProgressIndicator()),
             ),
         ],
@@ -192,7 +193,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Icon(Icons.psychology, size: 80, color: Colors.purple),
+        const Icon(Icons.psychology, size: 80, color: AppColors.primary),
         const SizedBox(height: 24),
         Text(
           'Anonymous Audit',
@@ -204,7 +205,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
           child: Text(
             'Once you start the audit, your status will change to "In Progress". Please ensure you are at the location and ready to evaluate.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(color: AppColors.textSecondary),
           ),
         ),
         const SizedBox(height: 40),
@@ -214,7 +215,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
           child: ElevatedButton(
             onPressed: _startVisit,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.purple,
+              backgroundColor: AppColors.primary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -224,7 +225,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
-                color: Colors.white,
+                color: AppColors.white,
               ),
             ),
           ),
@@ -304,7 +305,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
                 height: 80,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade300),
+                  border: Border.all(color: AppColors.textSecondary),
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
@@ -318,14 +319,14 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color: AppColors.textSecondary,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: Colors.grey.shade300,
+                    color: AppColors.textSecondary,
                     style: BorderStyle.none,
                   ),
                 ),
-                child: const Icon(Icons.add_a_photo, color: Colors.grey),
+                child: const Icon(Icons.add_a_photo, color: AppColors.textSecondary),
               ),
             ),
           ],
@@ -338,14 +339,14 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
         SwitchListTile(
           title: const Text(
             'Flag for Risk?',
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+            style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.error),
           ),
           subtitle: const Text(
             'Something major was wrong (e.g., safety, fraud)',
           ),
           value: _isRiskFlagged,
           onChanged: (val) => setState(() => _isRiskFlagged = val),
-          activeColor: Colors.red,
+          activeColor: AppColors.error,
         ),
 
         const SizedBox(height: 32),
@@ -355,7 +356,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
           child: ElevatedButton(
             onPressed: _submitReport,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
+              backgroundColor: AppColors.success,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -365,7 +366,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
-                color: Colors.white,
+                color: AppColors.white,
               ),
             ),
           ),
@@ -417,15 +418,15 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
         maxLines: 2,
         decoration: InputDecoration(
           hintText: hint,
-          fillColor: Colors.grey.shade50,
+          fillColor: AppColors.textSecondary,
           filled: true,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.shade200),
+            borderSide: BorderSide(color: AppColors.textSecondary),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.shade200),
+            borderSide: BorderSide(color: AppColors.textSecondary),
           ),
         ),
         style: GoogleFonts.inter(fontSize: 14),

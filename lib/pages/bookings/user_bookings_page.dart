@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/booking_service.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
 
 class UserBookingsView extends StatefulWidget {
   const UserBookingsView({super.key});
@@ -76,11 +77,11 @@ class _UserBookingsViewState extends State<UserBookingsView> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.event_busy, size: 64, color: Colors.grey[300]),
+                Icon(Icons.event_busy, size: 64, color: AppColors.textDisabled),
                 const SizedBox(height: 16),
                 Text(
                   'No bookings found',
-                  style: GoogleFonts.inter(color: NeoTasteColors.textSecondary),
+                  style: GoogleFonts.inter(color: AppColors.textSecondary),
                 ),
               ],
             ),
@@ -151,24 +152,24 @@ class _UserBookingCard extends StatelessWidget {
             const SizedBox(height: 8),
             Row(
               children: [
-                const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+                const Icon(Icons.calendar_today, size: 16, color: AppColors.textSecondary),
                 const SizedBox(width: 8),
                 Text(
                   date != null
                       ? DateFormat('MMM d, yyyy HH:mm').format(date.toLocal())
                       : dateStr ?? '',
-                  style: GoogleFonts.inter(color: Colors.grey[700]),
+                  style: GoogleFonts.inter(color: AppColors.textDisabled),
                 ),
               ],
             ),
             const SizedBox(height: 4),
             Row(
               children: [
-                const Icon(Icons.people, size: 16, color: Colors.grey),
+                const Icon(Icons.people, size: 16, color: AppColors.textSecondary),
                 const SizedBox(width: 8),
                 Text(
                   '${booking['number_of_guests']} Guests',
-                  style: GoogleFonts.inter(color: Colors.grey[700]),
+                  style: GoogleFonts.inter(color: AppColors.textDisabled),
                 ),
               ],
             ),
@@ -196,7 +197,7 @@ class _UserBookingCard extends StatelessWidget {
                               onCancel();
                             },
                             style: TextButton.styleFrom(
-                              foregroundColor: Colors.red,
+                              foregroundColor: AppColors.error,
                             ),
                             child: const Text('Yes, Cancel'),
                           ),
@@ -205,8 +206,8 @@ class _UserBookingCard extends StatelessWidget {
                     );
                   },
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red,
-                    side: const BorderSide(color: Colors.red),
+                    foregroundColor: AppColors.error,
+                    side: const BorderSide(color: AppColors.error),
                   ),
                   child: const Text('Cancel Booking'),
                 ),
@@ -228,13 +229,13 @@ class _StatusBadge extends StatelessWidget {
     Color color;
     switch (status.toLowerCase()) {
       case 'confirmed':
-        color = Colors.green;
+        color = AppColors.success;
         break;
       case 'cancelled':
-        color = Colors.red;
+        color = AppColors.error;
         break;
       default:
-        color = Colors.orange;
+        color = AppColors.accent;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

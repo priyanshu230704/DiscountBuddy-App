@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'auth_theme.dart';
 
-/// NeoTaste-style Auth Button - Yellow pill-shaped button
+/// Discount Buddy-style Auth Button - Yellow pill-shaped button
 class AuthButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;

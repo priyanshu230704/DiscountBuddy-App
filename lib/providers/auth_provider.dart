@@ -186,7 +186,7 @@ class AuthProvider extends ChangeNotifier {
 
   /// Login with Google
   Future<bool> loginWithGoogle() async {
-    print('DEBUG: AuthProvider.loginWithGoogle -> Triggered');
+    debugPrint('DEBUG: AuthProvider.loginWithGoogle -> Triggered');
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -198,7 +198,7 @@ class AuthProvider extends ChangeNotifier {
       _userRole = loginResponse.role;
       _isAuthenticated = true;
       _isLoading = false;
-      print(
+      debugPrint(
         'DEBUG: AuthProvider.loginWithGoogle -> Success: authenticated as ${_user?.email}',
       );
       notifyListeners();
@@ -208,8 +208,16 @@ class AuthProvider extends ChangeNotifier {
 
       return true;
     } catch (e) {
-      print('DEBUG: AuthProvider.loginWithGoogle -> Catching error: $e');
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      final message = e.toString().replaceAll('Exception: ', '');
+      final lower = message.toLowerCase();
+      final isUserCancelled = lower.contains('googlesigninexceptioncode.canceled') ||
+          lower.contains('cancelled') ||
+          lower.contains('canceled by the user') ||
+          lower.contains('activity is cancelled by the user');
+
+      debugPrint('DEBUG: AuthProvider.loginWithGoogle -> Catching error: $message');
+      // Cancel flow should silently stop loading without showing an error snackbar.
+      _errorMessage = isUserCancelled ? null : message;
       _isAuthenticated = false;
       _isLoading = false;
       notifyListeners();
@@ -253,6 +261,53 @@ class AuthProvider extends ChangeNotifier {
     } catch (e) {
       // If we can't get user, they might not be authenticated
       await logout();
+    }
+  }
+
+  /// Request forgot password email
+  Future<bool> forgotPassword({required String email}) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _authService.passwordReset(email: email);
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Update current user profile
+  Future<bool> updateProfile({
+    String? firstName,
+    String? lastName,
+    String? email,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final updatedUser = await _authService.updateProfile(
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+      );
+      _user = updatedUser;
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _isLoading = false;
+      notifyListeners();
+      return false;
     }
   }
 }

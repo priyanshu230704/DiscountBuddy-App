@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -10,7 +10,7 @@ import '../../models/restaurant.dart';
 import '../../models/city.dart';
 import '../../services/restaurant_service.dart';
 import '../../services/location_service.dart';
-import '../../providers/theme_provider.dart';
+import '../../theme/app_colors.dart';
 import '../restaurant_details_page.dart';
 import '../../widgets/city_selector_modal.dart';
 import '../../widgets/filter_modal.dart';
@@ -61,6 +61,7 @@ class _NearbyPageState extends State<NearbyPage>
   Uint8List? _pinNormalBytes;
   Uint8List? _pinSelectedBytes;
   Uint8List? _pinPopBytes;
+  ui.Image? _appLogoImage;
 
   PointAnnotation? _userDotAnnotation;
 
@@ -325,22 +326,21 @@ class _NearbyPageState extends State<NearbyPage>
     final canvas = Canvas(recorder);
 
     final double s = size.toDouble();
-    final Offset topCenter = Offset(s / 2, s * 0.42);
+    final Offset topCenter = Offset(s / 2, s * 0.38);
 
+    // Drop shadow
     final shadowPaint = Paint()
-      ..color = Colors.black.withOpacity(selected ? 0.30 : 0.18)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 16);
+      ..color = Colors.black.withValues(alpha: selected ? 0.35 : 0.20)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
 
     canvas.drawOval(
       Rect.fromCenter(
-        center: Offset(topCenter.dx + 2, topCenter.dy + s * 0.47),
-        width: s * 0.62,
-        height: s * 0.22,
+        center: Offset(topCenter.dx, topCenter.dy + s * 0.55),
+        width: s * 0.45,
+        height: s * 0.15,
       ),
       shadowPaint,
     );
-
-    final pinPaint = Paint()..color = const Color(0xFF3EE17A);
 
     final double topRadius = s * 0.28;
     final path = Path();
@@ -348,14 +348,14 @@ class _NearbyPageState extends State<NearbyPage>
     path.addOval(Rect.fromCircle(center: topCenter, radius: topRadius));
 
     final Offset p1 = Offset(
-      topCenter.dx - topRadius * 0.70,
+      topCenter.dx - topRadius * 0.75,
       topCenter.dy + topRadius * 0.55,
     );
     final Offset p2 = Offset(
-      topCenter.dx + topRadius * 0.70,
+      topCenter.dx + topRadius * 0.75,
       topCenter.dy + topRadius * 0.55,
     );
-    final Offset tip = Offset(topCenter.dx, topCenter.dy + topRadius * 2.40);
+    final Offset tip = Offset(topCenter.dx, topCenter.dy + topRadius * 2.20);
 
     path.moveTo(p1.dx, p1.dy);
     path.quadraticBezierTo(
@@ -372,38 +372,32 @@ class _NearbyPageState extends State<NearbyPage>
     );
     path.close();
 
-    canvas.drawPath(path, pinPaint);
+    // Pin Body (Blue for selected, White for unselected)
+    final fillPaint = Paint()
+      ..color = selected 
+          ? AppColors.primaryPurple 
+          : Colors.white;
+    canvas.drawPath(path, fillPaint);
 
-    final innerCirclePaint = Paint()..color = const Color(0xFF0D0F12);
-    canvas.drawCircle(topCenter, topRadius * 0.75, innerCirclePaint);
+    // Subtle stroke border
+    final borderPaint = Paint()
+      ..color = selected ? Colors.white : Colors.black.withValues(alpha: 0.1)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = s * 0.025;
+    canvas.drawPath(path, borderPaint);
+    
+    // Draw the white inner circle
+    final innerCirclePaint = Paint()..color = selected ? Colors.white : const Color(0xFFF8F9FC);
+    canvas.drawCircle(topCenter, topRadius * 0.95, innerCirclePaint);
 
-    final borderPaint = Paint()..color = Colors.white;
-    canvas.drawCircle(topCenter, topRadius * 0.62, borderPaint);
-
-    canvas.drawCircle(topCenter, topRadius * 0.54, innerCirclePaint);
-
-    final textPainter = TextPainter(
-      text: TextSpan(
-        text: "DB",
-        style: TextStyle(
-          fontSize: selected ? s * 0.19 : s * 0.175,
-          fontWeight: FontWeight.w900,
-          color: Colors.white,
-          letterSpacing: 2.0,
-        ),
-      ),
-      textAlign: TextAlign.center,
-      textDirection: TextDirection.ltr,
-    );
-
-    textPainter.layout();
-    textPainter.paint(
-      canvas,
-      Offset(
-        topCenter.dx - textPainter.width / 2,
-        topCenter.dy - textPainter.height / 2 - (s * 0.01),
-      ),
-    );
+    // Draw the actual db_logo.png app logo inside the pin
+    if (_appLogoImage != null) {
+      final double logoSize = topRadius * 1.55; 
+      final Rect destRect = Rect.fromCenter(
+          center: topCenter, width: logoSize, height: logoSize);
+      final Rect srcRect = Rect.fromLTWH(0, 0, _appLogoImage!.width.toDouble(), _appLogoImage!.height.toDouble());
+      canvas.drawImageRect(_appLogoImage!, srcRect, destRect, Paint()..filterQuality = FilterQuality.high);
+    }
 
     final picture = recorder.endRecording();
     final img = await picture.toImage(size, size);
@@ -413,6 +407,13 @@ class _NearbyPageState extends State<NearbyPage>
   }
 
   Future<void> _ensureMarkerBytes() async {
+    if (_appLogoImage == null) {
+      final ByteData data = await rootBundle.load('assets/png/db_logo.png');
+      final ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
+      final ui.FrameInfo fi = await codec.getNextFrame();
+      _appLogoImage = fi.image;
+    }
+
     _pinNormalBytes ??= await _createDropPinMarkerBytes(
       size: _pinNormalSize,
       selected: false,
@@ -437,7 +438,7 @@ class _NearbyPageState extends State<NearbyPage>
     final center = const Offset(size / 2, size / 2);
 
     final shadowPaint = Paint()
-      ..color = Colors.black.withOpacity(0.18)
+      ..color = Colors.black.withValues(alpha: 0.18)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
 
     canvas.drawCircle(center.translate(0, 4), size * 0.30, shadowPaint);
@@ -445,7 +446,7 @@ class _NearbyPageState extends State<NearbyPage>
     final borderPaint = Paint()..color = Colors.white;
     canvas.drawCircle(center, size * 0.24, borderPaint);
 
-    final fillPaint = Paint()..color = const Color(0xFF2F80ED);
+    final fillPaint = Paint()..color = AppColors.primaryPurple;
     canvas.drawCircle(center, size * 0.16, fillPaint);
 
     final picture = recorder.endRecording();
@@ -631,14 +632,18 @@ class _NearbyPageState extends State<NearbyPage>
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
-                                    borderRadius: BorderRadius.circular(18),
+                                    borderRadius: BorderRadius.circular(14),
                                     border: Border.all(
-                                      color: Colors.black.withOpacity(0.06),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.06,
+                                      ),
                                     ),
                                     boxShadow: [
                                       BoxShadow(
                                         blurRadius: 14,
-                                        color: Colors.black.withOpacity(0.06),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.06,
+                                        ),
                                         offset: const Offset(0, 6),
                                       ),
                                     ],
@@ -719,7 +724,7 @@ class _NearbyPageState extends State<NearbyPage>
   Widget build(BuildContext context) {
     super.build(context);
     return Scaffold(
-      backgroundColor: NeoTasteColors.background,
+      backgroundColor: AppColors.background,
       body: Stack(
         children: [
           MapWidget(
@@ -742,31 +747,29 @@ class _NearbyPageState extends State<NearbyPage>
               await Future.delayed(const Duration(milliseconds: 250));
               await _setupOrnaments();
 
-              _pointManager!.addOnPointAnnotationClickListener(
-                _MarkerClickListener(
-                  onTap: (ann) async {
-                    if (_isMarkerAnimating) return;
+              _pointManager!.tapEvents(
+                onTap: (ann) async {
+                  if (_isMarkerAnimating) return;
 
-                    final restaurantId = _annotationIdToRestaurantId[ann.id];
-                    if (restaurantId == null) return;
+                  final restaurantId = _annotationIdToRestaurantId[ann.id];
+                  if (restaurantId == null) return;
 
-                    final selected = _filteredRestaurants.firstWhere(
-                      (r) => r.id == restaurantId,
-                      orElse: () => _filteredRestaurants.first,
-                    );
+                  final selected = _filteredRestaurants.firstWhere(
+                    (r) => r.id == restaurantId,
+                    orElse: () => _filteredRestaurants.first,
+                  );
 
-                    setState(() {
-                      _selectedRestaurant = selected;
-                      _selectedRestaurantId = selected.id;
-                    });
+                  setState(() {
+                    _selectedRestaurant = selected;
+                    _selectedRestaurantId = selected.id;
+                  });
 
-                    _cardController.forward(from: 0);
+                  _cardController.forward(from: 0);
 
-                    await _refreshPinsStateOnly();
-                    await _bounceSelectedMarker(selected.id);
-                    await _moveToRestaurant(selected);
-                  },
-                ),
+                  await _refreshPinsStateOnly();
+                  await _bounceSelectedMarker(selected.id);
+                  await _moveToRestaurant(selected);
+                },
               );
             },
 
@@ -807,7 +810,7 @@ class _NearbyPageState extends State<NearbyPage>
 
           if (!_isMapReady)
             Container(
-              color: NeoTasteColors.background,
+              color: AppColors.background,
               child: const Center(
                 child: CircularProgressIndicator(color: Color(0xFF2F80ED)),
               ),
@@ -824,7 +827,7 @@ class _NearbyPageState extends State<NearbyPage>
             Positioned(
               left: 16,
               right: 16,
-              bottom: 100,
+              bottom: 125, // Adjusted to prevent touching bottom navigation bar
               child: SlideTransition(
                 position: _cardSlide,
                 child: _restaurantPreviewCard(_selectedRestaurant!),
@@ -835,7 +838,7 @@ class _NearbyPageState extends State<NearbyPage>
             Positioned(
               left: 16,
               right: 16,
-              bottom: 110,
+              bottom: 135, // Adjusted to prevent touching bottom navigation bar
               child: _bottomButtons(),
             ),
 
@@ -908,7 +911,7 @@ class _NearbyPageState extends State<NearbyPage>
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F3B2E),
+            color: AppColors.primaryPurple,
             borderRadius: BorderRadius.circular(26),
           ),
           child: Row(
@@ -934,7 +937,7 @@ class _NearbyPageState extends State<NearbyPage>
               _searchFocusNode.requestFocus();
             });
           },
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(14),
           child: const Padding(
             padding: EdgeInsets.all(6.0),
             child: Icon(Icons.search, size: 28, color: Colors.black),
@@ -961,11 +964,11 @@ class _NearbyPageState extends State<NearbyPage>
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(14),
               boxShadow: [
                 BoxShadow(
                   blurRadius: 14,
-                  color: Colors.black.withOpacity(0.08),
+                  color: Colors.black.withValues(alpha: 0.08),
                   offset: const Offset(0, 6),
                 ),
               ],
@@ -1050,9 +1053,9 @@ class _NearbyPageState extends State<NearbyPage>
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
-            blurRadius: 18,
-            color: Colors.black.withOpacity(0.10),
-            offset: const Offset(0, 10),
+            blurRadius: 12,
+            color: Colors.black.withValues(alpha: 0.10),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -1090,9 +1093,9 @@ class _NearbyPageState extends State<NearbyPage>
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            blurRadius: 18,
-            color: Colors.black.withOpacity(0.10),
-            offset: const Offset(0, 10),
+            blurRadius: 12,
+            color: Colors.black.withValues(alpha: 0.10),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -1116,20 +1119,20 @@ class _NearbyPageState extends State<NearbyPage>
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.98),
-          borderRadius: BorderRadius.circular(20),
+          color: Colors.white.withValues(alpha: 0.98),
+          borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
               blurRadius: 22,
-              color: Colors.black.withOpacity(0.18),
-              offset: const Offset(0, 10),
+              color: Colors.black.withValues(alpha: 0.18),
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Row(
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(14),
               child: CachedNetworkImage(
                 imageUrl: restaurant.imageUrl,
                 width: 90,
@@ -1181,7 +1184,11 @@ class _NearbyPageState extends State<NearbyPage>
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Icon(Icons.star, size: 18, color: Colors.green),
+                      const Icon(
+                        Icons.star,
+                        size: 18,
+                        color: AppColors.primaryPurple,
+                      ),
                       const SizedBox(width: 6),
                       Text(
                         "${restaurant.rating.toStringAsFixed(1)} (${restaurant.reviewCount})",
@@ -1226,15 +1233,15 @@ class _NearbyPageState extends State<NearbyPage>
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF3EE17A),
-                          borderRadius: BorderRadius.circular(20),
+                          color: AppColors.primaryPurple,
+                          borderRadius: BorderRadius.circular(14),
                         ),
                         child: Text(
                           t,
                           style: GoogleFonts.inter(
                             fontSize: 14,
                             fontWeight: FontWeight.w800,
-                            color: Colors.black,
+                            color: Colors.white,
                           ),
                         ),
                       );
@@ -1253,13 +1260,13 @@ class _NearbyPageState extends State<NearbyPage>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.95),
-        borderRadius: BorderRadius.circular(18),
+        color: Colors.white.withValues(alpha: 0.95),
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            blurRadius: 18,
-            color: Colors.black.withOpacity(0.10),
-            offset: const Offset(0, 8),
+            blurRadius: 12,
+            color: Colors.black.withValues(alpha: 0.10),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -1283,17 +1290,5 @@ class _NearbyPageState extends State<NearbyPage>
         ],
       ),
     );
-  }
-}
-
-class _MarkerClickListener extends OnPointAnnotationClickListener {
-  final void Function(PointAnnotation) onTap;
-
-  _MarkerClickListener({required this.onTap});
-
-  @override
-  bool onPointAnnotationClick(PointAnnotation annotation) {
-    onTap(annotation);
-    return true;
   }
 }

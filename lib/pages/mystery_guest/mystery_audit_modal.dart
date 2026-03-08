@@ -1,10 +1,11 @@
+import 'package:discount_buddy/theme/app_colors.dart';
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../models/mystery_visit.dart';
 import '../../services/mystery_guest_service.dart';
-import '../../providers/theme_provider.dart';
 
 class MysteryAuditModal extends StatefulWidget {
   final MysteryVisit visit;
@@ -65,6 +66,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
       widget.onUpdate(updated);
     } catch (e) {
       setState(() => _isLoading = false);
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Failed to start visit: $e')));
@@ -91,6 +93,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
       widget.onUpdate(updated);
     } catch (e) {
       setState(() => _isLoading = false);
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
@@ -144,8 +147,8 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.9,
       decoration: const BoxDecoration(
-        color: NeoTasteColors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        color: AppColors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
       ),
       padding: const EdgeInsets.all(20),
       child: Stack(
@@ -161,7 +164,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
                     style: GoogleFonts.inter(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: NeoTasteColors.textPrimary,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   IconButton(
@@ -192,7 +195,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Icon(Icons.psychology, size: 80, color: Colors.purple),
+        const Icon(Icons.psychology, size: 80, color: Colors.blue),
         const SizedBox(height: 24),
         Text(
           'Anonymous Audit',
@@ -214,9 +217,9 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
           child: ElevatedButton(
             onPressed: _startVisit,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.purple,
+              backgroundColor: Colors.blue,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(14),
               ),
             ),
             child: const Text(
@@ -345,7 +348,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
           ),
           value: _isRiskFlagged,
           onChanged: (val) => setState(() => _isRiskFlagged = val),
-          activeColor: Colors.red,
+          activeThumbColor: Colors.red,
         ),
 
         const SizedBox(height: 32),
@@ -355,9 +358,9 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
           child: ElevatedButton(
             onPressed: _submitReport,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
+              backgroundColor: AppColors.primaryPurple,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(14),
               ),
             ),
             child: const Text(

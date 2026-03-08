@@ -1,294 +1,294 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../models/restaurant.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
 
-/// Restaurant card widget similar to Tastecard design
+/// Premium, minimal Restaurant card widget
 class RestaurantCard extends StatelessWidget {
   final Restaurant restaurant;
   final VoidCallback? onTap;
 
-  const RestaurantCard({
-    super.key,
-    required this.restaurant,
-    this.onTap,
-  });
+  const RestaurantCard({super.key, required this.restaurant, this.onTap});
 
-  // Local constants for restaurant card
-  static const double _paddingSmall = 8.0;
-  static const double _paddingMedium = 16.0;
-  static const double _radiusSmall = 8.0;
-  static const double _radiusMedium = 12.0;
+  static const double _spacing = 8.0;
+  static const double _radius = 14.0;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: _paddingMedium),
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(_radiusMedium),
+    return Container(
+      margin: const EdgeInsets.only(bottom: _spacing * 2),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(_radius),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.textPrimary.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(_radiusMedium),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Restaurant Image
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(_radiusMedium),
-                  ),
-                  child: CachedNetworkImage(
-                    imageUrl: restaurant.imageUrl,
-                    height: 180,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(_radius),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Hero Image with Badges
+              Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(_radius),
+                    ),
+                    child: CachedNetworkImage(
+                      imageUrl: restaurant.imageUrl,
                       height: 180,
-                      color: Colors.grey[300],
-                      child: const Center(
-                        child: CircularProgressIndicator(),
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(
+                        height: 180,
+                        color: AppColors.background,
+                        child: const Center(child: CircularProgressIndicator()),
                       ),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      height: 180,
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.restaurant, size: 48),
-                    ),
-                  ),
-                ),
-                // Bookmark Icon
-                Positioned(
-                  top: _paddingMedium,
-                  right: _paddingMedium,
-                  child: IconButton(
-                    icon: const Icon(Icons.bookmark_border, color: Colors.white),
-                    onPressed: () {
-                      // Handle bookmark
-                    },
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.black26,
-                    ),
-                  ),
-                ),
-                // Discount Badge (Green like Tastecard)
-                Positioned(
-                  bottom: _paddingMedium,
-                  left: _paddingMedium,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: _paddingMedium,
-                      vertical: _paddingSmall,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF34A853), // Green like Tastecard
-                      borderRadius: BorderRadius.circular(_radiusSmall),
-                    ),
-                    child: Text(
-                      restaurant.discount.displayText,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ),
-                // Distance Badge
-                Positioned(
-                  top: _paddingMedium,
-                  left: _paddingMedium,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: _paddingMedium,
-                      vertical: _paddingSmall,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black54,
-                      borderRadius: BorderRadius.circular(_radiusSmall),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.location_on,
-                          color: Colors.white,
-                          size: 14,
+                      errorWidget: (context, url, error) => Container(
+                        height: 180,
+                        color: AppColors.background,
+                        child: Icon(
+                          Icons.restaurant,
+                          size: 48,
+                          color: AppColors.textDisabled,
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${restaurant.distance.toStringAsFixed(1)} km',
-                          style: const TextStyle(
+                      ),
+                    ),
+                  ),
+                  // Bookmark Icon
+                  Positioned(
+                    top: _spacing * 1.5,
+                    right: _spacing * 1.5,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.bookmark_border,
+                          color: AppColors.textPrimary,
+                          size: 20,
+                        ),
+                        onPressed: () {},
+                        constraints: const BoxConstraints(
+                          minWidth: 36,
+                          minHeight: 36,
+                        ),
+                        padding: EdgeInsets.zero,
+                      ),
+                    ),
+                  ),
+                  // Discount Badge
+                  Positioned(
+                    bottom: _spacing * 1.5,
+                    left: _spacing * 1.5,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: _spacing * 1.5,
+                        vertical: _spacing,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.discount, // Orange discount badge
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        restaurant.discount.displayText,
+                        style: GoogleFonts.inter(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Distance Badge
+                  Positioned(
+                    top: _spacing * 1.5,
+                    left: _spacing * 1.5,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: _spacing * 1.5,
+                        vertical: _spacing,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.location_on,
                             color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
+                            size: 14,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${restaurant.distance.toStringAsFixed(1)} km',
+                            style: GoogleFonts.inter(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              // Content Area
+              Padding(
+                padding: const EdgeInsets.all(_spacing * 2),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Name & Rating Row
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            restaurant.name,
+                            style: GoogleFonts.inter(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary,
+                              letterSpacing: -0.3,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.background,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.star_rounded,
+                                color: Color(0xFFFFB100),
+                                size: 16,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                restaurant.rating.toStringAsFixed(1),
+                                style: GoogleFonts.inter(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              Text(
+                                ' (${restaurant.reviewCount})',
+                                style: GoogleFonts.inter(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                  ),
+                    const SizedBox(height: _spacing * 1.5),
+
+                    // Details Row
+                    Row(
+                      children: [
+                        _buildDetailChip(
+                          Icons.restaurant_menu,
+                          restaurant.cuisine,
+                        ),
+                        const SizedBox(width: _spacing * 2),
+                        // Safe availability check
+                        _buildDetailChip(
+                          Icons.calendar_today,
+                          restaurant.discount.validDays.isNotEmpty
+                              ? restaurant.discount.validDays.join(', ')
+                              : 'Mon - Sun',
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: _spacing * 1.5),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.location_on_outlined,
+                          size: 16,
+                          color: AppColors.textSecondary,
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            restaurant.address,
+                            style: GoogleFonts.inter(
+                              color: AppColors.textSecondary,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w400,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            // Restaurant Info
-            Padding(
-              padding: const EdgeInsets.all(_paddingMedium),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Name and Rating
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          restaurant.name,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.star,
-                            color: Colors.amber,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            restaurant.rating.toStringAsFixed(1),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            ' (${restaurant.reviewCount})',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: _paddingSmall),
-                  // Cuisine
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.restaurant_menu,
-                        size: 16,
-                        color: Colors.grey[600],
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        restaurant.cuisine,
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: _paddingSmall),
-                  // Address
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.location_on,
-                        size: 16,
-                        color: Colors.grey[600],
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          restaurant.address,
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 12,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: _paddingSmall),
-                  // Availability and Thumbs Up
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Availability
-                      if (restaurant.discount.validDays.isNotEmpty)
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.calendar_today,
-                              size: 14,
-                              color: Colors.grey[600],
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              restaurant.discount.validDays.join(' - '),
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        )
-                      else
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.calendar_today,
-                              size: 14,
-                              color: Colors.grey[600],
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Mon - Sun',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      // Thumbs Up
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.thumb_up,
-                            size: 16,
-                            color: Colors.grey[600],
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${restaurant.reviewCount}',
-                            style: TextStyle(
-                              color: Colors.grey[600],
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
-}
 
+  Widget _buildDetailChip(IconData icon, String text) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14, color: AppColors.textSecondary),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            text,
+            style: GoogleFonts.inter(
+              color: AppColors.textSecondary,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+}

@@ -1,6 +1,7 @@
+import 'package:discount_buddy/theme/app_colors.dart';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../providers/theme_provider.dart';
 import '../../services/merchant_service.dart';
 import '../../widgets/skeleton_loader.dart';
 
@@ -233,13 +234,13 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: NeoTasteColors.background,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
           'Menu: ${widget.restaurantName}',
           style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: NeoTasteColors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
         actions: [
           PopupMenuButton<String>(
@@ -313,7 +314,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.menu_book, size: 64, color: NeoTasteColors.textDisabled),
+          Icon(Icons.menu_book, size: 64, color: AppColors.textDisabled),
           const SizedBox(height: 16),
           Text(
             'No menu categories yet',
@@ -323,7 +324,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
           ElevatedButton(
             onPressed: _addCategory,
             style: ElevatedButton.styleFrom(
-              backgroundColor: NeoTasteColors.accent,
+              backgroundColor: AppColors.accent,
             ),
             child: const Text('Add Category'),
           ),
@@ -354,10 +355,13 @@ class _CategoryCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: NeoTasteColors.white,
+          color: AppColors.white,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 5,
+            ),
           ],
         ),
         child: Row(
@@ -381,7 +385,7 @@ class _CategoryCard extends StatelessWidget {
                       child: Text(
                         category['description'],
                         style: GoogleFonts.inter(
-                          color: NeoTasteColors.textSecondary,
+                          color: AppColors.textSecondary,
                           fontSize: 12,
                         ),
                       ),
@@ -389,7 +393,7 @@ class _CategoryCard extends StatelessWidget {
                   Text(
                     '${category['items_count'] ?? 0} items',
                     style: GoogleFonts.inter(
-                      color: NeoTasteColors.accent,
+                      color: AppColors.accent,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),

@@ -1,7 +1,8 @@
+import 'package:discount_buddy/theme/app_colors.dart';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/theme_provider.dart';
 import '../../widgets/auth/auth_theme.dart';
 import '../../widgets/auth/auth_button.dart';
 import '../../widgets/auth/auth_text_field.dart';
@@ -139,7 +140,7 @@ class _RegisterPageState extends State<RegisterPage> {
     }
 
     if (currentText != sanitizedText) {
-      Future.delayed(const Duration(milliseconds: 1000), () {
+      Future.delayed( Duration(milliseconds: 1000), () {
         if (mounted && controller.text == currentText) {
           controller.value = controller.value.copyWith(
             text: sanitizedText,
@@ -165,7 +166,7 @@ class _RegisterPageState extends State<RegisterPage> {
             _isFormValid = false;
           });
           // Auto-focus OTP field
-          Future.delayed(const Duration(milliseconds: 300), () {
+          Future.delayed( Duration(milliseconds: 300), () {
             if (mounted) _otpFocusNode.requestFocus();
           });
 
@@ -176,7 +177,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   'OTP code sent to ${_emailController.text}',
                   style: AuthTheme.bodyText,
                 ),
-                backgroundColor: Colors.green,
+                backgroundColor: AppColors.success,
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -210,7 +211,7 @@ class _RegisterPageState extends State<RegisterPage> {
           elevation: 0,
           leading: _currentStep > 0
               ? IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.black),
+                  icon:  Icon(Icons.arrow_back, color: Colors.black),
                   onPressed: () {
                     setState(() {
                       _currentStep = 0;
@@ -223,7 +224,7 @@ class _RegisterPageState extends State<RegisterPage> {
         body: SafeArea(
           child: SingleChildScrollView(
             physics:
-                const ClampingScrollPhysics(), // Allow scrolling if keyboard opens
+                 ClampingScrollPhysics(), // Allow scrolling if keyboard opens
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Form(
               key: _formKey,
@@ -232,7 +233,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 children: [
                   // Title
                   Text('Create your account', style: AuthTheme.headingLarge),
-                  const SizedBox(height: 8),
+                   SizedBox(height: 8),
 
                   // Subtitle
                   Text(
@@ -241,7 +242,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         : 'Enter the code sent to your email',
                     style: AuthTheme.subtitle,
                   ),
-                  const SizedBox(height: 48),
+                   SizedBox(height: 48),
 
                   if (_currentStep == 0) ...[
                     // --- STEP 1: Email & Role ---
@@ -268,7 +269,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 24),
+                     SizedBox(height: 24),
 
                     // Role Selection
                     Text(
@@ -276,10 +277,10 @@ class _RegisterPageState extends State<RegisterPage> {
                       style: GoogleFonts.inter(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: NeoTasteColors.textPrimary,
+                        color: AppColors.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                     SizedBox(height: 12),
                     Row(
                       children: [
                         Expanded(
@@ -294,14 +295,16 @@ class _RegisterPageState extends State<RegisterPage> {
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
                                 color: _selectedRole == 'customer'
-                                    ? NeoTasteColors.accent.withOpacity(0.1)
+                                    ? AppColors.accent.withValues(
+                                        alpha: 0.1,
+                                      )
                                     : Colors.transparent,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: _selectedRole == 'customer'
-                                      ? NeoTasteColors.accent
-                                      : NeoTasteColors.textDisabled.withOpacity(
-                                          0.3,
+                                      ? AppColors.accent
+                                      : AppColors.textDisabled.withValues(
+                                          alpha: 0.3,
                                         ),
                                   width: 2,
                                 ),
@@ -311,19 +314,19 @@ class _RegisterPageState extends State<RegisterPage> {
                                   Icon(
                                     Icons.person_outline,
                                     color: _selectedRole == 'customer'
-                                        ? NeoTasteColors.accent
-                                        : NeoTasteColors.textSecondary,
+                                        ? AppColors.accent
+                                        : AppColors.textSecondary,
                                     size: 28,
                                   ),
-                                  const SizedBox(height: 8),
+                                   SizedBox(height: 8),
                                   Text(
                                     'Customer',
                                     style: GoogleFonts.inter(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
                                       color: _selectedRole == 'customer'
-                                          ? NeoTasteColors.textPrimary
-                                          : NeoTasteColors.textSecondary,
+                                          ? AppColors.textPrimary
+                                          : AppColors.textSecondary,
                                     ),
                                   ),
                                 ],
@@ -331,7 +334,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                         SizedBox(width: 12),
                         Expanded(
                           child: GestureDetector(
                             onTap: () {
@@ -344,14 +347,16 @@ class _RegisterPageState extends State<RegisterPage> {
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
                                 color: _selectedRole == 'merchant'
-                                    ? NeoTasteColors.accent.withOpacity(0.1)
+                                    ? AppColors.accent.withValues(
+                                        alpha: 0.1,
+                                      )
                                     : Colors.transparent,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   color: _selectedRole == 'merchant'
-                                      ? NeoTasteColors.accent
-                                      : NeoTasteColors.textDisabled.withOpacity(
-                                          0.3,
+                                      ? AppColors.accent
+                                      : AppColors.textDisabled.withValues(
+                                          alpha: 0.3,
                                         ),
                                   width: 2,
                                 ),
@@ -361,19 +366,19 @@ class _RegisterPageState extends State<RegisterPage> {
                                   Icon(
                                     Icons.store_outlined,
                                     color: _selectedRole == 'merchant'
-                                        ? NeoTasteColors.accent
-                                        : NeoTasteColors.textSecondary,
+                                        ? AppColors.accent
+                                        : AppColors.textSecondary,
                                     size: 28,
                                   ),
-                                  const SizedBox(height: 8),
+                                   SizedBox(height: 8),
                                   Text(
                                     'Merchant',
                                     style: GoogleFonts.inter(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
                                       color: _selectedRole == 'merchant'
-                                          ? NeoTasteColors.textPrimary
-                                          : NeoTasteColors.textSecondary,
+                                          ? AppColors.textPrimary
+                                          : AppColors.textSecondary,
                                     ),
                                   ),
                                 ],
@@ -383,7 +388,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                     SizedBox(height: 24),
 
                     // Terms Checkbox
                     Row(
@@ -413,7 +418,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: _agreeToTerms
-                                ? const Icon(
+                                ?  Icon(
                                     Icons.check,
                                     color: AuthTheme.background,
                                     size: 16,
@@ -421,7 +426,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 : null,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                         SizedBox(width: 12),
                         Expanded(
                           child: GestureDetector(
                             onTap: () {
@@ -444,10 +449,10 @@ class _RegisterPageState extends State<RegisterPage> {
                       'Sent to ${_emailController.text}',
                       style: GoogleFonts.inter(
                         fontSize: 14,
-                        color: NeoTasteColors.textSecondary,
+                        color: AppColors.textSecondary,
                       ),
                     ),
-                    const SizedBox(height: 24),
+                     SizedBox(height: 24),
 
                     // OTP Input
                     AuthTextField(
@@ -471,7 +476,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
+                     SizedBox(height: 16),
 
                     // Password Input
                     AuthTextField(
@@ -495,7 +500,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
+                     SizedBox(height: 16),
 
                     // Confirm Password Input
                     AuthTextField(
@@ -521,7 +526,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                   ],
 
-                  const SizedBox(height: 32),
+                   SizedBox(height: 32),
 
                   // Action Button
                   AuthButton(
@@ -536,13 +541,15 @@ class _RegisterPageState extends State<RegisterPage> {
 
                   // Back to Login (Only show on step 0 to avoid navigation confusion, or keep it?)
                   if (_currentStep == 0) ...[
-                    const SizedBox(height: 24),
+                     SizedBox(height: 24),
 
                     // OR Divider
                     Row(
                       children: [
                         Expanded(
-                          child: Divider(color: Colors.grey.withOpacity(0.3)),
+                          child: Divider(
+                            color: Colors.grey.withValues(alpha: 0.3),
+                          ),
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -556,11 +563,13 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                         ),
                         Expanded(
-                          child: Divider(color: Colors.grey.withOpacity(0.3)),
+                          child: Divider(
+                            color: Colors.grey.withValues(alpha: 0.3),
+                          ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                     SizedBox(height: 24),
 
                     // Google Login Button
                     OutlinedButton(
@@ -576,7 +585,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(
+                           Text(
                             'G',
                             style: TextStyle(
                               color: Colors.blue,
@@ -585,8 +594,8 @@ class _RegisterPageState extends State<RegisterPage> {
                               fontFamily: 'Roboto',
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          const Text(
+                           SizedBox(width: 12),
+                           Text(
                             'Continue with Google',
                             style: TextStyle(
                               color: Colors.black87,
@@ -597,7 +606,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
+                     SizedBox(height: 24),
 
                     // Footer
                     Row(
@@ -619,7 +628,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               PageRouteBuilder(
                                 pageBuilder:
                                     (context, animation, secondaryAnimation) =>
-                                        const LoginPage(),
+                                         LoginPage(),
                                 transitionsBuilder:
                                     (
                                       context,
@@ -630,7 +639,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                       return SlideTransition(
                                         position:
                                             Tween<Offset>(
-                                              begin: const Offset(1.0, 0.0),
+                                              begin:  Offset(1.0, 0.0),
                                               end: Offset.zero,
                                             ).animate(
                                               CurvedAnimation(
@@ -648,7 +657,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 32),
+                     SizedBox(height: 32),
                   ],
                 ],
               ),

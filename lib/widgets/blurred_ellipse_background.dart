@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:ui';
 
 /// Common blurred ellipse background widget for top bar
-/// This widget creates a blurred purple ellipse at the top center of the screen
+/// This widget creates a blurred blue ellipse at the top center of the screen
 class BlurredEllipseBackground extends StatelessWidget {
   const BlurredEllipseBackground({super.key});
 
@@ -17,7 +17,7 @@ class BlurredEllipseBackground extends StatelessWidget {
           width: 350,
           height: 180,
           decoration: BoxDecoration(
-            color: const Color(0xFF3E25F6).withOpacity(0.7),
+            color: const Color(0xFF3E25F6).withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(180),
           ),
         ),
@@ -25,4 +25,3 @@ class BlurredEllipseBackground extends StatelessWidget {
     );
   }
 }
-

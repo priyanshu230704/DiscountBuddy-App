@@ -57,40 +57,15 @@ class _EventsPageState extends State<EventsPage> {
     ),
   ];
 
-
   final List<ExploreCategory> _exploreCategories = [
-    ExploreCategory(
-      name: 'CHRISTMAS',
-      icon: Icons.celebration,
-    ),
-    ExploreCategory(
-      name: 'MUSIC',
-      icon: Icons.music_note,
-    ),
-    ExploreCategory(
-      name: 'COMEDY',
-      icon: Icons.mic,
-    ),
-    ExploreCategory(
-      name: 'FOOD & DRINKS',
-      icon: Icons.restaurant,
-    ),
-    ExploreCategory(
-      name: 'NEW YEAR',
-      icon: Icons.calendar_today,
-    ),
-    ExploreCategory(
-      name: 'NIGHTLIFE',
-      icon: Icons.nightlife,
-    ),
-    ExploreCategory(
-      name: 'PERFORMANCES',
-      icon: Icons.theater_comedy,
-    ),
-    ExploreCategory(
-      name: 'FESTIVALS & FAIRS',
-      icon: Icons.festival,
-    ),
+    ExploreCategory(name: 'CHRISTMAS', icon: Icons.celebration),
+    ExploreCategory(name: 'MUSIC', icon: Icons.music_note),
+    ExploreCategory(name: 'COMEDY', icon: Icons.mic),
+    ExploreCategory(name: 'FOOD & DRINKS', icon: Icons.restaurant),
+    ExploreCategory(name: 'NEW YEAR', icon: Icons.calendar_today),
+    ExploreCategory(name: 'NIGHTLIFE', icon: Icons.nightlife),
+    ExploreCategory(name: 'PERFORMANCES', icon: Icons.theater_comedy),
+    ExploreCategory(name: 'FESTIVALS & FAIRS', icon: Icons.festival),
   ];
 
   @override
@@ -119,8 +94,8 @@ class _EventsPageState extends State<EventsPage> {
                     vertical: _EventsConstants.paddingSmall,
                   ),
                   child: CommonSearchBar(
-                      controller: _searchController,
-                        hintText: 'Search for events...',
+                    controller: _searchController,
+                    hintText: 'Search for events...',
                   ),
                 ),
                 // Events List
@@ -157,7 +132,9 @@ class _EventsPageState extends State<EventsPage> {
                               final event = _comedyEvents[index];
                               return Container(
                                 width: 200,
-                                margin: const EdgeInsets.only(right: _EventsConstants.paddingMedium),
+                                margin: const EdgeInsets.only(
+                                  right: _EventsConstants.paddingMedium,
+                                ),
                                 child: _buildSmallEventCard(event),
                               );
                             },
@@ -170,7 +147,9 @@ class _EventsPageState extends State<EventsPage> {
                             horizontal: _EventsConstants.paddingMedium,
                           ),
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(_EventsConstants.radiusMedium),
+                            borderRadius: BorderRadius.circular(
+                              _EventsConstants.radiusMedium,
+                            ),
                             child: Image.asset(
                               'assets/png/banner-sm.png',
                               width: double.infinity,
@@ -200,15 +179,17 @@ class _EventsPageState extends State<EventsPage> {
                           height: 100,
                           child: ListView.builder(
                             scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: _EventsConstants.paddingMedium,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: _EventsConstants.paddingMedium,
                             ),
                             itemCount: _exploreCategories.length,
                             itemBuilder: (context, index) {
                               final category = _exploreCategories[index];
                               return Container(
                                 width: 90,
-                                margin: const EdgeInsets.only(right: _EventsConstants.paddingMedium),
+                                margin: const EdgeInsets.only(
+                                  right: _EventsConstants.paddingMedium,
+                                ),
                                 child: _buildExploreCategoryCard(category),
                               );
                             },
@@ -288,7 +269,7 @@ class _EventsPageState extends State<EventsPage> {
                           end: Alignment.bottomCenter,
                           colors: [
                             Colors.transparent,
-                            Colors.black.withOpacity(0.4),
+                            Colors.black.withValues(alpha: 0.4),
                           ],
                         ),
                       ),
@@ -301,7 +282,7 @@ class _EventsPageState extends State<EventsPage> {
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
+                        color: Colors.black.withValues(alpha: 0.5),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -405,24 +386,20 @@ class _EventsPageState extends State<EventsPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              category.icon,
-              size: 28,
-              color: const Color(0xFF3E25F6),
-            ),
+            Icon(category.icon, size: 28, color: const Color(0xFF3E25F6)),
             const SizedBox(height: 6),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: Text(
-              category.name,
-              style: const TextStyle(
-                color: Colors.white,
+                category.name,
+                style: const TextStyle(
+                  color: Colors.white,
                   fontSize: 10,
                   fontWeight: FontWeight.w500,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
@@ -458,8 +435,5 @@ class ExploreCategory {
   final String name;
   final IconData icon;
 
-  const ExploreCategory({
-    required this.name,
-    required this.icon,
-  });
+  const ExploreCategory({required this.name, required this.icon});
 }

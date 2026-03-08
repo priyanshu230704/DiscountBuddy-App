@@ -1,6 +1,7 @@
+import 'package:discount_buddy/theme/app_colors.dart';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../providers/theme_provider.dart';
 import 'merchant_restaurants_page.dart';
 import 'merchant_deals_page.dart';
 import 'merchant_bookings_page.dart';
@@ -65,12 +66,12 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: NeoTasteColors.background,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         bottom: false,
         child: RefreshIndicator(
           onRefresh: _fetchDashboardData,
-          color: NeoTasteColors.accent,
+          color: AppColors.accent,
           child: CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
@@ -86,7 +87,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                         style: GoogleFonts.inter(
                           fontSize: 32,
                           fontWeight: FontWeight.w800,
-                          color: NeoTasteColors.textPrimary,
+                          color: AppColors.textPrimary,
                           letterSpacing: -1.0,
                         ),
                       ),
@@ -95,7 +96,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                         'Overview of your business performance',
                         style: GoogleFonts.inter(
                           fontSize: 16,
-                          color: NeoTasteColors.textSecondary,
+                          color: AppColors.textSecondary,
                           height: 1.5,
                         ),
                       ),
@@ -143,7 +144,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                           value: _averageRating.toStringAsFixed(1),
                           isLoading: _isLoading,
                           icon: Icons.star_rounded,
-                          color: Colors.orange,
+                          color: AppColors.discount,
                           isRating: true,
                         ),
                       ),
@@ -163,7 +164,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                     style: GoogleFonts.inter(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: NeoTasteColors.textPrimary,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ),
@@ -196,7 +197,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                       title: 'Restaurants',
                       subtitle: 'Edit details',
                       icon: Icons.storefront_rounded,
-                      color: Colors.purple,
+                      color: Colors.blue,
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -208,7 +209,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                       title: 'Menu Items',
                       subtitle: 'Update food',
                       icon: Icons.restaurant_menu_rounded,
-                      color: Colors.orange,
+                      color: AppColors.discount,
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -262,13 +263,13 @@ class _ScanActionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: NeoTasteColors.primary,
-        borderRadius: BorderRadius.circular(24),
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: NeoTasteColors.primary.withOpacity(0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            color: AppColors.primary.withValues(alpha: 0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -276,7 +277,7 @@ class _ScanActionCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(14),
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Row(
@@ -284,8 +285,8 @@ class _ScanActionCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(16),
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(14),
                   ),
                   child: const Icon(
                     Icons.qr_code_scanner_rounded,
@@ -311,7 +312,7 @@ class _ScanActionCard extends StatelessWidget {
                         'Process customer codes',
                         style: GoogleFonts.inter(
                           fontSize: 14,
-                          color: Colors.white.withOpacity(0.7),
+                          color: Colors.white.withValues(alpha: 0.7),
                         ),
                       ),
                     ],
@@ -319,7 +320,7 @@ class _ScanActionCard extends StatelessWidget {
                 ),
                 Icon(
                   Icons.arrow_forward_rounded,
-                  color: Colors.white.withOpacity(0.5),
+                  color: Colors.white.withValues(alpha: 0.5),
                   size: 24,
                 ),
               ],
@@ -353,12 +354,12 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: NeoTasteColors.white,
-        borderRadius: BorderRadius.circular(24),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
@@ -369,7 +370,7 @@ class _StatCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: color, size: 20),
@@ -389,7 +390,7 @@ class _StatCard extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: NeoTasteColors.textPrimary,
+                    color: AppColors.textPrimary,
                     letterSpacing: -0.5,
                   ),
                 ),
@@ -405,7 +406,7 @@ class _StatCard extends StatelessWidget {
             style: GoogleFonts.inter(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: NeoTasteColors.textSecondary,
+              color: AppColors.textSecondary,
             ),
           ),
         ],
@@ -433,12 +434,12 @@ class _MenuCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: NeoTasteColors.white,
-        borderRadius: BorderRadius.circular(24),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
@@ -447,7 +448,7 @@ class _MenuCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(14),
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
@@ -456,7 +457,7 @@ class _MenuCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.08),
+                    color: color.withValues(alpha: 0.08),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(icon, color: color, size: 28),
@@ -468,7 +469,7 @@ class _MenuCard extends StatelessWidget {
                   style: GoogleFonts.inter(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: NeoTasteColors.textPrimary,
+                    color: AppColors.textPrimary,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -479,7 +480,7 @@ class _MenuCard extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
                     fontSize: 11,
-                    color: NeoTasteColors.textSecondary,
+                    color: AppColors.textSecondary,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

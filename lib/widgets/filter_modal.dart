@@ -1,6 +1,7 @@
+import 'package:discount_buddy/theme/app_colors.dart';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../providers/theme_provider.dart';
 import 'generic_bottom_sheet.dart';
 
 /// Filter Modal - Bottom sheet with day, time, and category filters
@@ -148,18 +149,18 @@ class _FilterModalState extends State<FilterModal> {
             style: GoogleFonts.inter(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: NeoTasteColors.textSecondary,
+              color: AppColors.textSecondary,
             ),
           ),
         ),
         footer: Container(
           padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
           decoration: BoxDecoration(
-            color: NeoTasteColors.white,
+            color: AppColors.white,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 12,
                 offset: const Offset(0, -2),
               ),
             ],
@@ -172,7 +173,7 @@ class _FilterModalState extends State<FilterModal> {
               child: ElevatedButton(
                 onPressed: _applyFilters,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green, // Green apply button
+                  backgroundColor: AppColors.primaryPurple,
                   foregroundColor: Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
@@ -197,7 +198,7 @@ class _FilterModalState extends State<FilterModal> {
             children: [
               Divider(
                 height: 1,
-                color: NeoTasteColors.textDisabled.withOpacity(0.3),
+                color: AppColors.textDisabled.withValues(alpha: 0.3),
               ),
               const SizedBox(height: 24),
 
@@ -212,7 +213,7 @@ class _FilterModalState extends State<FilterModal> {
                       style: GoogleFonts.inter(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: NeoTasteColors.textPrimary,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -235,13 +236,13 @@ class _FilterModalState extends State<FilterModal> {
                                   _selectedDay = selected ? day : null;
                                 });
                               },
-                              selectedColor: NeoTasteColors.accent,
-                              backgroundColor: NeoTasteColors.textDisabled
-                                  .withOpacity(0.2),
+                              selectedColor: AppColors.accent,
+                              backgroundColor: AppColors.textDisabled
+                                  .withValues(alpha: 0.2),
                               labelStyle: GoogleFonts.inter(
                                 color: isSelected
-                                    ? NeoTasteColors.primary
-                                    : NeoTasteColors.textSecondary,
+                                    ? AppColors.primary
+                                    : AppColors.textSecondary,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 14,
                               ),
@@ -249,7 +250,7 @@ class _FilterModalState extends State<FilterModal> {
                                 horizontal: 16,
                               ),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
+                                borderRadius: BorderRadius.circular(14),
                               ),
                             ),
                           );
@@ -272,7 +273,7 @@ class _FilterModalState extends State<FilterModal> {
                       style: GoogleFonts.inter(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: NeoTasteColors.textPrimary,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -295,13 +296,13 @@ class _FilterModalState extends State<FilterModal> {
                                   _selectedTime = selected ? time : null;
                                 });
                               },
-                              selectedColor: NeoTasteColors.accent,
-                              backgroundColor: NeoTasteColors.textDisabled
-                                  .withOpacity(0.2),
+                              selectedColor: AppColors.accent,
+                              backgroundColor: AppColors.textDisabled
+                                  .withValues(alpha: 0.2),
                               labelStyle: GoogleFonts.inter(
                                 color: isSelected
-                                    ? NeoTasteColors.primary
-                                    : NeoTasteColors.textSecondary,
+                                    ? AppColors.primary
+                                    : AppColors.textSecondary,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 14,
                               ),
@@ -309,7 +310,7 @@ class _FilterModalState extends State<FilterModal> {
                                 horizontal: 16,
                               ),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
+                                borderRadius: BorderRadius.circular(14),
                               ),
                             ),
                           );
@@ -332,7 +333,7 @@ class _FilterModalState extends State<FilterModal> {
                       style: GoogleFonts.inter(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: NeoTasteColors.textPrimary,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -361,14 +362,13 @@ class _FilterModalState extends State<FilterModal> {
                                   : 'All';
                             });
                           },
-                          selectedColor:
-                              Colors.green, // Green for selected category
-                          backgroundColor: NeoTasteColors.textDisabled
-                              .withOpacity(0.2),
+                          selectedColor: AppColors.accent,
+                          backgroundColor: AppColors.textDisabled
+                              .withValues(alpha: 0.2),
                           labelStyle: GoogleFonts.inter(
                             color: isSelected
                                 ? Colors.white
-                                : NeoTasteColors.textPrimary,
+                                : AppColors.textPrimary,
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
                           ),
@@ -377,7 +377,7 @@ class _FilterModalState extends State<FilterModal> {
                             vertical: 8,
                           ),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(14),
                           ),
                         );
                       }).toList(),

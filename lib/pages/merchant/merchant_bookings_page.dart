@@ -1,7 +1,8 @@
+import 'package:discount_buddy/theme/app_colors.dart';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import '../../providers/theme_provider.dart';
 import '../../services/merchant_service.dart';
 import '../../widgets/skeleton_loader.dart';
 
@@ -75,14 +76,14 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: NeoTasteColors.background,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
           'Bookings',
           style: GoogleFonts.inter(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        backgroundColor: NeoTasteColors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
@@ -93,7 +94,7 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
           ? _buildEmptyState()
           : RefreshIndicator(
               onRefresh: _loadBookings,
-              color: NeoTasteColors.accent,
+              color: AppColors.accent,
               child: ListView.separated(
                 padding: const EdgeInsets.all(20),
                 itemCount: _bookings.length,
@@ -119,7 +120,7 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
         padding: const EdgeInsets.only(bottom: 16),
         child: SkeletonLoader(
           height: 120,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(14),
         ),
       ),
     );
@@ -133,13 +134,13 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: NeoTasteColors.white,
+              color: AppColors.white,
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.calendar_today_rounded,
               size: 48,
-              color: NeoTasteColors.textDisabled,
+              color: AppColors.textDisabled,
             ),
           ),
           const SizedBox(height: 24),
@@ -148,7 +149,7 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
             style: GoogleFonts.inter(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: NeoTasteColors.textPrimary,
+              color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 8),
@@ -156,7 +157,7 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
             'Your upcoming reservations will appear here',
             style: GoogleFonts.inter(
               fontSize: 14,
-              color: NeoTasteColors.textSecondary,
+              color: AppColors.textSecondary,
             ),
           ),
         ],
@@ -188,11 +189,11 @@ class _BookingCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: NeoTasteColors.white,
-        borderRadius: BorderRadius.circular(20),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
@@ -217,7 +218,7 @@ class _BookingCard extends StatelessWidget {
                             style: GoogleFonts.inter(
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
-                              color: NeoTasteColors.textPrimary,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -225,7 +226,7 @@ class _BookingCard extends StatelessWidget {
                             restaurant,
                             style: GoogleFonts.inter(
                               fontSize: 14,
-                              color: NeoTasteColors.textSecondary,
+                              color: AppColors.textSecondary,
                             ),
                           ),
                         ],
@@ -258,7 +259,7 @@ class _BookingCard extends StatelessWidget {
               decoration: BoxDecoration(
                 border: Border(
                   top: BorderSide(
-                    color: NeoTasteColors.textDisabled.withOpacity(0.1),
+                    color: AppColors.textDisabled.withValues(alpha: 0.1),
                   ),
                 ),
               ),
@@ -268,7 +269,7 @@ class _BookingCard extends StatelessWidget {
                     child: InkWell(
                       onTap: () => onReview(booking['id'], 'cancelled'),
                       borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(20),
+                        bottomLeft: Radius.circular(14),
                       ),
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -286,13 +287,13 @@ class _BookingCard extends StatelessWidget {
                   Container(
                     width: 1,
                     height: 50,
-                    color: NeoTasteColors.textDisabled.withOpacity(0.1),
+                    color: AppColors.textDisabled.withValues(alpha: 0.1),
                   ),
                   Expanded(
                     child: InkWell(
                       onTap: () => onReview(booking['id'], 'confirmed'),
                       borderRadius: const BorderRadius.only(
-                        bottomRight: Radius.circular(20),
+                        bottomRight: Radius.circular(14),
                       ),
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -300,7 +301,7 @@ class _BookingCard extends StatelessWidget {
                         child: Text(
                           'Confirm Booking',
                           style: GoogleFonts.inter(
-                            color: Colors.green,
+                            color: AppColors.success,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -328,18 +329,18 @@ class _InfoChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: NeoTasteColors.background,
+        color: AppColors.background,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: NeoTasteColors.textSecondary),
+          Icon(icon, size: 16, color: AppColors.textSecondary),
           const SizedBox(width: 6),
           Text(
             label,
             style: GoogleFonts.inter(
-              color: NeoTasteColors.textSecondary,
+              color: AppColors.textSecondary,
               fontSize: 13,
               fontWeight: FontWeight.w500,
             ),
@@ -385,7 +386,7 @@ class _StatusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

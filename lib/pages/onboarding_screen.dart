@@ -67,7 +67,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     // Navigate to login page
     if (mounted) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const LoginPage()),
+        MaterialPageRoute(builder: (context) =>  LoginPage()),
       );
     }
   }
@@ -104,15 +104,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   left: _OnboardingConstants.paddingLarge,
                   right: _OnboardingConstants.paddingLarge,
                   top: _OnboardingConstants.paddingXLarge,
-                  bottom: MediaQuery.of(context).padding.bottom+_OnboardingConstants.paddingXLarge,
+                  bottom:
+                      MediaQuery.of(context).padding.bottom +
+                      _OnboardingConstants.paddingXLarge,
                 ),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Colors.white.withOpacity(0.0),
-                      Colors.white.withOpacity(0.9),
+                      Colors.white.withValues(alpha: 0.0),
+                      Colors.white.withValues(alpha: 0.9),
                       Colors.white,
                     ],
                   ),
@@ -127,16 +129,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         (index) => _buildPageIndicator(index == _currentPage),
                       ),
                     ),
-                    const SizedBox(height: 32),
+                     SizedBox(height: 32),
                     _buildGetStartedButton(),
-                    const SizedBox(height: 16),
+                     SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
                           "Don't have an account? ",
                           style: TextStyle(
-                            color: Colors.black.withOpacity(0.7),
+                            color: Colors.black.withValues(alpha: 0.7),
                             fontSize: 14,
                           ),
                         ),
@@ -144,14 +146,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           onTap: () {
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (context) => const RegisterPage(),
+                                builder: (context) =>  RegisterPage(),
                               ),
                             );
                           },
-                          child: const Text(
+                          child:  Text(
                             "Register",
                             style: TextStyle(
-                              color: Color(0xFF4CAF50),
+                              color: Color(0xFF2563EB),
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
@@ -174,7 +176,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: Text(
                   'Skip',
                   style: TextStyle(
-                    color: Colors.black.withOpacity(0.7),
+                    color: Colors.black.withValues(alpha: 0.7),
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                   ),
@@ -194,7 +196,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SizedBox(height: 20), // Further reduced top space
+           SizedBox(height: 20), // Further reduced top space
           // Hero Image
           Expanded(
             child: Transform.scale(
@@ -205,11 +207,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 30),
+           SizedBox(height: 30),
           // Title
           Text(
             pageData.title,
-            style: const TextStyle(
+            style:  TextStyle(
               color: Colors.black,
               fontSize: 28,
               fontWeight: FontWeight.bold,
@@ -218,18 +220,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
+           SizedBox(height: 24),
           // Description
           Text(
             pageData.description,
             style: TextStyle(
-              color: Colors.black.withOpacity(0.7),
+              color: Colors.black.withValues(alpha: 0.7),
               fontSize: 16,
               height: 1.6,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 40),
+           SizedBox(height: 40),
         ],
       ),
     );
@@ -237,19 +239,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _buildPageIndicator(bool isActive) {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
+      duration:  Duration(milliseconds: 300),
       margin: const EdgeInsets.symmetric(horizontal: 4),
       width: isActive ? 32 : 8,
       height: 8,
       decoration: BoxDecoration(
         color: isActive
-            ? const Color(0xFF4CAF50)
-            : Colors.black.withOpacity(0.1),
+            ?  Color(0xFF2563EB)
+            : Colors.black.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(4),
         boxShadow: isActive
             ? [
                 BoxShadow(
-                  color: const Color(0xFF4CAF50).withOpacity(0.5),
+                  color:  Color(0xFF2563EB).withValues(alpha: 0.5),
                   blurRadius: 8,
                   spreadRadius: 0,
                 ),
@@ -265,7 +267,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       child: ElevatedButton(
         onPressed: _handleGetStarted,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF4CAF50),
+          backgroundColor:  Color(0xFF2563EB),
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 18),
           shape: RoundedRectangleBorder(
@@ -275,7 +277,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
           elevation: 0,
         ),
-        child: const Text(
+        child:  Text(
           'Get Started',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),

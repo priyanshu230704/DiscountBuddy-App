@@ -1,7 +1,8 @@
+import 'package:discount_buddy/theme/app_colors.dart';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import '../../providers/theme_provider.dart';
 import '../../services/booking_service.dart';
 
 class CreateBookingPage extends StatefulWidget {
@@ -50,7 +51,7 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: NeoTasteColors.accent,
+              primary: AppColors.accent,
             ),
           ),
           child: child!,
@@ -72,7 +73,7 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: NeoTasteColors.accent,
+              primary: AppColors.accent,
             ),
           ),
           child: child!,
@@ -129,7 +130,7 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Booking request sent successfully!'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.primaryPurple,
           ),
         );
         Navigator.pop(context, true);
@@ -148,13 +149,13 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: NeoTasteColors.white,
+      backgroundColor: AppColors.white,
       appBar: AppBar(
         title: Text(
           'Book Table',
           style: GoogleFonts.inter(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: NeoTasteColors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
       ),
@@ -263,7 +264,7 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _submitBooking,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: NeoTasteColors.accent,
+                    backgroundColor: AppColors.accent,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

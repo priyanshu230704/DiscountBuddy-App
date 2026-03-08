@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../models/restaurant.dart';
 import '../services/restaurant_service.dart';
 import '../widgets/restaurant_card.dart';
 import '../widgets/loading_widget.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
 import 'restaurant_details_page.dart';
 
 /// Search/Discover page for finding restaurants
@@ -82,11 +84,12 @@ class _SearchPageState extends State<SearchPage> {
     final query = _searchController.text.toLowerCase();
     setState(() {
       _filteredRestaurants = _restaurants.where((restaurant) {
-        final matchesSearch = restaurant.name.toLowerCase().contains(query) ||
+        final matchesSearch =
+            restaurant.name.toLowerCase().contains(query) ||
             restaurant.cuisine.toLowerCase().contains(query) ||
             restaurant.address.toLowerCase().contains(query);
-        final matchesCuisine = _selectedCuisine == 'All' ||
-            restaurant.cuisine == _selectedCuisine;
+        final matchesCuisine =
+            _selectedCuisine == 'All' || restaurant.cuisine == _selectedCuisine;
         return matchesSearch && matchesCuisine;
       }).toList();
     });
@@ -95,7 +98,7 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
           // Search App Bar
@@ -103,23 +106,18 @@ class _SearchPageState extends State<SearchPage> {
             expandedHeight: 100,
             floating: true,
             pinned: true,
-            backgroundColor: const Color(0xFF1A73E8),
+            backgroundColor: AppColors.primaryPurple,
             flexibleSpace: FlexibleSpaceBar(
-              title: const Text(
+              title: Text(
                 'Discover',
-                style: TextStyle(
+                style: GoogleFonts.inter(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      const Color(0xFF1A73E8),
-                      const Color(0xFF1A73E8).withOpacity(0.8),
-                    ],
-                  ),
+                decoration: const BoxDecoration(
+                  gradient: AppColors.purpleGradient,
                 ),
               ),
             ),
@@ -144,7 +142,9 @@ class _SearchPageState extends State<SearchPage> {
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(_SearchConstants.radiusMedium),
+                    borderRadius: BorderRadius.circular(
+                      _SearchConstants.radiusMedium,
+                    ),
                     borderSide: BorderSide.none,
                   ),
                 ),
@@ -165,7 +165,9 @@ class _SearchPageState extends State<SearchPage> {
                   final cuisine = _cuisines[index];
                   final isSelected = cuisine == _selectedCuisine;
                   return Padding(
-                    padding: const EdgeInsets.only(right: _SearchConstants.paddingSmall),
+                    padding: const EdgeInsets.only(
+                      right: _SearchConstants.paddingSmall,
+                    ),
                     child: FilterChip(
                       label: Text(cuisine),
                       selected: isSelected,
@@ -175,10 +177,12 @@ class _SearchPageState extends State<SearchPage> {
                           _filterRestaurants();
                         });
                       },
-                      selectedColor: const Color(0xFF1A73E8),
-                      labelStyle: TextStyle(
-                        color: isSelected ? Colors.white : Colors.black87,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      selectedColor: AppColors.primaryPurple,
+                      labelStyle: GoogleFonts.inter(
+                        color: isSelected ? Colors.white : AppColors.textPrimary,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
                       ),
                     ),
                   );
@@ -195,10 +199,7 @@ class _SearchPageState extends State<SearchPage> {
               ),
               child: Text(
                 '${_filteredRestaurants.length} restaurants found',
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: Colors.grey[600], fontSize: 14),
               ),
             ),
           ),
@@ -213,26 +214,16 @@ class _SearchPageState extends State<SearchPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.search_off,
-                      size: 64,
-                      color: Colors.grey[400],
-                    ),
+                    Icon(Icons.search_off, size: 64, color: Colors.grey[400]),
                     const SizedBox(height: 16),
                     Text(
                       'No restaurants found',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'Try a different search term',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[500],
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                     ),
                   ],
                 ),
@@ -244,24 +235,22 @@ class _SearchPageState extends State<SearchPage> {
                 horizontal: _SearchConstants.paddingMedium,
               ),
               sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final restaurant = _filteredRestaurants[index];
-                    return RestaurantCard(
-                      restaurant: restaurant,
-                      onTap: () {
-                        final slug = restaurant.slug ?? restaurant.id;
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => RestaurantDetailsPage(slug: slug),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                  childCount: _filteredRestaurants.length,
-                ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final restaurant = _filteredRestaurants[index];
+                  return RestaurantCard(
+                    restaurant: restaurant,
+                    onTap: () {
+                      final slug = restaurant.slug ?? restaurant.id;
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              RestaurantDetailsPage(slug: slug),
+                        ),
+                      );
+                    },
+                  );
+                }, childCount: _filteredRestaurants.length),
               ),
             ),
         ],
@@ -269,4 +258,3 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 }
-

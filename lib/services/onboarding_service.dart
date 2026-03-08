@@ -22,4 +22,3 @@ class OnboardingService {
     await prefs.remove(_onboardingCompletedKey);
   }
 }
-

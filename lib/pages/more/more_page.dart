@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../widgets/blurred_ellipse_background.dart';
-import '../../providers/theme_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/theme_provider.dart';
 import '../../services/voucher_service.dart';
 import '../../models/voucher.dart';
 import '../profile_page.dart';
@@ -17,7 +17,7 @@ class _MoreConstants {
 /// More/Settings page
 class MorePage extends StatefulWidget {
   final ThemeProvider? themeProvider;
-  
+
   const MorePage({super.key, this.themeProvider});
 
   @override
@@ -108,124 +108,97 @@ class _MorePageState extends State<MorePage> {
                       _buildProfileSection(),
                       const SizedBox(height: _MoreConstants.paddingMedium),
                       // My Vouchers Section (show for all authenticated users, but content varies)
-                      if (AuthProvider().isAuthenticated) _buildVouchersSection(),
+                      if (AuthProvider().isAuthenticated)
+                        _buildVouchersSection(),
                       if (AuthProvider().isAuthenticated)
                         const SizedBox(height: _MoreConstants.paddingMedium),
                       // Account Section
-                      _buildSection(
-                        'Account',
-                        [
-                          _buildListTile(
-                            Icons.person,
-                            'Edit Profile',
-                            () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const ProfilePage(),
-                                ),
-                              );
-                            },
-                          ),
-                          _buildListTile(
-                            Icons.card_membership,
-                            'My Membership',
-                            () {},
-                          ),
-                          _buildListTile(
-                            Icons.payment,
-                            'Payment Methods',
-                            () {},
-                          ),
-                          _buildListTile(
-                            Icons.history,
-                            'Visit History',
-                            () {},
-                          ),
-                        ],
-                      ),
+                      _buildSection('Account', [
+                        _buildListTile(Icons.person, 'Edit Profile', () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ProfilePage(),
+                            ),
+                          );
+                        }),
+                        _buildListTile(
+                          Icons.card_membership,
+                          'My Membership',
+                          () {},
+                        ),
+                        _buildListTile(Icons.payment, 'Payment Methods', () {}),
+                        _buildListTile(Icons.history, 'Visit History', () {}),
+                      ]),
                       const SizedBox(height: _MoreConstants.paddingMedium),
                       // Preferences Section
-                      _buildSection(
-                        'Preferences',
-                        [
-                          _buildListTile(
-                            Icons.notifications,
-                            'Notifications',
-                            () {},
-                          ),
-                          _buildListTile(
-                            Icons.location_on,
-                            'Location Settings',
-                            () {},
-                          ),
-                          _buildListTile(
-                            Icons.language,
-                            'Language',
-                            () {},
-                          ),
-                          // Theme Toggle
-                          _buildThemeTile(
-                            widget.themeProvider?.isDarkMode == true
-                                ? Icons.dark_mode
-                                : Icons.light_mode,
-                            'Theme',
-                            widget.themeProvider?.isDarkMode == true
-                                ? 'Dark Mode'
-                                : 'Light Mode',
-                          ),
-                        ],
-                      ),
+                      _buildSection('Preferences', [
+                        _buildListTile(
+                          Icons.notifications,
+                          'Notifications',
+                          () {},
+                        ),
+                        _buildListTile(
+                          Icons.location_on,
+                          'Location Settings',
+                          () {},
+                        ),
+                        _buildListTile(Icons.language, 'Language', () {}),
+                        // Theme Toggle
+                        _buildThemeTile(
+                          widget.themeProvider?.isDarkMode == true
+                              ? Icons.dark_mode
+                              : Icons.light_mode,
+                          'Theme',
+                          widget.themeProvider?.isDarkMode == true
+                              ? 'Dark Mode'
+                              : 'Light Mode',
+                        ),
+                      ]),
                       const SizedBox(height: _MoreConstants.paddingMedium),
                       // Support Section
-                      _buildSection(
-                        'Support & Feedback',
-                        [
-                          _buildSupportItem(
-                            Icons.feedback_outlined,
-                            'Send Feedback',
-                            'Share your feedback with us',
-                            () {},
-                          ),
-                          _buildSupportItem(
-                            Icons.help_outline,
-                            'Help Center',
-                            'Get help and support',
-                            () {},
-                          ),
-                          _buildSupportItem(
-                            Icons.contact_support,
-                            'Contact Us',
-                            'Visit our website or email us',
-                            () {},
-                          ),
-                        ],
-                      ),
+                      _buildSection('Support & Feedback', [
+                        _buildSupportItem(
+                          Icons.feedback_outlined,
+                          'Send Feedback',
+                          'Share your feedback with us',
+                          () {},
+                        ),
+                        _buildSupportItem(
+                          Icons.help_outline,
+                          'Help Center',
+                          'Get help and support',
+                          () {},
+                        ),
+                        _buildSupportItem(
+                          Icons.contact_support,
+                          'Contact Us',
+                          'Visit our website or email us',
+                          () {},
+                        ),
+                      ]),
                       const SizedBox(height: _MoreConstants.paddingMedium),
                       // About Section
-                      _buildSection(
-                        'About',
-                        [
-                          _buildAboutItem(
-                            Icons.info_outline,
-                            'About DiscountBuddy',
-                            'Learn more about the app',
-                            () {},
-                          ),
-                          _buildAboutItem(
-                            Icons.privacy_tip,
-                            'Privacy Policy',
-                            'How we protect your data',
-                            () {},
-                          ),
-                          _buildAboutItem(
-                            Icons.description,
-                            'Terms & Conditions',
-                            'App usage terms',
-                            () {},
-                          ),
-                        ],
-                      ),
+                      _buildSection('About', [
+                        _buildAboutItem(
+                          Icons.info_outline,
+                          'About DiscountBuddy',
+                          'Learn more about the app',
+                          () {},
+                        ),
+                        _buildAboutItem(
+                          Icons.privacy_tip,
+                          'Privacy Policy',
+                          'How we protect your data',
+                          () {},
+                        ),
+                        _buildAboutItem(
+                          Icons.description,
+                          'Terms & Conditions',
+                          'App usage terms',
+                          () {},
+                        ),
+                      ]),
                       const SizedBox(height: _MoreConstants.paddingMedium),
                       // Logout
                       Padding(
@@ -249,11 +222,13 @@ class _MorePageState extends State<MorePage> {
                                 ),
                                 actions: [
                                   TextButton(
-                                    onPressed: () => Navigator.pop(context, false),
+                                    onPressed: () =>
+                                        Navigator.pop(context, false),
                                     child: const Text('Cancel'),
                                   ),
                                   TextButton(
-                                    onPressed: () => Navigator.pop(context, true),
+                                    onPressed: () =>
+                                        Navigator.pop(context, true),
                                     style: TextButton.styleFrom(
                                       foregroundColor: Colors.red,
                                     ),
@@ -266,7 +241,7 @@ class _MorePageState extends State<MorePage> {
                             if (shouldLogout == true) {
                               // Perform logout using auth provider
                               await AuthProvider().logout();
-                              
+
                               // Navigate to login page
                               if (context.mounted) {
                                 Navigator.of(context).pushAndRemoveUntil(
@@ -315,24 +290,17 @@ class _MorePageState extends State<MorePage> {
         decoration: BoxDecoration(
           color: const Color(0xFF1A1B1F),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: const Color(0xFF2B2D30),
-            width: 1,
-          ),
+          border: Border.all(color: const Color(0xFF2B2D30), width: 1),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.2),
+                color: Colors.orange.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(
-                icon,
-                color: Colors.orange,
-                size: 18,
-              ),
+              child: Icon(icon, color: Colors.orange, size: 18),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -350,19 +318,12 @@ class _MorePageState extends State<MorePage> {
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      color: Colors.grey[400],
-                      fontSize: 13,
-                    ),
+                    style: TextStyle(color: Colors.grey[400], fontSize: 13),
                   ),
                 ],
               ),
             ),
-            const Icon(
-              Icons.arrow_forward_ios,
-              color: Colors.grey,
-              size: 14,
-            ),
+            const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 14),
           ],
         ),
       ),
@@ -384,24 +345,17 @@ class _MorePageState extends State<MorePage> {
         decoration: BoxDecoration(
           color: const Color(0xFF1A1B1F),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: const Color(0xFF2B2D30),
-            width: 1,
-          ),
+          border: Border.all(color: const Color(0xFF2B2D30), width: 1),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.2),
+                color: Colors.green.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(
-                icon,
-                color: Colors.green,
-                size: 18,
-              ),
+              child: Icon(icon, color: Colors.green, size: 18),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -419,19 +373,12 @@ class _MorePageState extends State<MorePage> {
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      color: Colors.grey[400],
-                      fontSize: 13,
-                    ),
+                    style: TextStyle(color: Colors.grey[400], fontSize: 13),
                   ),
                 ],
               ),
             ),
-            const Icon(
-              Icons.arrow_forward_ios,
-              color: Colors.grey,
-              size: 14,
-            ),
+            const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 14),
           ],
         ),
       ),
@@ -465,10 +412,7 @@ class _MorePageState extends State<MorePage> {
               if (!_isLoadingVouchers && _voucherCount > 0)
                 Text(
                   '$_voucherCount vouchers',
-                  style: TextStyle(
-                    color: Colors.grey[400],
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: Colors.grey[400], fontSize: 12),
                 ),
             ],
           ),
@@ -483,18 +427,12 @@ class _MorePageState extends State<MorePage> {
               decoration: BoxDecoration(
                 color: const Color(0xFF1A1B1F),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(0xFF2B2D30),
-                  width: 1,
-                ),
+                border: Border.all(color: const Color(0xFF2B2D30), width: 1),
               ),
               child: const Center(
                 child: Text(
                   'Vouchers are only available for merchants',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.grey, fontSize: 14),
                 ),
               ),
             ),
@@ -502,9 +440,7 @@ class _MorePageState extends State<MorePage> {
         else if (_isLoadingVouchers)
           const Padding(
             padding: EdgeInsets.all(_MoreConstants.paddingMedium),
-            child: Center(
-              child: CircularProgressIndicator(),
-            ),
+            child: Center(child: CircularProgressIndicator()),
           )
         else if (_vouchers.isEmpty)
           Padding(
@@ -516,18 +452,12 @@ class _MorePageState extends State<MorePage> {
               decoration: BoxDecoration(
                 color: const Color(0xFF1A1B1F),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(0xFF2B2D30),
-                  width: 1,
-                ),
+                border: Border.all(color: const Color(0xFF2B2D30), width: 1),
               ),
               child: const Center(
                 child: Text(
                   'No vouchers yet',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.grey, fontSize: 14),
                 ),
               ),
             ),
@@ -585,8 +515,8 @@ class _MorePageState extends State<MorePage> {
                             ),
                             decoration: BoxDecoration(
                               color: voucher.isActive
-                                  ? Colors.green.withOpacity(0.2)
-                                  : Colors.grey.withOpacity(0.2),
+                                  ? Colors.green.withValues(alpha: 0.2)
+                                  : Colors.grey.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -619,11 +549,7 @@ class _MorePageState extends State<MorePage> {
                             ),
                           ),
                           const SizedBox(width: 16),
-                          Icon(
-                            Icons.people,
-                            size: 14,
-                            color: Colors.grey[400],
-                          ),
+                          Icon(Icons.people, size: 14, color: Colors.grey[400]),
                           const SizedBox(width: 4),
                           Text(
                             '${voucher.soldQuantity}/${voucher.totalQuantity} sold',
@@ -684,10 +610,7 @@ class _MorePageState extends State<MorePage> {
                   const SizedBox(height: 4),
                   Text(
                     email,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[400],
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[400]),
                   ),
                 ],
               ],
@@ -698,9 +621,7 @@ class _MorePageState extends State<MorePage> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const ProfilePage(),
-                ),
+                MaterialPageRoute(builder: (context) => const ProfilePage()),
               );
             },
           ),
@@ -760,24 +681,17 @@ class _MorePageState extends State<MorePage> {
         decoration: BoxDecoration(
           color: const Color(0xFF1A1B1F),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: const Color(0xFF2B2D30),
-            width: 1,
-          ),
+          border: Border.all(color: const Color(0xFF2B2D30), width: 1),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFF3E25F6).withOpacity(0.2),
+                color: const Color(0xFF3E25F6).withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(
-                icon,
-                color: const Color(0xFF3E25F6),
-                size: 18,
-              ),
+              child: Icon(icon, color: const Color(0xFF3E25F6), size: 18),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -790,11 +704,7 @@ class _MorePageState extends State<MorePage> {
                 ),
               ),
             ),
-            const Icon(
-              Icons.arrow_forward_ios,
-              color: Colors.grey,
-              size: 14,
-            ),
+            const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 14),
           ],
         ),
       ),
@@ -803,7 +713,7 @@ class _MorePageState extends State<MorePage> {
 
   Widget _buildThemeTile(IconData icon, String title, String subtitle) {
     if (widget.themeProvider == null) return const SizedBox.shrink();
-    
+
     return InkWell(
       onTap: () {
         widget.themeProvider!.toggleTheme();
@@ -815,24 +725,17 @@ class _MorePageState extends State<MorePage> {
         decoration: BoxDecoration(
           color: const Color(0xFF1A1B1F),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: const Color(0xFF2B2D30),
-            width: 1,
-          ),
+          border: Border.all(color: const Color(0xFF2B2D30), width: 1),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.2),
+                color: Colors.orange.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(
-                icon,
-                color: Colors.orange,
-                size: 18,
-              ),
+              child: Icon(icon, color: Colors.orange, size: 18),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -850,10 +753,7 @@ class _MorePageState extends State<MorePage> {
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      color: Colors.grey[400],
-                      fontSize: 13,
-                    ),
+                    style: TextStyle(color: Colors.grey[400], fontSize: 13),
                   ),
                 ],
               ),
@@ -871,4 +771,3 @@ class _MorePageState extends State<MorePage> {
     );
   }
 }
-

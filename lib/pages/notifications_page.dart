@@ -235,7 +235,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: buddyOrange.withOpacity(0.1),
+                color: buddyOrange.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -323,17 +323,19 @@ class _NotificationTile extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: notification.isRead ? Colors.white : color.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(16),
+          color: notification.isRead
+              ? Colors.white
+              : color.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: notification.isRead
-                ? Colors.black.withOpacity(0.06)
-                : color.withOpacity(0.2),
+                ? Colors.black.withValues(alpha: 0.06)
+                : color.withValues(alpha: 0.2),
             width: notification.isRead ? 1 : 2,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.03),
+              color: Colors.black.withValues(alpha: 0.03),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -347,7 +349,7 @@ class _NotificationTile extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(
@@ -368,10 +370,10 @@ class _NotificationTile extends StatelessWidget {
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
+                      color: color.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(
-                        color: color.withOpacity(0.2),
+                        color: color.withValues(alpha: 0.2),
                         width: 1,
                       ),
                     ),
@@ -431,7 +433,7 @@ class _NotificationTile extends StatelessWidget {
                     formatTime(notification.createdAt),
                     style: GoogleFonts.inter(
                       fontSize: 12,
-                      color: textSecondary.withOpacity(0.7),
+                      color: textSecondary.withValues(alpha: 0.7),
                       fontWeight: FontWeight.w500,
                     ),
                   ),

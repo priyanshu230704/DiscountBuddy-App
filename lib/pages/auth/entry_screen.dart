@@ -18,7 +18,7 @@ class EntryScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Spacer(),
+               Spacer(),
               // NeoTaste Logo
               Container(
                 width: 120,
@@ -28,36 +28,36 @@ class EntryScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(30),
                   boxShadow: [
                     BoxShadow(
-                      color: AuthTheme.accent.withOpacity(0.3),
+                      color: AuthTheme.accent.withValues(alpha: 0.3),
                       blurRadius: 30,
                       spreadRadius: 5,
                     ),
                   ],
                 ),
-                child: const Icon(
+                child:  Icon(
                   Icons.local_dining,
                   size: 60,
                   color: AuthTheme.textPrimary,
                 ),
               ),
-              const SizedBox(height: 48),
-              
+               SizedBox(height: 48),
+
               // Headline
               Text(
                 'Discover the best food deals around you',
                 style: AuthTheme.headingLarge,
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
-              
+               SizedBox(height: 16),
+
               // Subtitle
               Text(
                 'Save money at your favorite restaurants',
                 style: AuthTheme.subtitle,
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 64),
-              
+               SizedBox(height: 64),
+
               // Continue with Email Button
               AuthButton(
                 text: 'Continue with Email',
@@ -66,25 +66,29 @@ class EntryScreen extends StatelessWidget {
                     context,
                     PageRouteBuilder(
                       pageBuilder: (context, animation, secondaryAnimation) =>
-                          const RegisterPage(),
-                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                        return SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(1.0, 0.0),
-                            end: Offset.zero,
-                          ).animate(CurvedAnimation(
-                            parent: animation,
-                            curve: Curves.easeInOut,
-                          )),
-                          child: child,
-                        );
-                      },
+                           RegisterPage(),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                            return SlideTransition(
+                              position:
+                                  Tween<Offset>(
+                                    begin:  Offset(1.0, 0.0),
+                                    end: Offset.zero,
+                                  ).animate(
+                                    CurvedAnimation(
+                                      parent: animation,
+                                      curve: Curves.easeInOut,
+                                    ),
+                                  ),
+                              child: child,
+                            );
+                          },
                     ),
                   );
                 },
               ),
-              const SizedBox(height: 16),
-              
+               SizedBox(height: 16),
+
               // Continue with Mobile Number Button
               AuthButton(
                 text: 'Continue with Mobile Number',
@@ -93,25 +97,29 @@ class EntryScreen extends StatelessWidget {
                     context,
                     PageRouteBuilder(
                       pageBuilder: (context, animation, secondaryAnimation) =>
-                          const RegisterPage(),
-                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                        return SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(1.0, 0.0),
-                            end: Offset.zero,
-                          ).animate(CurvedAnimation(
-                            parent: animation,
-                            curve: Curves.easeInOut,
-                          )),
-                          child: child,
-                        );
-                      },
+                           RegisterPage(),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                            return SlideTransition(
+                              position:
+                                  Tween<Offset>(
+                                    begin:  Offset(1.0, 0.0),
+                                    end: Offset.zero,
+                                  ).animate(
+                                    CurvedAnimation(
+                                      parent: animation,
+                                      curve: Curves.easeInOut,
+                                    ),
+                                  ),
+                              child: child,
+                            );
+                          },
                     ),
                   );
                 },
               ),
-              const Spacer(),
-              
+               Spacer(),
+
               // Secondary text button
               TextButton(
                 onPressed: () {
@@ -119,19 +127,23 @@ class EntryScreen extends StatelessWidget {
                     context,
                     PageRouteBuilder(
                       pageBuilder: (context, animation, secondaryAnimation) =>
-                          const LoginPage(),
-                      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                        return SlideTransition(
-                          position: Tween<Offset>(
-                            begin: const Offset(1.0, 0.0),
-                            end: Offset.zero,
-                          ).animate(CurvedAnimation(
-                            parent: animation,
-                            curve: Curves.easeInOut,
-                          )),
-                          child: child,
-                        );
-                      },
+                           LoginPage(),
+                      transitionsBuilder:
+                          (context, animation, secondaryAnimation, child) {
+                            return SlideTransition(
+                              position:
+                                  Tween<Offset>(
+                                    begin:  Offset(1.0, 0.0),
+                                    end: Offset.zero,
+                                  ).animate(
+                                    CurvedAnimation(
+                                      parent: animation,
+                                      curve: Curves.easeInOut,
+                                    ),
+                                  ),
+                              child: child,
+                            );
+                          },
                     ),
                   );
                 },
@@ -140,7 +152,7 @@ class EntryScreen extends StatelessWidget {
                   style: AuthTheme.linkText,
                 ),
               ),
-              const SizedBox(height: 32),
+               SizedBox(height: 32),
             ],
           ),
         ),

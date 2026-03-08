@@ -1,6 +1,7 @@
+import 'package:discount_buddy/theme/app_colors.dart';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../providers/theme_provider.dart';
 import '../providers/auth_provider.dart';
 
 /// Edit Profile Screen
@@ -62,19 +63,33 @@ class _EditProfilePageState extends State<EditProfilePage> {
     });
 
     try {
-      // TODO: Implement API call to update profile
-      // For now, just show success message
-      if (mounted) {
+      final success = await _authProvider.updateProfile(
+        firstName: _firstNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
+        email: _emailController.text.trim(),
+      );
+
+      if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               'Profile updated successfully',
               style: GoogleFonts.inter(),
             ),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.primaryPurple,
           ),
         );
         Navigator.pop(context);
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _authProvider.errorMessage ?? 'Failed to update profile',
+              style: GoogleFonts.inter(),
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -100,12 +115,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: NeoTasteColors.white,
+      backgroundColor: AppColors.white,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back,
-            color: NeoTasteColors.textPrimary,
+            color: AppColors.textPrimary,
           ),
           onPressed: () => Navigator.pop(context),
         ),
@@ -114,10 +129,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
           style: GoogleFonts.inter(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: NeoTasteColors.textPrimary,
+            color: AppColors.textPrimary,
           ),
         ),
-        backgroundColor: NeoTasteColors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
       ),
       body: SafeArea(
@@ -126,7 +141,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           child: Column(
             children: [
               const SizedBox(height: 32),
-              
+
               // Profile Picture Section
               Stack(
                 children: [
@@ -134,8 +149,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   Container(
                     width: 120,
                     height: 120,
-                    decoration: BoxDecoration(
-                      color: Colors.green,
+                    decoration: const BoxDecoration(
+                      color: AppColors.primaryPurple,
                       shape: BoxShape.circle,
                     ),
                     child: Center(
@@ -144,7 +159,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         style: GoogleFonts.inter(
                           fontSize: 48,
                           fontWeight: FontWeight.bold,
-                          color: NeoTasteColors.white,
+                          color: AppColors.white,
                         ),
                       ),
                     ),
@@ -160,13 +175,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         color: const Color(0xFF343A40),
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: NeoTasteColors.white,
+                          color: AppColors.white,
                           width: 3,
                         ),
                       ),
                       child: const Icon(
                         Icons.edit,
-                        color: NeoTasteColors.white,
+                        color: AppColors.white,
                         size: 18,
                       ),
                     ),
@@ -204,11 +219,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _saveProfile,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.lightGreen,
-                    foregroundColor: const Color(0xFF2E7D32),
+                    backgroundColor: AppColors.primaryPurple,
+                    foregroundColor: AppColors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                     elevation: 0,
                   ),
@@ -219,7 +234,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              Color(0xFF2E7D32),
+                              AppColors.white,
                             ),
                           ),
                         )
@@ -253,7 +268,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           label,
           style: GoogleFonts.inter(
             fontSize: 12,
-            color: NeoTasteColors.textSecondary,
+            color: AppColors.textSecondary,
           ),
         ),
         const SizedBox(height: 8),
@@ -269,7 +284,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             style: GoogleFonts.inter(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: NeoTasteColors.textPrimary,
+              color: AppColors.textPrimary,
             ),
             decoration: InputDecoration(
               border: InputBorder.none,

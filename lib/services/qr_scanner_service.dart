@@ -15,7 +15,7 @@ class QRScannerService {
   }
 
   /// Validate QR code format for deal redemption
-  /// Expected format: DEALUSE:<deal_use_id>:<redemption_code>
+  /// Expected format: `DEALUSE:<deal_use_id>:<redemption_code>`
   /// Example: DEALUSE:105:123456
   static bool isValidDealQRCode(String qrData) {
     if (qrData.isEmpty) return false;

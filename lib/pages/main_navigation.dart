@@ -1,8 +1,7 @@
-import 'dart:ui';
-import 'package:discount_buddy/providers/theme_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
-import '../theme/app_colors.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
 import '../providers/auth_provider.dart';
 import 'home/home_page.dart';
 import 'nearby/nearby_page.dart';
@@ -13,7 +12,7 @@ import 'merchant/merchant_dashboard_page.dart';
 
 /// Main navigation with new floating bottom navigation bar
 class MainNavigation extends StatefulWidget {
-  const MainNavigation({super.key, required ThemeProvider themeProvider});
+  const MainNavigation({super.key});
 
   @override
   State<MainNavigation> createState() => _MainNavigationState();
@@ -23,6 +22,7 @@ class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
   final AuthProvider _authProvider = AuthProvider();
   final Map<int, Widget> _pageCache = {};
+  bool _isVisible = true;
 
   Widget _getPage(int index) {
     if (_pageCache.containsKey(index)) {
@@ -70,104 +70,107 @@ class _MainNavigationState extends State<MainNavigation> {
   @override
   Widget build(BuildContext context) {
     final isMerchant = _authProvider.isMerchant;
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       extendBody: true, // Important for floating nav bar
-      body: IndexedStack(
-        index: _currentIndex,
-        children: List.generate(isMerchant ? 3 : 4, (index) {
-          if (index == _currentIndex || _pageCache.containsKey(index)) {
-            return _getPage(index);
+      body: NotificationListener<UserScrollNotification>(
+        onNotification: (notification) {
+          if (notification.direction == ScrollDirection.forward) {
+            if (!_isVisible) setState(() => _isVisible = true);
+          } else if (notification.direction == ScrollDirection.reverse) {
+            if (_isVisible) setState(() => _isVisible = false);
           }
-          return const SizedBox.shrink();
-        }),
+          return false; // let it bubble
+        },
+        child: IndexedStack(
+          index: _currentIndex,
+          children: List.generate(isMerchant ? 3 : 4, (index) {
+            if (index == _currentIndex || _pageCache.containsKey(index)) {
+              return _getPage(index);
+            }
+            return const SizedBox.shrink();
+          }),
+        ),
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.only(bottom: 24, left: 16, right: 16),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(32), // Floating pill shape
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              height: 72,
-              decoration: BoxDecoration(
-                color: isDark
-                    ? AppColors.surfaceDark.withOpacity(0.8)
-                    : AppColors.surfaceLight.withOpacity(0.9),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-                borderRadius: BorderRadius.circular(32),
-                border: Border.all(
-                  color: isDark
-                      ? Colors.white.withOpacity(0.1)
-                      : Colors.white.withOpacity(0.5),
-                  width: 1,
-                ),
+      bottomNavigationBar: AnimatedSlide(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+        offset: _isVisible ? Offset.zero : const Offset(0, 1.5),
+        child: Container(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom > 0 ? MediaQuery.of(context).padding.bottom - 10 : 0),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 16,
+                offset: const Offset(0, -4),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: isMerchant
-                    ? [
-                        _buildNavItem(
-                          context,
-                          icon: Icons.dashboard_outlined,
-                          selectedIcon: Icons.dashboard,
-                          label: 'Dashboard',
-                          index: 0,
-                        ),
-                        _buildNavItem(
-                          context,
-                          icon: Icons.local_offer_outlined,
-                          selectedIcon: Icons.local_offer,
-                          label: 'Deals',
-                          index: 1,
-                        ),
-                        _buildNavItem(
-                          context,
-                          icon: Icons.person_outline,
-                          selectedIcon: Icons.person,
-                          label: 'Profile',
-                          index: 2,
-                        ),
-                      ]
-                    : [
-                        _buildNavItem(
-                          context,
-                          icon: Icons.home_outlined,
-                          selectedIcon: Icons.home,
-                          label: 'Home',
-                          index: 0,
-                        ),
-                        _buildNavItem(
-                          context,
-                          icon: Icons.near_me_outlined,
-                          selectedIcon: Icons.near_me,
-                          label: 'Nearby',
-                          index: 1,
-                        ),
-                        _buildNavItem(
-                          context,
-                          icon: Icons.event_note_outlined,
-                          selectedIcon: Icons.event_note,
-                          label: 'Bookings',
-                          index: 2,
-                        ),
-                        _buildNavItem(
-                          context,
-                          icon: Icons.person_outline,
-                          selectedIcon: Icons.person,
-                          label: 'Profile',
-                          index: 3,
-                        ),
-                      ],
-              ),
+            ],
+          ),
+          child: SizedBox(
+            height: 80,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: isMerchant
+                  ? [
+                      _buildNavItem(
+                        context,
+                        icon: Icons.dashboard_outlined,
+                        selectedIcon: Icons.dashboard,
+                        label: 'Dashboard',
+                        index: 0,
+                      ),
+                      _buildNavItem(
+                        context,
+                        icon: Icons.local_offer_outlined,
+                        selectedIcon: Icons.local_offer,
+                        label: 'Deals',
+                        index: 1,
+                      ),
+                      _buildNavItem(
+                        context,
+                        icon: Icons.person_outline,
+                        selectedIcon: Icons.person,
+                        label: 'Profile',
+                        index: 2,
+                      ),
+                    ]
+                  : [
+                      _buildNavItem(
+                        context,
+                        icon: Icons.home_outlined,
+                        selectedIcon: Icons.home,
+                        label: 'Home',
+                        index: 0,
+                      ),
+                      _buildNavItem(
+                        context,
+                        icon: Icons.search_outlined,
+                        selectedIcon: Icons.search,
+                        label: 'Search',
+                        index: 1,
+                      ),
+                      _buildNavItem(
+                        context,
+                        icon: Icons.calendar_today_outlined,
+                        selectedIcon: Icons.calendar_today,
+                        label: 'Bookings',
+                        index: 2,
+                      ),
+                      _buildNavItem(
+                        context,
+                        icon: Icons.person_outline,
+                        selectedIcon: Icons.person,
+                        label: 'Profile',
+                        index: 3,
+                      ),
+                    ],
             ),
           ),
         ),
@@ -186,6 +189,8 @@ class _MainNavigationState extends State<MainNavigation> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
+    final Gradient activeGradient = AppColors.purpleGradient;
+
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -193,50 +198,58 @@ class _MainNavigationState extends State<MainNavigation> {
         });
       },
       behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: isSelected
-            ? BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: AppColors.primary.withOpacity(0.3),
-                          blurRadius: 12,
-                          spreadRadius: -2,
-                          offset: const Offset(0, 4),
-                        ),
-                      ]
-                    : [],
-              )
-            : null,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              isSelected ? selectedIcon : icon,
-              size: 24,
-              color: isSelected
-                  ? AppColors.primary
-                  : (isDark
-                        ? AppColors.textSecondaryDark
-                        : AppColors.textSecondaryLight),
-            ),
-            if (isSelected) ...[
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
-                ),
+      child: isSelected
+          ? AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                gradient: activeGradient,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
+                    spreadRadius: 0,
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-            ],
-          ],
-        ),
-      ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(selectedIcon, color: Colors.white, size: 20),
+                  const SizedBox(width: 4),
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  size: 24,
+                  color: isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280),
+                    fontWeight: FontWeight.w500,
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }

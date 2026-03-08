@@ -1,6 +1,7 @@
+import 'package:discount_buddy/theme/app_colors.dart';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../providers/theme_provider.dart';
 import '../../services/merchant_service.dart';
 
 class MerchantCategoryItemsPage extends StatefulWidget {
@@ -245,13 +246,13 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: NeoTasteColors.background,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
           widget.categoryName,
           style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: NeoTasteColors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
         actions: [
@@ -276,7 +277,7 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _addOrUpdateItem(),
-        backgroundColor: NeoTasteColors.accent,
+        backgroundColor: AppColors.accent,
         child: const Icon(Icons.add),
       ),
       body: _isLoading
@@ -298,7 +299,7 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
             Icon(
               Icons.restaurant_menu,
               size: 64,
-              color: NeoTasteColors.textDisabled,
+              color: AppColors.textDisabled,
             ),
             const SizedBox(height: 16),
             Text(
@@ -346,7 +347,7 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
                 Text(
                   '\$${item['price']}',
                   style: GoogleFonts.inter(
-                    color: NeoTasteColors.accent,
+                    color: AppColors.accent,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -355,11 +356,11 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
                   spacing: 4,
                   children: [
                     if (item['is_vegetarian'] == true)
-                      _buildTag('Veg', Colors.green),
+                      _buildTag('Veg', AppColors.success),
                     if (item['is_vegan'] == true)
-                      _buildTag('Vegan', Colors.green),
+                      _buildTag('Vegan', AppColors.success),
                     if (item['is_gluten_free'] == true)
-                      _buildTag('GF', Colors.orange),
+                      _buildTag('GF', AppColors.discount),
                     if (item['is_available'] == false)
                       _buildTag('Unavailable', Colors.grey),
                   ],
@@ -389,9 +390,9 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: color.withOpacity(0.5)),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
       ),
       child: Text(
         label,

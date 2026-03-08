@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import '../services/api_service.dart';
 import '../models/api_user.dart';
 import '../config/api_endpoints.dart';
@@ -13,11 +15,8 @@ class AuthService {
 
   final ApiService _apiService = ApiService();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    scopes: ['email', 'profile'],
-    serverClientId:
-        '1019573233560-fek4q2bgo1i4rssdgm4pme2b80dj1lim.apps.googleusercontent.com',
-  );
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
+  bool _isGoogleSignInInitialized = false;
 
   static const String _accessTokenKey = 'access_token';
   static const String _refreshTokenKey = 'refresh_token';
@@ -173,7 +172,7 @@ class AuthService {
       if (loginResponse.user != null) {
         await _storage.write(
           key: _userKey,
-          value: loginResponse.user!.toJson().toString(),
+          value: jsonEncode(loginResponse.user!.toJson()),
         );
       }
 
@@ -202,97 +201,64 @@ class AuthService {
 
   /// Login with Google
   Future<LoginResponse> loginWithGoogle() async {
-    print('DEBUG: googleLogin -> START');
+    debugPrint('DEBUG: googleLogin -> START');
     try {
-      // Step 1: Get Google ID token from Sign-In
-      final googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        print("User cancelled sign-in");
-        throw ApiException('Google sign in cancelled');
+      if (!_isGoogleSignInInitialized) {
+        await _googleSignIn.initialize(
+          serverClientId:
+              '690749586825-03r2nfmstuk9cgsuh9gmmhd9c2dpp11q.apps.googleusercontent.com',
+        );
+        _isGoogleSignInInitialized = true;
       }
 
-      final googleAuth = await googleUser.authentication;
+      final GoogleSignInAccount googleUser = await _googleSignIn.authenticate(
+        scopeHint: ['email', 'profile'],
+      );
 
-      print("ID TOKEN: ${googleAuth.idToken}");
-      print("ACCESS TOKEN: ${googleAuth.accessToken}");
-
-      // Validate that we have the ID token
-      if (googleAuth.idToken == null || googleAuth.idToken!.isEmpty) {
+      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+      final idToken = googleAuth.idToken;
+      if (idToken == null || idToken.isEmpty) {
         throw ApiException('Failed to get Google ID token');
       }
 
-      print(
-        'DEBUG: googleLogin -> ID Token obtained: ${googleAuth.idToken!.substring(0, 20)}...',
-      );
-
-      // Step 2: Call backend API with the ID token
-      // POST /api/users/google/ with {"id_token": "<token>"}
-      print(
-        'DEBUG: googleLogin -> Sending ID token to backend: /api/users/google',
-      );
       final response = await _apiService.post(
         ApiEndpoints.googleLogin,
-        body: {'id_token': googleAuth.idToken},
+        body: {'id_token': idToken},
       );
-      print('DEBUG: googleLogin -> Backend response received');
 
-      // Step 3: Handle the API response
-      // Expected response: { "access": "...", "refresh": "...", "user": {...}, "username": "...", "role": "...", ... }
-      print('DEBUG: googleLogin -> Parsing response data...');
       final loginResponse = LoginResponse.fromJson(response);
-      print(
-        'DEBUG: googleLogin -> Parse successful. User: ${loginResponse.username}, Role: ${loginResponse.role}',
-      );
 
-      // Store access and refresh tokens securely
-      print('DEBUG: googleLogin -> Storing tokens in secure storage...');
       if (loginResponse.accessToken.isNotEmpty) {
         await _storage.write(
           key: _accessTokenKey,
           value: loginResponse.accessToken,
         );
       }
+
       if (loginResponse.refreshToken.isNotEmpty) {
         await _storage.write(
           key: _refreshTokenKey,
           value: loginResponse.refreshToken,
         );
       }
+
       if (loginResponse.user != null) {
         await _storage.write(
           key: _userKey,
-          value: loginResponse.user!.toJson().toString(),
+          value: jsonEncode(loginResponse.user!.toJson()),
         );
       }
-      print('DEBUG: googleLogin -> Tokens stored successfully');
 
-      // Step 4: Set auth token in API service for subsequent authenticated requests
-      // All future API calls will include: Authorization: Bearer <access_token>
-      print('DEBUG: googleLogin -> Setting auth token in ApiService');
       _apiService.setAuthToken(loginResponse.accessToken);
-
-      print('DEBUG: googleLogin -> SUCCESS');
+      debugPrint('DEBUG: googleLogin -> SUCCESS');
       return loginResponse;
+    } on GoogleSignInException catch (e) {
+      if (e.code == GoogleSignInExceptionCode.canceled) {
+        throw ApiException('Google login cancelled');
+      }
+      throw ApiException('Google Sign In failed: ${e.description ?? e.code.name}');
     } catch (e) {
-      print("Google Sign-In Error: $e");
-      if (e is ApiException) {
-        String errorMessage = 'Google login failed';
-        if (e.data != null) {
-          final data = e.data as Map<String, dynamic>;
-          if (data.containsKey('detail')) {
-            errorMessage = data['detail'].toString();
-          }
-        }
-        throw ApiException(
-          errorMessage,
-          statusCode: e.statusCode,
-          data: e.data,
-        );
-      }
-      // If it's a platform exception from google_sign_in
-      if (e.runtimeType.toString() == 'PlatformException') {
-        throw ApiException('Google Sign In failed: ${e.toString()}');
-      }
+      debugPrint("Google Sign-In Error: $e");
       rethrow;
     }
   }
@@ -307,10 +273,8 @@ class AuthService {
     // Remove auth token from API service
     _apiService.removeAuthToken();
 
-    // Sign out from Google if signed in
-    if (await _googleSignIn.isSignedIn()) {
-      await _googleSignIn.signOut();
-    }
+    // Sign out from Google
+    await _googleSignIn.signOut();
   }
 
   /// Get stored access token
@@ -334,9 +298,10 @@ class AuthService {
     try {
       final userData = await _storage.read(key: _userKey);
       if (userData != null) {
-        // Note: This is a simplified approach. In production, use proper JSON storage
-        // For now, we'll fetch user data from API instead
-        return null;
+        final decoded = jsonDecode(userData);
+        if (decoded is Map<String, dynamic>) {
+          return ApiUser.fromJson(decoded);
+        }
       }
       return null;
     } catch (e) {
@@ -384,6 +349,55 @@ class AuthService {
       return ApiUser.fromJson(response);
     } catch (e) {
       return null;
+    }
+  }
+
+  /// Request password reset
+  Future<void> passwordReset({required String email}) async {
+    try {
+      await _apiService.post(
+        ApiEndpoints.passwordReset,
+        body: {'email': email},
+      );
+    } catch (e) {
+      if (e is ApiException) {
+        throw ApiException(e.message, statusCode: e.statusCode, data: e.data);
+      }
+      rethrow;
+    }
+  }
+
+  /// Update user profile
+  Future<ApiUser> updateProfile({
+    String? firstName,
+    String? lastName,
+    String? email,
+  }) async {
+    try {
+      final body = <String, dynamic>{};
+      if (firstName != null || lastName != null) {
+        // App uses space-separated names in username
+        final currentUsername = (await getStoredUser())?.username ?? '';
+        final parts = currentUsername.split(' ');
+        final fName = firstName ?? (parts.isNotEmpty ? parts[0] : '');
+        final lName =
+            lastName ?? (parts.length > 1 ? parts.sublist(1).join(' ') : '');
+        body['username'] = '$fName $lName'.trim();
+      }
+      if (email != null) {
+        body['email'] = email;
+      }
+
+      final response = await _apiService.patch(
+        ApiEndpoints.currentUser,
+        body: body,
+      );
+      return ApiUser.fromJson(response);
+    } catch (e) {
+      if (e is ApiException) {
+        throw ApiException(e.message, statusCode: e.statusCode, data: e.data);
+      }
+      rethrow;
     }
   }
 }

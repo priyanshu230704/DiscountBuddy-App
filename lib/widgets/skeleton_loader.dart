@@ -1,5 +1,6 @@
+import 'package:discount_buddy/theme/app_colors.dart';
+
 import 'package:flutter/material.dart';
-import '../providers/theme_provider.dart';
 
 /// Skeleton loader widget for loading states
 class SkeletonLoader extends StatelessWidget {
@@ -7,12 +8,7 @@ class SkeletonLoader extends StatelessWidget {
   final double? height;
   final BorderRadius? borderRadius;
 
-  const SkeletonLoader({
-    super.key,
-    this.width,
-    this.height,
-    this.borderRadius,
-  });
+  const SkeletonLoader({super.key, this.width, this.height, this.borderRadius});
 
   @override
   Widget build(BuildContext context) {
@@ -20,13 +16,13 @@ class SkeletonLoader extends StatelessWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: NeoTasteColors.textDisabled.withOpacity(0.3),
+        color: AppColors.textDisabled.withValues(alpha: 0.3),
         borderRadius: borderRadius ?? BorderRadius.circular(12),
       ),
       child: const Center(
         child: CircularProgressIndicator(
           strokeWidth: 2,
-          valueColor: AlwaysStoppedAnimation<Color>(NeoTasteColors.accent),
+          valueColor: AlwaysStoppedAnimation<Color>(AppColors.accent),
         ),
       ),
     );

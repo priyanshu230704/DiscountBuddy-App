@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>690749586825-te9jchq8ibjk42uema45kcvl4sarmocc.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.690749586825-te9jchq8ibjk42uema45kcvl4sarmocc</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>690749586825-0c5v33s1k418s14a9pb1krikf0mpo5ph.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyATrEecCiku_ZApXJmJ6Q2cvr4vxvlyASs</string>
+	<key>GCM_SENDER_ID</key>
+	<string>690749586825</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.ketan.discountbuddy</string>
+	<key>PROJECT_ID</key>
+	<string>discount-buddy-d51bf</string>
+	<key>STORAGE_BUCKET</key>
+	<string>discount-buddy-d51bf.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:690749586825:ios:80b06fa46619fe40603558</string>
+</dict>
+</plist>

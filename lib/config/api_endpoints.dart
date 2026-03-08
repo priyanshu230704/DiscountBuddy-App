@@ -7,6 +7,7 @@ class ApiEndpoints {
   static const String refreshToken = '/users/token/refresh';
   static const String googleLogin = '/users/google';
   static const String currentUser = '/users/me';
+  static const String passwordReset = '/users/password-reset';
 
   // Restaurant Routes
   static const String restaurants = '/restaurants/restaurants';

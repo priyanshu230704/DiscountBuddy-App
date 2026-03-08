@@ -1,35 +1,60 @@
 import 'package:flutter/material.dart';
 
+/// Discount Buddy – Clean, Modern, Premium Color System
 class AppColors {
-  // Core Palette
-  static const Color primary = Color(0xFF4F46E5); // Electric Indigo
-  static const Color secondary = Color(0xFF8B5CF6); // Soft Violet
-  static const Color success = Color(0xFF22C55E); // Mint Green
-  static const Color warning = Color(0xFFF59E0B); // Amber
-  static const Color error = Color(0xFFEF4444); // Red
+  // ── Brand ─────────────────────────────────────────────────────────────────
+  /// Primary brand purple
+  static const Color primaryPurple = Color(0xFF8B5CF6);
+  /// Secondary brand pink/magenta
+  static const Color secondaryPink = Color(0xFFD946EF);
+  /// Primary brand orange (accent)
+  static const Color primaryOrange = Color(0xFFF97316);
+  static const Color secondaryOrange = Color(0xFFEA580C);
 
-  // Neutral Palette - Light
-  static const Color backgroundLight = Color(0xFFF9FAFB);
-  static const Color surfaceLight = Color(0xFFFFFFFF);
-  static const Color textPrimaryLight = Color(0xFF0F172A);
-  static const Color textSecondaryLight = Color(0xFF475569);
-  static const Color dividerLight = Color(0xFFE5E7EB);
-  static const Color surfaceVariantLight = Color(0xFFF1F5F9);
+  /// Urgency / discount accent
+  static const Color discount = primaryOrange;
 
-  // Neutral Palette - Dark
-  static const Color backgroundDark = Color(0xFF020617);
-  static const Color surfaceDark = Color(
-    0xB3020617,
-  ); // rgba(2,6,23,0.7) -> 0.7 * 255 = ~179 -> B3 hex
-  static const Color textPrimaryDark = Color(0xFFE5E7EB);
-  static const Color textSecondaryDark = Color(0xFF94A3B8);
-  static const Color dividerDark = Color(0xFF1E293B);
-  static const Color surfaceVariantDark = Color(0xFF1E293B);
+  /// Success (confirmed bookings, redemption, verified badges)
+  static const Color success = Color(0xFF10B981);
 
-  // Gradients
-  static const Gradient primaryGradient = LinearGradient(
-    colors: [primary, secondary],
+  /// Destructive / error
+  static const Color error = Color(0xFFEF4444);
+
+  // ── Gradients ──────────────────────────────────────────────────────────────
+  static const List<Color> purpleGradientColors = [primaryPurple, secondaryPink];
+  static const List<Color> orangeGradientColors = [primaryOrange, secondaryOrange];
+
+  static const Gradient purpleGradient = LinearGradient(
+    colors: purpleGradientColors,
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+  );
+
+  static const Gradient orangeGradient = LinearGradient(
+    colors: orangeGradientColors,
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
+
+  // ── Surfaces ──────────────────────────────────────────────────────────────
+  /// Default app background – neutral light grey
+  static const Color background = Color(0xFFF9FAFB);
+
+  /// Card background – clean white
+  static const Color surface = Color(0xFFFFFFFF);
+
+  // ── Text ──────────────────────────────────────────────────────────────────
+  static const Color textPrimary = Color(0xFF111827);
+  static const Color textSecondary = Color(0xFF6B7280);
+  static const Color textDisabled = Color(0xFF9CA3AF);
+
+  // ── Aliases ──────────────────────────────────────────────────────────────
+  static const Color primary = primaryPurple;
+  static const Color secondary = secondaryPink;
+  static const Color accent = primaryOrange;
+  static const Color white = Colors.white;
+
+  // Legacy compatibility aliases
+  static const Gradient heroGradient = orangeGradient;
+  static const Gradient primaryGradient = purpleGradient;
 }

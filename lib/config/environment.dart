@@ -1,3 +1,5 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 /// Environment configuration for the DiscountBuddy app
 class Environment {
   // Environment mode
@@ -12,12 +14,12 @@ class Environment {
   static String get baseUrl {
     switch (currentEnvironment) {
       case production:
-        return 'http://192.168.29.221:8000';
+        return 'http://16.171.196.144';
       case staging:
-        return 'http://10.215.158.186:8000';
+        return 'http://16.171.196.144';
       case development:
       default:
-        return 'http://10.215.158.186:8000';
+        return 'http://16.171.196.144';
     }
   }
 
@@ -43,5 +45,5 @@ class Environment {
   static bool get enableDebugMode => false; // currentEnvironment == production;
 
   // Mapbox Configuration
-  static const String mapboxAccessToken = ''; // TODO: Add Mapbox Access Token
+  static String get mapboxAccessToken => dotenv.env['MAPBOX_TOKEN'] ?? '';
 }

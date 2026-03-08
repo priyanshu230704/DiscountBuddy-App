@@ -27,9 +27,9 @@ class BookingService {
       'restaurant': restaurantId,
       'booking_date': bookingDate.toIso8601String(),
       'number_of_guests': numberOfGuests,
-      if (specialRequests != null) 'special_requests': specialRequests,
-      if (contactName != null) 'contact_name': contactName,
-      if (contactPhone != null) 'contact_phone': contactPhone,
+      'special_requests': ?specialRequests,
+      'contact_name': ?contactName,
+      'contact_phone': ?contactPhone,
     };
 
     return await _apiService.post(

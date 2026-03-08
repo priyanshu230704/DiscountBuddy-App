@@ -37,7 +37,8 @@ class Deal {
       title: json['title'] as String,
       description: json['description'] as String,
       discountText: json['discountText'] as String,
-      validDays: (json['validDays'] as List<dynamic>?)
+      validDays:
+          (json['validDays'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           [],
@@ -73,8 +74,4 @@ class Deal {
   }
 }
 
-enum DealStatus {
-  active,
-  used,
-  expired,
-}
+enum DealStatus { active, used, expired }

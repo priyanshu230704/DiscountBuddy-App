@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/environment.dart';
@@ -123,7 +124,7 @@ class ApiService {
       ).replace(queryParameters: queryParameters);
 
       if (Environment.enableLogging) {
-        print('GET: $uri');
+        debugPrint('GET: $uri');
       }
 
       final request = http.Request('GET', uri)
@@ -154,8 +155,8 @@ class ApiService {
       final uri = Uri.parse('$baseUrl$normalizedEndpoint');
 
       if (Environment.enableLogging) {
-        print('POST: $uri');
-        print('Body: $body');
+        debugPrint('POST: $uri');
+        debugPrint('Body: $body');
       }
 
       final request = http.Request('POST', uri);
@@ -188,8 +189,8 @@ class ApiService {
       final uri = Uri.parse('$baseUrl$normalizedEndpoint');
 
       if (Environment.enableLogging) {
-        print('PUT: $uri');
-        print('Body: $body');
+        debugPrint('PUT: $uri');
+        debugPrint('Body: $body');
       }
 
       final request = http.Request('PUT', uri)
@@ -223,8 +224,8 @@ class ApiService {
       final uri = Uri.parse('$baseUrl$normalizedEndpoint');
 
       if (Environment.enableLogging) {
-        print('PATCH: $uri');
-        print('Body: $body');
+        debugPrint('PATCH: $uri');
+        debugPrint('Body: $body');
       }
 
       final request = http.Request('PATCH', uri)
@@ -257,7 +258,7 @@ class ApiService {
       final uri = Uri.parse('$baseUrl$normalizedEndpoint');
 
       if (Environment.enableLogging) {
-        print('DELETE: $uri');
+        debugPrint('DELETE: $uri');
       }
 
       final request = http.Request('DELETE', uri)
@@ -279,8 +280,8 @@ class ApiService {
   /// Handle HTTP response
   Map<String, dynamic> _handleResponse(http.Response response) {
     if (Environment.enableLogging) {
-      print('Status Code: ${response.statusCode}');
-      print('Response: ${response.body}');
+      debugPrint('Status Code: ${response.statusCode}');
+      debugPrint('Response: ${response.body}');
     }
 
     final statusCode = response.statusCode;
@@ -290,7 +291,7 @@ class ApiService {
     if (statusCode >= 300 && statusCode < 400) {
       final location = response.headers['location'];
       if (location != null && Environment.enableLogging) {
-        print(
+        debugPrint(
           'Redirect detected to: $location (prevented to avoid duplicate call)',
         );
       }

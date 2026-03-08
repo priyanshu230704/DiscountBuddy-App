@@ -14,7 +14,7 @@ import '../../providers/auth_provider.dart';
 import '../restaurant_details_page.dart';
 import '../notifications_page.dart';
 import '../../widgets/city_selector_modal.dart';
-import '../../widgets/occupancy_tag.dart';
+import '../../theme/app_colors.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -35,9 +35,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   final FocusNode _searchFocusNode = FocusNode();
 
   List<Restaurant> _restaurants = [];
-  List<Restaurant> _nearbyRestaurants = [];
   List<Restaurant> _filteredRestaurants = [];
-  List<Map<String, dynamic>> _cuisineSections = [];
 
   bool _isLoading = true;
   bool _isSearching = false;
@@ -50,22 +48,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   double _userLongitude = 0;
 
   HomeFilter? _activeFilter;
-  static const Color buddyPink = Color(0xFFFF2D83);
-  static const Color buddyPurple = Color(0xFF7C3AED);
-  static const Color buddyOrange = Color(0xFFFF7A00);
-  static const Color buddyYellow = Color(0xFFFFB100);
-
-  static const Color bg = Color(0xFFF7F8FA);
 
   static const Color textPrimary = Color(0xFF111827);
   static const Color textSecondary = Color(0xFF6B7280);
 
-  static const List<Color> buddyGradient = [
-    buddyPink,
-    buddyPurple,
-    buddyOrange,
-    buddyYellow,
-  ];
+  
 
   @override
   void initState() {
@@ -145,14 +132,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   void _onSearchChanged() => _filterRestaurants();
 
   void _filterRestaurants() {
+    if (!mounted) return;
     final query = _searchController.text.toLowerCase().trim();
 
     setState(() {
       if (query.isEmpty) {
         _filteredRestaurants = _applyFilter(_restaurants);
-        _isSearching = false;
       } else {
-        _isSearching = true;
         _filteredRestaurants = _applyFilter(
           _restaurants.where((restaurant) {
             return restaurant.name.toLowerCase().contains(query) ||
@@ -241,6 +227,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   Future<void> _loadRestaurants() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
 
     try {
@@ -263,8 +250,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             for (final restaurant in restaurants) {
               if (restaurant is Map<String, dynamic>) {
                 final restaurantId = restaurant['id'] as int?;
-                if (restaurantId != null)
+                if (restaurantId != null) {
                   cuisineMap[restaurantId] = cuisineName;
+                }
               }
             }
           }
@@ -335,9 +323,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         if (!mounted) return;
         setState(() {
           _restaurants = allRestaurants;
-          _nearbyRestaurants = nearbyRestaurants;
           _filteredRestaurants = _applyFilter(allRestaurants);
-          _cuisineSections = cuisineSections;
           _isLoading = false;
         });
       } else {
@@ -380,8 +366,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
 
     if (desc.contains('dessert')) tags.add("FREE Dessert");
-    if (desc.contains('drink') || desc.contains('soft drink'))
+    if (desc.contains('drink') || desc.contains('soft drink')) {
       tags.add("FREE Drink");
+    }
     if (desc.contains('side')) tags.add("FREE Side");
 
     return tags;
@@ -422,7 +409,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
     return PopScope(
       canPop: !_isSearching,
-      onPopInvoked: (didPop) {
+      onPopInvokedWithResult: (didPop, result) {
         if (!didPop && _isSearching) {
           _searchController.clear();
           _searchFocusNode.unfocus();
@@ -430,18 +417,23 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         }
       },
       child: Scaffold(
-        backgroundColor: bg,
+        backgroundColor: const Color(0xFFF7F8FC),
         body: RefreshIndicator(
           onRefresh: _loadRestaurants,
-          color: buddyOrange,
+          color: AppColors.discount,
           child: CustomScrollView(
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
+            cacheExtent: 1200,
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             slivers: [
               _buildHeader(),
               if (!_isSearching) _buildBanners(),
-              if (!_isSearching) _buildBestOffers(),
-              if (!_isSearching) _buildCuisineRow(),
+              if (!_isSearching) _buildFilterTabs(),
+              if (!_isSearching) _buildSectionTitle(),
               _buildRestaurantFeed(list),
-              const SliverToBoxAdapter(child: SizedBox(height: 80)),
+              const SliverToBoxAdapter(child: SizedBox(height: 32)),
             ],
           ),
         ),
@@ -451,314 +443,211 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   Widget _buildHeader() {
     final double topPadding = MediaQuery.of(context).padding.top;
-    final double headerHeight = 176 + topPadding;
 
     return SliverAppBar(
-      pinned: false,
+      pinned: true,
       floating: false,
       snap: false,
       elevation: 0,
-      backgroundColor: bg,
+      backgroundColor: Colors.white,
       automaticallyImplyLeading: false,
-      toolbarHeight: 70,
-      expandedHeight: headerHeight,
-
+      toolbarHeight: 60,
+      collapsedHeight: _isSearching ? 112 + topPadding : 70 + topPadding,
+      expandedHeight: _isSearching ? 112 + topPadding : 70 + topPadding,
+      stretch: false,
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                Colors.white,
-                buddyPink.withOpacity(0.09),
-                buddyOrange.withOpacity(0.09),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+              colors: [Color(0xFFF3E8FF), Colors.white], // Soft purple to white
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              stops: [0.0, 1.0],
             ),
-          ),
+	          ),
           child: SafeArea(
             bottom: false,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+              padding: const EdgeInsets.fromLTRB(16, 2, 12, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
+                      // Logo
                       Container(
-                        width: 44,
-                        height: 44,
+                        width: 60,
+                        height: 60,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
-                          gradient: const LinearGradient(colors: buddyGradient),
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(17),
                           boxShadow: [
                             BoxShadow(
-                              color: buddyPink.withOpacity(0.20),
-                              blurRadius: 16,
-                              offset: const Offset(0, 10),
+                              color: const Color(0xFF8B5CF6).withValues(alpha: 0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
+                        padding: const EdgeInsets.all(2),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(15),
                           child: Image.asset(
                             "assets/png/db_logo.png",
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                const Icon(
-                                  Icons.local_offer,
-                                  color: Colors.white,
-                                ),
                           ),
                         ),
                       ),
                       const SizedBox(width: 12),
+                      // Title
                       Expanded(
-                        child: Text(
-                          "Discount Buddy",
-                          style: GoogleFonts.inter(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
-                            color: textPrimary,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(
-                            color: Colors.black.withOpacity(0.06),
-                          ),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            ShaderMask(
-                              shaderCallback: (bounds) {
-                                return const LinearGradient(
-                                  colors: buddyGradient,
-                                ).createShader(bounds);
-                              },
-                              child: const Icon(
-                                Icons.flash_on,
-                                size: 16,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(width: 6),
                             Text(
-                              "Live Deals",
-                              style: GoogleFonts.inter(
-                                fontSize: 12,
+                              "Discount",
+                              style: GoogleFonts.outfit(
+                                fontSize: 20,
                                 fontWeight: FontWeight.w800,
-                                color: textPrimary,
+                                height: 1.0,
+                                color: const Color(0xFF1B1436),
+                                letterSpacing: -0.4,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              "Buddy",
+                              style: GoogleFonts.outfit(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w800,
+                                height: 1.0,
+                                color: const Color(0xFF8B5CF6),
+                                letterSpacing: -0.4,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
                       ),
                       const SizedBox(width: 8),
-                      // Notification Icon with Badge
+                      // Location selector
                       GestureDetector(
-                        onTap: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const NotificationsPage(),
+                        onTap: () {
+                          if (_cityName == 'Location Off' || _cityName == 'No Permission') {
+                            _promptToEnableLocation(
+                              _cityName == 'Location Off' ? 'Location services are disabled' : 'Location permission is denied',
+                              isServiceOff: _cityName == 'Location Off',
+                            );
+                            return;
+                          }
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => CitySelectorModal(
+                              selectedCity: _cityName,
+                              onCitySelected: (city) {
+                                setState(() => _cityName = city.name);
+                                _loadRestaurants();
+                              },
                             ),
                           );
-                          // Reload notification count when returning
-                          _loadNotificationCount();
                         },
                         child: Container(
-                          width: 44,
-                          height: 44,
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                           decoration: BoxDecoration(
-                            color: Colors.white,
-                            border: Border.all(
-                              color: Colors.black.withOpacity(0.06),
-                            ),
-                            borderRadius: BorderRadius.circular(14),
+                            color: Colors.white.withValues(alpha: 0.8),
+                            borderRadius: BorderRadius.circular(18),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.04),
+                                blurRadius: 3,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
                           ),
-                          child: Stack(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Center(
-                                child: Icon(
-                                  Icons.notifications_outlined,
-                                  size: 22,
+                              const Icon(Icons.location_on, color: Color(0xFF8B5CF6), size: 14),
+                              const SizedBox(width: 3),
+                              Text(
+                                _cityName,
+                                style: GoogleFonts.inter(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
                                   color: textPrimary,
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              if (_notificationCount > 0)
-                                Positioned(
-                                  top: 8,
-                                  right: 8,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(4),
-                                    decoration: BoxDecoration(
-                                      gradient: const LinearGradient(
-                                        colors: buddyGradient,
-                                      ),
-                                      shape: BoxShape.circle,
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: buddyOrange.withOpacity(0.4),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    constraints: const BoxConstraints(
-                                      minWidth: 18,
-                                      minHeight: 18,
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        _notificationCount > 99
-                                            ? '99+'
-                                            : _notificationCount.toString(),
-                                        style: GoogleFonts.inter(
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.w900,
-                                          color: Colors.white,
-                                          height: 1,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
                             ],
                           ),
                         ),
                       ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  _isSearching
-                      ? _SearchBar(
-                          controller: _searchController,
-                          focusNode: _searchFocusNode,
-                          onClose: () {
-                            _searchController.clear();
-                            _searchFocusNode.unfocus();
-                            setState(() => _isSearching = false);
-                          },
-                        )
-                      : Row(
+                      const SizedBox(width: 8),
+                      // Notification Icon
+                      GestureDetector(
+                        onTap: () async {
+                          await Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationsPage()));
+                          _loadNotificationCount();
+                        },
+                        child: Stack(
+                          clipBehavior: Clip.none,
                           children: [
-                            GestureDetector(
-                              onTap: () {
-                                if (_cityName == 'Location Off' ||
-                                    _cityName == 'No Permission') {
-                                  _promptToEnableLocation(
-                                    _cityName == 'Location Off'
-                                        ? 'Location services are disabled'
-                                        : 'Location permission is denied',
-                                    isServiceOff: _cityName == 'Location Off',
-                                  );
-                                  return;
-                                }
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                  builder: (context) => CitySelectorModal(
-                                    selectedCity: _cityName,
-                                    onCitySelected: (city) {
-                                      setState(() {
-                                        _cityName = city.name;
-                                      });
-                                      _loadRestaurants();
-                                    },
+                            Container(
+                              padding: const EdgeInsets.all(9),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white,
+                                border: Border.all(color: Colors.black.withValues(alpha: 0.04)),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.04),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
                                   ),
-                                );
-                              },
-                              child: Row(
-                                children: [
-                                  ShaderMask(
-                                    shaderCallback: (bounds) {
-                                      return const LinearGradient(
-                                        colors: buddyGradient,
-                                      ).createShader(bounds);
-                                    },
-                                    child: Icon(
-                                      _cityName == 'Location Off' ||
-                                              _cityName == 'No Permission'
-                                          ? Icons.location_off
-                                          : Icons.location_on,
-                                      size: 18,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    _cityName,
-                                    style: GoogleFonts.inter(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w800,
-                                      color:
-                                          _cityName == 'Location Off' ||
-                                              _cityName == 'No Permission'
-                                          ? Colors.redAccent
-                                          : textPrimary,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  if (_cityName != 'Location Off' &&
-                                      _cityName != 'No Permission')
-                                    const Icon(
-                                      Icons.keyboard_arrow_down,
-                                      color: textSecondary,
-                                    ),
                                 ],
                               ),
+                              child: const Icon(Icons.notifications_none, size: 21, color: textPrimary),
                             ),
-                            const Spacer(),
-                            IconButton(
-                              onPressed: () {
-                                setState(() => _isSearching = true);
-                                WidgetsBinding.instance.addPostFrameCallback(
-                                  (_) => _searchFocusNode.requestFocus(),
-                                );
-                              },
-                              icon: const Icon(
-                                Icons.search,
-                                color: textPrimary,
+                            if (_notificationCount > 0)
+                              Positioned(
+                                top: 2,
+                                right: 2,
+                                child: Container(
+                                  width: 9,
+                                  height: 9,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEF4444),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.white, width: 2),
+                                  ),
+                                ),
                               ),
-                            ),
                           ],
                         ),
-
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    height: 42,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      children: [
-                        _FilterChipX(
-                          text: "✨ Best Near You",
-                          active: _activeFilter == HomeFilter.offers,
-                          onTap: () => _toggleFilter(HomeFilter.offers),
-                        ),
-                        _FilterChipX(
-                          text: "⭐ Top Rated",
-                          active: _activeFilter == HomeFilter.rating,
-                          onTap: () => _toggleFilter(HomeFilter.rating),
-                        ),
-                        _FilterChipX(
-                          text: "📍 Nearest",
-                          active: _activeFilter == HomeFilter.nearest,
-                          onTap: () => _toggleFilter(HomeFilter.nearest),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
+                  if (_isSearching) ...[
+                    const SizedBox(height: 16),
+                    _SearchBar(
+                      controller: _searchController,
+                      focusNode: _searchFocusNode,
+                      onClose: () {
+                        _searchController.clear();
+                        _searchFocusNode.unfocus();
+                        setState(() => _isSearching = false);
+                      },
+                    ),
+                  ] else ...[
+                    const SizedBox(height: 0),
+                  ],
                 ],
               ),
             ),
@@ -771,115 +660,74 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Widget _buildBanners() {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.only(top: 6),
+        padding: const EdgeInsets.only(top: 0, bottom: 6),
         child: SizedBox(
-          height: 150,
-          child: PageView(
-            controller: PageController(viewportFraction: 0.92),
-            children: const [
-              _GradientBanner(
-                title: "Best Recommendations",
-                subtitle: "Top-rated restaurants near you",
-                emoji: "✨",
-              ),
-              _GradientBanner(
-                title: "Buddy Picks",
-                subtitle: "Hot deals from top restaurants",
-                emoji: "🔥",
-              ),
-              _GradientBanner(
-                title: "Save More Today",
-                subtitle: "Extra freebies + combo discounts",
-                emoji: "😋",
-              ),
-            ],
+          height: 200,
+          child: const _GradientBanner(
+            title: "Get the Best Restaurant Deals",
+            subtitle: "Exclusive offers and table\nreservations in your city.",
           ),
         ),
       ),
     );
   }
 
-  Widget _buildBestOffers() {
-    if (_isLoading) return const SliverToBoxAdapter(child: SizedBox.shrink());
-
-    final nearby = _nearbyRestaurants;
-    if (nearby.isEmpty)
-      return const SliverToBoxAdapter(child: SizedBox.shrink());
-
+  Widget _buildFilterTabs() {
     return SliverToBoxAdapter(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 22, 16, 10),
-            child: Text(
-              "Best Restaurants Near You ✨",
-              style: GoogleFonts.inter(
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-                color: textPrimary,
-              ),
-            ),
-          ),
-          SizedBox(
-            height: 330,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: nearby.length,
-              itemBuilder: (context, index) {
-                return _BestOfferCard(
-                  restaurant: nearby[index],
-                  kmToMiles: _kmToMiles,
-                  offerTags: _getOfferTags,
-                  userLat: _userLatitude,
-                  userLon: _userLongitude,
-                );
-              },
-            ),
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            const gap = 10.0;
+            final chipWidth = (constraints.maxWidth - (gap * 2)) / 3;
+            return Row(
+              children: [
+                SizedBox(
+                  width: chipWidth,
+                  child: _FilterChipX(
+                    text: "Best Near You",
+                    active: _activeFilter == HomeFilter.offers || _activeFilter == null,
+                    onTap: () => _toggleFilter(HomeFilter.offers),
+                  ),
+                ),
+                const SizedBox(width: gap),
+                SizedBox(
+                  width: chipWidth,
+                  child: _FilterChipX(
+                    text: "Top Rated",
+                    active: _activeFilter == HomeFilter.rating,
+                    onTap: () => _toggleFilter(HomeFilter.rating),
+                  ),
+                ),
+                const SizedBox(width: gap),
+                SizedBox(
+                  width: chipWidth,
+                  child: _FilterChipX(
+                    text: "New",
+                    active: _activeFilter == HomeFilter.nearest,
+                    icon: Icons.local_offer,
+                    onTap: () => _toggleFilter(HomeFilter.nearest),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildCuisineRow() {
-    if (_cuisineSections.isEmpty)
-      return const SliverToBoxAdapter(child: SizedBox.shrink());
-
+  Widget _buildSectionTitle() {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.only(top: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
-              child: Text(
-                "Explore Cuisines",
-                style: GoogleFonts.inter(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w900,
-                  color: textPrimary,
-                ),
-              ),
-            ),
-            SizedBox(
-              height: 92,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: _cuisineSections.length,
-                itemBuilder: (context, index) {
-                  final c = _cuisineSections[index];
-                  return _CuisineChipX(
-                    icon: c['icon'] ?? "🍴",
-                    name: c['name'] ?? "",
-                  );
-                },
-              ),
-            ),
-          ],
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
+        child: Text(
+          "Best Deals Near You",
+          style: GoogleFonts.inter(
+            fontSize: 20,
+            fontWeight: FontWeight.w900,
+            color: textPrimary,
+          ),
         ),
       ),
     );
@@ -890,7 +738,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       return const SliverToBoxAdapter(
         child: Padding(
           padding: EdgeInsets.only(top: 80),
-          child: Center(child: CircularProgressIndicator(color: buddyOrange)),
+          child: Center(
+            child: CircularProgressIndicator(color: AppColors.discount),
+          ),
         ),
       );
     }
@@ -910,11 +760,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
 
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(16, 18, 16, 10),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
           return Padding(
-            padding: const EdgeInsets.only(bottom: 14),
+            padding: const EdgeInsets.only(bottom: 16),
             child: _FeedTile(
               restaurant: list[index],
               kmToMiles: _kmToMiles,
@@ -949,12 +799,12 @@ class _SearchBar extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.black.withOpacity(0.06)),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -994,54 +844,77 @@ class _SearchBar extends StatelessWidget {
 class _FilterChipX extends StatelessWidget {
   final String text;
   final bool active;
+  final IconData? icon;
   final VoidCallback onTap;
 
   const _FilterChipX({
     required this.text,
     required this.active,
+    this.icon,
     required this.onTap,
   });
 
-  static const List<Color> buddyGradient = [
-    Color(0xFFFF2D83),
-    Color(0xFF7C3AED),
-    Color(0xFFFF7A00),
-    Color(0xFFFFB100),
-  ];
+  
 
   @override
   Widget build(BuildContext context) {
+    final Gradient bgGradient = const LinearGradient(
+      colors: [Color(0xFF8B5CF6), Color(0xFFD946EF)],
+      begin: Alignment.centerLeft,
+      end: Alignment.centerRight,
+    );
+
     return GestureDetector(
       onTap: onTap,
       child: Center(
         child: Container(
-          height: 36,
-          margin: const EdgeInsets.only(right: 10),
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          height: 42,
           alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(20),
+            gradient: active ? bgGradient : null,
             color: active ? null : Colors.white,
-            gradient: active
-                ? const LinearGradient(colors: buddyGradient)
-                : null,
-            border: Border.all(color: Colors.black.withOpacity(0.06)),
-            boxShadow: active
-                ? [
-                    BoxShadow(
-                      color: buddyGradient.first.withOpacity(0.22),
-                      blurRadius: 18,
-                      offset: const Offset(0, 10),
-                    ),
-                  ]
-                : null,
+            border: active ? null : Border.all(color: Colors.black.withValues(alpha: 0.05)),
+            boxShadow: [
+              if (active)
+                BoxShadow(
+                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                )
+              else
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+            ],
           ),
-          child: Text(
-            text,
-            style: GoogleFonts.inter(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: active ? Colors.white : const Color(0xFF111827),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (icon != null)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: Icon(
+                      icon,
+                      size: 16,
+                      color: active ? Colors.white : const Color(0xFF8B5CF6),
+                    ),
+                  ),
+                Text(
+                  text,
+                  style: GoogleFonts.inter(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.bold,
+                    color: active ? Colors.white : const Color(0xFF4B5563),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -1053,364 +926,162 @@ class _FilterChipX extends StatelessWidget {
 class _GradientBanner extends StatelessWidget {
   final String title;
   final String subtitle;
-  final String emoji;
 
   const _GradientBanner({
     required this.title,
     required this.subtitle,
-    required this.emoji,
   });
-
-  static const List<Color> buddyGradient = [
-    Color(0xFFFF2D83),
-    Color(0xFF7C3AED),
-    Color(0xFFFF7A00),
-    Color(0xFFFFB100),
-  ];
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(28),
         gradient: const LinearGradient(
-          colors: buddyGradient,
+          colors: [Color(0xFF8B5CF6), Color(0xFFD946EF), Color(0xFFF97316)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
+          stops: [0.0, 0.5, 1.0],
         ),
         boxShadow: [
           BoxShadow(
-            color: buddyGradient.first.withOpacity(0.25),
-            blurRadius: 18,
+            color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
+            blurRadius: 20,
             offset: const Offset(0, 10),
           ),
         ],
       ),
-      child: Row(
+      clipBehavior: Clip.hardEdge,
+      child: Stack(
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          // Background Glow effect
+          Positioned(
+            right: -50,
+            top: -50,
+            child: Container(
+              width: 180,
+              height: 180,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.1),
+              ),
+            ),
+          ),
+          
+          // Content
+          Padding(
+            padding: const EdgeInsets.all(22),
+            child: Row(
               children: [
-                Text(
-                  title,
-                  style: GoogleFonts.inter(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  subtitle,
-                  style: GoogleFonts.inter(
-                    fontSize: 13,
-                    color: Colors.white.withOpacity(0.95),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 7,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.18),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    "Explore",
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Text(emoji, style: const TextStyle(fontSize: 48)),
-        ],
-      ),
-    );
-  }
-}
-
-class _CuisineChipX extends StatelessWidget {
-  final String icon;
-  final String name;
-
-  const _CuisineChipX({required this.icon, required this.name});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(right: 14),
-      child: Column(
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.black.withOpacity(0.06)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
-                  blurRadius: 14,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: Center(
-              child: Text(icon, style: const TextStyle(fontSize: 24)),
-            ),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: 72,
-            child: Text(
-              name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF111827),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _BestOfferCard extends StatelessWidget {
-  final Restaurant restaurant;
-  final double Function(double) kmToMiles;
-  final List<String> Function(Restaurant) offerTags;
-  final double? userLat;
-  final double? userLon;
-
-  const _BestOfferCard({
-    required this.restaurant,
-    required this.kmToMiles,
-    required this.offerTags,
-    this.userLat,
-    this.userLon,
-  });
-
-  static const List<Color> buddyGradient = [
-    Color(0xFFFF2D83),
-    Color(0xFF7C3AED),
-    Color(0xFFFF7A00),
-    Color(0xFFFFB100),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    final tags = offerTags(restaurant);
-    final dist = restaurant.distanceMiles ?? kmToMiles(restaurant.distance);
-
-    return GestureDetector(
-      onTap: () {
-        final slug = restaurant.slug ?? restaurant.id;
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => RestaurantDetailsPage(
-              slug: slug,
-              latitude: userLat,
-              longitude: userLon,
-            ),
-          ),
-        );
-      },
-      child: Container(
-        width: 240,
-        margin: const EdgeInsets.only(right: 14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.black.withOpacity(0.06)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 18,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(18),
-              ),
-              child: AspectRatio(
-                aspectRatio: 4 / 3,
-                child: Stack(
-                  children: [
-                    CachedNetworkImage(
-                      imageUrl: restaurant.imageUrl,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      placeholder: (context, url) => Container(
-                        color: Colors.black.withOpacity(0.03),
-                        child: const Center(
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        color: Colors.black.withOpacity(0.03),
-                        child: const Icon(
-                          Icons.restaurant,
-                          color: Color(0xFF6B7280),
-                        ),
-                      ),
-                    ),
-                    if (tags.isNotEmpty)
-                      Positioned(
-                        left: 10,
-                        bottom: 10,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: buddyGradient,
-                            ),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Text(
-                            tags.first,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.inter(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Expanded(
+                  flex: 55,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Expanded(
-                        child: Text(
-                          restaurant.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.inter(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w900,
-                            color: const Color(0xFF111827),
-                          ),
+                      Text(
+                        title,
+                        style: GoogleFonts.outfit(
+                          fontSize: 22,
+                          height: 1.1,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: -0.5,
                         ),
+                        maxLines: 2,
+                        overflow: TextOverflow.visible,
                       ),
-                      const SizedBox(width: 8),
-                      if (restaurant.leaderboardScore > 0)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.amber.shade50,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.amber.shade200),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.stars,
-                                size: 12,
-                                color: Colors.amber,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                restaurant.leaderboardScore.toStringAsFixed(1),
-                                style: GoogleFonts.inter(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.amber.shade800,
-                                ),
-                              ),
-                            ],
+                      const SizedBox(height: 10),
+                      Text(
+                        subtitle,
+                        style: GoogleFonts.inter(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w500,
+                          height: 1.3,
+                          color: Colors.white.withValues(alpha: 0.9),
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 18),
+                      // Explore Now Button
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.25),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.35)),
+                        ),
+                        child: Text(
+                          "Explore Now",
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
                           ),
                         ),
-                      OccupancyTag(
-                        occupancy: restaurant.occupancy,
-                        isSmall: true,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
+                ),
+                const Expanded(flex: 45, child: SizedBox()),
+              ],
+            ),
+          ),
+          
+          // Food Image on right
+          Positioned(
+            right: 0,
+            top: 20,
+            bottom: 20,
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(topLeft: Radius.circular(80), bottomLeft: Radius.circular(80)),
+              child: Image.network(
+                "https://images.unsplash.com/photo-1473093226795-af9932fe5856?q=80&w=400&auto=format&fit=crop", // High-quality pasta image
+                width: 160,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Image.asset(
+                  "assets/png/banner-sm.png",
+                  width: 160,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          ),
+          
+          // "Live Deals" Badge
+          Positioned(
+            bottom: 14,
+            right: 16,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 10, offset: const Offset(0, 4)),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.flash_on, color: Color(0xFFF97316), size: 13),
+                  const SizedBox(width: 5),
                   Text(
-                    "${restaurant.rating.toStringAsFixed(1)} (${restaurant.reviewCount}) • ${dist.toStringAsFixed(2)} miles • ${restaurant.cuisine}",
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: const Color(0xFF6B7280),
+                    "LIVE DEALS",
+                    style: GoogleFonts.outfit(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      color: const Color(0xFFF97316),
+                      letterSpacing: 0.5,
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  if (tags.length > 1)
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: tags.skip(1).take(2).map((t) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFF3F4F6),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Text(
-                            t,
-                            style: GoogleFonts.inter(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              foreground: Paint()
-                                ..shader =
-                                    const LinearGradient(
-                                      colors: buddyGradient,
-                                    ).createShader(
-                                      const Rect.fromLTWH(0, 0, 140, 20),
-                                    ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -1431,17 +1102,17 @@ class _FeedTile extends StatelessWidget {
     this.userLon,
   });
 
-  static const List<Color> buddyGradient = [
-    Color(0xFFFF2D83),
-    Color(0xFF7C3AED),
-    Color(0xFFFF7A00),
-    Color(0xFFFFB100),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    const double cardRadius = 28;
+    const double imageHeight = 118;
     final tags = offerTags(restaurant);
     final dist = restaurant.distanceMiles ?? kmToMiles(restaurant.distance);
+    final String discountText = tags.isNotEmpty ? tags.first : "30% OFF";
+    final String numeric =
+        discountText.replaceAll(RegExp(r'[^0-9]'), '').isEmpty
+            ? '30'
+            : discountText.replaceAll(RegExp(r'[^0-9]'), '');
 
     return GestureDetector(
       onTap: () {
@@ -1458,145 +1129,254 @@ class _FeedTile extends StatelessWidget {
         );
       },
       child: Container(
+        width: double.infinity,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.black.withOpacity(0.06)),
+          borderRadius: BorderRadius.circular(cardRadius),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 18,
-              offset: const Offset(0, 10),
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
+        clipBehavior: Clip.hardEdge,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(18),
-              ),
-              child: AspectRatio(
-                aspectRatio: 16 / 9,
-                child: CachedNetworkImage(
-                  imageUrl: restaurant.imageUrl,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  placeholder: (context, url) => Container(
-                    color: Colors.black.withOpacity(0.03),
-                    child: const Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
+            SizedBox(
+              height: imageHeight,
+              child: Stack(
+                children: [
+                  CachedNetworkImage(
+                    imageUrl: restaurant.imageUrl,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                    fadeInDuration: Duration.zero,
+                    fadeOutDuration: Duration.zero,
+                    filterQuality: FilterQuality.low,
+                    maxWidthDiskCache: 900,
+                    maxHeightDiskCache: 600,
+                    placeholder: (context, url) => Container(
+                      color: Colors.black.withValues(alpha: 0.03),
+                      child: const Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Color(0xFF8B5CF6),
+                        ),
+                      ),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      color: const Color(0xFFF3F4F6),
+                      child: const Icon(
+                        Icons.restaurant,
+                        color: Color(0xFFD1D5DB),
+                        size: 40,
+                      ),
                     ),
                   ),
-                  errorWidget: (context, url, error) => Container(
-                    color: Colors.black.withOpacity(0.03),
-                    child: const Icon(
-                      Icons.restaurant,
-                      color: Color(0xFF6B7280),
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.black.withValues(alpha: 0.1),
+                            Colors.transparent,
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Color(0xFFF97316), Color(0xFFFB923C)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.only(
+                          bottomRight: Radius.circular(20),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            discountText,
+                            style: GoogleFonts.outfit(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white,
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                          Text(
+                            "Limited Time",
+                            style: GoogleFonts.inter(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white.withValues(alpha: 0.95),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          restaurant.name,
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w900,
-                            color: const Color(0xFF111827),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      if (restaurant.leaderboardScore > 0)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.amber.shade50,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.amber.shade200),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.stars,
-                                size: 12,
-                                color: Colors.amber,
+                    SizedBox(
+                      height: 24,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              restaurant.name,
+                              style: GoogleFonts.outfit(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                color: const Color(0xFF1B1436),
+                                letterSpacing: -0.5,
                               ),
-                              const SizedBox(width: 4),
-                              Text(
-                                restaurant.leaderboardScore.toStringAsFixed(1),
-                                style: GoogleFonts.inter(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.amber.shade800,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      OccupancyTag(
-                        occupancy: restaurant.occupancy,
-                        isSmall: true,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    "${restaurant.rating.toStringAsFixed(1)} (${restaurant.reviewCount}) • ${dist.toStringAsFixed(2)} miles • ${restaurant.cuisine}",
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: const Color(0xFF6B7280),
-                    ),
-                  ),
-                  if (tags.isNotEmpty) ...[
-                    const SizedBox(height: 10),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: tags.take(3).map((t) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.04),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Text(
-                            t,
-                            style: GoogleFonts.inter(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              foreground: Paint()
-                                ..shader =
-                                    const LinearGradient(
-                                      colors: buddyGradient,
-                                    ).createShader(
-                                      const Rect.fromLTWH(0, 0, 140, 20),
-                                    ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                        );
-                      }).toList(),
+                          const SizedBox(width: 8),
+                          Container(
+                            height: 24,
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF8B5CF6), Color(0xFFD946EF)],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.2),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: Text(
+                              "Reserve a Table",
+                              style: GoogleFonts.inter(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
+                    const SizedBox(height: 4),
+                    SizedBox(
+                      height: 14,
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.star,
+                            color: Color(0xFFFBBF24),
+                            size: 12,
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            restaurant.rating.toStringAsFixed(1),
+                            style: GoogleFonts.inter(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF1B1436),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Row(
+                            children: List.generate(
+                              3,
+                              (index) => const Padding(
+                                padding: EdgeInsets.only(right: 1),
+                                child: Icon(
+                                  Icons.star,
+                                  color: Color(0xFFFCD34D),
+                                  size: 10,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              "${restaurant.reviewCount} reviews",
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w400,
+                                color: const Color(0xFF6B7280),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    SizedBox(
+                      height: 14,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              "Use code BUDDY$numeric to get ${discountText.toLowerCase()}",
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: const Color(0xFF4B5563),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          const Icon(
+                            Icons.location_on,
+                            color: Color(0xFF8B5CF6),
+                            size: 12,
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            "${dist.toStringAsFixed(1)} km away",
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF4B5563),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                 ],
               ),
             ),

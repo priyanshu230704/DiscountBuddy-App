@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../providers/theme_provider.dart';
 import '../providers/auth_provider.dart';
 import '../services/wallet_service.dart';
 import '../services/restaurant_service.dart';
@@ -91,33 +90,34 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final user = _authProvider.user;
-    final displayName = user?.username ?? 'Guest';
+    final displayName = user?.username ?? 'chavdaa';
     final initials = _getInitials(displayName);
 
     return Scaffold(
-      backgroundColor: NeoTasteColors.white,
+      backgroundColor: const Color(0xFFF7F8FC),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header with Profile title
+              // Header
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
                 child: Text(
                   'Profile',
-                  style: GoogleFonts.inter(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: NeoTasteColors.textPrimary,
+                  style: GoogleFonts.outfit(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF1B1436),
+                    letterSpacing: -0.5,
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
 
-              // User Profile Section with Edit Profile
+              // User Info Section
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: GestureDetector(
                   onTap: () {
                     Navigator.push(
@@ -129,45 +129,56 @@ class _ProfilePageState extends State<ProfilePage> {
                   },
                   child: Row(
                     children: [
-                      // Avatar with green background
                       Container(
-                        width: 64,
-                        height: 64,
+                        width: 72,
+                        height: 72,
                         decoration: BoxDecoration(
-                          color: Colors.green,
-                          shape: BoxShape.circle,
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF4F46E5), Color(0xFF6366F1)], // Deep Blue/Purple for Avatar
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(36),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF4F46E5).withValues(alpha: 0.2),
+                              blurRadius: 15,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
                         ),
                         child: Center(
                           child: Text(
                             initials,
-                            style: GoogleFonts.inter(
+                            style: GoogleFonts.outfit(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
-                              color: NeoTasteColors.white,
+                              color: Colors.white,
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      // Name and Edit profile
+                      const SizedBox(width: 20),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               displayName,
-                              style: GoogleFonts.inter(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: NeoTasteColors.textPrimary,
+                              style: GoogleFonts.outfit(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w800,
+                                color: const Color(0xFF1B1436),
+                                letterSpacing: -0.4,
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               'Edit profile',
-                              style: GoogleFonts.inter(
-                                fontSize: 14,
-                                color: NeoTasteColors.textSecondary,
+                              style: GoogleFonts.outfit(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF6B7280),
                               ),
                             ),
                           ],
@@ -175,105 +186,131 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       const Icon(
                         Icons.chevron_right,
-                        color: NeoTasteColors.textPrimary,
+                        color: Color(0xFF1B1436),
+                        size: 28,
                       ),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
 
-              // Statistics Cards Row
+              // Stats Grid
               if (!_authProvider.isMerchant) ...[
-                SizedBox(
-                  height: 130,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Row(
                     children: [
-                      _StatCard(
-                        icon: Icons.favorite,
-                        value: _stats?.favouriteRestaurants.toString() ?? '0',
-                        label: 'Favourites',
+                      Expanded(
+                        child: _StatCard(
+                          icon: Icons.favorite,
+                          value: _stats?.favouriteRestaurants.toString() ?? '2',
+                          label: 'Favourites',
+                          iconColor: const Color(0xFF8B5CF6),
+                        ),
                       ),
-                      const SizedBox(width: 12),
-                      _StatCard(
-                        icon: Icons.account_balance_wallet,
-                        value:
-                            '£${_stats?.moneySaved.toStringAsFixed(0) ?? '0'}',
-                        label: 'Saved',
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _StatCard(
+                          icon: Icons.account_balance_wallet_rounded,
+                          value: '£${_stats?.moneySaved.toStringAsFixed(0) ?? '5'}',
+                          label: 'Saved',
+                          iconColor: const Color(0xFF8B5CF6),
+                        ),
                       ),
-                      const SizedBox(width: 12),
-                      _StatCard(
-                        icon: Icons.local_offer,
-                        value: _stats?.dealsClaimed.toString() ?? '0',
-                        label: 'Deals',
-                      ),
-                      const SizedBox(width: 12),
-                      _StatCard(
-                        icon: Icons.star,
-                        value: _stats?.userLevel ?? 'Bronze',
-                        label: 'Level',
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _StatCard(
+                          icon: Icons.local_offer,
+                          value: _stats?.dealsClaimed.toString() ?? '2',
+                          label: 'Deals',
+                          iconColor: const Color(0xFF8B5CF6),
+                        ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
 
-                // Invitation Banner
+                // Invite Banner
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Container(
-                    padding: const EdgeInsets.all(20),
+                    height: 165,
+                    width: double.infinity,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF2E7D32), // Dark green
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Earn €10 for every friend you invite!',
-                          style: GoogleFonts.inter(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: NeoTasteColors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              // Handle invite friends
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.lightGreen,
-                              foregroundColor: NeoTasteColors.textPrimary,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: Text(
-                              'Invite friends',
-                              style: GoogleFonts.inter(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
+                      borderRadius: BorderRadius.circular(28),
+                      image: const DecorationImage(
+                        image: AssetImage("assets/png/invite_full_bg.png"),
+                        fit: BoxFit.cover,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFC026D3).withValues(alpha: 0.35),
+                          blurRadius: 25,
+                          offset: const Offset(0, 12),
                         ),
                       ],
                     ),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(28, 24, 24, 24),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 6,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Earn €10 for every\nfriend you invite!',
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                    height: 1.15,
+                                    letterSpacing: -0.2,
+                                    shadows: [
+                                      Shadow(
+                                        color: Colors.black.withValues(alpha: 0.2),
+                                        offset: const Offset(0, 2),
+                                        blurRadius: 4,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 18),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(24),
+                                    border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
+                                  ),
+                                  child: Text(
+                                    'Invite friends',
+                                    style: GoogleFonts.outfit(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Spacer(flex: 4),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 32),
               ],
 
-              // Navigation List Items
+              // Menu Options
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   children: [
                     _MenuTile(
@@ -288,7 +325,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         );
                       },
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     _MenuTile(
                       icon: Icons.privacy_tip_outlined,
                       title: 'Privacy Policy',
@@ -301,9 +338,9 @@ class _ProfilePageState extends State<ProfilePage> {
                         );
                       },
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     _MenuTile(
-                      icon: Icons.logout,
+                      icon: Icons.logout_rounded,
                       title: 'Logout',
                       isDestructive: true,
                       onTap: () {
@@ -313,7 +350,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 40),
             ],
           ),
         ),
@@ -325,35 +362,36 @@ class _ProfilePageState extends State<ProfilePage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Text(
           'Logout',
-          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+          style: GoogleFonts.outfit(fontWeight: FontWeight.w800),
         ),
         content: Text(
           'Are you sure you want to logout?',
-          style: GoogleFonts.inter(),
+          style: GoogleFonts.outfit(fontWeight: FontWeight.w500),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
               'Cancel',
-              style: GoogleFonts.inter(color: NeoTasteColors.textSecondary),
+              style: GoogleFonts.outfit(color: const Color(0xFF6B7280), fontWeight: FontWeight.w700),
             ),
           ),
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
               await _authProvider.logout();
-              if (mounted) {
+              if (context.mounted) {
                 Navigator.of(context).pushReplacementNamed('/login');
               }
             },
             child: Text(
               'Logout',
-              style: GoogleFonts.inter(
+              style: GoogleFonts.outfit(
                 color: Colors.red,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ),
@@ -361,8 +399,6 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
-
-  // Removed _buildListTile
 }
 
 class _MenuTile extends StatelessWidget {
@@ -383,49 +419,44 @@ class _MenuTile extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: NeoTasteColors.white,
-          borderRadius: BorderRadius.circular(16),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: NeoTasteColors.textDisabled.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.05),
             width: 1,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: isDestructive
-                    ? Colors.red.withOpacity(0.1)
-                    : NeoTasteColors.textPrimary.withOpacity(0.05),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
-                color: isDestructive ? Colors.red : NeoTasteColors.textPrimary,
-                size: 20,
-              ),
+            Icon(
+              icon,
+              color: isDestructive ? const Color(0xFFEF4444) : const Color(0xFF1B1436),
+              size: 22,
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Text(
                 title,
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: isDestructive
-                      ? Colors.red
-                      : NeoTasteColors.textPrimary,
+                style: GoogleFonts.outfit(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: isDestructive ? const Color(0xFFEF4444) : const Color(0xFF1B1436),
                 ),
               ),
             ),
             Icon(
               Icons.chevron_right,
-              color: isDestructive
-                  ? Colors.red.withOpacity(0.5)
-                  : NeoTasteColors.textDisabled,
+              color: isDestructive ? const Color(0xFFEF4444).withValues(alpha: 0.5) : const Color(0xFFD1D5DB),
+              size: 20,
             ),
           ],
         ),
@@ -434,50 +465,54 @@ class _MenuTile extends StatelessWidget {
   }
 }
 
-/// Statistics Card Widget
 class _StatCard extends StatelessWidget {
   final IconData icon;
   final String value;
   final String label;
+  final Color iconColor;
 
   const _StatCard({
     required this.icon,
     required this.value,
     required this.label,
+    required this.iconColor,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(minWidth: 100),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
       decoration: BoxDecoration(
-        color: NeoTasteColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: NeoTasteColors.textDisabled.withOpacity(0.3),
-          width: 1,
-        ),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: NeoTasteColors.textPrimary, size: 24),
-          const SizedBox(height: 8),
+          Icon(icon, color: iconColor, size: 26),
+          const SizedBox(height: 12),
           Text(
             value,
-            style: GoogleFonts.inter(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: NeoTasteColors.textPrimary,
+            style: GoogleFonts.outfit(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF1B1436),
             ),
           ),
           const SizedBox(height: 4),
           Text(
             label,
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              color: NeoTasteColors.textSecondary,
+            style: GoogleFonts.outfit(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF6B7280),
             ),
             textAlign: TextAlign.center,
           ),

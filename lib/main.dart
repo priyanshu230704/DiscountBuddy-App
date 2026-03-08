@@ -11,27 +11,36 @@ import 'providers/theme_provider.dart';
 import 'providers/auth_provider.dart';
 import 'services/auth_service.dart';
 import 'services/firebase_messaging_service.dart'; // Import the service
+import 'firebase_options.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // Background message handler - must be top-level function
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
   } catch (e) {
-    print('Error initializing Firebase in background handler: $e');
+    debugPrint('Error initializing Firebase in background handler: $e');
   }
-  print('Handling background message: ${message.messageId}');
+  debugPrint('Handling background message: ${message.messageId}');
   // You can process the notification here if needed
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Load environment variables from .env file
+  await dotenv.load(fileName: ".env");  
+
   // Initialize Firebase
   try {
     debugPrint('Initializing Firebase...');
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
     debugPrint('Firebase initialized successfully');
   } catch (e) {
     debugPrint('❌ Firebase initialization failed: $e');
@@ -118,7 +127,6 @@ class _DiscountBuddyAppState extends State<DiscountBuddyApp> {
             '/login': (context) => const LoginPage(),
             '/home': (context) => MainNavigation(
               key: ValueKey(_authProvider.isMerchant),
-              themeProvider: _themeProvider,
             ),
           },
         );

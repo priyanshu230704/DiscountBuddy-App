@@ -1,6 +1,7 @@
+import 'package:discount_buddy/theme/app_colors.dart';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../providers/theme_provider.dart';
 
 class GenericBottomSheet extends StatelessWidget {
   final String title;
@@ -28,8 +29,8 @@ class GenericBottomSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: NeoTasteColors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        color: AppColors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
       ),
       child: SafeArea(
         child: Column(
@@ -42,7 +43,7 @@ class GenericBottomSheet extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: NeoTasteColors.textDisabled,
+                  color: AppColors.textDisabled,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -60,18 +61,18 @@ class GenericBottomSheet extends StatelessWidget {
                           style: GoogleFonts.inter(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
-                            color: NeoTasteColors.textPrimary,
+                            color: AppColors.textPrimary,
                           ),
                         ),
                       )
                     else
                       const Spacer(),
-                    if (headerAction != null) headerAction!,
+                    ?headerAction,
                     if (showCloseButton)
                       IconButton(
                         icon: const Icon(Icons.close),
                         onPressed: onClose ?? () => Navigator.pop(context),
-                        color: NeoTasteColors.textPrimary,
+                        color: AppColors.textPrimary,
                       ),
                   ],
                 ),
@@ -83,7 +84,7 @@ class GenericBottomSheet extends StatelessWidget {
             if (expandChild) Expanded(child: child) else Flexible(child: child),
 
             // Footer
-            if (footer != null) footer!,
+            ?footer,
           ],
         ),
       ),

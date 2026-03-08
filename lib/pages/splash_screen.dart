@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../config/environment.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -88,7 +89,7 @@ class _SplashScreenState extends State<SplashScreen>
                 left: -80,
                 child: _GlowCircle(
                   size: 220,
-                  color: const Color(0xFFFF2D83).withOpacity(0.18),
+                  color: AppColors.primaryPurple.withValues(alpha: 0.12),
                 ),
               ),
               Positioned(
@@ -96,7 +97,7 @@ class _SplashScreenState extends State<SplashScreen>
                 right: -90,
                 child: _GlowCircle(
                   size: 260,
-                  color: const Color(0xFF7C3AED).withOpacity(0.16),
+                  color: AppColors.secondaryPink.withValues(alpha: 0.10),
                 ),
               ),
               Positioned(
@@ -104,7 +105,7 @@ class _SplashScreenState extends State<SplashScreen>
                 left: -60,
                 child: _GlowCircle(
                   size: 180,
-                  color: const Color(0xFFFF7A00).withOpacity(0.14),
+                  color: AppColors.primaryPurple.withValues(alpha: 0.08),
                 ),
               ),
 
@@ -130,22 +131,18 @@ class _SplashScreenState extends State<SplashScreen>
                                   borderRadius: BorderRadius.circular(34),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(
-                                        0xFFFF2D83,
-                                      ).withOpacity(0.18),
+                                      color: AppColors.primaryPurple.withValues(alpha: 0.18),
                                       blurRadius: 30,
                                       offset: const Offset(0, 14),
                                     ),
                                     BoxShadow(
-                                      color: const Color(
-                                        0xFFFF7A00,
-                                      ).withOpacity(0.16),
+                                      color: AppColors.secondaryPink.withValues(alpha: 0.16),
                                       blurRadius: 30,
                                       offset: const Offset(0, 12),
                                     ),
                                   ],
                                   border: Border.all(
-                                    color: Colors.black.withOpacity(0.05),
+                                    color: Colors.black.withValues(alpha: 0.05),
                                   ),
                                 ),
                                 child: Image.asset(
@@ -196,15 +193,15 @@ class _SplashScreenState extends State<SplashScreen>
                             ),
                             decoration: BoxDecoration(
                               color: Colors.white,
-                              borderRadius: BorderRadius.circular(18),
+                              borderRadius: BorderRadius.circular(14),
                               border: Border.all(
-                                color: Colors.black.withOpacity(0.05),
+                                color: Colors.black.withValues(alpha: 0.05),
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 10),
+                                  color: Colors.black.withValues(alpha: 0.05),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
                                 ),
                               ],
                             ),
@@ -217,7 +214,7 @@ class _SplashScreenState extends State<SplashScreen>
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2.6,
                                     valueColor: AlwaysStoppedAnimation<Color>(
-                                      Color(0xFFFF7A00),
+                                      AppColors.primaryPurple,
                                     ),
                                   ),
                                 ),
@@ -247,7 +244,7 @@ class _SplashScreenState extends State<SplashScreen>
                   opacity: _textFade,
                   child: Center(
                     child: Text(
-                      "Powered by Discount Buddy",
+                      "Powered by Markitup Group Ltd.",
                       style: GoogleFonts.inter(
                         fontSize: 12,
                         color: const Color(0xFF9CA3AF),

@@ -30,7 +30,8 @@ class _LivePageState extends State<LivePage> {
       expiresAt: DateTime.now().add(const Duration(minutes: 37)),
       remainingRedemptions: 5,
       description: 'On all hot beverages',
-      imageUrl: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400',
+      imageUrl:
+          'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400',
     ),
     LiveOffer(
       id: '2',
@@ -41,7 +42,8 @@ class _LivePageState extends State<LivePage> {
       expiresAt: DateTime.now().add(const Duration(minutes: 15)),
       remainingRedemptions: 2,
       description: 'Main courses only',
-      imageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400',
+      imageUrl:
+          'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400',
     ),
     LiveOffer(
       id: '3',
@@ -52,7 +54,8 @@ class _LivePageState extends State<LivePage> {
       expiresAt: DateTime.now().add(const Duration(minutes: 52)),
       remainingRedemptions: 8,
       description: 'Selected pizzas',
-      imageUrl: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400',
+      imageUrl:
+          'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400',
     ),
     LiveOffer(
       id: '4',
@@ -63,7 +66,8 @@ class _LivePageState extends State<LivePage> {
       expiresAt: DateTime.now().add(const Duration(minutes: 8)),
       remainingRedemptions: 3,
       description: 'Dinner special',
-      imageUrl: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400',
+      imageUrl:
+          'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400',
     ),
     LiveOffer(
       id: '5',
@@ -74,7 +78,8 @@ class _LivePageState extends State<LivePage> {
       expiresAt: DateTime.now().add(const Duration(minutes: 23)),
       remainingRedemptions: 12,
       description: 'All pasta dishes',
-      imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400',
+      imageUrl:
+          'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400',
     ),
   ];
 
@@ -89,7 +94,9 @@ class _LivePageState extends State<LivePage> {
       if (mounted) {
         setState(() {
           // Auto-remove expired offers
-          _liveOffers.removeWhere((offer) => offer.expiresAt.isBefore(DateTime.now()));
+          _liveOffers.removeWhere(
+            (offer) => offer.expiresAt.isBefore(DateTime.now()),
+          );
         });
       }
     });
@@ -104,20 +111,24 @@ class _LivePageState extends State<LivePage> {
   // Smart throttling: max 5-7 deals, prioritize based on sort option
   List<LiveOffer> get _filteredOffers {
     final sorted = List<LiveOffer>.from(_liveOffers);
-    
+
     switch (_sortBy) {
       case 'time':
-        sorted.sort((a, b) => a.expiresAt.compareTo(b.expiresAt)); // Soonest first
+        sorted.sort(
+          (a, b) => a.expiresAt.compareTo(b.expiresAt),
+        ); // Soonest first
         break;
       case 'discount':
-        sorted.sort((a, b) => b.discountValue.compareTo(a.discountValue)); // Highest first
+        sorted.sort(
+          (a, b) => b.discountValue.compareTo(a.discountValue),
+        ); // Highest first
         break;
       case 'distance':
       default:
         sorted.sort((a, b) => a.distance.compareTo(b.distance)); // Closer first
         break;
     }
-    
+
     return sorted.take(7).toList();
   }
 
@@ -132,11 +143,11 @@ class _LivePageState extends State<LivePage> {
   String _formatTimeRemaining(DateTime expiresAt) {
     final now = DateTime.now();
     if (expiresAt.isBefore(now)) return 'Expired';
-    
+
     final difference = expiresAt.difference(now);
     final minutes = difference.inMinutes;
     final seconds = difference.inSeconds % 60;
-    
+
     if (minutes > 0) {
       return '$minutes min ${seconds}s';
     } else {
@@ -156,9 +167,9 @@ class _LivePageState extends State<LivePage> {
 
   @override
   Widget build(BuildContext context) {
-    final activeOffers = _filteredOffers.where((offer) => 
-      offer.expiresAt.isAfter(DateTime.now())
-    ).toList();
+    final activeOffers = _filteredOffers
+        .where((offer) => offer.expiresAt.isAfter(DateTime.now()))
+        .toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
@@ -187,12 +198,9 @@ class _LivePageState extends State<LivePage> {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.red.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: Colors.red,
-                                width: 1.5,
-                              ),
+                              color: Colors.red.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: Colors.red, width: 1.5),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -243,7 +251,10 @@ class _LivePageState extends State<LivePage> {
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.refresh, color: Colors.white),
+                            icon: const Icon(
+                              Icons.refresh,
+                              color: Colors.white,
+                            ),
                             onPressed: _refreshOffers,
                             tooltip: 'Refresh offers',
                           ),
@@ -255,11 +266,23 @@ class _LivePageState extends State<LivePage> {
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children: [
-                            _buildSortChip('time', '⏰ Ending Soon', Icons.schedule),
+                            _buildSortChip(
+                              'time',
+                              '⏰ Ending Soon',
+                              Icons.schedule,
+                            ),
                             const SizedBox(width: 8),
-                            _buildSortChip('distance', '📍 Nearest', Icons.near_me),
+                            _buildSortChip(
+                              'distance',
+                              '📍 Nearest',
+                              Icons.near_me,
+                            ),
                             const SizedBox(width: 8),
-                            _buildSortChip('discount', '💰 Biggest Save', Icons.local_offer),
+                            _buildSortChip(
+                              'discount',
+                              '💰 Biggest Save',
+                              Icons.local_offer,
+                            ),
                           ],
                         ),
                       ),
@@ -304,19 +327,14 @@ class _LivePageState extends State<LivePage> {
         });
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 12,
-          vertical: 8,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? const Color(0xFF3E25F6).withOpacity(0.2)
+              ? const Color(0xFF3E25F6).withValues(alpha: 0.2)
               : Colors.grey[900],
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected
-                ? const Color(0xFF3E25F6)
-                : Colors.grey[800]!,
+            color: isSelected ? const Color(0xFF3E25F6) : Colors.grey[800]!,
             width: 1,
           ),
         ),
@@ -372,10 +390,7 @@ class _LivePageState extends State<LivePage> {
           const SizedBox(height: 8),
           Text(
             'Check back soon for new offers!',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[500],
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
           ),
           const SizedBox(height: 32),
           ElevatedButton.icon(
@@ -385,10 +400,7 @@ class _LivePageState extends State<LivePage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF3E25F6),
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 12,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -416,7 +428,7 @@ class _LivePageState extends State<LivePage> {
             borderRadius: BorderRadius.circular(_LiveConstants.radiusLarge),
             boxShadow: [
               BoxShadow(
-                color: urgencyColor.withOpacity(isUrgent ? 0.3 : 0.15),
+                color: urgencyColor.withValues(alpha: isUrgent ? 0.3 : 0.15),
                 blurRadius: isUrgent ? 16 : 12,
                 offset: const Offset(0, 4),
               ),
@@ -434,7 +446,9 @@ class _LivePageState extends State<LivePage> {
                 child: Stack(
                   children: [
                     CachedNetworkImage(
-                      imageUrl: offer.imageUrl ?? 'https://via.placeholder.com/400x200?text=Restaurant',
+                      imageUrl:
+                          offer.imageUrl ??
+                          'https://via.placeholder.com/400x200?text=Restaurant',
                       width: 120,
                       height: 140,
                       fit: BoxFit.cover,
@@ -445,7 +459,9 @@ class _LivePageState extends State<LivePage> {
                         child: const Center(
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3E25F6)),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Color(0xFF3E25F6),
+                            ),
                           ),
                         ),
                       ),
@@ -469,7 +485,7 @@ class _LivePageState extends State<LivePage> {
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
                               colors: [
-                                urgencyColor.withOpacity(0.3),
+                                urgencyColor.withValues(alpha: 0.3),
                                 Colors.transparent,
                               ],
                             ),
@@ -489,13 +505,13 @@ class _LivePageState extends State<LivePage> {
                           gradient: LinearGradient(
                             colors: [
                               urgencyColor,
-                              urgencyColor.withOpacity(0.9),
+                              urgencyColor.withValues(alpha: 0.9),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: urgencyColor.withOpacity(0.5),
+                              color: urgencyColor.withValues(alpha: 0.5),
                               blurRadius: 6,
                               spreadRadius: 0,
                             ),
@@ -540,7 +556,8 @@ class _LivePageState extends State<LivePage> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                              if (offer.remainingRedemptions > 0 && offer.remainingRedemptions <= 5)
+                              if (offer.remainingRedemptions > 0 &&
+                                  offer.remainingRedemptions <= 5)
                                 Container(
                                   margin: const EdgeInsets.only(left: 8),
                                   padding: const EdgeInsets.symmetric(
@@ -548,10 +565,10 @@ class _LivePageState extends State<LivePage> {
                                     vertical: 3,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.red.withOpacity(0.15),
+                                    color: Colors.red.withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(6),
                                     border: Border.all(
-                                      color: Colors.red.withOpacity(0.3),
+                                      color: Colors.red.withValues(alpha: 0.3),
                                       width: 1,
                                     ),
                                   ),
@@ -586,10 +603,10 @@ class _LivePageState extends State<LivePage> {
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: urgencyColor.withOpacity(0.15),
+                              color: urgencyColor.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                color: urgencyColor.withOpacity(0.4),
+                                color: urgencyColor.withValues(alpha: 0.4),
                                 width: 1.5,
                               ),
                             ),
@@ -637,12 +654,15 @@ class _LivePageState extends State<LivePage> {
                           Container(
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
-                                colors: [urgencyColor, urgencyColor.withOpacity(0.8)],
+                                colors: [
+                                  urgencyColor,
+                                  urgencyColor.withValues(alpha: 0.8),
+                                ],
                               ),
                               borderRadius: BorderRadius.circular(10),
                               boxShadow: [
                                 BoxShadow(
-                                  color: urgencyColor.withOpacity(0.4),
+                                  color: urgencyColor.withValues(alpha: 0.4),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),
@@ -652,7 +672,9 @@ class _LivePageState extends State<LivePage> {
                               onPressed: () {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('Deal activated at ${offer.restaurantName}!'),
+                                    content: Text(
+                                      'Deal activated at ${offer.restaurantName}!',
+                                    ),
                                     backgroundColor: urgencyColor,
                                     behavior: SnackBarBehavior.floating,
                                     shape: RoundedRectangleBorder(

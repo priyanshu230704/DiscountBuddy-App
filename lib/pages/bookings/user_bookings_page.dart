@@ -1,7 +1,8 @@
+import 'package:discount_buddy/theme/app_colors.dart';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import '../../providers/theme_provider.dart';
 import '../../services/booking_service.dart';
 
 class UserBookingsView extends StatefulWidget {
@@ -80,7 +81,7 @@ class _UserBookingsViewState extends State<UserBookingsView> {
                 const SizedBox(height: 16),
                 Text(
                   'No bookings found',
-                  style: GoogleFonts.inter(color: NeoTasteColors.textSecondary),
+                  style: GoogleFonts.inter(color: AppColors.textSecondary),
                 ),
               ],
             ),
@@ -127,7 +128,7 @@ class _UserBookingCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 2,
+      elevation: 0,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -228,18 +229,18 @@ class _StatusBadge extends StatelessWidget {
     Color color;
     switch (status.toLowerCase()) {
       case 'confirmed':
-        color = Colors.green;
+        color = AppColors.success;
         break;
       case 'cancelled':
         color = Colors.red;
         break;
       default:
-        color = Colors.orange;
+        color = AppColors.discount;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(

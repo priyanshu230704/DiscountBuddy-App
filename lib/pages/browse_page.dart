@@ -102,8 +102,9 @@ class _BrowsePageState extends State<BrowsePage> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) =>
-                    RestaurantDetailsPage(slug: restaurant.slug ?? restaurant.id),
+                builder: (context) => RestaurantDetailsPage(
+                  slug: restaurant.slug ?? restaurant.id,
+                ),
               ),
             );
           },
@@ -185,7 +186,7 @@ class _BrowsePageState extends State<BrowsePage> {
               child: FloatingActionButton(
                 onPressed: _toggleView,
                 backgroundColor: const Color(
-                  0xFF34A853,
+                  0xFF2563EB,
                 ), // Green like Tastecard
                 child: const Icon(Icons.map, color: Colors.white),
               ),
@@ -196,7 +197,7 @@ class _BrowsePageState extends State<BrowsePage> {
               bottom: 100,
               child: FloatingActionButton(
                 onPressed: _toggleView,
-                backgroundColor: const Color(0xFF34A853),
+                backgroundColor: const Color(0xFF2563EB),
                 child: const Icon(Icons.list, color: Colors.white),
               ),
             ),
@@ -275,7 +276,7 @@ class _BrowsePageState extends State<BrowsePage> {
               height: 120,
               margin: const EdgeInsets.all(_BrowseConstants.paddingMedium),
               child: Card(
-                elevation: 8,
+                elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
                     _BrowseConstants.radiusMedium,
@@ -297,7 +298,9 @@ class _BrowsePageState extends State<BrowsePage> {
                       // Image
                       ClipRRect(
                         borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(_BrowseConstants.radiusMedium),
+                          topLeft: Radius.circular(
+                            _BrowseConstants.radiusMedium,
+                          ),
                           bottomLeft: Radius.circular(
                             _BrowseConstants.radiusMedium,
                           ),
@@ -336,7 +339,7 @@ class _BrowsePageState extends State<BrowsePage> {
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF34A853),
+                                  color: const Color(0xFF2563EB),
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(

@@ -1,10 +1,11 @@
+import 'package:discount_buddy/theme/app_colors.dart';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../services/qr_scanner_service.dart';
 import '../../services/merchant_service.dart';
 import '../../models/deal_redemption.dart';
-import '../../providers/theme_provider.dart';
 import '../../widgets/generic_bottom_sheet.dart';
 
 /// QR Scanner Screen for merchants to scan and redeem customer deals
@@ -72,7 +73,8 @@ class _QRScannerPageState extends State<QRScannerPage> {
       final response = await _merchantService.redeemDealByQR(qrData);
 
       // Hide loading
-      if (mounted) Navigator.of(context).pop();
+      if (!mounted) return;
+      Navigator.of(context).pop();
 
       // Check if redemption was successful
       final success = response['success'] ?? false;
@@ -87,7 +89,8 @@ class _QRScannerPageState extends State<QRScannerPage> {
       }
     } catch (e) {
       // Hide loading
-      if (mounted) Navigator.of(context).pop();
+      if (!mounted) return;
+      Navigator.of(context).pop();
 
       // Extract and clean error message
       String errorMessage = _cleanErrorMessage(e.toString());
@@ -124,7 +127,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
                 height: 48,
                 width: 48,
                 child: CircularProgressIndicator(
-                  color: NeoTasteColors.accent,
+                  color: AppColors.accent,
                   strokeWidth: 3,
                 ),
               ),
@@ -133,7 +136,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
                 'Verifying deal...',
                 style: GoogleFonts.inter(
                   fontSize: 16,
-                  color: NeoTasteColors.textSecondary,
+                  color: AppColors.textSecondary,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -172,7 +175,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
                   padding: EdgeInsets.only(top: 8, bottom: 16),
                   child: Icon(
                     Icons.check_circle_rounded,
-                    color: Colors.green,
+                    color: AppColors.success,
                     size: 52,
                   ),
                 ),
@@ -181,7 +184,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
                   padding: const EdgeInsets.all(16),
                   margin: const EdgeInsets.symmetric(horizontal: 24),
                   decoration: BoxDecoration(
-                    color: NeoTasteColors.background,
+                    color: AppColors.background,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
@@ -193,7 +196,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: NeoTasteColors.textPrimary,
+                          color: AppColors.textPrimary,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -225,8 +228,8 @@ class _QRScannerPageState extends State<QRScannerPage> {
                         Navigator.of(context).pop(); // Go back to dashboard
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: NeoTasteColors.accent,
-                        foregroundColor: NeoTasteColors.primary,
+                        backgroundColor: AppColors.accent,
+                        foregroundColor: AppColors.primary,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -262,7 +265,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
             child: Text(
               label,
               style: GoogleFonts.inter(
-                color: NeoTasteColors.textSecondary,
+                color: AppColors.textSecondary,
                 fontSize: 13,
               ),
             ),
@@ -271,7 +274,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
             child: Text(
               value,
               style: GoogleFonts.inter(
-                color: NeoTasteColors.textPrimary,
+                color: AppColors.textPrimary,
                 fontWeight: FontWeight.w500,
                 fontSize: 13,
               ),
@@ -288,7 +291,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
 
     if (message.contains('already been redeemed')) {
       icon = Icons.warning_amber_rounded;
-      color = Colors.orange;
+      color = AppColors.discount;
     }
 
     showModalBottomSheet(
@@ -314,7 +317,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
                     fontSize: 15,
-                    color: NeoTasteColors.textPrimary,
+                    color: AppColors.textPrimary,
                     height: 1.4,
                   ),
                 ),
@@ -333,12 +336,12 @@ class _QRScannerPageState extends State<QRScannerPage> {
                       });
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: NeoTasteColors.background,
-                      foregroundColor: NeoTasteColors.textPrimary,
+                      backgroundColor: AppColors.background,
+                      foregroundColor: AppColors.textPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       elevation: 0,
                       side: const BorderSide(
-                        color: NeoTasteColors.textDisabled,
+                        color: AppColors.textDisabled,
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -371,14 +374,14 @@ class _QRScannerPageState extends State<QRScannerPage> {
   Widget build(BuildContext context) {
     if (!_hasPermission) {
       return Scaffold(
-        backgroundColor: NeoTasteColors.background,
+        backgroundColor: AppColors.background,
         appBar: AppBar(
           title: Text(
             'Scan QR Code',
             style: GoogleFonts.inter(fontWeight: FontWeight.bold),
           ),
-          backgroundColor: NeoTasteColors.white,
-          foregroundColor: NeoTasteColors.textPrimary,
+          backgroundColor: AppColors.white,
+          foregroundColor: AppColors.textPrimary,
           elevation: 0,
         ),
         body: Center(
@@ -395,8 +398,8 @@ class _QRScannerPageState extends State<QRScannerPage> {
               ElevatedButton(
                 onPressed: _checkPermission,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: NeoTasteColors.accent,
-                  foregroundColor: NeoTasteColors.primary,
+                  backgroundColor: AppColors.accent,
+                  foregroundColor: AppColors.primary,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 32,
                     vertical: 16,
@@ -502,7 +505,8 @@ class _QRScannerPageState extends State<QRScannerPage> {
               try {
                 final response = await _merchantService.redeemDealByCode(code);
 
-                if (mounted) Navigator.of(context).pop();
+                if (!context.mounted) return;
+                Navigator.of(context).pop();
 
                 final success = response['success'] ?? false;
                 if (success) {
@@ -513,7 +517,8 @@ class _QRScannerPageState extends State<QRScannerPage> {
                   _showErrorDialog(reason, null);
                 }
               } catch (e) {
-                if (mounted) Navigator.of(context).pop();
+                if (!context.mounted) return;
+                Navigator.of(context).pop();
 
                 String errorMessage = e.toString();
                 if (errorMessage.startsWith('Exception: Redemption failed: ')) {
@@ -526,8 +531,8 @@ class _QRScannerPageState extends State<QRScannerPage> {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: NeoTasteColors.accent,
-              foregroundColor: NeoTasteColors.primary,
+              backgroundColor: AppColors.accent,
+              foregroundColor: AppColors.primary,
             ),
             child: const Text('Redeem'),
           ),

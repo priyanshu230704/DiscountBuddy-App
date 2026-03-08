@@ -88,11 +88,7 @@ class Merchant {
   final String name;
   final bool verified;
 
-  Merchant({
-    required this.id,
-    required this.name,
-    required this.verified,
-  });
+  Merchant({required this.id, required this.name, required this.verified});
 
   factory Merchant.fromJson(Map<String, dynamic> json) {
     return Merchant(
@@ -103,11 +99,7 @@ class Merchant {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'verified': verified,
-    };
+    return {'id': id, 'name': name, 'verified': verified};
   }
 }
 
@@ -117,11 +109,7 @@ class Category {
   final String name;
   final String slug;
 
-  Category({
-    required this.id,
-    required this.name,
-    required this.slug,
-  });
+  Category({required this.id, required this.name, required this.slug});
 
   factory Category.fromJson(Map<String, dynamic> json) {
     return Category(
@@ -132,11 +120,7 @@ class Category {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'slug': slug,
-    };
+    return {'id': id, 'name': name, 'slug': slug};
   }
 }
 

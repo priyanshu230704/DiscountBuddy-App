@@ -1,6 +1,7 @@
+import 'package:discount_buddy/theme/app_colors.dart';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../providers/theme_provider.dart';
 import '../../services/merchant_service.dart';
 import '../../widgets/auth/auth_text_field.dart';
 
@@ -82,9 +83,12 @@ class _AddDealPageState extends State<AddDealPage> {
     _isFeatured = deal['is_featured'] ?? false;
     _selectedRestaurantId = deal['restaurant']['id'];
 
-    if (deal['start_date'] != null)
+    if (deal['start_date'] != null) {
       _startDate = DateTime.parse(deal['start_date']);
-    if (deal['end_date'] != null) _endDate = DateTime.parse(deal['end_date']);
+    }
+    if (deal['end_date'] != null) {
+      _endDate = DateTime.parse(deal['end_date']);
+    }
   }
 
   Future<void> _selectDate(BuildContext context, bool isStart) async {
@@ -142,7 +146,7 @@ class _AddDealPageState extends State<AddDealPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Deal saved successfully'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.primaryPurple,
           ),
         );
       }
@@ -163,13 +167,13 @@ class _AddDealPageState extends State<AddDealPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: NeoTasteColors.background,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text(
           widget.deal != null ? 'Edit Deal' : 'Create Deal',
           style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold),
         ),
-        backgroundColor: NeoTasteColors.white,
+        backgroundColor: AppColors.white,
         elevation: 0,
       ),
       body: _isLoading
@@ -185,7 +189,7 @@ class _AddDealPageState extends State<AddDealPage> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: NeoTasteColors.white,
+                        color: AppColors.white,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: Colors.grey.shade300),
                       ),
@@ -293,7 +297,7 @@ class _AddDealPageState extends State<AddDealPage> {
                       title: const Text('Featured Deal'),
                       value: _isFeatured,
                       onChanged: (v) => setState(() => _isFeatured = v),
-                      activeColor: NeoTasteColors.accent,
+                      activeThumbColor: AppColors.accent,
                     ),
                     const SizedBox(height: 32),
                     SizedBox(
@@ -302,8 +306,8 @@ class _AddDealPageState extends State<AddDealPage> {
                       child: ElevatedButton(
                         onPressed: _isSaving ? null : _saveDeal,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: NeoTasteColors.accent,
-                          foregroundColor: NeoTasteColors.primary,
+                          backgroundColor: AppColors.accent,
+                          foregroundColor: AppColors.primary,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -344,9 +348,9 @@ class _AddDealPageState extends State<AddDealPage> {
       label: Text(label),
       selected: selected,
       onSelected: (s) => setState(() => _dealType = type),
-      selectedColor: NeoTasteColors.accent.withOpacity(0.2),
+      selectedColor: AppColors.accent.withValues(alpha: 0.2),
       labelStyle: TextStyle(
-        color: selected ? NeoTasteColors.accent : Colors.black,
+        color: selected ? AppColors.accent : Colors.black,
       ),
     );
   }
@@ -357,7 +361,7 @@ class _AddDealPageState extends State<AddDealPage> {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: NeoTasteColors.white,
+          color: AppColors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: Colors.grey.shade300),
         ),

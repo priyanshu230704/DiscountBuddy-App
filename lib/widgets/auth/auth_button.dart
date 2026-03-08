@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'auth_theme.dart';
 
-/// NeoTaste-style Auth Button - Yellow pill-shaped button
+/// Discount Buddy CTA Button – solid primary blue with white text
 class AuthButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
@@ -18,34 +18,36 @@ class AuthButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool enabled = !isLoading && onPressed != null;
+
     return SizedBox(
       width: width ?? double.infinity,
       height: AuthTheme.buttonHeight,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AuthTheme.accent,
-          foregroundColor: AuthTheme.background,
-          disabledBackgroundColor: AuthTheme.textGrey.withOpacity(0.3),
-          elevation: 0,
+          backgroundColor: enabled
+              ? AuthTheme.accent
+              : AuthTheme.textGrey.withValues(alpha: 0.3),
+          disabledBackgroundColor: AuthTheme.textGrey.withValues(alpha: 0.3),
+          foregroundColor: AuthTheme.cardBackground, // white
+          shadowColor: AuthTheme.accent.withValues(alpha: 0.25),
+          elevation: enabled ? 4 : 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AuthTheme.buttonBorderRadius),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24),
         ),
         child: isLoading
-            ? SizedBox(
+            ? const SizedBox(
                 height: 20,
                 width: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(AuthTheme.background),
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                 ),
               )
-            : Text(
-                text,
-                style: AuthTheme.buttonText,
-              ),
+            : Text(text, style: AuthTheme.buttonText),
       ),
     );
   }

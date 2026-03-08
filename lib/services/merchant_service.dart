@@ -493,7 +493,7 @@ class MerchantService {
   }
 
   /// Redeem a deal using QR code data
-  /// QR data format: DEALUSE:<deal_use_id>:<redemption_code>
+  /// QR data format: `DEALUSE:<deal_use_id>:<redemption_code>`
   Future<Map<String, dynamic>> redeemDealByQR(String qrData) async {
     try {
       await _ensureAuthenticated();

@@ -19,8 +19,9 @@ class MysteryGuestService {
     try {
       final queryParams = <String, String>{};
       if (status != null) queryParams['status'] = status;
-      if (restaurantId != null)
+      if (restaurantId != null) {
         queryParams['restaurant'] = restaurantId.toString();
+      }
 
       final response = await _apiService.get(
         ApiEndpoints.mysteryVisits,

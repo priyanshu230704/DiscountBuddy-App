@@ -22,8 +22,8 @@ class AnimatedBottomNavBar extends StatefulWidget {
 }
 
 class _AnimatedBottomNavBarState extends State<AnimatedBottomNavBar> {
-  final selectedColor = const Color(0xFF3E25F6);
-  final unselectedColor = const Color.fromARGB(185, 255, 255, 255);
+  final selectedColor = const Color(0xFF2563EB); // Brand primary blue
+  final unselectedColor = const Color.fromARGB(160, 110, 110, 110);
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +47,7 @@ class _AnimatedBottomNavBarState extends State<AnimatedBottomNavBar> {
             ),
             child: BottomNavigationBar(
               type: BottomNavigationBarType.fixed,
-              backgroundColor: const Color(0xFF111216),
+              backgroundColor: const Color(0xFFFFFFFF),
               elevation: 0,
               selectedItemColor: widget.selectedColor ?? selectedColor,
               unselectedItemColor: unselectedColor,
@@ -129,9 +129,15 @@ class _AnimatedBottomNavBarState extends State<AnimatedBottomNavBar> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    (widget.selectedColor ?? selectedColor).withOpacity(0.3),
-                    (widget.selectedColor ?? selectedColor).withOpacity(0.2),
-                    (widget.selectedColor ?? selectedColor).withOpacity(0.1),
+                    (widget.selectedColor ?? selectedColor).withValues(
+                      alpha: 0.3,
+                    ),
+                    (widget.selectedColor ?? selectedColor).withValues(
+                      alpha: 0.2,
+                    ),
+                    (widget.selectedColor ?? selectedColor).withValues(
+                      alpha: 0.1,
+                    ),
                     Colors.transparent,
                   ],
                   stops: const [0.0, 0.3, 0.7, 1.0],
@@ -168,9 +174,9 @@ class BottomNavItem {
   final String? imageAsset;
   final String label;
 
-  const BottomNavItem({
-    this.icon,
-    this.imageAsset,
-    required this.label,
-  }) : assert(icon != null || imageAsset != null, 'Either icon or imageAsset must be provided');
+  const BottomNavItem({this.icon, this.imageAsset, required this.label})
+    : assert(
+        icon != null || imageAsset != null,
+        'Either icon or imageAsset must be provided',
+      );
 }

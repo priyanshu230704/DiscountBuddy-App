@@ -34,6 +34,9 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="YOUR_API_KEY_HERE" />
+        <meta-data
+            android:name="com.google.android.gms.auth.api.credentials.CredentialPickerEnabled"
+            android:value="true"/>
     </application>
     <!-- Permissions for location services -->
     <uses-permission android:name="android.permission.INTERNET" />

@@ -55,3 +55,7 @@ secrets.json
 config/secrets.dart
 lib/config/secrets.dart
 android/app/google-services.json
+
+# Keystore and secrets
+android/app/*.jks
+android/key.properties

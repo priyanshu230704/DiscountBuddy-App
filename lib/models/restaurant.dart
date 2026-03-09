@@ -120,8 +120,14 @@ class Restaurant {
       longitude: _parseDouble(json['longitude']) ?? 0.0,
       cuisine: json['cuisine'] as String? ?? '',
       occupancy: json['occupancy'] as String?,
-      rating: _parseDouble(json['rating']) ?? 0.0,
-      reviewCount: _parseInt(json['reviewCount']) ?? 0,
+      rating:
+          _parseDouble(json['average_rating']) ??
+          _parseDouble(json['rating']) ??
+          0.0,
+      reviewCount:
+          _parseInt(json['review_count']) ??
+          _parseInt(json['reviewCount']) ??
+          0,
       distance: _parseDouble(json['distance']) ?? 0.0,
       distanceMiles: _parseDouble(json['distance_miles']),
       discount: json['discount'] != null

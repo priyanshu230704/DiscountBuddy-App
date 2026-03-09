@@ -20,16 +20,31 @@ class LocationService {
     }
 
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      // Professional approach: Try to get last known position if GPS is off
-      final lastKnown = await Geolocator.getLastKnownPosition();
-      if (lastKnown != null) return lastKnown;
 
+    // Always try to get last known position first for speed
+    final lastKnown = await Geolocator.getLastKnownPosition();
+
+    if (!serviceEnabled && lastKnown == null) {
       throw LocationServiceDisabledException();
     }
 
+    // If we have a fairly recent last known position, return it immediately
+    if (lastKnown != null) {
+      // Background update the fresh position without waiting
+      Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.medium,
+        ),
+      ).catchError((_) => lastKnown); // Fail silently
+
+      return lastKnown;
+    }
+
+    // Otherwise, wait for a fresh fix but use medium accuracy (much faster than high)
     return await Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.medium,
+      ),
     );
   }
 

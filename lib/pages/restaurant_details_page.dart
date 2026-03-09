@@ -1,7 +1,11 @@
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'main_navigation.dart';
 import '../models/restaurant.dart';
 import '../models/restaurant_detail.dart';
 import '../models/review.dart';
@@ -49,7 +53,9 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
   bool _isLoading = true;
   bool _isFavorite = false;
   String? _errorMessage;
-  GoogleMapController? _mapController;
+
+  ui.Image? _appLogoImage;
+  Uint8List? _pinNormalBytes;
 
   @override
   void initState() {
@@ -72,8 +78,116 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
 
   @override
   void dispose() {
-    _mapController?.dispose();
+    // Mapbox map doesn't need manual dispose for the controller here
     super.dispose();
+  }
+
+  Future<Uint8List> _createDropPinMarkerBytes({required int size}) async {
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+
+    final double s = size.toDouble();
+    final Offset topCenter = Offset(s / 2, s * 0.38);
+
+    // Drop shadow
+    final shadowPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.20)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
+
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(topCenter.dx, topCenter.dy + s * 0.55),
+        width: s * 0.45,
+        height: s * 0.15,
+      ),
+      shadowPaint,
+    );
+
+    final double topRadius = s * 0.28;
+    final path = Path();
+
+    path.addOval(Rect.fromCircle(center: topCenter, radius: topRadius));
+
+    final Offset p1 = Offset(
+      topCenter.dx - topRadius * 0.75,
+      topCenter.dy + topRadius * 0.55,
+    );
+    final Offset p2 = Offset(
+      topCenter.dx + topRadius * 0.75,
+      topCenter.dy + topRadius * 0.55,
+    );
+    final Offset tip = Offset(topCenter.dx, topCenter.dy + topRadius * 2.20);
+
+    path.moveTo(p1.dx, p1.dy);
+    path.quadraticBezierTo(
+      topCenter.dx,
+      topCenter.dy + topRadius * 1.50,
+      tip.dx,
+      tip.dy,
+    );
+    path.quadraticBezierTo(
+      topCenter.dx,
+      topCenter.dy + topRadius * 1.50,
+      p2.dx,
+      p2.dy,
+    );
+    path.close();
+
+    // Pin Body
+    final fillPaint = Paint()..color = Colors.white;
+    canvas.drawPath(path, fillPaint);
+
+    // Subtle stroke border
+    final borderPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.1)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = s * 0.025;
+    canvas.drawPath(path, borderPaint);
+
+    // Draw the white inner circle
+    final innerCirclePaint = Paint()..color = const Color(0xFFF8F9FC);
+    canvas.drawCircle(topCenter, topRadius * 0.95, innerCirclePaint);
+
+    // Draw the actual db_logo.png app logo inside the pin
+    if (_appLogoImage != null) {
+      final double logoSize = topRadius * 1.55;
+      final Rect destRect = Rect.fromCenter(
+        center: topCenter,
+        width: logoSize,
+        height: logoSize,
+      );
+      final Rect srcRect = Rect.fromLTWH(
+        0,
+        0,
+        _appLogoImage!.width.toDouble(),
+        _appLogoImage!.height.toDouble(),
+      );
+      canvas.drawImageRect(
+        _appLogoImage!,
+        srcRect,
+        destRect,
+        Paint()..filterQuality = FilterQuality.high,
+      );
+    }
+
+    final picture = recorder.endRecording();
+    final img = await picture.toImage(size, size);
+    final pngBytes = await img.toByteData(format: ui.ImageByteFormat.png);
+
+    return pngBytes!.buffer.asUint8List();
+  }
+
+  Future<void> _ensureMarkerBytes() async {
+    if (_appLogoImage == null) {
+      final ByteData data = await rootBundle.load('assets/png/db_logo.png');
+      final ui.Codec codec = await ui.instantiateImageCodec(
+        data.buffer.asUint8List(),
+      );
+      final ui.FrameInfo fi = await codec.getNextFrame();
+      _appLogoImage = fi.image;
+    }
+
+    _pinNormalBytes ??= await _createDropPinMarkerBytes(size: 140);
   }
 
   Future<void> _loadRestaurant() async {
@@ -685,9 +799,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             ),
                             decoration: BoxDecoration(
                               color: _activeVisit!.status == 'in_progress'
-                                  ? AppColors.success.withValues(
-                                      alpha: 0.1,
-                                    )
+                                  ? AppColors.success.withValues(alpha: 0.1)
                                   : Colors.blue.shade100,
                               borderRadius: BorderRadius.circular(8),
                             ),
@@ -760,8 +872,9 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                       'Audit Submitted',
                                       style: GoogleFonts.inter(
                                         fontWeight: FontWeight.w600,
-                                        color: AppColors.success
-                                            .withValues(alpha: 0.9),
+                                        color: AppColors.success.withValues(
+                                          alpha: 0.9,
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -1106,34 +1219,73 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: GoogleMap(
-                          initialCameraPosition: CameraPosition(
-                            target: LatLng(
-                              restaurant.latitude,
-                              restaurant.longitude,
+                        child: MapWidget(
+                          key: const ValueKey("restaurantMap"),
+                          cameraOptions: CameraOptions(
+                            center: Point(
+                              coordinates: Position(
+                                restaurant.longitude,
+                                restaurant.latitude,
+                              ),
                             ),
                             zoom: 15,
                           ),
-                          onMapCreated: (controller) {
-                            _mapController ??= controller;
-                          },
-                          markers: {
-                            Marker(
-                              markerId: MarkerId(restaurant.id),
-                              position: LatLng(
-                                restaurant.latitude,
-                                restaurant.longitude,
+                          styleUri: MapboxStyles.LIGHT,
+                          onTapListener: (_) {
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MainNavigation(
+                                  initialIndex: 1,
+                                  initialLatitude: restaurant.latitude,
+                                  initialLongitude: restaurant.longitude,
+                                ),
                               ),
-                              icon: BitmapDescriptor.defaultMarkerWithHue(
-                                BitmapDescriptor.hueGreen,
-                              ),
-                            ),
+                              (route) => false,
+                            );
                           },
-                          myLocationButtonEnabled: false,
-                          zoomControlsEnabled: false,
-                          mapType: MapType.normal,
-                          liteModeEnabled:
-                              true, // Use lite mode for better performance
+                          onMapCreated: (mapboxMap) async {
+                            await _ensureMarkerBytes();
+                            final pointManager = await mapboxMap.annotations
+                                .createPointAnnotationManager();
+
+                            await pointManager.create(
+                              PointAnnotationOptions(
+                                geometry: Point(
+                                  coordinates: Position(
+                                    restaurant.longitude,
+                                    restaurant.latitude,
+                                  ),
+                                ),
+                                image: _pinNormalBytes,
+                                iconSize: 1.25,
+                              ),
+                            );
+
+                            // Disable info (i) icon and logo
+                            await mapboxMap.attribution.updateSettings(
+                              AttributionSettings(enabled: false),
+                            );
+                            await mapboxMap.logo.updateSettings(
+                              LogoSettings(enabled: false),
+                            );
+                            // Also disable scalebar / compass to keep it clean
+                            await mapboxMap.scaleBar.updateSettings(
+                              ScaleBarSettings(enabled: false),
+                            );
+                            await mapboxMap.compass.updateSettings(
+                              CompassSettings(enabled: false),
+                            );
+
+                            // Disable gestures to make it behave like a static map preview
+                            await mapboxMap.gestures.updateSettings(
+                              GesturesSettings(
+                                scrollEnabled: false,
+                                rotateEnabled: false,
+                                pinchToZoomEnabled: false,
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ),
@@ -1179,10 +1331,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                   },
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    side: BorderSide(
-                      color: AppColors.primary,
-                      width: 1.5,
-                    ),
+                    side: BorderSide(color: AppColors.primary, width: 1.5),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

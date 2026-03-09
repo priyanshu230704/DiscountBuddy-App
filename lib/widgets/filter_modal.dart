@@ -236,12 +236,12 @@ class _FilterModalState extends State<FilterModal> {
                                   _selectedDay = selected ? day : null;
                                 });
                               },
-                              selectedColor: AppColors.accent,
+                              selectedColor: AppColors.primaryPurple,
                               backgroundColor: AppColors.textDisabled
                                   .withValues(alpha: 0.2),
                               labelStyle: GoogleFonts.inter(
                                 color: isSelected
-                                    ? AppColors.primary
+                                    ? Colors.white
                                     : AppColors.textSecondary,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 14,
@@ -296,12 +296,12 @@ class _FilterModalState extends State<FilterModal> {
                                   _selectedTime = selected ? time : null;
                                 });
                               },
-                              selectedColor: AppColors.accent,
+                              selectedColor: AppColors.primaryPurple,
                               backgroundColor: AppColors.textDisabled
                                   .withValues(alpha: 0.2),
                               labelStyle: GoogleFonts.inter(
                                 color: isSelected
-                                    ? AppColors.primary
+                                    ? Colors.white
                                     : AppColors.textSecondary,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 14,
@@ -362,9 +362,10 @@ class _FilterModalState extends State<FilterModal> {
                                   : 'All';
                             });
                           },
-                          selectedColor: AppColors.accent,
-                          backgroundColor: AppColors.textDisabled
-                              .withValues(alpha: 0.2),
+                          selectedColor: AppColors.primaryPurple,
+                          backgroundColor: AppColors.textDisabled.withValues(
+                            alpha: 0.2,
+                          ),
                           labelStyle: GoogleFonts.inter(
                             color: isSelected
                                 ? Colors.white

@@ -49,9 +49,7 @@ class _OnboardingCheckScreenState extends State<OnboardingCheckScreen> {
       } else if (isAuthenticated) {
         // User is authenticated, go to home
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const MainNavigation(),
-          ),
+          MaterialPageRoute(builder: (context) => const MainNavigation()),
         );
       } else {
         // User has seen onboarding but not authenticated, go to login
@@ -65,11 +63,31 @@ class _OnboardingCheckScreenState extends State<OnboardingCheckScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
-      body: const Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3E25F6)),
-        ),
+      backgroundColor: const Color(0xFFFDFDFF),
+      body: Stack(
+        children: [
+          // Subtle background gradient for consistency
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFFEDE7FF),
+                    Color(0xFFFFF2F9),
+                    Color(0xFFF0F7FF),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8B5CF6)),
+            ),
+          ),
+        ],
       ),
     );
   }

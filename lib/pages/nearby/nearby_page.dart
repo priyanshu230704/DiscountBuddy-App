@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ import '../../models/restaurant.dart';
 import '../../models/city.dart';
 import '../../services/restaurant_service.dart';
 import '../../services/location_service.dart';
+import '../../services/city_service.dart';
 import '../../theme/app_colors.dart';
 import '../restaurant_details_page.dart';
 import '../../widgets/city_selector_modal.dart';
@@ -18,7 +20,10 @@ import '../../widgets/generic_bottom_sheet.dart';
 import '../../widgets/occupancy_tag.dart';
 
 class NearbyPage extends StatefulWidget {
-  const NearbyPage({super.key});
+  final double? initialLatitude;
+  final double? initialLongitude;
+
+  const NearbyPage({super.key, this.initialLatitude, this.initialLongitude});
 
   @override
   State<NearbyPage> createState() => _NearbyPageState();
@@ -28,6 +33,7 @@ class _NearbyPageState extends State<NearbyPage>
     with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   final RestaurantService _restaurantService = RestaurantService();
   final LocationService _locationService = LocationService();
+  final CityService _cityService = CityService();
 
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
@@ -39,11 +45,12 @@ class _NearbyPageState extends State<NearbyPage>
 
   bool _isSearching = false;
 
-  String _cityName = "London";
-  int _cityId = 1;
+  String _cityName = "Detecting...";
 
-  Point _center = Point(coordinates: Position(-0.1278, 51.5074));
+  Point? _center;
+  Point? _userLocation;
   double _zoom = 13;
+  int? _selectedCityId;
 
   List<Restaurant> _restaurants = [];
   List<Restaurant> _filteredRestaurants = [];
@@ -126,23 +133,89 @@ class _NearbyPageState extends State<NearbyPage>
     setState(() => _isLoading = true);
 
     try {
-      final location = await _locationService.getUserLocation();
-      if (!mounted) return;
-
-      if (!_isManualCitySelected) {
+      if (widget.initialLatitude != null && widget.initialLongitude != null) {
+        final pt = Point(
+          coordinates: Position(
+            widget.initialLongitude!,
+            widget.initialLatitude!,
+          ),
+        );
         setState(() {
-          _cityName = location.cityName;
-          _center = Point(
-            coordinates: Position(
-              location.position.longitude,
-              location.position.latitude,
-            ),
-          );
+          _center = pt;
+          _zoom = 15;
+          _isManualCitySelected = true;
         });
+
+        // Background update user GPS for the blue dot
+        _locationService
+            .getCurrentLocation()
+            .then((position) {
+              if (mounted) {
+                setState(() {
+                  _userLocation = Point(
+                    coordinates: Position(
+                      position.longitude,
+                      position.latitude,
+                    ),
+                  );
+                });
+              }
+            })
+            .catchError((_) {});
+      } else {
+        // Fast path: Get coordinates first
+        final position = await _locationService.getCurrentLocation();
+        if (!mounted) return;
+
+        final userPt = Point(
+          coordinates: Position(position.longitude, position.latitude),
+        );
+
+        if (!_isManualCitySelected) {
+          setState(() {
+            _center = userPt;
+            _userLocation = userPt;
+          });
+
+          // Lazy path: Fetch city name AND sync with database ID
+          try {
+            final cityName = await _locationService.getCityName(
+              position.latitude,
+              position.longitude,
+            );
+            final cities = await _cityService.getCities();
+
+            if (mounted && !_isManualCitySelected) {
+              // Find matching city in our database list
+              final matchedCity = cities.firstWhere(
+                (c) =>
+                    c.name.toLowerCase().contains(cityName.toLowerCase()) ||
+                    cityName.toLowerCase().contains(c.name.toLowerCase()),
+                orElse: () => cities.firstWhere(
+                  (c) => c.id == 1,
+                  orElse: () => cities.first,
+                ),
+              );
+
+              setState(() {
+                _cityName = matchedCity.name;
+                _selectedCityId = matchedCity.id;
+              });
+
+              // Re-run restaurant load now that we have the proper city ID
+              await _loadCityRestaurants();
+            }
+          } catch (_) {}
+        }
       }
 
       await _loadCityRestaurants();
     } catch (_) {
+      // Final fallback
+      setState(() {
+        _center ??= Point(coordinates: Position(-0.1278, 51.5074));
+        _cityName = 'London';
+      });
       await _loadCityRestaurants();
     }
   }
@@ -156,16 +229,15 @@ class _NearbyPageState extends State<NearbyPage>
 
       _selectedRestaurant = null;
       _selectedRestaurantId = null;
-
-      _restaurants = [];
-      _filteredRestaurants = [];
-      _cityRestaurants = [];
     });
 
     _cardController.reverse();
 
     try {
-      final list = await _restaurantService.getRestaurants(_cityId);
+      final list = await _restaurantService.getRestaurants(
+        cityId: _selectedCityId,
+      );
+
       if (!mounted) return;
 
       setState(() {
@@ -202,7 +274,7 @@ class _NearbyPageState extends State<NearbyPage>
     _isProgrammaticMove = true;
 
     await _mapboxMap!.flyTo(
-      CameraOptions(center: _center, zoom: 13),
+      CameraOptions(center: _center!, zoom: 13),
       MapAnimationOptions(duration: 650),
     );
 
@@ -213,15 +285,43 @@ class _NearbyPageState extends State<NearbyPage>
   Future<void> _centerMapOnLocation() async {
     if (_mapboxMap == null) return;
 
-    _isProgrammaticMove = true;
+    try {
+      final location = await _locationService.getUserLocation();
+      if (!mounted) return;
 
-    await _mapboxMap!.flyTo(
-      CameraOptions(center: _center, zoom: 15),
-      MapAnimationOptions(duration: 650),
-    );
+      final userPoint = Point(
+        coordinates: Position(
+          location.position.longitude,
+          location.position.latitude,
+        ),
+      );
 
-    await Future.delayed(const Duration(milliseconds: 700));
-    _isProgrammaticMove = false;
+      setState(() {
+        _cityName = location.cityName;
+        _center = userPoint;
+        _selectedCityId = null; // Reset ID when using GPS location
+      });
+
+      _isProgrammaticMove = true;
+
+      await _mapboxMap!.flyTo(
+        CameraOptions(center: userPoint, zoom: 15),
+        MapAnimationOptions(duration: 650),
+      );
+
+      await Future.delayed(const Duration(milliseconds: 700));
+      _isProgrammaticMove = false;
+    } catch (_) {
+      // If location fetch fails, just fly to existing center
+      if (_center == null) return;
+      _isProgrammaticMove = true;
+      await _mapboxMap!.flyTo(
+        CameraOptions(center: _center!, zoom: 15),
+        MapAnimationOptions(duration: 650),
+      );
+      await Future.delayed(const Duration(milliseconds: 700));
+      _isProgrammaticMove = false;
+    }
   }
 
   Future<void> _moveToRestaurant(Restaurant r) async {
@@ -262,9 +362,10 @@ class _NearbyPageState extends State<NearbyPage>
   double _kmToMiles(double km) => km * 0.621371;
 
   void _openRestaurant(Restaurant restaurant) {
+    if (_center == null) return;
     final slug = restaurant.slug ?? restaurant.id;
-    final lat = _center.coordinates.lat.toDouble();
-    final lon = _center.coordinates.lng.toDouble();
+    final lat = _center!.coordinates.lat.toDouble();
+    final lon = _center!.coordinates.lng.toDouble();
 
     Navigator.push(
       context,
@@ -374,9 +475,7 @@ class _NearbyPageState extends State<NearbyPage>
 
     // Pin Body (Blue for selected, White for unselected)
     final fillPaint = Paint()
-      ..color = selected 
-          ? AppColors.primaryPurple 
-          : Colors.white;
+      ..color = selected ? AppColors.primaryPurple : Colors.white;
     canvas.drawPath(path, fillPaint);
 
     // Subtle stroke border
@@ -385,18 +484,32 @@ class _NearbyPageState extends State<NearbyPage>
       ..style = PaintingStyle.stroke
       ..strokeWidth = s * 0.025;
     canvas.drawPath(path, borderPaint);
-    
+
     // Draw the white inner circle
-    final innerCirclePaint = Paint()..color = selected ? Colors.white : const Color(0xFFF8F9FC);
+    final innerCirclePaint = Paint()
+      ..color = selected ? Colors.white : const Color(0xFFF8F9FC);
     canvas.drawCircle(topCenter, topRadius * 0.95, innerCirclePaint);
 
     // Draw the actual db_logo.png app logo inside the pin
     if (_appLogoImage != null) {
-      final double logoSize = topRadius * 1.55; 
+      final double logoSize = topRadius * 1.55;
       final Rect destRect = Rect.fromCenter(
-          center: topCenter, width: logoSize, height: logoSize);
-      final Rect srcRect = Rect.fromLTWH(0, 0, _appLogoImage!.width.toDouble(), _appLogoImage!.height.toDouble());
-      canvas.drawImageRect(_appLogoImage!, srcRect, destRect, Paint()..filterQuality = FilterQuality.high);
+        center: topCenter,
+        width: logoSize,
+        height: logoSize,
+      );
+      final Rect srcRect = Rect.fromLTWH(
+        0,
+        0,
+        _appLogoImage!.width.toDouble(),
+        _appLogoImage!.height.toDouble(),
+      );
+      canvas.drawImageRect(
+        _appLogoImage!,
+        srcRect,
+        destRect,
+        Paint()..filterQuality = FilterQuality.high,
+      );
     }
 
     final picture = recorder.endRecording();
@@ -409,7 +522,9 @@ class _NearbyPageState extends State<NearbyPage>
   Future<void> _ensureMarkerBytes() async {
     if (_appLogoImage == null) {
       final ByteData data = await rootBundle.load('assets/png/db_logo.png');
-      final ui.Codec codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
+      final ui.Codec codec = await ui.instantiateImageCodec(
+        data.buffer.asUint8List(),
+      );
       final ui.FrameInfo fi = await codec.getNextFrame();
       _appLogoImage = fi.image;
     }
@@ -461,18 +576,21 @@ class _NearbyPageState extends State<NearbyPage>
 
     await _ensureMarkerBytes();
 
-    final userDot = await _createUserDotBytes();
-    if (_userDotAnnotation == null) {
-      _userDotAnnotation = await _pointManager!.create(
-        PointAnnotationOptions(
-          geometry: _center,
-          image: userDot,
-          iconSize: 1.0,
-        ),
-      );
-    } else {
-      _userDotAnnotation!.geometry = _center;
-      await _pointManager!.update(_userDotAnnotation!);
+    // Only show user dot if we have a real GPS location
+    if (_userLocation != null) {
+      final userDot = await _createUserDotBytes();
+      if (_userDotAnnotation == null) {
+        _userDotAnnotation = await _pointManager!.create(
+          PointAnnotationOptions(
+            geometry: _userLocation!,
+            image: userDot,
+            iconSize: 1.0,
+          ),
+        );
+      } else {
+        _userDotAnnotation!.geometry = _userLocation!;
+        await _pointManager!.update(_userDotAnnotation!);
+      }
     }
 
     final existingIds = _restaurantPins.keys.toSet();
@@ -725,133 +843,150 @@ class _NearbyPageState extends State<NearbyPage>
     super.build(context);
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Stack(
-        children: [
-          MapWidget(
-            key: const ValueKey("mapWidget"),
-            cameraOptions: CameraOptions(center: _center, zoom: _zoom),
-            styleUri: MapboxStyles.LIGHT,
-            onMapCreated: (mapboxMap) async {
-              _mapboxMap = mapboxMap;
+      body: _center == null
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xFF2F80ED)),
+            )
+          : Stack(
+              children: [
+                MapWidget(
+                  key: const ValueKey("mapWidget"),
+                  cameraOptions: CameraOptions(center: _center!, zoom: _zoom),
+                  styleUri: MapboxStyles.LIGHT,
+                  onMapCreated: (mapboxMap) async {
+                    _mapboxMap = mapboxMap;
 
-              if (mounted) {
-                setState(() => _isMapReady = true);
-              }
+                    if (mounted) {
+                      setState(() => _isMapReady = true);
+                    }
 
-              _pointManager = await _mapboxMap!.annotations
-                  .createPointAnnotationManager();
+                    _pointManager = await _mapboxMap!.annotations
+                        .createPointAnnotationManager();
 
-              await _ensureMarkerBytes();
-              await _syncPinsWithList();
+                    await _ensureMarkerBytes();
+                    await _syncPinsWithList();
 
-              await Future.delayed(const Duration(milliseconds: 250));
-              await _setupOrnaments();
+                    await Future.delayed(const Duration(milliseconds: 250));
+                    await _setupOrnaments();
 
-              _pointManager!.tapEvents(
-                onTap: (ann) async {
-                  if (_isMarkerAnimating) return;
+                    _pointManager!.tapEvents(
+                      onTap: (ann) async {
+                        if (_isMarkerAnimating) return;
 
-                  final restaurantId = _annotationIdToRestaurantId[ann.id];
-                  if (restaurantId == null) return;
+                        final restaurantId =
+                            _annotationIdToRestaurantId[ann.id];
+                        if (restaurantId == null) return;
 
-                  final selected = _filteredRestaurants.firstWhere(
-                    (r) => r.id == restaurantId,
-                    orElse: () => _filteredRestaurants.first,
-                  );
+                        final selected = _filteredRestaurants.firstWhere(
+                          (r) => r.id == restaurantId,
+                          orElse: () => _filteredRestaurants.first,
+                        );
 
-                  setState(() {
-                    _selectedRestaurant = selected;
-                    _selectedRestaurantId = selected.id;
-                  });
+                        setState(() {
+                          _selectedRestaurant = selected;
+                          _selectedRestaurantId = selected.id;
+                        });
 
-                  _cardController.forward(from: 0);
+                        _cardController.forward(from: 0);
 
-                  await _refreshPinsStateOnly();
-                  await _bounceSelectedMarker(selected.id);
-                  await _moveToRestaurant(selected);
-                },
-              );
-            },
+                        await _refreshPinsStateOnly();
+                        await _bounceSelectedMarker(selected.id);
+                        await _moveToRestaurant(selected);
+                      },
+                    );
+                  },
 
-            onTapListener: (_) async {
-              setState(() {
-                _selectedRestaurant = null;
-                _selectedRestaurantId = null;
-              });
-              _cardController.reverse();
-              await _refreshPinsStateOnly();
-            },
+                  onTapListener: (_) async {
+                    setState(() {
+                      _selectedRestaurant = null;
+                      _selectedRestaurantId = null;
+                    });
+                    _cardController.reverse();
+                    await _refreshPinsStateOnly();
+                  },
 
-            onCameraChangeListener: (_) async {
-              if (_mapboxMap == null) return;
+                  onCameraChangeListener: (_) async {
+                    if (_mapboxMap == null) return;
 
-              final cam = await _mapboxMap!.getCameraState();
-              _zoom = cam.zoom;
+                    final cam = await _mapboxMap!.getCameraState();
+                    _zoom = cam.zoom;
 
-              if (_isProgrammaticMove) return;
+                    if (_isProgrammaticMove) return;
 
-              if (_selectedRestaurant != null && !_isUserMovingMap) {
-                _isUserMovingMap = true;
+                    if (_selectedRestaurant != null && !_isUserMovingMap) {
+                      _isUserMovingMap = true;
 
-                setState(() {
-                  _selectedRestaurant = null;
-                  _selectedRestaurantId = null;
-                });
+                      setState(() {
+                        _selectedRestaurant = null;
+                        _selectedRestaurantId = null;
+                      });
 
-                _cardController.reverse();
-                await _refreshPinsStateOnly();
+                      _cardController.reverse();
+                      await _refreshPinsStateOnly();
 
-                Future.delayed(const Duration(milliseconds: 350), () {
-                  _isUserMovingMap = false;
-                });
-              }
-            },
-          ),
+                      Future.delayed(const Duration(milliseconds: 350), () {
+                        _isUserMovingMap = false;
+                      });
+                    }
 
-          if (!_isMapReady)
-            Container(
-              color: AppColors.background,
-              child: const Center(
-                child: CircularProgressIndicator(color: Color(0xFF2F80ED)),
-              ),
+                    // Update center
+                    _center = cam.center;
+                  },
+                ),
+
+                if (!_isMapReady)
+                  Container(
+                    color: AppColors.background,
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xFF2F80ED),
+                      ),
+                    ),
+                  ),
+
+                SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+                    child: _isSearching ? _searchTopBar() : _normalTopBar(),
+                  ),
+                ),
+
+                if (_selectedRestaurant != null)
+                  Positioned(
+                    left: 16,
+                    right: 16,
+                    bottom:
+                        125, // Adjusted to prevent touching bottom navigation bar
+                    child: SlideTransition(
+                      position: _cardSlide,
+                      child: _restaurantPreviewCard(_selectedRestaurant!),
+                    ),
+                  ),
+
+                if (_selectedRestaurant == null && !_isSearching)
+                  Positioned(
+                    left: 16,
+                    right: 16,
+                    bottom:
+                        135, // Adjusted to prevent touching bottom navigation bar
+                    child: _bottomButtons(),
+                  ),
+
+                if (_isLoading)
+                  Positioned(
+                    top: 95,
+                    left: 16,
+                    right: 16,
+                    child: _loadingPill(),
+                  ),
+              ],
             ),
-
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
-              child: _isSearching ? _searchTopBar() : _normalTopBar(),
-            ),
-          ),
-
-          if (_selectedRestaurant != null)
-            Positioned(
-              left: 16,
-              right: 16,
-              bottom: 125, // Adjusted to prevent touching bottom navigation bar
-              child: SlideTransition(
-                position: _cardSlide,
-                child: _restaurantPreviewCard(_selectedRestaurant!),
-              ),
-            ),
-
-          if (_selectedRestaurant == null && !_isSearching)
-            Positioned(
-              left: 16,
-              right: 16,
-              bottom: 135, // Adjusted to prevent touching bottom navigation bar
-              child: _bottomButtons(),
-            ),
-
-          if (_isLoading)
-            Positioned(top: 95, left: 16, right: 16, child: _loadingPill()),
-        ],
-      ),
     );
   }
 
   Widget _normalTopBar() {
     final w = MediaQuery.of(context).size.width;
-    final cityFontSize = w < 370 ? 28.0 : 36.0;
+    final cityFontSize = w < 370 ? 24.0 : 30.0;
 
     return Row(
       children: [
@@ -868,8 +1003,8 @@ class _NearbyPageState extends State<NearbyPage>
                     _isManualCitySelected = true;
 
                     setState(() {
-                      _cityId = city.id;
                       _cityName = city.name;
+                      _selectedCityId = city.id;
 
                       _center = Point(
                         coordinates: Position(city.longitude, city.latitude),

@@ -35,6 +35,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   final FocusNode _searchFocusNode = FocusNode();
 
   List<Restaurant> _restaurants = [];
+  List<Restaurant> _nearbyRestaurants = [];
   List<Restaurant> _filteredRestaurants = [];
 
   bool _isLoading = true;
@@ -47,12 +48,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   double _userLatitude = 0;
   double _userLongitude = 0;
 
-  HomeFilter? _activeFilter;
+  HomeFilter? _activeFilter = HomeFilter.offers;
 
   static const Color textPrimary = Color(0xFF111827);
   static const Color textSecondary = Color(0xFF6B7280);
-
-  
 
   @override
   void initState() {
@@ -323,6 +322,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         if (!mounted) return;
         setState(() {
           _restaurants = allRestaurants;
+          _nearbyRestaurants = nearbyRestaurants;
           _filteredRestaurants = _applyFilter(allRestaurants);
           _isLoading = false;
         });
@@ -336,6 +336,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         if (!mounted) return;
         setState(() {
           _restaurants = restaurants;
+          _nearbyRestaurants = restaurants;
           _filteredRestaurants = _applyFilter(restaurants);
           _isLoading = false;
         });
@@ -375,17 +376,25 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   List<Restaurant> _applyFilter(List<Restaurant> list) {
+    if (_activeFilter == HomeFilter.nearest) {
+      // For Best Near You, always map to the nearby list instead
+      final copy = [..._nearbyRestaurants];
+      copy.sort((a, b) => b.leaderboardScore.compareTo(a.leaderboardScore));
+      return copy;
+    }
+
     final copy = [...list];
 
     switch (_activeFilter) {
-      case HomeFilter.offers:
+      case HomeFilter.offers: // Now acts as All Restaurants
         copy.sort((a, b) => b.leaderboardScore.compareTo(a.leaderboardScore));
         return copy;
-      case HomeFilter.rating:
-        copy.sort((a, b) => b.rating.compareTo(a.rating));
-        return copy;
-      case HomeFilter.nearest:
-        copy.sort((a, b) => a.distance.compareTo(b.distance));
+      case HomeFilter.rating: // Top Rated
+        copy.sort((a, b) {
+          int ratingComparison = b.rating.compareTo(a.rating);
+          if (ratingComparison != 0) return ratingComparison;
+          return b.reviewCount.compareTo(a.reviewCount);
+        });
         return copy;
       case HomeFilter.openNow:
         return copy;
@@ -396,7 +405,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   void _toggleFilter(HomeFilter filter) {
     setState(() {
-      _activeFilter = (_activeFilter == filter) ? null : filter;
+      _activeFilter = filter; // Prevent unselecting
       _filteredRestaurants = _applyFilter(_restaurants);
     });
   }
@@ -464,7 +473,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               end: Alignment.bottomCenter,
               stops: [0.0, 1.0],
             ),
-	          ),
+          ),
           child: SafeArea(
             bottom: false,
             child: Padding(
@@ -484,7 +493,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                           borderRadius: BorderRadius.circular(17),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF8B5CF6).withValues(alpha: 0.1),
+                              color: const Color(
+                                0xFF8B5CF6,
+                              ).withValues(alpha: 0.1),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -537,9 +548,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       // Location selector
                       GestureDetector(
                         onTap: () {
-                          if (_cityName == 'Location Off' || _cityName == 'No Permission') {
+                          if (_cityName == 'Location Off' ||
+                              _cityName == 'No Permission') {
                             _promptToEnableLocation(
-                              _cityName == 'Location Off' ? 'Location services are disabled' : 'Location permission is denied',
+                              _cityName == 'Location Off'
+                                  ? 'Location services are disabled'
+                                  : 'Location permission is denied',
                               isServiceOff: _cityName == 'Location Off',
                             );
                             return;
@@ -558,7 +572,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                           );
                         },
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 7,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.8),
                             borderRadius: BorderRadius.circular(18),
@@ -573,7 +590,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.location_on, color: Color(0xFF8B5CF6), size: 14),
+                              const Icon(
+                                Icons.location_on,
+                                color: Color(0xFF8B5CF6),
+                                size: 14,
+                              ),
                               const SizedBox(width: 3),
                               Text(
                                 _cityName,
@@ -593,7 +614,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       // Notification Icon
                       GestureDetector(
                         onTap: () async {
-                          await Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationsPage()));
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const NotificationsPage(),
+                            ),
+                          );
                           _loadNotificationCount();
                         },
                         child: Stack(
@@ -604,7 +630,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: Colors.white,
-                                border: Border.all(color: Colors.black.withValues(alpha: 0.04)),
+                                border: Border.all(
+                                  color: Colors.black.withValues(alpha: 0.04),
+                                ),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withValues(alpha: 0.04),
@@ -613,7 +641,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                   ),
                                 ],
                               ),
-                              child: const Icon(Icons.notifications_none, size: 21, color: textPrimary),
+                              child: const Icon(
+                                Icons.notifications_none,
+                                size: 21,
+                                color: textPrimary,
+                              ),
                             ),
                             if (_notificationCount > 0)
                               Positioned(
@@ -625,7 +657,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFEF4444),
                                     shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.white, width: 2),
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 2,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -685,9 +720,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 SizedBox(
                   width: chipWidth,
                   child: _FilterChipX(
-                    text: "Best Near You",
-                    active: _activeFilter == HomeFilter.offers || _activeFilter == null,
+                    text: "All Restaurants",
+                    active: _activeFilter == HomeFilter.offers,
                     onTap: () => _toggleFilter(HomeFilter.offers),
+                  ),
+                ),
+                const SizedBox(width: gap),
+                SizedBox(
+                  width: chipWidth,
+                  child: _FilterChipX(
+                    text: "Best Near You",
+                    active: _activeFilter == HomeFilter.nearest,
+                    onTap: () => _toggleFilter(HomeFilter.nearest),
                   ),
                 ),
                 const SizedBox(width: gap),
@@ -697,16 +741,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     text: "Top Rated",
                     active: _activeFilter == HomeFilter.rating,
                     onTap: () => _toggleFilter(HomeFilter.rating),
-                  ),
-                ),
-                const SizedBox(width: gap),
-                SizedBox(
-                  width: chipWidth,
-                  child: _FilterChipX(
-                    text: "New",
-                    active: _activeFilter == HomeFilter.nearest,
-                    icon: Icons.local_offer,
-                    onTap: () => _toggleFilter(HomeFilter.nearest),
                   ),
                 ),
               ],
@@ -722,7 +756,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
         child: Text(
-          "Best Deals Near You",
+          _activeFilter == HomeFilter.offers
+              ? "All Restaurants"
+              : _activeFilter == HomeFilter.nearest
+              ? "Best Near You"
+              : "Top Rated Restaurants",
           style: GoogleFonts.inter(
             fontSize: 20,
             fontWeight: FontWeight.w900,
@@ -844,17 +882,13 @@ class _SearchBar extends StatelessWidget {
 class _FilterChipX extends StatelessWidget {
   final String text;
   final bool active;
-  final IconData? icon;
   final VoidCallback onTap;
 
   const _FilterChipX({
     required this.text,
     required this.active,
-    this.icon,
     required this.onTap,
   });
-
-  
 
   @override
   Widget build(BuildContext context) {
@@ -875,7 +909,9 @@ class _FilterChipX extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
             gradient: active ? bgGradient : null,
             color: active ? null : Colors.white,
-            border: active ? null : Border.all(color: Colors.black.withValues(alpha: 0.05)),
+            border: active
+                ? null
+                : Border.all(color: Colors.black.withValues(alpha: 0.05)),
             boxShadow: [
               if (active)
                 BoxShadow(
@@ -897,15 +933,6 @@ class _FilterChipX extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                if (icon != null)
-                  Padding(
-                    padding: const EdgeInsets.only(right: 6),
-                    child: Icon(
-                      icon,
-                      size: 16,
-                      color: active ? Colors.white : const Color(0xFF8B5CF6),
-                    ),
-                  ),
                 Text(
                   text,
                   style: GoogleFonts.inter(
@@ -927,10 +954,7 @@ class _GradientBanner extends StatelessWidget {
   final String title;
   final String subtitle;
 
-  const _GradientBanner({
-    required this.title,
-    required this.subtitle,
-  });
+  const _GradientBanner({required this.title, required this.subtitle});
 
   @override
   Widget build(BuildContext context) {
@@ -968,7 +992,7 @@ class _GradientBanner extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Content
           Padding(
             padding: const EdgeInsets.all(22),
@@ -1007,11 +1031,16 @@ class _GradientBanner extends StatelessWidget {
                       const SizedBox(height: 18),
                       // Explore Now Button
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 10,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.25),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.35)),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.35),
+                          ),
                         ),
                         child: Text(
                           "Explore Now",
@@ -1029,14 +1058,17 @@ class _GradientBanner extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // Food Image on right
           Positioned(
             right: 0,
             top: 20,
             bottom: 20,
             child: ClipRRect(
-              borderRadius: const BorderRadius.only(topLeft: Radius.circular(80), bottomLeft: Radius.circular(80)),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(80),
+                bottomLeft: Radius.circular(80),
+              ),
               child: Image.network(
                 "https://images.unsplash.com/photo-1473093226795-af9932fe5856?q=80&w=400&auto=format&fit=crop", // High-quality pasta image
                 width: 160,
@@ -1049,7 +1081,7 @@ class _GradientBanner extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // "Live Deals" Badge
           Positioned(
             bottom: 14,
@@ -1060,13 +1092,21 @@ class _GradientBanner extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 10, offset: const Offset(0, 4)),
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
                 ],
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.flash_on, color: Color(0xFFF97316), size: 13),
+                  const Icon(
+                    Icons.flash_on,
+                    color: Color(0xFFF97316),
+                    size: 13,
+                  ),
                   const SizedBox(width: 5),
                   Text(
                     "LIVE DEALS",
@@ -1111,8 +1151,8 @@ class _FeedTile extends StatelessWidget {
     final String discountText = tags.isNotEmpty ? tags.first : "30% OFF";
     final String numeric =
         discountText.replaceAll(RegExp(r'[^0-9]'), '').isEmpty
-            ? '30'
-            : discountText.replaceAll(RegExp(r'[^0-9]'), '');
+        ? '30'
+        : discountText.replaceAll(RegExp(r'[^0-9]'), '');
 
     return GestureDetector(
       onTap: () {
@@ -1242,141 +1282,143 @@ class _FeedTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                    SizedBox(
-                      height: 24,
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              restaurant.name,
-                              style: GoogleFonts.outfit(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                                color: const Color(0xFF1B1436),
-                                letterSpacing: -0.5,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            height: 24,
-                            padding: const EdgeInsets.symmetric(horizontal: 10),
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFF8B5CF6), Color(0xFFD946EF)],
-                                begin: Alignment.centerLeft,
-                                end: Alignment.centerRight,
-                              ),
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.2),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: Text(
-                              "Reserve a Table",
-                              style: GoogleFonts.inter(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    SizedBox(
-                      height: 14,
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.star,
-                            color: Color(0xFFFBBF24),
-                            size: 12,
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            restaurant.rating.toStringAsFixed(1),
-                            style: GoogleFonts.inter(
-                              fontSize: 11.5,
+                  SizedBox(
+                    height: 24,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            restaurant.name,
+                            style: GoogleFonts.outfit(
+                              fontSize: 16,
                               fontWeight: FontWeight.w800,
                               color: const Color(0xFF1B1436),
+                              letterSpacing: -0.5,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(width: 4),
-                          Row(
-                            children: List.generate(
-                              3,
-                              (index) => const Padding(
-                                padding: EdgeInsets.only(right: 1),
-                                child: Icon(
-                                  Icons.star,
-                                  color: Color(0xFFFCD34D),
-                                  size: 10,
-                                ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          height: 24,
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF8B5CF6), Color(0xFFD946EF)],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(
+                                  0xFF8B5CF6,
+                                ).withValues(alpha: 0.2),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
                               ),
+                            ],
+                          ),
+                          child: Text(
+                            "Reserve a Table",
+                            style: GoogleFonts.inter(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
                           ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              "${restaurant.reviewCount} reviews",
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.inter(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w400,
-                                color: const Color(0xFF6B7280),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 2),
-                    SizedBox(
-                      height: 14,
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              "Use code BUDDY$numeric to get ${discountText.toLowerCase()}",
-                              style: GoogleFonts.inter(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                                color: const Color(0xFF4B5563),
+                  ),
+                  const SizedBox(height: 4),
+                  SizedBox(
+                    height: 14,
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.star,
+                          color: Color(0xFFFBBF24),
+                          size: 12,
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          restaurant.rating.toStringAsFixed(1),
+                          style: GoogleFonts.inter(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF1B1436),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Row(
+                          children: List.generate(
+                            3,
+                            (index) => const Padding(
+                              padding: EdgeInsets.only(right: 1),
+                              child: Icon(
+                                Icons.star,
+                                color: Color(0xFFFCD34D),
+                                size: 10,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          const SizedBox(width: 6),
-                          const Icon(
-                            Icons.location_on,
-                            color: Color(0xFF8B5CF6),
-                            size: 12,
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            "${dist.toStringAsFixed(1)} km away",
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            "${restaurant.reviewCount} reviews",
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.inter(
                               fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFF4B5563),
+                              fontWeight: FontWeight.w400,
+                              color: const Color(0xFF6B7280),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
+                  ),
+                  const SizedBox(height: 2),
+                  SizedBox(
+                    height: 14,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            "Use code BUDDY$numeric to get ${discountText.toLowerCase()}",
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: const Color(0xFF4B5563),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        const Icon(
+                          Icons.location_on,
+                          color: Color(0xFF8B5CF6),
+                          size: 12,
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          "${dist.toStringAsFixed(1)} miles away",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF4B5563),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),

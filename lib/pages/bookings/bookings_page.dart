@@ -220,11 +220,6 @@ class _ReservationEmptyTab extends StatelessWidget {
             ),
             child: Column(
               children: [
-                Image.asset(
-                  'assets/png/onboarding.png',
-                  height: 130,
-                  fit: BoxFit.contain,
-                ),
                 const SizedBox(height: 14),
                 Text(
                   'No reservations yet 🍽',

@@ -13,18 +13,26 @@ class RestaurantService {
 
   // --- User Interactions ---
 
-  Future<List<Restaurant>> getRestaurants(int cityId) async {
+  Future<List<Restaurant>> getRestaurants({int? cityId, int? page}) async {
     try {
+      final queryParams = <String, String>{};
+      if (cityId != null) queryParams['city'] = cityId.toString();
+      if (page != null) queryParams['page'] = page.toString();
+
       final response = await _apiService.get(
         ApiEndpoints.restaurants,
-        queryParameters: {'city': cityId.toString()},
+        queryParameters: queryParams,
       );
 
-      final List<dynamic> restaurantsJson =
-          (response['results'] ?? []) as List<dynamic>;
+      final List<dynamic> restaurantsJson = response is List
+          ? response as List<dynamic>
+          : ((response)['results'] ?? (response)['data'] ?? [])
+                as List<dynamic>;
 
       return restaurantsJson
-          .map((json) => Restaurant.fromJson(json as Map<String, dynamic>))
+          .map(
+            (json) => convertApiRestaurantToModel(json as Map<String, dynamic>),
+          )
           .toList();
     } catch (e) {
       return _getMockRestaurants();
@@ -205,7 +213,7 @@ class RestaurantService {
 
   // --- Restaurant Browsing ---
 
-  /// Get nearby restaurants
+  /// Get nearby restaurants (used by Home Page)
   Future<List<Restaurant>> getNearbyRestaurants({
     required double latitude,
     required double longitude,
@@ -221,7 +229,6 @@ class RestaurantService {
         },
       );
 
-      // The response is a list directly, but ApiService might wrap it in 'data'
       final List<dynamic> restaurantsJson = response is List
           ? response as List<dynamic>
           : ((response)['data'] ?? (response)['results'] ?? [])
@@ -233,7 +240,6 @@ class RestaurantService {
           )
           .toList();
     } catch (e) {
-      // For demo purposes, return mock data
       return _getMockRestaurants();
     }
   }
@@ -326,8 +332,14 @@ class RestaurantService {
     final slug = json['slug'] as String?;
 
     // Rating and Reviews
-    final averageRating = _parseDouble(json['average_rating']) ?? 4.0;
-    final reviewsCount = _parseInt(json['reviews_count']) ?? 0;
+    final averageRating =
+        _parseDouble(json['average_rating']) ??
+        _parseDouble(json['rating']) ??
+        4.0;
+    final reviewsCount =
+        _parseInt(json['review_count']) ??
+        _parseInt(json['reviews_count']) ??
+        0;
 
     // Discount from active_deals - default to none if not present
     Discount discount = Discount(type: 'none', description: '');
@@ -476,8 +488,14 @@ class RestaurantService {
     }
 
     // Get rating and review count
-    final averageRating = _parseDouble(json['average_rating']) ?? 4.0;
-    final reviewsCount = _parseInt(json['reviews_count']) ?? 0;
+    final averageRating =
+        _parseDouble(json['average_rating']) ??
+        _parseDouble(json['rating']) ??
+        4.0;
+    final reviewsCount =
+        _parseInt(json['review_count']) ??
+        _parseInt(json['reviews_count']) ??
+        0;
 
     // Get distance if available
     final distance = _parseDouble(json['distance']) ?? 0.0;

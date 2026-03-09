@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../services/onboarding_service.dart';
 import 'auth/login_page.dart';
 import 'auth/register_page.dart';
@@ -7,8 +8,13 @@ import 'auth/register_page.dart';
 class OnboardingPageData {
   final String title;
   final String description;
+  final String? imagePath;
 
-  OnboardingPageData({required this.title, required this.description});
+  OnboardingPageData({
+    required this.title,
+    required this.description,
+    this.imagePath,
+  });
 }
 
 /// Onboarding screen with swipeable pages
@@ -17,13 +23,6 @@ class OnboardingScreen extends StatefulWidget {
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
-}
-
-// Local constants for onboarding screen
-class _OnboardingConstants {
-  static const double paddingLarge = 24.0;
-  static const double paddingXLarge = 32.0;
-  static const double radiusLarge = 16.0;
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
@@ -67,7 +66,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     // Navigate to login page
     if (mounted) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) =>  LoginPage()),
+        MaterialPageRoute(builder: (context) => const LoginPage()),
       );
     }
   }
@@ -78,182 +77,308 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final scale = (size.width / 390).clamp(0.7, 1.05);
+
     return Scaffold(
-      backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // Background color
-          Positioned.fill(child: Container(color: Colors.white)),
-          // Main Content
-          Column(
-            children: [
-              // PageView content
-              Expanded(
-                child: PageView.builder(
-                  controller: _pageController,
-                  onPageChanged: _onPageChanged,
-                  itemCount: _pages.length,
-                  itemBuilder: (context, index) {
-                    return _buildPage(_pages[index], index);
-                  },
-                ),
-              ),
-              // Bottom section with indicators and button
-              Container(
-                padding: EdgeInsets.only(
-                  left: _OnboardingConstants.paddingLarge,
-                  right: _OnboardingConstants.paddingLarge,
-                  top: _OnboardingConstants.paddingXLarge,
-                  bottom:
-                      MediaQuery.of(context).padding.bottom +
-                      _OnboardingConstants.paddingXLarge,
-                ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.white.withValues(alpha: 0.0),
-                      Colors.white.withValues(alpha: 0.9),
-                      Colors.white,
-                    ],
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    // Page indicators
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(
-                        _pages.length,
-                        (index) => _buildPageIndicator(index == _currentPage),
-                      ),
-                    ),
-                     SizedBox(height: 32),
-                    _buildGetStartedButton(),
-                     SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "Don't have an account? ",
-                          style: TextStyle(
-                            color: Colors.black.withValues(alpha: 0.7),
-                            fontSize: 14,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) =>  RegisterPage(),
-                              ),
-                            );
-                          },
-                          child:  Text(
-                            "Register",
-                            style: TextStyle(
-                              color: Color(0xFF2563EB),
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+          // Premium Mesh Gradient Background
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFFEDE7FF),
+                    Color(0xFFFFF2F9),
+                    Color(0xFFF0F7FF),
                   ],
                 ),
               ),
-            ],
+            ),
           ),
-          // Skip button
-          if (_currentPage < _pages.length - 1)
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 16,
-              right: 24,
-              child: TextButton(
-                onPressed: _skipOnboarding,
-                child: Text(
-                  'Skip',
-                  style: TextStyle(
-                    color: Colors.black.withValues(alpha: 0.7),
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
+
+          // Decorative Glow Bubbles (Richer colors and center positioning)
+          Positioned(
+            top: -180 * scale,
+            left: -50 * scale,
+            right: -50 * scale,
+            child: Center(
+              child: _GlowBubble(
+                size: 600 * scale,
+                color: const Color(0xFFCBB2FF).withValues(alpha: 0.45),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -200 * scale,
+            left: -50 * scale,
+            right: -50 * scale,
+            child: Center(
+              child: _GlowBubble(
+                size: 700 * scale,
+                color: const Color(0xFFFFB2D9).withValues(alpha: 0.4),
+              ),
+            ),
+          ),
+
+          // INTERACTIVE BACKGROUND ICONS
+          // These move based on PageView scroll progress
+          AnimatedBuilder(
+            animation: _pageController,
+            builder: (context, child) {
+              double scrollProgress = 0.0;
+              if (_pageController.hasClients &&
+                  _pageController.position.hasContentDimensions) {
+                scrollProgress = _pageController.page ?? 0.0;
+              }
+
+              return Stack(
+                children: [
+                  // Icon 1: Sushi (Moves left/right)
+                  Positioned(
+                    top: 150 * scale,
+                    left: (20 - (scrollProgress * 40)) * scale,
+                    child: Opacity(
+                      opacity: 0.6,
+                      child: _AnimatedIcon(
+                        duration: const Duration(seconds: 4),
+                        offset: 15,
+                        child: Transform.rotate(
+                          angle: scrollProgress * 0.5,
+                          child: Image.asset(
+                            'assets/png/sushi_icon.png',
+                            width: 100 * scale,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Icon 2: Burger (Moves up/down and sideways)
+                  Positioned(
+                    bottom: 250 * scale,
+                    right: (10 + (scrollProgress * 50)) * scale,
+                    child: Opacity(
+                      opacity: 0.5,
+                      child: _AnimatedIcon(
+                        duration: const Duration(seconds: 5),
+                        offset: 20,
+                        child: Transform.rotate(
+                          angle: -scrollProgress * 0.3,
+                          child: Image.asset(
+                            'assets/png/burger_icon.png',
+                            width: 120 * scale,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Icon 3: Discount Tag (Moves diagonally)
+                  Positioned(
+                    top: (100 + (scrollProgress * 30)) * scale,
+                    right: (30 + (scrollProgress * 60)) * scale,
+                    child: Opacity(
+                      opacity: 0.7,
+                      child: _AnimatedIcon(
+                        duration: const Duration(seconds: 3),
+                        offset: 12,
+                        child: Transform.rotate(
+                          angle: -0.2 + (scrollProgress * 0.2),
+                          child: Image.asset(
+                            'assets/png/discount_tag_icon.png',
+                            width: 80 * scale,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Icon 4: Another Sushi (Bottom Left)
+                  Positioned(
+                    bottom: 120 * scale,
+                    left: (-20 + (scrollProgress * 30)) * scale,
+                    child: Opacity(
+                      opacity: 0.4,
+                      child: _AnimatedIcon(
+                        duration: const Duration(seconds: 6),
+                        offset: 25,
+                        child: Image.asset(
+                          'assets/png/sushi_icon.png',
+                          width: 70 * scale,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+
+          // Main content
+          SafeArea(
+            child: Column(
+              children: [
+                // Skip button
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      right: 24 * scale,
+                      top: 16 * scale,
+                    ),
+                    child: TextButton(
+                      onPressed: _skipOnboarding,
+                      child: Text(
+                        'Skip',
+                        style: GoogleFonts.plusJakartaSans(
+                          color: const Color(0xFF5F567A).withValues(alpha: 0.7),
+                          fontSize: 16 * scale,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-              ),
+
+                // PageView content
+                Expanded(
+                  child: PageView.builder(
+                    controller: _pageController,
+                    onPageChanged: _onPageChanged,
+                    itemCount: _pages.length,
+                    itemBuilder: (context, index) {
+                      return _buildPage(_pages[index], index, scale);
+                    },
+                  ),
+                ),
+
+                // Bottom section
+                Padding(
+                  padding: EdgeInsets.all(32 * scale),
+                  child: Column(
+                    children: [
+                      // Page indicators
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          _pages.length,
+                          (index) =>
+                              _buildPageIndicator(index == _currentPage, scale),
+                        ),
+                      ),
+                      SizedBox(height: 32 * scale),
+                      _buildGetStartedButton(scale),
+                      SizedBox(height: 24 * scale),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Don't have an account? ",
+                            style: GoogleFonts.plusJakartaSans(
+                              color: const Color(
+                                0xFF5F567A,
+                              ).withValues(alpha: 0.7),
+                              fontSize: 14 * scale,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const RegisterPage(),
+                                ),
+                              );
+                            },
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                              ),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: Text(
+                              "Register",
+                              style: GoogleFonts.plusJakartaSans(
+                                color: const Color(0xFF8B5CF6),
+                                fontWeight: FontWeight.w800,
+                                fontSize: 14 * scale,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildPage(OnboardingPageData pageData, int pageIndex) {
+  Widget _buildPage(OnboardingPageData pageData, int pageIndex, double scale) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: _OnboardingConstants.paddingLarge,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: 24 * scale),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-           SizedBox(height: 20), // Further reduced top space
-          // Hero Image
-          Expanded(
-            child: Transform.scale(
-              scale: 1.5, // Even larger image size
-              child: Image.asset(
-                'assets/png/onboarding.png',
-                fit: BoxFit.contain,
-              ),
-            ),
-          ),
-           SizedBox(height: 30),
-          // Title
+          // SPACER FOR ICONS TO BREATHE
+          const Spacer(flex: 4),
           Text(
             pageData.title,
-            style:  TextStyle(
-              color: Colors.black,
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              height: 1.3,
-              letterSpacing: -0.5,
+            style: GoogleFonts.outfit(
+              color: const Color(0xFF1B1436),
+              fontSize: 34 * scale,
+              fontWeight: FontWeight.w800,
+              height: 1.2,
+              letterSpacing: -0.8,
             ),
             textAlign: TextAlign.center,
           ),
-           SizedBox(height: 24),
-          // Description
+          SizedBox(height: 20 * scale),
           Text(
             pageData.description,
-            style: TextStyle(
-              color: Colors.black.withValues(alpha: 0.7),
-              fontSize: 16,
+            style: GoogleFonts.plusJakartaSans(
+              color: const Color(0xFF5F567A).withValues(alpha: 0.8),
+              fontSize: 17 * scale,
               height: 1.6,
+              fontWeight: FontWeight.w600,
             ),
             textAlign: TextAlign.center,
           ),
-           SizedBox(height: 40),
+          const Spacer(flex: 3),
         ],
       ),
     );
   }
 
-  Widget _buildPageIndicator(bool isActive) {
+  Widget _buildPageIndicator(bool isActive, double scale) {
     return AnimatedContainer(
-      duration:  Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 300),
       margin: const EdgeInsets.symmetric(horizontal: 4),
-      width: isActive ? 32 : 8,
-      height: 8,
+      width: isActive ? 32 * scale : 8 * scale,
+      height: 8 * scale,
       decoration: BoxDecoration(
-        color: isActive
-            ?  Color(0xFF2563EB)
-            : Colors.black.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
+        gradient: isActive
+            ? const LinearGradient(
+                colors: [Color(0xFF8B5CF6), Color(0xFFD946EF)],
+              )
+            : null,
+        color: isActive ? null : const Color(0xFF2E1A47).withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(4 * scale),
         boxShadow: isActive
             ? [
                 BoxShadow(
-                  color:  Color(0xFF2563EB).withValues(alpha: 0.5),
+                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
                   blurRadius: 8,
-                  spreadRadius: 0,
+                  offset: const Offset(0, 2),
                 ),
               ]
             : null,
@@ -261,27 +386,99 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildGetStartedButton() {
-    return SizedBox(
+  Widget _buildGetStartedButton(double scale) {
+    return Container(
       width: double.infinity,
+      height: 58 * scale,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF8B5CF6), Color(0xFFD946EF)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(20 * scale),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
       child: ElevatedButton(
         onPressed: _handleGetStarted,
         style: ElevatedButton.styleFrom(
-          backgroundColor:  Color(0xFF2563EB),
+          backgroundColor: Colors.transparent,
           foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 18),
+          shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              _OnboardingConstants.radiusLarge,
-            ),
+            borderRadius: BorderRadius.circular(20 * scale),
           ),
-          elevation: 0,
         ),
-        child:  Text(
+        child: Text(
           'Get Started',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: GoogleFonts.outfit(
+            fontSize: 19 * scale,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.5,
+          ),
         ),
       ),
+    );
+  }
+}
+
+class _GlowBubble extends StatelessWidget {
+  const _GlowBubble({required this.size, required this.color});
+
+  final double size;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(
+            colors: [color, color.withValues(alpha: 0.3), Colors.transparent],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AnimatedIcon extends StatelessWidget {
+  final Widget child;
+  final Duration duration;
+  final double offset;
+
+  const _AnimatedIcon({
+    required this.child,
+    this.duration = const Duration(seconds: 3),
+    this.offset = 10,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder(
+      duration: duration,
+      tween: Tween<double>(begin: 0, end: 1),
+      onEnd: () {},
+      builder: (context, value, child) {
+        // Continuous sine-wave-like movement
+        final move = Curves.easeInOutSine.transform(
+          value > 0.5 ? (1 - value) * 2 : value * 2,
+        );
+        return Transform.translate(
+          offset: Offset(0, offset * move),
+          child: child,
+        );
+      },
+      child: child,
     );
   }
 }

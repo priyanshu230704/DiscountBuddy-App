@@ -16,6 +16,8 @@ class ApiEndpoints {
   static const String reviews = '/restaurants/reviews';
   static const String savedRestaurants = '/restaurants/restaurants/saved';
   static const String nearbyRestaurants = '/restaurants/restaurants/nearby';
+  static const String searchRestaurantsByBounds =
+      '/restaurants/restaurants/nearby';
   static const String searchRestaurants = '/restaurants/search';
   static const String homeData = '/restaurants/home';
   static const String dealUses = '/restaurants/deal-uses';

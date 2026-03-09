@@ -12,17 +12,32 @@ import 'merchant/merchant_dashboard_page.dart';
 
 /// Main navigation with new floating bottom navigation bar
 class MainNavigation extends StatefulWidget {
-  const MainNavigation({super.key});
+  final int initialIndex;
+  final double? initialLatitude;
+  final double? initialLongitude;
+
+  const MainNavigation({
+    super.key,
+    this.initialIndex = 0,
+    this.initialLatitude,
+    this.initialLongitude,
+  });
 
   @override
   State<MainNavigation> createState() => _MainNavigationState();
 }
 
 class _MainNavigationState extends State<MainNavigation> {
-  int _currentIndex = 0;
+  late int _currentIndex;
   final AuthProvider _authProvider = AuthProvider();
   final Map<int, Widget> _pageCache = {};
   bool _isVisible = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+  }
 
   Widget _getPage(int index) {
     if (_pageCache.containsKey(index)) {
@@ -50,7 +65,10 @@ class _MainNavigationState extends State<MainNavigation> {
           page = const HomePage();
           break;
         case 1:
-          page = const NearbyPage();
+          page = NearbyPage(
+            initialLatitude: widget.initialLatitude,
+            initialLongitude: widget.initialLongitude,
+          );
           break;
         case 2:
           page = const BookingsPage();
@@ -97,7 +115,11 @@ class _MainNavigationState extends State<MainNavigation> {
         curve: Curves.easeInOut,
         offset: _isVisible ? Offset.zero : const Offset(0, 1.5),
         child: Container(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom > 0 ? MediaQuery.of(context).padding.bottom - 10 : 0),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).padding.bottom > 0
+                ? MediaQuery.of(context).padding.bottom - 10
+                : 0,
+          ),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: const BorderRadius.only(
@@ -237,13 +259,17 @@ class _MainNavigationState extends State<MainNavigation> {
                 Icon(
                   icon,
                   size: 24,
-                  color: isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280),
+                  color: isDark
+                      ? const Color(0xFF9CA3AF)
+                      : const Color(0xFF6B7280),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   label,
                   style: TextStyle(
-                    color: isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280),
+                    color: isDark
+                        ? const Color(0xFF9CA3AF)
+                        : const Color(0xFF6B7280),
                     fontWeight: FontWeight.w500,
                     fontSize: 11,
                   ),

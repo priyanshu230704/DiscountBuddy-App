@@ -37,9 +37,16 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
     super.dispose();
   }
 
+  bool _isFetching = false;
+
   Future<void> _loadRestaurants() async {
-    setState(() => _isLoading = true);
+    if (_isFetching) return;
+
     try {
+      setState(() {
+        _isLoading = true;
+        _isFetching = true;
+      });
       final restaurants = await _merchantService.getMerchantRestaurants();
       if (mounted) {
         setState(() {
@@ -57,6 +64,10 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
             content: Text('Failed to load restaurants: ${e.toString()}'),
           ),
         );
+      }
+    } finally {
+      if (mounted) {
+        _isFetching = false;
       }
     }
   }
@@ -114,9 +125,7 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
               onChanged: _filterRestaurants,
               decoration: InputDecoration(
                 hintText: 'Search restaurants...',
-                hintStyle: GoogleFonts.inter(
-                  color: AppColors.textDisabled,
-                ),
+                hintStyle: GoogleFonts.inter(color: AppColors.textDisabled),
                 prefixIcon: const Icon(
                   Icons.search,
                   color: AppColors.textSecondary,

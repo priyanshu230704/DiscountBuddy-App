@@ -14,8 +14,7 @@ class EditProfilePage extends StatefulWidget {
 
 class _EditProfilePageState extends State<EditProfilePage> {
   final AuthProvider _authProvider = AuthProvider();
-  final TextEditingController _firstNameController = TextEditingController();
-  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _userNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   bool _isLoading = false;
 
@@ -27,32 +26,21 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   @override
   void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
+    _userNameController.dispose();
     _emailController.dispose();
     super.dispose();
   }
 
   void _loadUserData() {
     final user = _authProvider.user;
-    final username = user?.username ?? '';
-    final email = user?.email ?? '';
-
-    // Parse username to extract first and last name
-    final nameParts = username.split(' ');
-    if (nameParts.isNotEmpty) {
-      _firstNameController.text = nameParts[0];
-      if (nameParts.length > 1) {
-        _lastNameController.text = nameParts.sublist(1).join(' ');
-      }
-    }
-    _emailController.text = email;
+    _userNameController.text = user?.username ?? '';
+    _emailController.text = user?.email ?? '';
   }
 
   String _getInitials() {
-    final firstName = _firstNameController.text.trim();
-    if (firstName.isNotEmpty) {
-      return firstName[0].toUpperCase();
+    final name = _userNameController.text.trim();
+    if (name.isNotEmpty) {
+      return name[0].toUpperCase();
     }
     return '?';
   }
@@ -64,8 +52,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
     try {
       final success = await _authProvider.updateProfile(
-        firstName: _firstNameController.text.trim(),
-        lastName: _lastNameController.text.trim(),
+        firstName: _userNameController.text.trim(),
+        lastName: '',
         email: _emailController.text.trim(),
       );
 
@@ -118,10 +106,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       backgroundColor: AppColors.white,
       appBar: AppBar(
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            color: AppColors.textPrimary,
-          ),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -174,10 +159,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       decoration: BoxDecoration(
                         color: const Color(0xFF343A40),
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: AppColors.white,
-                          width: 3,
-                        ),
+                        border: Border.all(color: AppColors.white, width: 3),
                       ),
                       child: const Icon(
                         Icons.edit,
@@ -190,18 +172,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
               ),
               const SizedBox(height: 32),
 
-              // First Name Field
+              // User Name Field
               _buildTextField(
-                label: 'First name',
-                controller: _firstNameController,
+                label: 'User name',
+                controller: _userNameController,
                 onChanged: (value) => setState(() {}),
-              ),
-              const SizedBox(height: 16),
-
-              // Last Name Field
-              _buildTextField(
-                label: 'Last name (not shown in the app)',
-                controller: _lastNameController,
               ),
               const SizedBox(height: 16),
 
@@ -210,6 +185,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 label: 'Email',
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
+                readOnly: true,
               ),
               const SizedBox(height: 32),
 
@@ -260,6 +236,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     required TextEditingController controller,
     TextInputType? keyboardType,
     void Function(String)? onChanged,
+    bool readOnly = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -274,17 +251,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: const Color(0xFFF5F5F5),
+            color: readOnly ? const Color(0xFFEEEEEE) : const Color(0xFFF5F5F5),
             borderRadius: BorderRadius.circular(12),
           ),
           child: TextField(
             controller: controller,
             keyboardType: keyboardType,
             onChanged: onChanged,
+            readOnly: readOnly,
             style: GoogleFonts.inter(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+              color: readOnly ? AppColors.textSecondary : AppColors.textPrimary,
             ),
             decoration: InputDecoration(
               border: InputBorder.none,

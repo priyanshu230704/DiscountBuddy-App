@@ -20,6 +20,7 @@ class MerchantDashboardPage extends StatefulWidget {
 class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
   final MerchantService _merchantService = MerchantService();
   bool _isLoading = true;
+  bool _isFetching = false;
   int _totalBookings = 0;
   double _averageRating = 0.0;
 
@@ -30,13 +31,22 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
   }
 
   Future<void> _fetchDashboardData() async {
+    if (_isFetching) return;
+
     try {
       setState(() {
         _isLoading = true;
+        _isFetching = true;
       });
 
-      final bookings = await _merchantService.getMerchantBookings();
-      final reviews = await _merchantService.getMerchantReviews();
+      // Run requests in parallel for better performance and deduplication
+      final results = await Future.wait([
+        _merchantService.getMerchantBookings(),
+        _merchantService.getMerchantReviews(),
+      ]);
+
+      final bookings = results[0];
+      final reviews = results[1];
 
       double totalRating = 0;
       if (reviews.isNotEmpty) {
@@ -55,10 +65,15 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
         });
       }
     } catch (e) {
+      debugPrint('Error fetching dashboard data: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
+      }
+    } finally {
+      if (mounted) {
+        _isFetching = false;
       }
     }
   }

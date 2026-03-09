@@ -18,6 +18,7 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
   final MerchantService _merchantService = MerchantService();
   List<Map<String, dynamic>> _deals = [];
   bool _isLoading = true;
+  bool _isFetching = false;
 
   @override
   void initState() {
@@ -28,10 +29,14 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
   }
 
   Future<void> _loadDeals() async {
-    if (!mounted) return;
-    setState(() => _isLoading = true);
+    if (!mounted || _isFetching) return;
 
     try {
+      setState(() {
+        _isLoading = true;
+        _isFetching = true;
+      });
+
       final deals = await _merchantService.getMerchantDeals();
       if (mounted) {
         setState(() {
@@ -45,6 +50,10 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to load deals: ${e.toString()}')),
         );
+      }
+    } finally {
+      if (mounted) {
+        _isFetching = false;
       }
     }
   }

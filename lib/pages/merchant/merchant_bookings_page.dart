@@ -17,6 +17,7 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
   final MerchantService _merchantService = MerchantService();
   List<Map<String, dynamic>> _bookings = [];
   bool _isLoading = true;
+  bool _isFetching = false;
 
   @override
   void initState() {
@@ -25,8 +26,14 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
   }
 
   Future<void> _loadBookings() async {
-    setState(() => _isLoading = true);
+    if (_isFetching) return;
+
     try {
+      setState(() {
+        _isLoading = true;
+        _isFetching = true;
+      });
+
       final bookings = await _merchantService.getMerchantBookings();
       // Sort by date desc
       bookings.sort((a, b) {
@@ -46,6 +53,10 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to load bookings: ${e.toString()}')),
         );
+      }
+    } finally {
+      if (mounted) {
+        _isFetching = false;
       }
     }
   }

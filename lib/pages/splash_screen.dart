@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../config/environment.dart';
 import 'package:discount_buddy/theme/app_colors.dart';
+import '../services/app_config_service.dart';
+import '../widgets/update_dialog.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -54,12 +56,59 @@ class _SplashScreenState extends State<SplashScreen>
     );
 
     _controller.forward();
+    _initApp();
+  }
 
-    Future.delayed(const Duration(seconds: 2), () {
+  Future<void> _initApp() async {
+    // Small delay to let animations start
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    // Check for updates
+    bool isUpdateBlocking = await _checkAppVersion();
+
+    // If update check returned true (it means we should NOT proceed)
+    if (isUpdateBlocking) return;
+
+    // Proceed if still mounted
+    if (mounted) {
+      await Future.delayed(
+        const Duration(milliseconds: 1500),
+      ); // Minimum splash time
       if (mounted) {
         Navigator.of(context).pushReplacementNamed('/onboarding-check');
       }
-    });
+    }
+  }
+
+  /// Returns true if navigation should be blocked (because of force update)
+  Future<bool> _checkAppVersion() async {
+    try {
+      final configService = AppConfigService();
+      final versionInfo = await configService.checkVersion();
+
+      if (versionInfo != null && versionInfo.isUpdateAvailable) {
+        bool isForce =
+            versionInfo.isForceUpdate || versionInfo.isCriticalUpdate;
+
+        if (mounted) {
+          // If it's a force update, this dialog will stay until the app is updated/closed
+          await showDialog(
+            context: context,
+            barrierDismissible: !isForce,
+            builder: (context) => UpdateDialog(versionInfo: versionInfo),
+          );
+
+          // After dialog closes, check if we should still stop
+          // (if the user clicked "Maybe Later" on an optional update, we proceed)
+          return isForce;
+        }
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Error checking app version: $e');
+      // Continue even if check fails to not brick the app on network issues
+      return false;
+    }
   }
 
   @override
@@ -131,12 +180,16 @@ class _SplashScreenState extends State<SplashScreen>
                                   borderRadius: BorderRadius.circular(34),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: AppColors.primaryPurple.withValues(alpha: 0.18),
+                                      color: AppColors.primaryPurple.withValues(
+                                        alpha: 0.18,
+                                      ),
                                       blurRadius: 30,
                                       offset: const Offset(0, 14),
                                     ),
                                     BoxShadow(
-                                      color: AppColors.secondaryPink.withValues(alpha: 0.16),
+                                      color: AppColors.secondaryPink.withValues(
+                                        alpha: 0.16,
+                                      ),
                                       blurRadius: 30,
                                       offset: const Offset(0, 12),
                                     ),

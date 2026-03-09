@@ -110,19 +110,45 @@ class ApiService {
     }
   }
 
+  // Pending requests cache to avoid redundant concurrent calls
+  final Map<String, Future<Map<String, dynamic>>> _pendingRequests = {};
+
   /// GET request
   Future<Map<String, dynamic>> get(
     String endpoint, {
     Map<String, String>? queryParameters,
     ApiType type = ApiType.user,
   }) async {
-    try {
-      final normalizedEndpoint = _normalizeEndpoint(endpoint);
-      final baseUrl = _getBaseUrl(type);
-      final uri = Uri.parse(
-        '$baseUrl$normalizedEndpoint',
-      ).replace(queryParameters: queryParameters);
+    final normalizedEndpoint = _normalizeEndpoint(endpoint);
+    final baseUrl = _getBaseUrl(type);
+    final uri = Uri.parse(
+      '$baseUrl$normalizedEndpoint',
+    ).replace(queryParameters: queryParameters);
+    final requestKey = uri.toString();
 
+    // If there's already a pending request for this exact URI, return it
+    if (_pendingRequests.containsKey(requestKey)) {
+      if (Environment.enableLogging) {
+        debugPrint('DEDUPLICATED: $requestKey');
+      }
+      return _pendingRequests[requestKey]!;
+    }
+
+    final requestFuture = _performGet(uri);
+    _pendingRequests[requestKey] = requestFuture;
+
+    try {
+      final response = await requestFuture;
+      return response;
+    } finally {
+      // Remove from pending once completed
+      _pendingRequests.remove(requestKey);
+    }
+  }
+
+  /// Internal method to perform the actual GET request
+  Future<Map<String, dynamic>> _performGet(Uri uri) async {
+    try {
       if (Environment.enableLogging) {
         debugPrint('GET: $uri');
       }

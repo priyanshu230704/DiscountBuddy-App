@@ -16,6 +16,7 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
   final MerchantService _merchantService = MerchantService();
   List<Map<String, dynamic>> _reviews = [];
   bool _isLoading = true;
+  bool _isFetching = false;
 
   @override
   void initState() {
@@ -24,8 +25,14 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
   }
 
   Future<void> _loadReviews() async {
-    setState(() => _isLoading = true);
+    if (_isFetching) return;
+
     try {
+      setState(() {
+        _isLoading = true;
+        _isFetching = true;
+      });
+
       final reviews = await _merchantService.getMerchantReviews();
       if (mounted) {
         setState(() {
@@ -39,6 +46,10 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to load reviews: ${e.toString()}')),
         );
+      }
+    } finally {
+      if (mounted) {
+        _isFetching = false;
       }
     }
   }

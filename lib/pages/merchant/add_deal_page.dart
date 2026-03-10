@@ -306,8 +306,8 @@ class _AddDealPageState extends State<AddDealPage> {
                       child: ElevatedButton(
                         onPressed: _isSaving ? null : _saveDeal,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.accent,
-                          foregroundColor: AppColors.primary,
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: AppColors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -349,9 +349,7 @@ class _AddDealPageState extends State<AddDealPage> {
       selected: selected,
       onSelected: (s) => setState(() => _dealType = type),
       selectedColor: AppColors.accent.withValues(alpha: 0.2),
-      labelStyle: TextStyle(
-        color: selected ? AppColors.accent : Colors.black,
-      ),
+      labelStyle: TextStyle(color: selected ? AppColors.accent : Colors.black),
     );
   }
 

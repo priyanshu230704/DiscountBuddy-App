@@ -268,28 +268,54 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
           ? _buildEmptyState()
           : RefreshIndicator(
               onRefresh: _loadMenu,
-              child: ListView.builder(
+              color: AppColors.primary,
+              child: ListView(
                 padding: const EdgeInsets.all(16),
-                itemCount: _categories.length,
-                itemBuilder: (context, index) {
-                  final category = _categories[index];
-                  return _CategoryCard(
-                    category: category,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => MerchantCategoryItemsPage(
-                            categoryId: category['id'],
-                            categoryName: category['name'],
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 20, left: 4),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Manage Menu Categories',
+                          style: GoogleFonts.inter(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary,
+                            letterSpacing: -0.5,
                           ),
                         ),
-                      ).then((_) => _loadMenu());
-                    },
-                    onEdit: () => _editCategory(category),
-                    onDelete: () => _deleteCategory(category['id']),
-                  );
-                },
+                        const SizedBox(height: 4),
+                        Text(
+                          'Tap a category to organize or add food items',
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  ..._categories.map(
+                    (category) => _CategoryCard(
+                      category: category,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => MerchantCategoryItemsPage(
+                              categoryId: category['id'],
+                              categoryName: category['name'],
+                            ),
+                          ),
+                        ).then((_) => _loadMenu());
+                      },
+                      onEdit: () => _editCategory(category),
+                      onDelete: () => _deleteCategory(category['id']),
+                    ),
+                  ),
+                ],
               ),
             ),
     );
@@ -324,7 +350,8 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
           ElevatedButton(
             onPressed: _addCategory,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.accent,
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.white,
             ),
             child: const Text('Add Category'),
           ),
@@ -393,7 +420,7 @@ class _CategoryCard extends StatelessWidget {
                   Text(
                     '${category['items_count'] ?? 0} items',
                     style: GoogleFonts.inter(
-                      color: AppColors.accent,
+                      color: AppColors.primary,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),

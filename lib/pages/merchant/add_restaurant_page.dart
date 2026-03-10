@@ -638,6 +638,29 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                         return FilterChip(
                           label: Text(category['name'] as String),
                           selected: isSelected,
+                          selectedColor: AppColors.primary.withValues(
+                            alpha: 0.1,
+                          ),
+                          checkmarkColor: AppColors.primary,
+                          labelStyle: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.w500,
+                            color: isSelected
+                                ? AppColors.primary
+                                : AppColors.textPrimary,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            side: BorderSide(
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : AppColors.textDisabled.withValues(
+                                      alpha: 0.3,
+                                    ),
+                            ),
+                          ),
                           onSelected: (selected) {
                             setState(() {
                               if (selected) {
@@ -669,24 +692,28 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                             child: RadioListTile<int>(
                               title: const Text('£'),
                               value: 1,
+                              activeColor: AppColors.primary,
                             ),
                           ),
                           Expanded(
                             child: RadioListTile<int>(
                               title: const Text('££'),
                               value: 2,
+                              activeColor: AppColors.primary,
                             ),
                           ),
                           Expanded(
                             child: RadioListTile<int>(
                               title: const Text('£££'),
                               value: 3,
+                              activeColor: AppColors.primary,
                             ),
                           ),
                           Expanded(
                             child: RadioListTile<int>(
                               title: const Text('££££'),
                               value: 4,
+                              activeColor: AppColors.primary,
                             ),
                           ),
                         ],
@@ -738,8 +765,8 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _saveRestaurant,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.accent,
-                          foregroundColor: AppColors.primary,
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: AppColors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -751,7 +778,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
                                   valueColor: AlwaysStoppedAnimation<Color>(
-                                    AppColors.primary,
+                                    AppColors.white,
                                   ),
                                 ),
                               )

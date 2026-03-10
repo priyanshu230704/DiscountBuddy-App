@@ -147,7 +147,7 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
                 ? _buildEmptyState()
                 : RefreshIndicator(
                     onRefresh: _loadRestaurants,
-                    color: AppColors.accent,
+                    color: AppColors.primary,
                     child: ListView.separated(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
                       itemCount: _filteredRestaurants.length,
@@ -262,7 +262,7 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
               child: Text(
                 'Add Restaurant',
                 style: GoogleFonts.inter(
-                  color: AppColors.accent,
+                  color: AppColors.primary,
                   fontWeight: FontWeight.bold,
                 ),
               ),

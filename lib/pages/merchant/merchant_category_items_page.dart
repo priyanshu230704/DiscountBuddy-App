@@ -141,6 +141,10 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
                     'is_available': isAvailable,
                   });
                 },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.white,
+                ),
                 child: Text(existingItem == null ? 'Add' : 'Save'),
               ),
             ],
@@ -277,7 +281,8 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _addOrUpdateItem(),
-        backgroundColor: AppColors.accent,
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.white,
         child: const Icon(Icons.add),
       ),
       body: _isLoading
@@ -347,7 +352,7 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
                 Text(
                   '\$${item['price']}',
                   style: GoogleFonts.inter(
-                    color: AppColors.accent,
+                    color: AppColors.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

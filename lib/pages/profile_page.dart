@@ -105,7 +105,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
                 child: Text(
                   'Profile',
-                  style: GoogleFonts.outfit(
+                  style: GoogleFonts.inter(
                     fontSize: 32,
                     fontWeight: FontWeight.w800,
                     color: const Color(0xFF1B1436),
@@ -134,14 +134,19 @@ class _ProfilePageState extends State<ProfilePage> {
                         height: 72,
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
-                            colors: [Color(0xFF4F46E5), Color(0xFF6366F1)], // Deep Blue/Purple for Avatar
+                            colors: [
+                              Color(0xFF4F46E5),
+                              Color(0xFF6366F1),
+                            ], // Deep Blue/Purple for Avatar
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
                           borderRadius: BorderRadius.circular(36),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF4F46E5).withValues(alpha: 0.2),
+                              color: const Color(
+                                0xFF4F46E5,
+                              ).withValues(alpha: 0.2),
                               blurRadius: 15,
                               offset: const Offset(0, 8),
                             ),
@@ -150,7 +155,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         child: Center(
                           child: Text(
                             initials,
-                            style: GoogleFonts.outfit(
+                            style: GoogleFonts.inter(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -165,7 +170,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           children: [
                             Text(
                               displayName,
-                              style: GoogleFonts.outfit(
+                              style: GoogleFonts.inter(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w800,
                                 color: const Color(0xFF1B1436),
@@ -175,7 +180,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             const SizedBox(height: 4),
                             Text(
                               'Edit profile',
-                              style: GoogleFonts.outfit(
+                              style: GoogleFonts.inter(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
                                 color: const Color(0xFF6B7280),
@@ -213,7 +218,8 @@ class _ProfilePageState extends State<ProfilePage> {
                       Expanded(
                         child: _StatCard(
                           icon: Icons.account_balance_wallet_rounded,
-                          value: '£${_stats?.moneySaved.toStringAsFixed(0) ?? '5'}',
+                          value:
+                              '£${_stats?.moneySaved.toStringAsFixed(0) ?? '5'}',
                           label: 'Saved',
                           iconColor: const Color(0xFF8B5CF6),
                         ),
@@ -246,7 +252,9 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFC026D3).withValues(alpha: 0.35),
+                          color: const Color(
+                            0xFFC026D3,
+                          ).withValues(alpha: 0.35),
                           blurRadius: 25,
                           offset: const Offset(0, 12),
                         ),
@@ -264,7 +272,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               children: [
                                 Text(
                                   'Earn €10 for every\nfriend you invite!',
-                                  style: GoogleFonts.outfit(
+                                  style: GoogleFonts.inter(
                                     fontSize: 20,
                                     fontWeight: FontWeight.w800,
                                     color: Colors.white,
@@ -272,7 +280,9 @@ class _ProfilePageState extends State<ProfilePage> {
                                     letterSpacing: -0.2,
                                     shadows: [
                                       Shadow(
-                                        color: Colors.black.withValues(alpha: 0.2),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.2,
+                                        ),
                                         offset: const Offset(0, 2),
                                         blurRadius: 4,
                                       ),
@@ -281,15 +291,22 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ),
                                 const SizedBox(height: 18),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                    vertical: 10,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.white.withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(24),
-                                    border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
+                                    border: Border.all(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.4,
+                                      ),
+                                    ),
                                   ),
                                   child: Text(
                                     'Invite friends',
-                                    style: GoogleFonts.outfit(
+                                    style: GoogleFonts.inter(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w700,
                                       color: Colors.white,
@@ -365,18 +382,21 @@ class _ProfilePageState extends State<ProfilePage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Text(
           'Logout',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.w800),
+          style: GoogleFonts.inter(fontWeight: FontWeight.w800),
         ),
         content: Text(
           'Are you sure you want to logout?',
-          style: GoogleFonts.outfit(fontWeight: FontWeight.w500),
+          style: GoogleFonts.inter(fontWeight: FontWeight.w500),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
               'Cancel',
-              style: GoogleFonts.outfit(color: const Color(0xFF6B7280), fontWeight: FontWeight.w700),
+              style: GoogleFonts.inter(
+                color: const Color(0xFF6B7280),
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
           TextButton(
@@ -389,7 +409,7 @@ class _ProfilePageState extends State<ProfilePage> {
             },
             child: Text(
               'Logout',
-              style: GoogleFonts.outfit(
+              style: GoogleFonts.inter(
                 color: Colors.red,
                 fontWeight: FontWeight.w800,
               ),
@@ -439,23 +459,29 @@ class _MenuTile extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: isDestructive ? const Color(0xFFEF4444) : const Color(0xFF1B1436),
+              color: isDestructive
+                  ? const Color(0xFFEF4444)
+                  : const Color(0xFF1B1436),
               size: 22,
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Text(
                 title,
-                style: GoogleFonts.outfit(
+                style: GoogleFonts.inter(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
-                  color: isDestructive ? const Color(0xFFEF4444) : const Color(0xFF1B1436),
+                  color: isDestructive
+                      ? const Color(0xFFEF4444)
+                      : const Color(0xFF1B1436),
                 ),
               ),
             ),
             Icon(
               Icons.chevron_right,
-              color: isDestructive ? const Color(0xFFEF4444).withValues(alpha: 0.5) : const Color(0xFFD1D5DB),
+              color: isDestructive
+                  ? const Color(0xFFEF4444).withValues(alpha: 0.5)
+                  : const Color(0xFFD1D5DB),
               size: 20,
             ),
           ],
@@ -500,7 +526,7 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             value,
-            style: GoogleFonts.outfit(
+            style: GoogleFonts.inter(
               fontSize: 22,
               fontWeight: FontWeight.w800,
               color: const Color(0xFF1B1436),
@@ -509,7 +535,7 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             label,
-            style: GoogleFonts.outfit(
+            style: GoogleFonts.inter(
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: const Color(0xFF6B7280),

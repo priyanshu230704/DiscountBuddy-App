@@ -18,7 +18,7 @@ class AppConfigService {
       );
 
       final response = await _apiService.post(
-        '/app/version/check/', // Match Django trailing slash pattern
+        '/app/version/check', // Match Django trailing slash pattern
         body: {'platform': platform, 'version': currentVersion},
         type: ApiType.common,
       );

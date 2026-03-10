@@ -108,7 +108,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Overview of your business performance',
+                        'Track your Restaurant and its realtime progress',
                         style: GoogleFonts.inter(
                           fontSize: 16,
                           color: AppColors.textSecondary,

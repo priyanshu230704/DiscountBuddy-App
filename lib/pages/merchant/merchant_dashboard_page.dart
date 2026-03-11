@@ -175,7 +175,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Text(
-                    'Manage',
+                    'Manage Business',
                     style: GoogleFonts.inter(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,

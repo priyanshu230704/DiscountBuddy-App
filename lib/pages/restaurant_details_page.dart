@@ -739,7 +739,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                   'Check out this deal at ${restaurant.name}!\n\n'
                                   '${restaurant.discount.displayText} - ${restaurant.discount.description}\n\n'
                                   '📍 ${restaurant.address}\n'
-                                  'Found on NeoTaste';
+                                  'Found on DiscountBuddy';
                               // ignore: deprecated_member_use
                               Share.share(message);
                             },

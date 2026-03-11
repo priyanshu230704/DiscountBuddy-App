@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 /// Discount Buddy – Clean, Modern, Premium Design System
-class NeoTasteColors {
+class AppColors {
   // ── Brand ──────────────────────────────────────────────────────────────
   /// Solid primary action color for buttons only
   static const Color primaryBlue = Color(0xFF2563EB);
@@ -46,47 +46,47 @@ class ThemeProvider extends ChangeNotifier {
       brightness: Brightness.light,
       useMaterial3: true,
       dialogTheme: DialogThemeData(
-        backgroundColor: NeoTasteColors.white,
+        backgroundColor: AppColors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
       colorScheme: const ColorScheme.light(
-        primary: NeoTasteColors.primaryBlue,
-        secondary: NeoTasteColors.primaryBlue,
-        surface: NeoTasteColors.white,
-        error: NeoTasteColors.error,
-        onPrimary: NeoTasteColors.white,
-        onSecondary: NeoTasteColors.white,
-        onSurface: NeoTasteColors.textPrimary,
-        onError: NeoTasteColors.white,
+        primary: AppColors.primaryBlue,
+        secondary: AppColors.primaryBlue,
+        surface: AppColors.white,
+        error: AppColors.error,
+        onPrimary: AppColors.white,
+        onSecondary: AppColors.white,
+        onSurface: AppColors.textPrimary,
+        onError: AppColors.white,
       ),
-      scaffoldBackgroundColor: NeoTasteColors.background,
+      scaffoldBackgroundColor: AppColors.background,
       appBarTheme: AppBarTheme(
         centerTitle: false,
         elevation: 0,
-        backgroundColor: NeoTasteColors.background,
-        foregroundColor: NeoTasteColors.textPrimary,
+        backgroundColor: AppColors.background,
+        foregroundColor: AppColors.textPrimary,
         surfaceTintColor: Colors.transparent,
         titleTextStyle: GoogleFonts.inter(
-          color: NeoTasteColors.textPrimary,
+          color: AppColors.textPrimary,
           fontSize: 24, // Clear hierarchy
           fontWeight: FontWeight.w700,
           letterSpacing: -0.5,
         ),
       ),
-      cardColor: NeoTasteColors.white,
+      cardColor: AppColors.white,
       cardTheme: CardThemeData(
         elevation: 0,
-        color: NeoTasteColors.white,
+        color: AppColors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        shadowColor: NeoTasteColors.textPrimary.withValues(
+        shadowColor: AppColors.textPrimary.withValues(
           alpha: 0.04,
         ), // Minimal shadow
         margin: EdgeInsets.zero,
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: NeoTasteColors.white,
-        selectedItemColor: NeoTasteColors.primaryBlue,
-        unselectedItemColor: NeoTasteColors.textDisabled,
+        backgroundColor: AppColors.white,
+        selectedItemColor: AppColors.primaryBlue,
+        unselectedItemColor: AppColors.textDisabled,
         elevation: 0,
         type: BottomNavigationBarType.fixed,
         selectedLabelStyle: TextStyle(
@@ -101,85 +101,85 @@ class ThemeProvider extends ChangeNotifier {
       textTheme: GoogleFonts.interTextTheme().copyWith(
         displayLarge: GoogleFonts.inter(
           fontWeight: FontWeight.w800,
-          color: NeoTasteColors.textPrimary,
+          color: AppColors.textPrimary,
           height: 1.1,
           letterSpacing: -1,
         ),
         displayMedium: GoogleFonts.inter(
           fontWeight: FontWeight.w800,
-          color: NeoTasteColors.textPrimary,
+          color: AppColors.textPrimary,
           height: 1.1,
           letterSpacing: -0.5,
         ),
         displaySmall: GoogleFonts.inter(
           fontWeight: FontWeight.w700,
-          color: NeoTasteColors.textPrimary,
+          color: AppColors.textPrimary,
           height: 1.2,
         ),
         headlineLarge: GoogleFonts.inter(
           fontWeight: FontWeight.w700,
-          color: NeoTasteColors.textPrimary,
+          color: AppColors.textPrimary,
           height: 1.2,
           letterSpacing: -0.5,
         ),
         headlineMedium: GoogleFonts.inter(
           fontWeight: FontWeight.w700,
-          color: NeoTasteColors.textPrimary,
+          color: AppColors.textPrimary,
           height: 1.2,
           letterSpacing: -0.5,
         ),
         headlineSmall: GoogleFonts.inter(
           fontWeight: FontWeight.w600,
-          color: NeoTasteColors.textPrimary,
+          color: AppColors.textPrimary,
           height: 1.3,
         ),
         titleLarge: GoogleFonts.inter(
           fontWeight: FontWeight.w700,
-          color: NeoTasteColors.textPrimary,
+          color: AppColors.textPrimary,
           height: 1.3,
         ),
         titleMedium: GoogleFonts.inter(
           fontWeight: FontWeight.w600,
-          color: NeoTasteColors.textPrimary,
+          color: AppColors.textPrimary,
           height: 1.4,
         ),
         titleSmall: GoogleFonts.inter(
           fontWeight: FontWeight.w600,
-          color: NeoTasteColors.textPrimary,
+          color: AppColors.textPrimary,
           height: 1.4,
         ),
         bodyLarge: GoogleFonts.inter(
           fontWeight: FontWeight.w400,
-          color: NeoTasteColors.textPrimary,
+          color: AppColors.textPrimary,
           height: 1.5,
         ),
         bodyMedium: GoogleFonts.inter(
           fontWeight: FontWeight.w400,
-          color: NeoTasteColors.textPrimary,
+          color: AppColors.textPrimary,
           height: 1.5,
         ),
         bodySmall: GoogleFonts.inter(
           fontWeight: FontWeight.w400,
-          color: NeoTasteColors.textSecondary,
+          color: AppColors.textSecondary,
           height: 1.5,
         ),
         labelLarge: GoogleFonts.inter(
           fontWeight: FontWeight.w600,
-          color: NeoTasteColors.textPrimary,
+          color: AppColors.textPrimary,
         ),
         labelMedium: GoogleFonts.inter(
           fontWeight: FontWeight.w600,
-          color: NeoTasteColors.textPrimary,
+          color: AppColors.textPrimary,
         ),
         labelSmall: GoogleFonts.inter(
           fontWeight: FontWeight.w500,
-          color: NeoTasteColors.textSecondary,
+          color: AppColors.textSecondary,
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: NeoTasteColors.primaryBlue,
-          foregroundColor: NeoTasteColors.white,
+          backgroundColor: AppColors.primaryBlue,
+          foregroundColor: AppColors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
@@ -194,9 +194,9 @@ class ThemeProvider extends ChangeNotifier {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: NeoTasteColors.textPrimary,
+          foregroundColor: AppColors.textPrimary,
           side: BorderSide(
-            color: NeoTasteColors.textDisabled.withValues(alpha: 0.3),
+            color: AppColors.textDisabled.withValues(alpha: 0.3),
             width: 1,
           ),
           shape: RoundedRectangleBorder(
@@ -212,7 +212,7 @@ class ThemeProvider extends ChangeNotifier {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: NeoTasteColors.primaryBlue,
+          foregroundColor: AppColors.primaryBlue,
           textStyle: GoogleFonts.inter(
             fontWeight: FontWeight.w600,
             fontSize: 14,
@@ -223,7 +223,7 @@ class ThemeProvider extends ChangeNotifier {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: NeoTasteColors.white,
+        fillColor: AppColors.white,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 16,
@@ -231,37 +231,37 @@ class ThemeProvider extends ChangeNotifier {
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(
-            color: NeoTasteColors.textDisabled.withValues(alpha: 0.2),
+            color: AppColors.textDisabled.withValues(alpha: 0.2),
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(
-            color: NeoTasteColors.textDisabled.withValues(alpha: 0.2),
+            color: AppColors.textDisabled.withValues(alpha: 0.2),
           ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(
-            color: NeoTasteColors.primaryBlue,
+            color: AppColors.primaryBlue,
             width: 1.5,
           ),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: NeoTasteColors.error, width: 1),
+          borderSide: const BorderSide(color: AppColors.error, width: 1),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: NeoTasteColors.error, width: 1.5),
+          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
         ),
         hintStyle: GoogleFonts.inter(
-          color: NeoTasteColors.textDisabled,
+          color: AppColors.textDisabled,
           fontSize: 15,
           fontWeight: FontWeight.w400,
         ),
         labelStyle: GoogleFonts.inter(
-          color: NeoTasteColors.textSecondary,
+          color: AppColors.textSecondary,
           fontSize: 15,
           fontWeight: FontWeight.w500,
         ),

@@ -461,8 +461,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       backgroundColor: Colors.white,
       automaticallyImplyLeading: false,
       toolbarHeight: 60,
-      collapsedHeight: _isSearching ? 112 + topPadding : 70 + topPadding,
-      expandedHeight: _isSearching ? 112 + topPadding : 70 + topPadding,
+      collapsedHeight: _isSearching ? 112 + topPadding : 40 + topPadding,
+      expandedHeight: _isSearching ? 112 + topPadding : 40 + topPadding,
       stretch: false,
       flexibleSpace: FlexibleSpaceBar(
         background: Container(

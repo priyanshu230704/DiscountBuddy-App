@@ -96,6 +96,7 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F8FC),
       body: SafeArea(
+        bottom: false,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -202,11 +203,35 @@ class _ProfilePageState extends State<ProfilePage> {
 
               // Stats Grid
               if (!_authProvider.isMerchant) ...[
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Row(
+                SizedBox(
+                  height: 135,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    physics: const BouncingScrollPhysics(),
                     children: [
-                      Expanded(
+                      SizedBox(
+                        width: 120,
+                        child: _StatCard(
+                          icon: Icons.emoji_events,
+                          value: _stats?.userLevel ?? 'Bronze',
+                          label: 'Level',
+                          iconColor: const Color(0xFF8B5CF6),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      SizedBox(
+                        width: 120,
+                        child: _StatCard(
+                          icon: Icons.account_balance_wallet_rounded,
+                          value: '£${_stats?.moneySaved.toStringAsFixed(0) ?? '5'}',
+                          label: 'Saved',
+                          iconColor: const Color(0xFF8B5CF6),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      SizedBox(
+                        width: 120,
                         child: _StatCard(
                           icon: Icons.favorite,
                           value: _stats?.favouriteRestaurants.toString() ?? '2',
@@ -215,17 +240,8 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                       const SizedBox(width: 16),
-                      Expanded(
-                        child: _StatCard(
-                          icon: Icons.account_balance_wallet_rounded,
-                          value:
-                              '£${_stats?.moneySaved.toStringAsFixed(0) ?? '5'}',
-                          label: 'Saved',
-                          iconColor: const Color(0xFF8B5CF6),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
+                      SizedBox(
+                        width: 120,
                         child: _StatCard(
                           icon: Icons.local_offer,
                           value: _stats?.dealsClaimed.toString() ?? '2',
@@ -367,7 +383,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ],
                 ),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 120),
             ],
           ),
         ),
@@ -507,7 +523,7 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -521,9 +537,10 @@ class _StatCard extends StatelessWidget {
         ],
       ),
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: iconColor, size: 26),
-          const SizedBox(height: 12),
+          Icon(icon, color: iconColor, size: 28),
+          const SizedBox(height: 10),
           Text(
             value,
             style: GoogleFonts.inter(
@@ -531,6 +548,8 @@ class _StatCard extends StatelessWidget {
               fontWeight: FontWeight.w800,
               color: const Color(0xFF1B1436),
             ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
           Text(
@@ -541,6 +560,8 @@ class _StatCard extends StatelessWidget {
               color: const Color(0xFF6B7280),
             ),
             textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

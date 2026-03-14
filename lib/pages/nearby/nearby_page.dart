@@ -1043,28 +1043,6 @@ class _NearbyPageState extends State<NearbyPage>
             ),
           ),
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: AppColors.primaryPurple,
-            borderRadius: BorderRadius.circular(26),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.card_giftcard, color: Colors.white, size: 18),
-              const SizedBox(width: 8),
-              Text(
-                "Get €10",
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 12),
         InkWell(
           onTap: () {
             setState(() => _isSearching = true);

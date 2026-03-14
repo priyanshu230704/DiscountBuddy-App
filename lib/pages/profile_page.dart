@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../theme/app_fonts.dart';
 import '../providers/auth_provider.dart';
 import '../services/wallet_service.dart';
 import '../services/restaurant_service.dart';
@@ -106,7 +106,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
                 child: Text(
                   'Profile',
-                  style: GoogleFonts.inter(
+                  style: AppFonts.titleStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.w800,
                     color: const Color(0xFF1B1436),
@@ -156,7 +156,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         child: Center(
                           child: Text(
                             initials,
-                            style: GoogleFonts.inter(
+                            style: AppFonts.titleStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -171,7 +171,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           children: [
                             Text(
                               displayName,
-                              style: GoogleFonts.inter(
+                              style: AppFonts.titleStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w800,
                                 color: const Color(0xFF1B1436),
@@ -181,7 +181,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             const SizedBox(height: 4),
                             Text(
                               'Edit profile',
-                              style: GoogleFonts.inter(
+                              style: AppFonts.bodyStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
                                 color: const Color(0xFF6B7280),
@@ -288,7 +288,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               children: [
                                 Text(
                                   'Earn €10 for every\nfriend you invite!',
-                                  style: GoogleFonts.inter(
+                                  style: AppFonts.titleStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.w800,
                                     color: Colors.white,
@@ -322,7 +322,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   ),
                                   child: Text(
                                     'Invite friends',
-                                    style: GoogleFonts.inter(
+                                    style: AppFonts.bodyStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w700,
                                       color: Colors.white,
@@ -398,18 +398,18 @@ class _ProfilePageState extends State<ProfilePage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Text(
           'Logout',
-          style: GoogleFonts.inter(fontWeight: FontWeight.w800),
+          style: AppFonts.titleStyle(fontWeight: FontWeight.w800),
         ),
         content: Text(
           'Are you sure you want to logout?',
-          style: GoogleFonts.inter(fontWeight: FontWeight.w500),
+          style: AppFonts.bodyStyle(fontWeight: FontWeight.w500),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
               'Cancel',
-              style: GoogleFonts.inter(
+              style: AppFonts.bodyStyle(
                 color: const Color(0xFF6B7280),
                 fontWeight: FontWeight.w700,
               ),
@@ -425,7 +425,7 @@ class _ProfilePageState extends State<ProfilePage> {
             },
             child: Text(
               'Logout',
-              style: GoogleFonts.inter(
+              style: AppFonts.bodyStyle(
                 color: Colors.red,
                 fontWeight: FontWeight.w800,
               ),
@@ -484,7 +484,7 @@ class _MenuTile extends StatelessWidget {
             Expanded(
               child: Text(
                 title,
-                style: GoogleFonts.inter(
+                style: AppFonts.bodyStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
                   color: isDestructive
@@ -543,7 +543,7 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             value,
-            style: GoogleFonts.inter(
+            style: AppFonts.titleStyle(
               fontSize: 22,
               fontWeight: FontWeight.w800,
               color: const Color(0xFF1B1436),
@@ -554,7 +554,7 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             label,
-            style: GoogleFonts.inter(
+            style: AppFonts.bodyStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: const Color(0xFF6B7280),

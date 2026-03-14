@@ -3,7 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../theme/app_fonts.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'main_navigation.dart';
 import '../models/restaurant.dart';
@@ -417,7 +417,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
               const SizedBox(height: 16),
               Text(
                 _errorMessage ?? 'Failed to load restaurant',
-                style: GoogleFonts.inter(
+                style: AppFonts.bodyStyle(
                   fontSize: 16,
                   color: AppColors.textSecondary,
                 ),
@@ -526,7 +526,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                       Expanded(
                         child: Text(
                           restaurant.name,
-                          style: GoogleFonts.inter(
+                          style: AppFonts.titleStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary,
@@ -556,7 +556,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                               const SizedBox(width: 4),
                               Text(
                                 restaurant.leaderboardScore.toStringAsFixed(1),
-                                style: GoogleFonts.inter(
+                                style: AppFonts.titleStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.amber.shade800,
@@ -577,7 +577,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         children: [
                           Text(
                             restaurant.cuisine,
-                            style: GoogleFonts.inter(
+                            style: AppFonts.bodyStyle(
                               fontSize: 14,
                               color: AppColors.textPrimary,
                             ),
@@ -597,7 +597,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                           Flexible(
                             child: Text(
                               '${restaurant.address.split(',').first} (${dist.toStringAsFixed(2)} miles)',
-                              style: GoogleFonts.inter(
+                              style: AppFonts.bodyStyle(
                                 fontSize: 14,
                                 color: AppColors.textPrimary,
                               ),
@@ -612,14 +612,14 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         children: [
                           Text(
                             _getPriceRange(restaurant),
-                            style: GoogleFonts.inter(
+                            style: AppFonts.bodyStyle(
                               fontSize: 14,
                               color: AppColors.textPrimary,
                             ),
                           ),
                           Text(
                             ' ${_getOpeningHours(restaurant)}',
-                            style: GoogleFonts.inter(
+                            style: AppFonts.bodyStyle(
                               fontSize: 14,
                               color: AppColors.textPrimary,
                             ),
@@ -658,7 +658,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                   const SizedBox(width: 8),
                                   Text(
                                     'Menu',
-                                    style: GoogleFonts.inter(
+                                    style: AppFonts.titleStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
                                       color: AppColors.textPrimary,
@@ -784,7 +784,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             _activeVisit != null
                                 ? 'Mystery Audit'
                                 : 'Mystery Guest',
-                            style: GoogleFonts.inter(
+                            style: AppFonts.bodyStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                               color: Colors.blue.shade900,
@@ -822,7 +822,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     if (_activeVisit != null) ...[
                       Text(
                         'Complete your anonymous audit to help improve quality and earn rewards.',
-                        style: GoogleFonts.inter(
+                        style: AppFonts.bodyStyle(
                           fontSize: 13,
                           color: Colors.blue.shade700,
                         ),
@@ -870,7 +870,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                     const SizedBox(width: 6),
                                     Text(
                                       'Audit Submitted',
-                                      style: GoogleFonts.inter(
+                                      style: AppFonts.bodyStyle(
                                         fontWeight: FontWeight.w600,
                                         color: AppColors.success.withValues(
                                           alpha: 0.9,
@@ -885,14 +885,14 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                     children: [
                                       Text(
                                         'Overall Score: ',
-                                        style: GoogleFonts.inter(
+                                        style: AppFonts.bodyStyle(
                                           fontSize: 14,
                                           color: Colors.blue.shade700,
                                         ),
                                       ),
                                       Text(
                                         '${v.overallScore!.toStringAsFixed(1)}/100',
-                                        style: GoogleFonts.inter(
+                                        style: AppFonts.bodyStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.bold,
                                           color: Colors.blue.shade900,
@@ -907,7 +907,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     ] else ...[
                       Text(
                         'No audit is currently assigned for this restaurant. You can view and manage your visits from the dashboard.',
-                        style: GoogleFonts.inter(
+                        style: AppFonts.bodyStyle(
                           fontSize: 13,
                           color: Colors.blue.shade700,
                         ),
@@ -928,7 +928,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                     child: Text(
                       'Active Offers 📢',
-                      style: GoogleFonts.inter(
+                      style: AppFonts.bodyStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -985,7 +985,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     children: [
                       Text(
                         'Ratings & reviews',
-                        style: GoogleFonts.inter(
+                        style: AppFonts.bodyStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
@@ -1013,7 +1013,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         children: [
                           Text(
                             restaurant.rating.toStringAsFixed(1),
-                            style: GoogleFonts.inter(
+                            style: AppFonts.bodyStyle(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimary,
@@ -1045,7 +1045,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                   const SizedBox(height: 8),
                   Text(
                     '${restaurant.reviewCount} ratings | ${restaurant.reviewCount} reviews',
-                    style: GoogleFonts.inter(
+                    style: AppFonts.bodyStyle(
                       fontSize: 14,
                       color: AppColors.textSecondary,
                     ),
@@ -1058,7 +1058,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                       child: Center(
                         child: Text(
                           'No reviews yet',
-                          style: GoogleFonts.inter(
+                          style: AppFonts.bodyStyle(
                             fontSize: 14,
                             color: AppColors.textSecondary,
                           ),
@@ -1091,7 +1091,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                       const SizedBox(width: 8),
                       Text(
                         'Location',
-                        style: GoogleFonts.inter(
+                        style: AppFonts.bodyStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
@@ -1102,7 +1102,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                   const SizedBox(height: 8),
                   Text(
                     restaurant.address,
-                    style: GoogleFonts.inter(
+                    style: AppFonts.bodyStyle(
                       fontSize: 14,
                       color: AppColors.textPrimary,
                     ),
@@ -1112,7 +1112,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     const SizedBox(height: 4),
                     Text(
                       restaurant.postcode!,
-                      style: GoogleFonts.inter(
+                      style: AppFonts.bodyStyle(
                         fontSize: 14,
                         color: AppColors.textPrimary,
                       ),
@@ -1139,7 +1139,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             Expanded(
                               child: Text(
                                 restaurant.phoneNumber,
-                                style: GoogleFonts.inter(
+                                style: AppFonts.bodyStyle(
                                   fontSize: 14,
                                   color: AppColors.textPrimary,
                                 ),
@@ -1164,7 +1164,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             Expanded(
                               child: Text(
                                 restaurant.email!,
-                                style: GoogleFonts.inter(
+                                style: AppFonts.bodyStyle(
                                   fontSize: 14,
                                   color: AppColors.textPrimary,
                                 ),
@@ -1192,7 +1192,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                 },
                                 child: Text(
                                   restaurant.website,
-                                  style: GoogleFonts.inter(
+                                  style: AppFonts.bodyStyle(
                                     fontSize: 14,
                                     color: Colors.blue,
                                     decoration: TextDecoration.underline,
@@ -1338,7 +1338,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                   ),
                   child: Text(
                     'Book Table',
-                    style: GoogleFonts.inter(
+                    style: AppFonts.bodyStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: AppColors.primary,
@@ -1379,7 +1379,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                   ),
                   child: Text(
                     'Redeem Offer',
-                    style: GoogleFonts.inter(
+                    style: AppFonts.bodyStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -1433,7 +1433,7 @@ class _ReviewItem extends StatelessWidget {
               child: Center(
                 child: Text(
                   _getInitials(review.userName),
-                  style: GoogleFonts.inter(
+                  style: AppFonts.bodyStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textSecondary,
@@ -1450,7 +1450,7 @@ class _ReviewItem extends StatelessWidget {
                   // Name
                   Text(
                     review.userName,
-                    style: GoogleFonts.inter(
+                    style: AppFonts.bodyStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
@@ -1481,7 +1481,7 @@ class _ReviewItem extends StatelessWidget {
                       const SizedBox(width: 8),
                       Text(
                         review.timeAgo,
-                        style: GoogleFonts.inter(
+                        style: AppFonts.bodyStyle(
                           fontSize: 12,
                           color: AppColors.textSecondary,
                         ),
@@ -1506,7 +1506,7 @@ class _ReviewItem extends StatelessWidget {
                             const SizedBox(width: 4),
                             Text(
                               'Verified',
-                              style: GoogleFonts.inter(
+                              style: AppFonts.bodyStyle(
                                 fontSize: 12,
                                 color: AppColors.textSecondary,
                               ),
@@ -1520,7 +1520,7 @@ class _ReviewItem extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       review.comment!,
-                      style: GoogleFonts.inter(
+                      style: AppFonts.bodyStyle(
                         fontSize: 14,
                         color: AppColors.textPrimary,
                       ),
@@ -1578,7 +1578,7 @@ class _OfferCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   _getOfferTitle(),
-                  style: GoogleFonts.inter(
+                  style: AppFonts.bodyStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
@@ -1591,7 +1591,7 @@ class _OfferCard extends StatelessWidget {
           // Description
           Text(
             discount.description,
-            style: GoogleFonts.inter(
+            style: AppFonts.bodyStyle(
               fontSize: 14,
               color: AppColors.textPrimary,
             ),
@@ -1624,7 +1624,7 @@ class MenuPopup extends StatelessWidget {
               ? Center(
                   child: Text(
                     'No menu available',
-                    style: GoogleFonts.inter(
+                    style: AppFonts.bodyStyle(
                       fontSize: 14,
                       color: AppColors.textSecondary,
                     ),
@@ -1650,7 +1650,7 @@ class MenuPopup extends StatelessWidget {
                             children: [
                               Text(
                                 category.name,
-                                style: GoogleFonts.inter(
+                                style: AppFonts.bodyStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.textPrimary,
@@ -1660,7 +1660,7 @@ class MenuPopup extends StatelessWidget {
                                 const SizedBox(height: 4),
                                 Text(
                                   category.description,
-                                  style: GoogleFonts.inter(
+                                  style: AppFonts.bodyStyle(
                                     fontSize: 14,
                                     color: AppColors.textSecondary,
                                   ),
@@ -1715,7 +1715,7 @@ class _MenuItemCard extends StatelessWidget {
                 ), // Space for symbol + price
                 child: Text(
                   item.name,
-                  style: GoogleFonts.inter(
+                  style: AppFonts.bodyStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
@@ -1731,7 +1731,7 @@ class _MenuItemCard extends StatelessWidget {
                   ), // Space for symbol + price
                   child: Text(
                     item.description,
-                    style: GoogleFonts.inter(
+                    style: AppFonts.bodyStyle(
                       fontSize: 14,
                       color: AppColors.textSecondary,
                       height: 1.4,
@@ -1756,7 +1756,7 @@ class _MenuItemCard extends StatelessWidget {
                       ),
                       child: Text(
                         'VG',
-                        style: GoogleFonts.inter(
+                        style: AppFonts.bodyStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
                           color: AppColors.success,
@@ -1776,7 +1776,7 @@ class _MenuItemCard extends StatelessWidget {
                       ),
                       child: Text(
                         'GF',
-                        style: GoogleFonts.inter(
+                        style: AppFonts.bodyStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
                           color: Colors.blue,
@@ -1791,7 +1791,7 @@ class _MenuItemCard extends StatelessWidget {
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
                     'Currently unavailable',
-                    style: GoogleFonts.inter(
+                    style: AppFonts.bodyStyle(
                       fontSize: 12,
                       color: Colors.red,
                       fontStyle: FontStyle.italic,
@@ -1809,7 +1809,7 @@ class _MenuItemCard extends StatelessWidget {
               children: [
                 Text(
                   '£${item.price}',
-                  style: GoogleFonts.inter(
+                  style: AppFonts.bodyStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
@@ -1890,7 +1890,7 @@ class _OpeningHoursSection extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               'Opening Hours',
-              style: GoogleFonts.inter(
+              style: AppFonts.bodyStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
@@ -1930,7 +1930,7 @@ class _OpeningHoursSection extends StatelessWidget {
                   children: [
                     Text(
                       slot.dayName.substring(0, 3), // Mon, Tue, etc.
-                      style: GoogleFonts.inter(
+                      style: AppFonts.bodyStyle(
                         fontSize: 14,
                         fontWeight: isToday ? FontWeight.bold : FontWeight.w600,
                         color: isToday
@@ -1942,7 +1942,7 @@ class _OpeningHoursSection extends StatelessWidget {
                     if (slot.isClosed)
                       Text(
                         'Closed',
-                        style: GoogleFonts.inter(
+                        style: AppFonts.bodyStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                           color: Colors.red.shade400,
@@ -1951,7 +1951,7 @@ class _OpeningHoursSection extends StatelessWidget {
                     else ...[
                       Text(
                         slot.openingTime,
-                        style: GoogleFonts.inter(
+                        style: AppFonts.bodyStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textPrimary,
@@ -1960,7 +1960,7 @@ class _OpeningHoursSection extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         slot.closingTime,
-                        style: GoogleFonts.inter(
+                        style: AppFonts.bodyStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w500,
                           color: AppColors.textSecondary,
@@ -2027,7 +2027,7 @@ class _AddReviewDialogState extends State<_AddReviewDialog> {
     return AlertDialog(
       title: Text(
         'Write a Review',
-        style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+        style: AppFonts.bodyStyle(fontWeight: FontWeight.bold),
       ),
       content: SingleChildScrollView(
         child: Column(
@@ -2058,7 +2058,7 @@ class _AddReviewDialogState extends State<_AddReviewDialog> {
             const SizedBox(height: 16),
             Text(
               'Your Comment',
-              style: GoogleFonts.inter(
+              style: AppFonts.bodyStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -2068,7 +2068,7 @@ class _AddReviewDialogState extends State<_AddReviewDialog> {
               controller: _commentController,
               decoration: InputDecoration(
                 hintText: 'Share your experience...',
-                hintStyle: GoogleFonts.inter(color: Colors.grey),
+                hintStyle: AppFonts.bodyStyle(color: Colors.grey),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -2083,7 +2083,7 @@ class _AddReviewDialogState extends State<_AddReviewDialog> {
       actions: [
         TextButton(
           onPressed: _isSubmitting ? null : () => Navigator.pop(context),
-          child: Text('Cancel', style: GoogleFonts.inter(color: Colors.grey)),
+          child: Text('Cancel', style: AppFonts.bodyStyle(color: Colors.grey)),
         ),
         ElevatedButton(
           onPressed: _isSubmitting ? null : _handleSubmit,
@@ -2103,7 +2103,7 @@ class _AddReviewDialogState extends State<_AddReviewDialog> {
                     color: Colors.white,
                   ),
                 )
-              : Text('Submit', style: GoogleFonts.inter()),
+              : Text('Submit', style: AppFonts.bodyStyle()),
         ),
       ],
     );

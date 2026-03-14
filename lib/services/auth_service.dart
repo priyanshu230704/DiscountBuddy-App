@@ -94,6 +94,13 @@ class AuthService {
           final data = e.data as Map<String, dynamic>;
           if (data.containsKey('detail')) {
             errorMessage = data['detail'].toString();
+          } else if (data.containsKey('email')) {
+            final emailErrors = data['email'];
+            if (emailErrors is List && emailErrors.isNotEmpty) {
+              errorMessage = emailErrors.first.toString();
+            } else {
+              errorMessage = emailErrors.toString();
+            }
           }
         }
         throw ApiException(
@@ -106,7 +113,37 @@ class AuthService {
     }
   }
 
-  /// Stage 2: Verify OTP and create account
+  /// Stage 2: Verify OTP
+  Future<void> verifyOtp({
+    required String email,
+    required String otp,
+  }) async {
+    try {
+      await _apiService.post(
+        ApiEndpoints.verifyOtp,
+        body: {'email': email, 'otp': otp},
+        type: ApiType.user,
+      );
+    } catch (e) {
+      if (e is ApiException) {
+        String errorMessage = 'OTP verification failed';
+        if (e.data != null) {
+          final data = e.data as Map<String, dynamic>;
+          if (data.containsKey('detail')) {
+            errorMessage = data['detail'].toString();
+          }
+        }
+        throw ApiException(
+          errorMessage,
+          statusCode: e.statusCode,
+          data: e.data,
+        );
+      }
+      rethrow;
+    }
+  }
+
+  /// Stage 3: Verify OTP and create account
   Future<RegisterResponse> registerComplete({
     required String email,
     required String otp,

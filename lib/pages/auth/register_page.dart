@@ -1,7 +1,7 @@
 import 'package:discount_buddy/theme/app_colors.dart';
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../theme/app_fonts.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/auth/auth_theme.dart';
 import '../../widgets/auth/auth_text_field.dart';
@@ -35,7 +35,7 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _obscureConfirmPassword = true;
 
   // State
-  int _currentStep = 0; // 0: Request OTP, 1: Complete Registration
+  int _currentStep = 0; // 0: Request OTP, 1: Verify OTP, 2: Create Password
   bool _isLoading = false;
   bool _isFormValid = false;
 
@@ -80,10 +80,12 @@ class _RegisterPageState extends State<RegisterPage> {
           _selectedRole.isNotEmpty &&
           _agreeToTerms &&
           RegExp(r'^[a-zA-Z0-9.@]*$').hasMatch(_emailController.text);
+    } else if (_currentStep == 1) {
+      // Step 2: OTP
+      isValid = _otpController.text.length == 4;
     } else {
-      // Step 2: OTP + Password
+      // Step 3: Password
       isValid =
-          _otpController.text.length == 4 &&
           _passwordController.text.length >= 6 &&
           _confirmPasswordController.text == _passwordController.text;
     }
@@ -162,7 +164,7 @@ class _RegisterPageState extends State<RegisterPage> {
           setState(() {
             _currentStep = 1;
             // Reset validation for next step
-            _isFormValid = false;
+            _validateForm();
           });
           // Auto-focus OTP field
           Future.delayed(Duration(milliseconds: 300), () {
@@ -181,6 +183,22 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             );
           }
+        }
+      } else if (_currentStep == 1) {
+        // Verify OTP via Stage 2 Endpoint
+        final success = await _authProvider!.verifyOtp(
+          email: _emailController.text.trim(),
+          otp: _otpController.text.trim(),
+        );
+
+        if (success) {
+          setState(() {
+            _currentStep = 2;
+            _validateForm();
+          });
+          Future.delayed(Duration(milliseconds: 300), () {
+            if (mounted) _passwordFocusNode.requestFocus();
+          });
         }
       } else {
         // Verify & Complete
@@ -351,8 +369,10 @@ class _RegisterPageState extends State<RegisterPage> {
                                       ),
                                       onPressed: () {
                                         setState(() {
-                                          _currentStep = 0;
-                                          _validateForm();
+                                          if (_currentStep > 0) {
+                                            _currentStep--;
+                                            _validateForm();
+                                          }
                                         });
                                       },
                                     ),
@@ -407,9 +427,11 @@ class _RegisterPageState extends State<RegisterPage> {
                             Text(
                               _currentStep == 0
                                   ? 'Create your account'
-                                  : 'Verify your account',
+                                  : _currentStep == 1
+                                      ? 'Verify your account'
+                                      : 'Set a password',
                               textAlign: TextAlign.center,
-                              style: GoogleFonts.outfit(
+                              style: AppFonts.titleStyle(
                                 fontSize: 34,
                                 fontWeight: FontWeight.w800,
                                 color: AppColors.textPrimary,
@@ -420,9 +442,11 @@ class _RegisterPageState extends State<RegisterPage> {
                             Text(
                               _currentStep == 0
                                   ? 'Join DiscountBuddy and unlock local offers.'
-                                  : 'Enter the OTP and set your password.',
+                                  : _currentStep == 1
+                                      ? 'Enter the OTP sent to your email.'
+                                      : 'Create a secure password to finish.',
                               textAlign: TextAlign.center,
-                              style: GoogleFonts.plusJakartaSans(
+                              style: AppFonts.bodyStyle(
                                 fontSize: 14,
                                 color: AppColors.textSecondary,
                                 fontWeight: FontWeight.w600,
@@ -479,7 +503,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                     const SizedBox(height: 18),
                                     Text(
                                       'Choose account type',
-                                      style: GoogleFonts.plusJakartaSans(
+                                      style: AppFonts.bodyStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w700,
                                         color: AppColors.textPrimary,
@@ -566,7 +590,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                             child: Text(
                                               'I agree to the Terms of Service and Privacy Policy',
                                               style:
-                                                  GoogleFonts.plusJakartaSans(
+                                                  AppFonts.bodyStyle(
                                                     fontSize: 13,
                                                     fontWeight: FontWeight.w600,
                                                     color:
@@ -578,7 +602,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                         ],
                                       ),
                                     ),
-                                  ] else ...[
+                                  ] else if (_currentStep == 1) ...[
                                     Container(
                                       padding: const EdgeInsets.all(12),
                                       decoration: BoxDecoration(
@@ -588,7 +612,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                       ),
                                       child: Text(
                                         'Code sent to ${_emailController.text}',
-                                        style: GoogleFonts.plusJakartaSans(
+                                        style: AppFonts.bodyStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w700,
                                           color: AppColors.primaryPurple,
@@ -617,7 +641,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                         return null;
                                       },
                                     ),
-                                    const SizedBox(height: 14),
+                                  ] else if (_currentStep == 2) ...[
                                     AuthTextField(
                                       controller: _passwordController,
                                       placeholder: 'Create Password',
@@ -719,9 +743,11 @@ class _RegisterPageState extends State<RegisterPage> {
                                             : Text(
                                                 _currentStep == 0
                                                     ? 'Send Verification Code'
-                                                    : 'Complete Registration',
+                                                    : _currentStep == 1
+                                                        ? 'Verify Code'
+                                                        : 'Complete Registration',
                                                 style:
-                                                    GoogleFonts.plusJakartaSans(
+                                                    AppFonts.bodyStyle(
                                                       color: Colors.white,
                                                       fontSize: 16,
                                                       fontWeight:
@@ -748,7 +774,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                           ),
                                           child: Text(
                                             'OR',
-                                            style: GoogleFonts.plusJakartaSans(
+                                            style: AppFonts.bodyStyle(
                                               color: AppColors.textDisabled,
                                               fontWeight: FontWeight.w700,
                                               fontSize: 12,
@@ -796,7 +822,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                           const SizedBox(width: 10),
                                           Text(
                                             'Continue with Google',
-                                            style: GoogleFonts.plusJakartaSans(
+                                            style: AppFonts.bodyStyle(
                                               color: const Color(0xFF1D1930),
                                               fontWeight: FontWeight.w700,
                                               fontSize: 14,
@@ -812,7 +838,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                     children: [
                                       Text(
                                         'Already have an account?',
-                                        style: GoogleFonts.plusJakartaSans(
+                                        style: AppFonts.bodyStyle(
                                           color: AppColors.textSecondary,
                                           fontSize: 14,
                                           fontWeight: FontWeight.w500,
@@ -867,7 +893,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                         },
                                         child: Text(
                                           'Log in',
-                                          style: GoogleFonts.plusJakartaSans(
+                                          style: AppFonts.bodyStyle(
                                             color: AppColors.primaryPurple,
                                             fontWeight: FontWeight.w800,
                                             fontSize: 14,
@@ -928,7 +954,7 @@ class _RegisterPageState extends State<RegisterPage> {
             const SizedBox(height: 8),
             Text(
               label,
-              style: GoogleFonts.plusJakartaSans(
+              style: AppFonts.bodyStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
                 color: isSelected

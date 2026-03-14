@@ -2,6 +2,7 @@ class ApiEndpoints {
   // Auth Routes
   static const String register = '/users/register';
   static const String registerInit = '/users/register/init';
+  static const String verifyOtp = '/users/register/verify-otp';
   static const String registerComplete = '/users/register/complete';
   static const String login = '/users/token';
   static const String refreshToken = '/users/token/refresh';

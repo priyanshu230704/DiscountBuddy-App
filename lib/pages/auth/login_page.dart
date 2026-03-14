@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../theme/app_fonts.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/auth/auth_theme.dart';
 import 'register_page.dart';
@@ -298,7 +298,7 @@ class _LoginPageState extends State<LoginPage> {
                                     Text(
                                       'Welcome back',
                                       textAlign: TextAlign.center,
-                                      style: GoogleFonts.outfit(
+                                      style: AppFonts.titleStyle(
                                         color:  Color(0xFF1B1436),
                                         fontSize: (isKeyboardOpen ? 24 : 32) * scale,
                                         fontWeight: FontWeight.w800,
@@ -311,7 +311,7 @@ class _LoginPageState extends State<LoginPage> {
                                       Text(
                                         'Ready for amazing deals? 🍜\nLog in and start exploring now.',
                                         textAlign: TextAlign.center,
-                                        style: GoogleFonts.plusJakartaSans(
+                                        style: AppFonts.bodyStyle(
                                           color:  Color(0xFF5F567A).withValues(alpha: 0.8),
                                           fontSize: 16 * scale,
                                           height: 1.3,
@@ -394,7 +394,7 @@ class _LoginPageState extends State<LoginPage> {
                                               ),
                                               child: Text(
                                                 'Forgot password?',
-                                                style: GoogleFonts.plusJakartaSans(
+                                                style: AppFonts.bodyStyle(
                                                   color:  Color(0xFF8B5CF6),
                                                   fontWeight: FontWeight.w700,
                                                   fontSize: 13 * scale,
@@ -443,7 +443,7 @@ class _LoginPageState extends State<LoginPage> {
                                                     )
                                                   : Text(
                                                       'Log In',
-                                                      style: GoogleFonts.outfit(
+                                                      style: AppFonts.titleStyle(
                                                         color: Colors.white,
                                                         fontSize: 18 * scale,
                                                         fontWeight: FontWeight.w700,
@@ -459,7 +459,7 @@ class _LoginPageState extends State<LoginPage> {
                                                 padding: const EdgeInsets.symmetric(horizontal: 16),
                                                 child: Text(
                                                   'OR',
-                                                  style: GoogleFonts.plusJakartaSans(
+                                                  style: AppFonts.bodyStyle(
                                                     color:  Color(0xFFA7A0BB),
                                                     fontWeight: FontWeight.w700,
                                                     fontSize: 12 * scale,
@@ -491,7 +491,7 @@ class _LoginPageState extends State<LoginPage> {
                                                  SizedBox(width: 10),
                                                 Text(
                                                   'Continue with Google',
-                                                  style: GoogleFonts.plusJakartaSans(
+                                                  style: AppFonts.bodyStyle(
                                                     color:  Color(0xFF1D1930),
                                                     fontWeight: FontWeight.w700,
                                                     fontSize: 14 * scale,
@@ -507,7 +507,7 @@ class _LoginPageState extends State<LoginPage> {
                                             children: [
                                               Text(
                                                 'New here?',
-                                                style: GoogleFonts.plusJakartaSans(
+                                                style: AppFonts.bodyStyle(
                                                   color:  Color(0xFF5F567A).withValues(alpha: 0.7),
                                                   fontSize: 14 * scale,
                                                   fontWeight: FontWeight.w500,
@@ -527,7 +527,7 @@ class _LoginPageState extends State<LoginPage> {
                                                 ),
                                                 child: Text(
                                                   'Create account',
-                                                  style: GoogleFonts.plusJakartaSans(
+                                                  style: AppFonts.bodyStyle(
                                                     color:  Color(0xFF8B5CF6),
                                                     fontWeight: FontWeight.w800,
                                                     fontSize: 14 * scale,
@@ -563,7 +563,7 @@ class _LoginPageState extends State<LoginPage> {
                                              SizedBox(width: 6),
                                             Text(
                                               'Trending Deal Today',
-                                              style: GoogleFonts.outfit(
+                                              style: AppFonts.titleStyle(
                                                 color:  Color(0xFF3A2F55),
                                                 fontSize: 13 * scale,
                                                 fontWeight: FontWeight.w700,
@@ -574,7 +574,7 @@ class _LoginPageState extends State<LoginPage> {
                                          SizedBox(height: 2),
                                         Text(
                                           '50% off sushi near you',
-                                          style: GoogleFonts.plusJakartaSans(
+                                          style: AppFonts.bodyStyle(
                                             color:  Color(0xFF2C2343),
                                             fontSize: 15 * scale,
                                             fontWeight: FontWeight.w800,
@@ -619,14 +619,14 @@ class _LoginPageState extends State<LoginPage> {
       focusNode: focusNode,
       keyboardType: keyboardType,
       obscureText: obscureText,
-      style: GoogleFonts.plusJakartaSans(
+      style: AppFonts.bodyStyle(
         color:  Color(0xFF2E2648),
         fontSize: 16 * scale,
         fontWeight: FontWeight.w600,
       ),
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: GoogleFonts.plusJakartaSans(
+        hintStyle: AppFonts.bodyStyle(
           color:  Color(0xFF9C94B2),
           fontSize: 16 * scale,
           fontWeight: FontWeight.w500,

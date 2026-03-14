@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../theme/app_fonts.dart';
 
 /// Discount Buddy – Clean, Modern, Premium Design System
 class AppColors {
@@ -66,7 +66,8 @@ class ThemeProvider extends ChangeNotifier {
         backgroundColor: AppColors.background,
         foregroundColor: AppColors.textPrimary,
         surfaceTintColor: Colors.transparent,
-        titleTextStyle: GoogleFonts.inter(
+        titleTextStyle: const TextStyle(
+          fontFamily: AppFonts.titleFont,
           color: AppColors.textPrimary,
           fontSize: 24, // Clear hierarchy
           fontWeight: FontWeight.w700,
@@ -98,80 +99,95 @@ class ThemeProvider extends ChangeNotifier {
           fontWeight: FontWeight.w500,
         ),
       ),
-      textTheme: GoogleFonts.interTextTheme().copyWith(
-        displayLarge: GoogleFonts.inter(
+      textTheme: const TextTheme().copyWith(
+        displayLarge: const TextStyle(
+          fontFamily: AppFonts.titleFont,
           fontWeight: FontWeight.w800,
           color: AppColors.textPrimary,
           height: 1.1,
           letterSpacing: -1,
         ),
-        displayMedium: GoogleFonts.inter(
+        displayMedium: const TextStyle(
+          fontFamily: AppFonts.titleFont,
           fontWeight: FontWeight.w800,
           color: AppColors.textPrimary,
           height: 1.1,
           letterSpacing: -0.5,
         ),
-        displaySmall: GoogleFonts.inter(
+        displaySmall: const TextStyle(
+          fontFamily: AppFonts.titleFont,
           fontWeight: FontWeight.w700,
           color: AppColors.textPrimary,
           height: 1.2,
         ),
-        headlineLarge: GoogleFonts.inter(
-          fontWeight: FontWeight.w700,
-          color: AppColors.textPrimary,
-          height: 1.2,
-          letterSpacing: -0.5,
-        ),
-        headlineMedium: GoogleFonts.inter(
+        headlineLarge: const TextStyle(
+          fontFamily: AppFonts.titleFont,
           fontWeight: FontWeight.w700,
           color: AppColors.textPrimary,
           height: 1.2,
           letterSpacing: -0.5,
         ),
-        headlineSmall: GoogleFonts.inter(
+        headlineMedium: const TextStyle(
+          fontFamily: AppFonts.titleFont,
+          fontWeight: FontWeight.w700,
+          color: AppColors.textPrimary,
+          height: 1.2,
+          letterSpacing: -0.5,
+        ),
+        headlineSmall: const TextStyle(
+          fontFamily: AppFonts.titleFont,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
           height: 1.3,
         ),
-        titleLarge: GoogleFonts.inter(
+        titleLarge: const TextStyle(
+          fontFamily: AppFonts.titleFont,
           fontWeight: FontWeight.w700,
           color: AppColors.textPrimary,
           height: 1.3,
         ),
-        titleMedium: GoogleFonts.inter(
+        titleMedium: const TextStyle(
+          fontFamily: AppFonts.titleFont,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
           height: 1.4,
         ),
-        titleSmall: GoogleFonts.inter(
+        titleSmall: const TextStyle(
+          fontFamily: AppFonts.titleFont,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
           height: 1.4,
         ),
-        bodyLarge: GoogleFonts.inter(
+        bodyLarge: const TextStyle(
+          fontFamily: AppFonts.bodyFont,
           fontWeight: FontWeight.w400,
           color: AppColors.textPrimary,
           height: 1.5,
         ),
-        bodyMedium: GoogleFonts.inter(
+        bodyMedium: const TextStyle(
+          fontFamily: AppFonts.bodyFont,
           fontWeight: FontWeight.w400,
           color: AppColors.textPrimary,
           height: 1.5,
         ),
-        bodySmall: GoogleFonts.inter(
+        bodySmall: const TextStyle(
+          fontFamily: AppFonts.bodyFont,
           fontWeight: FontWeight.w400,
           color: AppColors.textSecondary,
           height: 1.5,
         ),
-        labelLarge: GoogleFonts.inter(
+        labelLarge: const TextStyle(
+          fontFamily: AppFonts.bodyFont,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
-        labelMedium: GoogleFonts.inter(
+        labelMedium: const TextStyle(
+          fontFamily: AppFonts.bodyFont,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
-        labelSmall: GoogleFonts.inter(
+        labelSmall: const TextStyle(
+          fontFamily: AppFonts.bodyFont,
           fontWeight: FontWeight.w500,
           color: AppColors.textSecondary,
         ),
@@ -185,7 +201,8 @@ class ThemeProvider extends ChangeNotifier {
             borderRadius: BorderRadius.circular(14),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          textStyle: GoogleFonts.inter(
+          textStyle: const TextStyle(
+            fontFamily: AppFonts.buttonFont,
             fontWeight: FontWeight.w600,
             fontSize: 16,
             letterSpacing: -0.1,
@@ -203,7 +220,8 @@ class ThemeProvider extends ChangeNotifier {
             borderRadius: BorderRadius.circular(14),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          textStyle: GoogleFonts.inter(
+          textStyle: const TextStyle(
+            fontFamily: AppFonts.buttonFont,
             fontWeight: FontWeight.w600,
             fontSize: 16,
             letterSpacing: -0.1,
@@ -213,7 +231,8 @@ class ThemeProvider extends ChangeNotifier {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primaryBlue,
-          textStyle: GoogleFonts.inter(
+          textStyle: const TextStyle(
+            fontFamily: AppFonts.buttonFont,
             fontWeight: FontWeight.w600,
             fontSize: 14,
           ),
@@ -255,12 +274,14 @@ class ThemeProvider extends ChangeNotifier {
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: AppColors.error, width: 1.5),
         ),
-        hintStyle: GoogleFonts.inter(
+        hintStyle: const TextStyle(
+          fontFamily: AppFonts.inputFont,
           color: AppColors.textDisabled,
           fontSize: 15,
           fontWeight: FontWeight.w400,
         ),
-        labelStyle: GoogleFonts.inter(
+        labelStyle: const TextStyle(
+          fontFamily: AppFonts.inputFont,
           color: AppColors.textSecondary,
           fontSize: 15,
           fontWeight: FontWeight.w500,

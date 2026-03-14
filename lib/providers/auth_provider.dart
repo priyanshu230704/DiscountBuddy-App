@@ -123,7 +123,29 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Stage 2: Verify OTP and create account
+  /// Stage 2: Verify OTP
+  Future<bool> verifyOtp({
+    required String email,
+    required String otp,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _authService.verifyOtp(email: email, otp: otp);
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Stage 3: Complete registration and create account (with password)
   Future<bool> registerComplete({
     required String email,
     required String otp,

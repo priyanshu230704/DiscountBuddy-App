@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:geolocator/geolocator.dart'
     hide LocationServiceDisabledException;
@@ -15,6 +14,7 @@ import '../restaurant_details_page.dart';
 import '../notifications_page.dart';
 import '../../widgets/city_selector_modal.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_fonts.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -45,8 +45,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   int _notificationCount = 0;
   StreamSubscription<RemoteMessage>? _notificationSubscription;
 
-  double _userLatitude = 0;
-  double _userLongitude = 0;
+  double? _userLatitude;
+  double? _userLongitude;
 
   HomeFilter? _activeFilter = HomeFilter.offers;
 
@@ -94,9 +94,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // If we are currently on fallback (coords are 0 or London), try to get real location
-      if (_userLatitude == 0 ||
-          (_userLatitude == 51.5074 && _userLongitude == -0.1278)) {
+      // If we are currently on fallback or no location, try to get real location
+      if (_userLatitude == null || _userLongitude == null) {
         _onReturnedFromSettings();
       }
     }
@@ -116,12 +115,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         await _loadRestaurants();
       }
     } catch (_) {
-      debugPrint('📍 Still no location after settings, using defaults');
+      debugPrint('📍 Still no location after settings, proceeding without it');
       if (mounted) {
         setState(() {
-          _userLatitude = 51.5074;
-          _userLongitude = -0.1278;
-          _cityName = 'London';
+          _userLatitude = null;
+          _userLongitude = null;
         });
         await _loadRestaurants();
       }
@@ -164,7 +162,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     } on LocationServiceDisabledException {
       debugPrint('📍 Location services disabled');
       if (mounted) {
-        setState(() => _cityName = 'Location Off');
+        setState(() {
+          _cityName = 'Location Off';
+          _userLatitude = null;
+          _userLongitude = null;
+        });
         _promptToEnableLocation(
           'Location services are off.',
           isServiceOff: true,
@@ -173,19 +175,22 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     } on LocationPermissionDeniedException {
       debugPrint('📍 Location permission denied');
       if (mounted) {
-        setState(() => _cityName = 'No Permission');
+        setState(() {
+          _cityName = 'No Permission';
+          _userLatitude = null;
+          _userLongitude = null;
+        });
         _promptToEnableLocation(
           'Location permission denied.',
           isServiceOff: false,
         );
       }
     } catch (e) {
-      debugPrint('📍 Location unavailable, using defaults: $e');
+      debugPrint('📍 Location unavailable: $e');
       if (mounted) {
         setState(() {
-          _userLatitude = 51.5074;
-          _userLongitude = -0.1278;
-          _cityName = 'London';
+          _userLatitude = null;
+          _userLongitude = null;
         });
       }
     } finally {
@@ -329,8 +334,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       } else {
         // Use real user coordinates from location permission
         final restaurants = await _restaurantService.getNearbyRestaurants(
-          latitude: _userLatitude,
-          longitude: _userLongitude,
+          latitude: _userLatitude ?? 51.5074,
+          longitude: _userLongitude ?? -0.1278,
         );
 
         if (!mounted) return;
@@ -519,7 +524,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                           children: [
                             Text(
                               "Discount",
-                              style: GoogleFonts.outfit(
+                              style: AppFonts.titleStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w800,
                                 height: 1.0,
@@ -531,7 +536,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                             ),
                             Text(
                               "Buddy",
-                              style: GoogleFonts.outfit(
+                              style: AppFonts.titleStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w800,
                                 height: 1.0,
@@ -548,16 +553,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       // Location selector
                       GestureDetector(
                         onTap: () {
-                          if (_cityName == 'Location Off' ||
-                              _cityName == 'No Permission') {
-                            _promptToEnableLocation(
-                              _cityName == 'Location Off'
-                                  ? 'Location services are disabled'
-                                  : 'Location permission is denied',
-                              isServiceOff: _cityName == 'Location Off',
-                            );
-                            return;
-                          }
                           showModalBottomSheet(
                             context: context,
                             isScrollControlled: true,
@@ -565,7 +560,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                             builder: (context) => CitySelectorModal(
                               selectedCity: _cityName,
                               onCitySelected: (city) {
-                                setState(() => _cityName = city.name);
+                                setState(() {
+                                  _cityName = city.name;
+                                  _userLatitude = city.latitude;
+                                  _userLongitude = city.longitude;
+                                });
                                 _loadRestaurants();
                               },
                             ),
@@ -598,7 +597,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                               const SizedBox(width: 3),
                               Text(
                                 _cityName,
-                                style: GoogleFonts.inter(
+                                style: AppFonts.bodyStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,
                                   color: textPrimary,
@@ -761,7 +760,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               : _activeFilter == HomeFilter.nearest
               ? "Best Near You"
               : "Top Rated Restaurants",
-          style: GoogleFonts.inter(
+          style: AppFonts.titleStyle(
             fontSize: 20,
             fontWeight: FontWeight.w900,
             color: textPrimary,
@@ -857,13 +856,13 @@ class _SearchBar extends StatelessWidget {
               focusNode: focusNode,
               decoration: InputDecoration(
                 hintText: "Search restaurants, cuisines...",
-                hintStyle: GoogleFonts.inter(
+                hintStyle: AppFonts.bodyStyle(
                   fontSize: 13,
                   color: const Color(0xFF9CA3AF),
                 ),
                 border: InputBorder.none,
               ),
-              style: GoogleFonts.inter(
+              style: AppFonts.bodyStyle(
                 fontSize: 13,
                 color: const Color(0xFF111827),
               ),
@@ -935,7 +934,7 @@ class _FilterChipX extends StatelessWidget {
               children: [
                 Text(
                   text,
-                  style: GoogleFonts.inter(
+                  style: AppFonts.bodyStyle(
                     fontSize: 13.5,
                     fontWeight: FontWeight.bold,
                     color: active ? Colors.white : const Color(0xFF4B5563),
@@ -1006,7 +1005,7 @@ class _GradientBanner extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: GoogleFonts.outfit(
+                        style: AppFonts.titleStyle(
                           fontSize: 22,
                           height: 1.1,
                           fontWeight: FontWeight.w800,
@@ -1019,7 +1018,7 @@ class _GradientBanner extends StatelessWidget {
                       const SizedBox(height: 10),
                       Text(
                         subtitle,
-                        style: GoogleFonts.inter(
+                        style: AppFonts.bodyStyle(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w500,
                           height: 1.3,
@@ -1044,7 +1043,7 @@ class _GradientBanner extends StatelessWidget {
                         ),
                         child: Text(
                           "Explore Now",
-                          style: GoogleFonts.inter(
+                          style: AppFonts.bodyStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
@@ -1110,7 +1109,7 @@ class _GradientBanner extends StatelessWidget {
                   const SizedBox(width: 5),
                   Text(
                     "LIVE DEALS",
-                    style: GoogleFonts.outfit(
+                    style: AppFonts.titleStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w900,
                       color: const Color(0xFFF97316),
@@ -1255,7 +1254,7 @@ class _FeedTile extends StatelessWidget {
                         children: [
                           Text(
                             discountText,
-                            style: GoogleFonts.outfit(
+                            style: AppFonts.titleStyle(
                               fontSize: 17,
                               fontWeight: FontWeight.w900,
                               color: Colors.white,
@@ -1264,7 +1263,7 @@ class _FeedTile extends StatelessWidget {
                           ),
                           Text(
                             "Limited Time",
-                            style: GoogleFonts.inter(
+                            style: AppFonts.bodyStyle(
                               fontSize: 10.5,
                               fontWeight: FontWeight.w600,
                               color: Colors.white.withValues(alpha: 0.95),
@@ -1289,7 +1288,7 @@ class _FeedTile extends StatelessWidget {
                         Expanded(
                           child: Text(
                             restaurant.name,
-                            style: GoogleFonts.outfit(
+                            style: AppFonts.titleStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w800,
                               color: const Color(0xFF1B1436),
@@ -1323,7 +1322,7 @@ class _FeedTile extends StatelessWidget {
                           ),
                           child: Text(
                             "Reserve a Table",
-                            style: GoogleFonts.inter(
+                            style: AppFonts.bodyStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -1346,7 +1345,7 @@ class _FeedTile extends StatelessWidget {
                         const SizedBox(width: 3),
                         Text(
                           restaurant.rating.toStringAsFixed(1),
-                          style: GoogleFonts.inter(
+                          style: AppFonts.bodyStyle(
                             fontSize: 11.5,
                             fontWeight: FontWeight.w800,
                             color: const Color(0xFF1B1436),
@@ -1372,7 +1371,7 @@ class _FeedTile extends StatelessWidget {
                             "${restaurant.reviewCount} reviews",
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.inter(
+                            style: AppFonts.bodyStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w400,
                               color: const Color(0xFF6B7280),
@@ -1390,7 +1389,7 @@ class _FeedTile extends StatelessWidget {
                         Expanded(
                           child: Text(
                             "Use code BUDDY$numeric to get ${discountText.toLowerCase()}",
-                            style: GoogleFonts.inter(
+                            style: AppFonts.bodyStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
                               color: const Color(0xFF4B5563),
@@ -1410,7 +1409,7 @@ class _FeedTile extends StatelessWidget {
                           "${dist.toStringAsFixed(1)} miles away",
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.inter(
+                          style: AppFonts.bodyStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: const Color(0xFF4B5563),

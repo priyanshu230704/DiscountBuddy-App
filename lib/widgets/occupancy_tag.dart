@@ -1,5 +1,5 @@
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class OccupancyTag extends StatelessWidget {
   final String? occupancy;
@@ -46,7 +46,7 @@ class OccupancyTag extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: GoogleFonts.inter(
+        style: AppFonts.bodyStyle(
           fontSize: isSmall ? 10 : 12,
           fontWeight: FontWeight.bold,
           color: textColor,

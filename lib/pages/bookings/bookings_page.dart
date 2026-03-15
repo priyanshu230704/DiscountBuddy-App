@@ -1,8 +1,8 @@
 import 'package:discount_buddy/theme/app_colors.dart';
 
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../models/deal_redemption.dart';
 import '../../services/restaurant_service.dart';
@@ -117,12 +117,12 @@ class _BookingsPageState extends State<BookingsPage>
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+                padding: const EdgeInsets.fromLTRB(16, 16, 20, 0),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
                     'My Activity',
-                    style: GoogleFonts.outfit(
+                    style: AppFonts.titleStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w800,
                       color: AppColors.textPrimary,
@@ -140,7 +140,7 @@ class _BookingsPageState extends State<BookingsPage>
                 unselectedLabelColor: AppColors.textSecondary,
                 indicatorColor: AppColors.primaryPurple,
                 indicatorWeight: 3,
-                labelStyle: GoogleFonts.inter(
+                labelStyle: AppFonts.bodyStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                 ),
@@ -223,7 +223,7 @@ class _ReservationEmptyTab extends StatelessWidget {
                 const SizedBox(height: 14),
                 Text(
                   'No reservations yet 🍽',
-                  style: GoogleFonts.outfit(
+                  style: AppFonts.titleStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
@@ -233,7 +233,7 @@ class _ReservationEmptyTab extends StatelessWidget {
                 Text(
                   'Find a restaurant and book a table in seconds.',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(
+                  style: AppFonts.bodyStyle(
                     fontSize: 15,
                     color: AppColors.textSecondary,
                   ),
@@ -269,7 +269,7 @@ class _ReservationEmptyTab extends StatelessWidget {
                     ),
                     child: Text(
                       'Explore Restaurants',
-                      style: GoogleFonts.inter(
+                      style: AppFonts.bodyStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -285,7 +285,7 @@ class _ReservationEmptyTab extends StatelessWidget {
             children: [
               Text(
                 '🔥 Trending Near You',
-                style: GoogleFonts.outfit(
+                style: AppFonts.titleStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
                   color: AppColors.textPrimary,
@@ -386,14 +386,14 @@ class _TrendingCard extends StatelessWidget {
                       children: [
                         Text(
                           item.discountLabel,
-                          style: GoogleFonts.inter(
+                          style: AppFonts.bodyStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
                         Text(
                           'Limited Time',
-                          style: GoogleFonts.inter(
+                          style: AppFonts.bodyStyle(
                             color: Colors.white.withValues(alpha: 0.95),
                             fontSize: 11,
                           ),
@@ -414,7 +414,7 @@ class _TrendingCard extends StatelessWidget {
                   item.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.outfit(
+                  style: AppFonts.titleStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
@@ -427,7 +427,7 @@ class _TrendingCard extends StatelessWidget {
                     const SizedBox(width: 4),
                     Text(
                       item.rating.toStringAsFixed(1),
-                      style: GoogleFonts.inter(
+                      style: AppFonts.bodyStyle(
                         fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary,
                       ),
@@ -435,7 +435,7 @@ class _TrendingCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     Text(
                       '${item.reviews} reviews',
-                      style: GoogleFonts.inter(color: AppColors.textSecondary),
+                      style: AppFonts.bodyStyle(color: AppColors.textSecondary),
                     ),
                   ],
                 ),
@@ -445,7 +445,7 @@ class _TrendingCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         'Use code ${item.code}',
-                        style: GoogleFonts.inter(
+                        style: AppFonts.bodyStyle(
                           color: AppColors.textSecondary,
                           fontSize: 14,
                         ),
@@ -458,7 +458,7 @@ class _TrendingCard extends StatelessWidget {
                     ),
                     Text(
                       '${item.distanceKm.toStringAsFixed(1)} km away',
-                      style: GoogleFonts.inter(
+                      style: AppFonts.bodyStyle(
                         color: AppColors.textSecondary,
                         fontSize: 14,
                       ),
@@ -506,7 +506,7 @@ class _RedemptionList extends StatelessWidget {
                   const SizedBox(height: 16),
                   Text(
                     emptyMessage,
-                    style: GoogleFonts.inter(
+                    style: AppFonts.bodyStyle(
                       color: AppColors.textSecondary,
                     ),
                   ),
@@ -571,7 +571,7 @@ class _RedemptionCard extends StatelessWidget {
                       children: [
                         Text(
                           redemption.deal.restaurantName,
-                          style: GoogleFonts.inter(
+                          style: AppFonts.bodyStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary,
@@ -580,7 +580,7 @@ class _RedemptionCard extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           redemption.deal.title,
-                          style: GoogleFonts.inter(
+                          style: AppFonts.bodyStyle(
                             fontSize: 14,
                             color: AppColors.textSecondary,
                           ),
@@ -606,7 +606,7 @@ class _RedemptionCard extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     'Used: ${DateFormat('MMM d, yyyy HH:mm').format(redemption.usedAt)}',
-                    style: GoogleFonts.inter(
+                    style: AppFonts.bodyStyle(
                       color: AppColors.textSecondary,
                       fontSize: 13,
                     ),
@@ -625,7 +625,7 @@ class _RedemptionCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     Text(
                       'Code: ${redemption.redemptionCode}',
-                      style: GoogleFonts.inter(
+                      style: AppFonts.bodyStyle(
                         color: AppColors.textPrimary,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -696,7 +696,7 @@ class _RedemptionDetailModal extends StatelessWidget {
                           children: [
                             Text(
                               redemption.deal.restaurantName,
-                              style: GoogleFonts.inter(
+                              style: AppFonts.bodyStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -764,7 +764,7 @@ class _RedemptionDetailModal extends StatelessWidget {
                             ),
                             child: Text(
                               redemption.redemptionCode!,
-                              style: GoogleFonts.inter(
+                              style: AppFonts.bodyStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 4,
@@ -870,7 +870,7 @@ class _DetailRow extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: GoogleFonts.inter(
+                style: AppFonts.bodyStyle(
                   fontSize: 12,
                   color: AppColors.textDisabled,
                   fontWeight: FontWeight.w600,
@@ -878,7 +878,7 @@ class _DetailRow extends StatelessWidget {
               ),
               Text(
                 value,
-                style: GoogleFonts.inter(
+                style: AppFonts.bodyStyle(
                   fontSize: 16,
                   color: AppColors.textPrimary,
                 ),
@@ -915,7 +915,7 @@ class _StatusBadge extends StatelessWidget {
       ),
       child: Text(
         text,
-        style: GoogleFonts.inter(
+        style: AppFonts.bodyStyle(
           fontSize: 12,
           fontWeight: FontWeight.bold,
           color: color,

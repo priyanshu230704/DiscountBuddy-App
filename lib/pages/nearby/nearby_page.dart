@@ -3,8 +3,8 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../models/restaurant.dart';
@@ -699,7 +699,7 @@ class _NearbyPageState extends State<NearbyPage>
                         _isCityListLoading
                             ? "Loading..."
                             : "${_cityRestaurants.length} places",
-                        style: GoogleFonts.inter(
+                        style: AppFonts.bodyStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
                           color: Colors.black54,
@@ -715,7 +715,7 @@ class _NearbyPageState extends State<NearbyPage>
                         ? Center(
                             child: Text(
                               "No restaurants found in $_cityName 😕",
-                              style: GoogleFonts.inter(
+                              style: AppFonts.bodyStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.black54,
@@ -798,7 +798,7 @@ class _NearbyPageState extends State<NearbyPage>
                                               r.name,
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
-                                              style: GoogleFonts.inter(
+                                              style: AppFonts.bodyStyle(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.w900,
                                                 color: Colors.black,
@@ -809,7 +809,7 @@ class _NearbyPageState extends State<NearbyPage>
                                               _cityName,
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
-                                              style: GoogleFonts.inter(
+                                              style: AppFonts.bodyStyle(
                                                 fontSize: 13,
                                                 fontWeight: FontWeight.w600,
                                                 color: Colors.black54,
@@ -946,7 +946,7 @@ class _NearbyPageState extends State<NearbyPage>
 
                 SafeArea(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                     child: _isSearching ? _searchTopBar() : _normalTopBar(),
                   ),
                 ),
@@ -985,8 +985,7 @@ class _NearbyPageState extends State<NearbyPage>
   }
 
   Widget _normalTopBar() {
-    final w = MediaQuery.of(context).size.width;
-    final cityFontSize = w < 370 ? 24.0 : 30.0;
+    final cityFontSize = 24.0;
 
     return Row(
       children: [
@@ -1029,7 +1028,7 @@ class _NearbyPageState extends State<NearbyPage>
                     _cityName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.inter(
+                    style: AppFonts.titleStyle(
                       fontSize: cityFontSize,
                       fontWeight: FontWeight.w900,
                       color: Colors.black,
@@ -1038,7 +1037,7 @@ class _NearbyPageState extends State<NearbyPage>
                   ),
                 ),
                 const SizedBox(width: 6),
-                const Icon(Icons.keyboard_arrow_down, size: 32),
+                const Icon(Icons.keyboard_arrow_down, size: 28),
               ],
             ),
           ),
@@ -1098,7 +1097,7 @@ class _NearbyPageState extends State<NearbyPage>
                       border: InputBorder.none,
                       hintText: "Search restaurants...",
                     ),
-                    style: GoogleFonts.inter(
+                    style: AppFonts.bodyStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
@@ -1184,7 +1183,7 @@ class _NearbyPageState extends State<NearbyPage>
               const SizedBox(width: 8),
               Text(
                 label,
-                style: GoogleFonts.inter(
+                style: AppFonts.bodyStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: Colors.black,
@@ -1278,7 +1277,7 @@ class _NearbyPageState extends State<NearbyPage>
                       Expanded(
                         child: Text(
                           restaurant.name,
-                          style: GoogleFonts.inter(
+                          style: AppFonts.bodyStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w900,
                             color: Colors.black,
@@ -1305,7 +1304,7 @@ class _NearbyPageState extends State<NearbyPage>
                       const SizedBox(width: 6),
                       Text(
                         "${restaurant.rating.toStringAsFixed(1)} (${restaurant.reviewCount})",
-                        style: GoogleFonts.inter(
+                        style: AppFonts.bodyStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: Colors.black,
@@ -1314,7 +1313,7 @@ class _NearbyPageState extends State<NearbyPage>
                       const SizedBox(width: 12),
                       Text(
                         "${dist.toStringAsFixed(2)} miles",
-                        style: GoogleFonts.inter(
+                        style: AppFonts.bodyStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: Colors.black54,
@@ -1324,7 +1323,7 @@ class _NearbyPageState extends State<NearbyPage>
                       Expanded(
                         child: Text(
                           restaurant.cuisine,
-                          style: GoogleFonts.inter(
+                          style: AppFonts.bodyStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: Colors.black54,
@@ -1351,7 +1350,7 @@ class _NearbyPageState extends State<NearbyPage>
                         ),
                         child: Text(
                           t,
-                          style: GoogleFonts.inter(
+                          style: AppFonts.bodyStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w800,
                             color: Colors.white,
@@ -1394,7 +1393,7 @@ class _NearbyPageState extends State<NearbyPage>
           const SizedBox(width: 10),
           Text(
             "Loading nearby restaurants...",
-            style: GoogleFonts.inter(
+            style: AppFonts.bodyStyle(
               fontSize: 13,
               fontWeight: FontWeight.w700,
               color: Colors.black,

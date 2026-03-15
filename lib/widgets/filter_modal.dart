@@ -1,7 +1,7 @@
 import 'package:discount_buddy/theme/app_colors.dart';
 
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'generic_bottom_sheet.dart';
 
 /// Filter Modal - Bottom sheet with day, time, and category filters
@@ -146,7 +146,7 @@ class _FilterModalState extends State<FilterModal> {
           onPressed: _resetFilters,
           child: Text(
             'Reset',
-            style: GoogleFonts.inter(
+            style: AppFonts.bodyStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: AppColors.textSecondary,
@@ -182,7 +182,7 @@ class _FilterModalState extends State<FilterModal> {
                 ),
                 child: Text(
                   'Apply',
-                  style: GoogleFonts.inter(
+                  style: AppFonts.bodyStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
@@ -210,7 +210,7 @@ class _FilterModalState extends State<FilterModal> {
                   children: [
                     Text(
                       'Day',
-                      style: GoogleFonts.inter(
+                      style: AppFonts.bodyStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -239,7 +239,7 @@ class _FilterModalState extends State<FilterModal> {
                               selectedColor: AppColors.primaryPurple,
                               backgroundColor: AppColors.textDisabled
                                   .withValues(alpha: 0.2),
-                              labelStyle: GoogleFonts.inter(
+                              labelStyle: AppFonts.bodyStyle(
                                 color: isSelected
                                     ? Colors.white
                                     : AppColors.textSecondary,
@@ -270,7 +270,7 @@ class _FilterModalState extends State<FilterModal> {
                   children: [
                     Text(
                       'Time',
-                      style: GoogleFonts.inter(
+                      style: AppFonts.bodyStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -299,7 +299,7 @@ class _FilterModalState extends State<FilterModal> {
                               selectedColor: AppColors.primaryPurple,
                               backgroundColor: AppColors.textDisabled
                                   .withValues(alpha: 0.2),
-                              labelStyle: GoogleFonts.inter(
+                              labelStyle: AppFonts.bodyStyle(
                                 color: isSelected
                                     ? Colors.white
                                     : AppColors.textSecondary,
@@ -330,7 +330,7 @@ class _FilterModalState extends State<FilterModal> {
                   children: [
                     Text(
                       'Category',
-                      style: GoogleFonts.inter(
+                      style: AppFonts.bodyStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -366,7 +366,7 @@ class _FilterModalState extends State<FilterModal> {
                           backgroundColor: AppColors.textDisabled.withValues(
                             alpha: 0.2,
                           ),
-                          labelStyle: GoogleFonts.inter(
+                          labelStyle: AppFonts.bodyStyle(
                             color: isSelected
                                 ? Colors.white
                                 : AppColors.textPrimary,

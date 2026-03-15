@@ -1,7 +1,7 @@
 import 'package:discount_buddy/theme/app_colors.dart';
 
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'merchant_restaurants_page.dart';
 import 'merchant_deals_page.dart';
 import 'merchant_bookings_page.dart';
@@ -99,7 +99,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                     children: [
                       Text(
                         'Dashboard',
-                        style: GoogleFonts.inter(
+                        style: AppFonts.bodyStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.w800,
                           color: AppColors.textPrimary,
@@ -109,7 +109,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                       const SizedBox(height: 8),
                       Text(
                         'Track your Restaurant and its realtime progress',
-                        style: GoogleFonts.inter(
+                        style: AppFonts.bodyStyle(
                           fontSize: 16,
                           color: AppColors.textSecondary,
                           height: 1.5,
@@ -176,7 +176,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Text(
                     'Manage Business',
-                    style: GoogleFonts.inter(
+                    style: AppFonts.bodyStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
@@ -316,7 +316,7 @@ class _ScanActionCard extends StatelessWidget {
                     children: [
                       Text(
                         'Scan Redemption',
-                        style: GoogleFonts.inter(
+                        style: AppFonts.bodyStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -325,7 +325,7 @@ class _ScanActionCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         'Process customer codes',
-                        style: GoogleFonts.inter(
+                        style: AppFonts.bodyStyle(
                           fontSize: 14,
                           color: Colors.white.withValues(alpha: 0.7),
                         ),
@@ -402,7 +402,7 @@ class _StatCard extends StatelessWidget {
               children: [
                 Text(
                   value,
-                  style: GoogleFonts.inter(
+                  style: AppFonts.bodyStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
@@ -418,7 +418,7 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             label,
-            style: GoogleFonts.inter(
+            style: AppFonts.bodyStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
               color: AppColors.textSecondary,
@@ -481,7 +481,7 @@ class _MenuCard extends StatelessWidget {
                 Text(
                   title,
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(
+                  style: AppFonts.bodyStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
@@ -493,7 +493,7 @@ class _MenuCard extends StatelessWidget {
                 Text(
                   subtitle,
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(
+                  style: AppFonts.bodyStyle(
                     fontSize: 11,
                     color: AppColors.textSecondary,
                   ),

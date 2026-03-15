@@ -1,7 +1,7 @@
 import 'package:discount_buddy/theme/app_colors.dart';
 
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../services/booking_service.dart';
 
@@ -153,7 +153,7 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
       appBar: AppBar(
         title: Text(
           'Book Table',
-          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+          style: AppFonts.bodyStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: AppColors.white,
         elevation: 0,
@@ -167,7 +167,7 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
             children: [
               Text(
                 widget.restaurantName,
-                style: GoogleFonts.inter(
+                style: AppFonts.bodyStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
@@ -273,7 +273,7 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
                       ? const CircularProgressIndicator(color: Colors.white)
                       : Text(
                           'Confirm Booking',
-                          style: GoogleFonts.inter(
+                          style: AppFonts.bodyStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -321,14 +321,14 @@ class _DetailSelector extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   label,
-                  style: GoogleFonts.inter(fontSize: 12, color: Colors.grey),
+                  style: AppFonts.bodyStyle(fontSize: 12, color: Colors.grey),
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
               value,
-              style: GoogleFonts.inter(
+              style: AppFonts.bodyStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
               ),

@@ -1,8 +1,8 @@
 import 'package:discount_buddy/theme/app_colors.dart';
 
 import 'dart:io';
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../models/mystery_visit.dart';
 import '../../services/mystery_guest_service.dart';
@@ -161,7 +161,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
                 children: [
                   Text(
                     'Mystery Guest Audit',
-                    style: GoogleFonts.inter(
+                    style: AppFonts.bodyStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
@@ -199,7 +199,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
         const SizedBox(height: 24),
         Text(
           'Anonymous Audit',
-          style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold),
+          style: AppFonts.bodyStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
         const Padding(
@@ -383,7 +383,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
       padding: const EdgeInsets.only(top: 24, bottom: 8),
       child: Text(
         title,
-        style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16),
+        style: AppFonts.bodyStyle(fontWeight: FontWeight.bold, fontSize: 16),
       ),
     );
   }
@@ -401,7 +401,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
           alignment: Alignment.center,
           child: Text(
             '$score/10',
-            style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.bold),
+            style: AppFonts.bodyStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
         ),
         IconButton(
@@ -431,7 +431,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
             borderSide: BorderSide(color: Colors.grey.shade200),
           ),
         ),
-        style: GoogleFonts.inter(fontSize: 14),
+        style: AppFonts.bodyStyle(fontSize: 14),
       ),
     );
   }

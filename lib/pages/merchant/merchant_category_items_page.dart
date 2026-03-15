@@ -1,7 +1,7 @@
 import 'package:discount_buddy/theme/app_colors.dart';
 
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../services/merchant_service.dart';
 
 class MerchantCategoryItemsPage extends StatefulWidget {
@@ -254,7 +254,7 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
       appBar: AppBar(
         title: Text(
           widget.categoryName,
-          style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold),
+          style: AppFonts.bodyStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         backgroundColor: AppColors.white,
         elevation: 0,
@@ -309,7 +309,7 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
             const SizedBox(height: 16),
             Text(
               'No items in this category',
-              style: GoogleFonts.inter(
+              style: AppFonts.bodyStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -335,7 +335,7 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
             contentPadding: const EdgeInsets.all(16),
             title: Text(
               item['name'] ?? 'Item',
-              style: GoogleFonts.inter(
+              style: AppFonts.bodyStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
@@ -351,7 +351,7 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
                   ),
                 Text(
                   '\$${item['price']}',
-                  style: GoogleFonts.inter(
+                  style: AppFonts.bodyStyle(
                     color: AppColors.primary,
                     fontWeight: FontWeight.w600,
                   ),
@@ -401,7 +401,7 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
       ),
       child: Text(
         label,
-        style: GoogleFonts.inter(
+        style: AppFonts.bodyStyle(
           fontSize: 10,
           color: color,
           fontWeight: FontWeight.w600,

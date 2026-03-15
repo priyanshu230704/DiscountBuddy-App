@@ -1,6 +1,6 @@
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'auth_theme.dart';
 
 /// NeoTaste-style Auth Text Field - Minimal rounded input with placeholder only
@@ -101,7 +101,7 @@ class AuthTextField extends StatelessWidget {
             width: AuthTheme.inputBorderWidth,
           ),
         ),
-        errorStyle: GoogleFonts.inter(color: Colors.red, fontSize: 12),
+        errorStyle: AppFonts.bodyStyle(color: Colors.red, fontSize: 12),
         suffixIcon: showToggle && onToggleVisibility != null
             ? IconButton(
                 icon: Icon(

@@ -1,7 +1,7 @@
 import 'package:discount_buddy/theme/app_colors.dart';
 
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../services/qr_scanner_service.dart';
 import '../../services/merchant_service.dart';
@@ -134,7 +134,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
               const SizedBox(height: 24),
               Text(
                 'Verifying deal...',
-                style: GoogleFonts.inter(
+                style: AppFonts.bodyStyle(
                   fontSize: 16,
                   color: AppColors.textSecondary,
                   fontWeight: FontWeight.w500,
@@ -193,7 +193,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
                     children: [
                       Text(
                         dealRedemption.deal.title,
-                        style: GoogleFonts.inter(
+                        style: AppFonts.bodyStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
@@ -237,7 +237,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
                       ),
                       child: Text(
                         'Done',
-                        style: GoogleFonts.inter(
+                        style: AppFonts.bodyStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
@@ -264,7 +264,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
             width: 90,
             child: Text(
               label,
-              style: GoogleFonts.inter(
+              style: AppFonts.bodyStyle(
                 color: AppColors.textSecondary,
                 fontSize: 13,
               ),
@@ -273,7 +273,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
           Expanded(
             child: Text(
               value,
-              style: GoogleFonts.inter(
+              style: AppFonts.bodyStyle(
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.w500,
                 fontSize: 13,
@@ -315,7 +315,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
                 child: Text(
                   message,
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(
+                  style: AppFonts.bodyStyle(
                     fontSize: 15,
                     color: AppColors.textPrimary,
                     height: 1.4,
@@ -349,7 +349,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
                     ),
                     child: Text(
                       'Try Again',
-                      style: GoogleFonts.inter(
+                      style: AppFonts.bodyStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
@@ -378,7 +378,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
         appBar: AppBar(
           title: Text(
             'Scan QR Code',
-            style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+            style: AppFonts.bodyStyle(fontWeight: FontWeight.bold),
           ),
           backgroundColor: AppColors.white,
           foregroundColor: AppColors.textPrimary,
@@ -392,7 +392,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
               const SizedBox(height: 16),
               Text(
                 'Camera permission required',
-                style: GoogleFonts.inter(fontSize: 18),
+                style: AppFonts.bodyStyle(fontSize: 18),
               ),
               const SizedBox(height: 24),
               ElevatedButton(
@@ -418,7 +418,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
       appBar: AppBar(
         title: Text(
           'Scan QR Code',
-          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+          style: AppFonts.bodyStyle(fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
@@ -458,7 +458,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
               child: Text(
                 'Position the QR code within the frame',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.inter(color: Colors.white, fontSize: 16),
+                style: AppFonts.bodyStyle(color: Colors.white, fontSize: 16),
               ),
             ),
           ),
@@ -475,7 +475,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
       builder: (context) => AlertDialog(
         title: Text(
           'Enter Redemption Code',
-          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+          style: AppFonts.bodyStyle(fontWeight: FontWeight.bold),
         ),
         content: TextField(
           controller: controller,

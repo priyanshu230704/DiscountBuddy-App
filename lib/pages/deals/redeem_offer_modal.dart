@@ -1,7 +1,7 @@
 import 'package:discount_buddy/theme/app_colors.dart';
 
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../models/restaurant.dart';
 import '../../services/restaurant_service.dart';
 import '../../widgets/generic_bottom_sheet.dart';
@@ -50,7 +50,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
             // Restaurant Name
             Text(
               widget.restaurant.name,
-              style: GoogleFonts.inter(
+              style: AppFonts.bodyStyle(
                 fontSize: 16,
                 color: AppColors.textSecondary,
               ),
@@ -74,7 +74,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                   children: [
                     Text(
                       'Select an offer:',
-                      style: GoogleFonts.inter(
+                      style: AppFonts.bodyStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
@@ -114,7 +114,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                           ),
                           title: Text(
                             deal.displayText,
-                            style: GoogleFonts.inter(
+                            style: AppFonts.bodyStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimary,
@@ -124,7 +124,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                             padding: const EdgeInsets.only(top: 4),
                             child: Text(
                               deal.description,
-                              style: GoogleFonts.inter(
+                              style: AppFonts.bodyStyle(
                                 fontSize: 13,
                                 color: AppColors.textSecondary,
                               ),
@@ -160,7 +160,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                     Expanded(
                       child: Text(
                         'Activated offers last for 15 mins. Show to staff when ordering.',
-                        style: GoogleFonts.inter(
+                        style: AppFonts.bodyStyle(
                           fontSize: 12,
                           color: Colors.brown,
                         ),
@@ -275,7 +275,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                         )
                       : Text(
                           'Confirm Redemption',
-                          style: GoogleFonts.inter(
+                          style: AppFonts.bodyStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -322,7 +322,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
           const SizedBox(height: 24),
           Text(
             'Show this QR code to the staff',
-            style: GoogleFonts.inter(
+            style: AppFonts.bodyStyle(
               fontSize: 16,
               color: AppColors.textSecondary,
             ),
@@ -378,7 +378,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
           const SizedBox(height: 24),
           Text(
             'Or provide this code:',
-            style: GoogleFonts.inter(
+            style: AppFonts.bodyStyle(
               fontSize: 14,
               color: AppColors.textSecondary,
             ),
@@ -395,7 +395,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
             ),
             child: Text(
               code.toString(),
-              style: GoogleFonts.inter(
+              style: AppFonts.bodyStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
@@ -418,7 +418,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
               ),
               child: Text(
                 'Done',
-                style: GoogleFonts.inter(
+                style: AppFonts.bodyStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),

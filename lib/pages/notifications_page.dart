@@ -1,5 +1,5 @@
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../models/notification.dart';
 import '../../services/notification_service.dart';
@@ -190,7 +190,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
         ),
         title: Text(
           'Notifications',
-          style: GoogleFonts.inter(
+          style: AppFonts.bodyStyle(
             fontSize: 20,
             fontWeight: FontWeight.w900,
             color: textPrimary,
@@ -202,7 +202,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
               onPressed: () => _markAllAsRead(),
               child: Text(
                 'Mark all read',
-                style: GoogleFonts.inter(
+                style: AppFonts.bodyStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: buddyOrange,
@@ -247,7 +247,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
             const SizedBox(height: 24),
             Text(
               'No notifications yet',
-              style: GoogleFonts.inter(
+              style: AppFonts.bodyStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: textPrimary,
@@ -256,7 +256,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
             const SizedBox(height: 8),
             Text(
               'We\'ll notify you when something arrives',
-              style: GoogleFonts.inter(fontSize: 14, color: textSecondary),
+              style: AppFonts.bodyStyle(fontSize: 14, color: textSecondary),
             ),
           ],
         ),
@@ -386,7 +386,7 @@ class _NotificationTile extends StatelessWidget {
                                 : '',
                           )
                           .join(' '),
-                      style: GoogleFonts.inter(
+                      style: AppFonts.bodyStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
                         color: color,
@@ -399,7 +399,7 @@ class _NotificationTile extends StatelessWidget {
                       Expanded(
                         child: Text(
                           notification.title,
-                          style: GoogleFonts.inter(
+                          style: AppFonts.bodyStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w700,
                             color: textPrimary,
@@ -420,7 +420,7 @@ class _NotificationTile extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     notification.message,
-                    style: GoogleFonts.inter(
+                    style: AppFonts.bodyStyle(
                       fontSize: 13,
                       color: textSecondary,
                       height: 1.4,
@@ -431,7 +431,7 @@ class _NotificationTile extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     formatTime(notification.createdAt),
-                    style: GoogleFonts.inter(
+                    style: AppFonts.bodyStyle(
                       fontSize: 12,
                       color: textSecondary.withValues(alpha: 0.7),
                       fontWeight: FontWeight.w500,

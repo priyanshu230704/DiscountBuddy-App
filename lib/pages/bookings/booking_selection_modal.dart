@@ -1,5 +1,5 @@
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../models/restaurant.dart';
 import '../../services/restaurant_service.dart';
@@ -163,7 +163,7 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Text(
                   'Select your preferred date and time',
-                  style: GoogleFonts.inter(
+                  style: AppFonts.bodyStyle(
                     fontSize: 14,
                     color: AppColors.textSecondary,
                   ),
@@ -205,7 +205,7 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                           children: [
                             Text(
                               DateFormat('E').format(date).toUpperCase(),
-                              style: GoogleFonts.inter(
+                              style: AppFonts.bodyStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                                 color: isSelected
@@ -216,7 +216,7 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                             const SizedBox(height: 4),
                             Text(
                               date.day.toString(),
-                              style: GoogleFonts.inter(
+                              style: AppFonts.bodyStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                                 color: isSelected
@@ -241,7 +241,7 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                   children: [
                     Text(
                       'Guests',
-                      style: GoogleFonts.inter(
+                      style: AppFonts.bodyStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -257,7 +257,7 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                         ),
                         Text(
                           _guestCount.toString(),
-                          style: GoogleFonts.inter(
+                          style: AppFonts.bodyStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
@@ -278,7 +278,7 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Text(
                   'Available Times',
-                  style: GoogleFonts.inter(
+                  style: AppFonts.bodyStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
@@ -292,7 +292,7 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                   child: Center(
                     child: Text(
                       'No available times for this day',
-                      style: GoogleFonts.inter(color: Colors.red),
+                      style: AppFonts.bodyStyle(color: Colors.red),
                     ),
                   ),
                 )
@@ -324,7 +324,7 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                           ),
                           child: Text(
                             time,
-                            style: GoogleFonts.inter(
+                            style: AppFonts.bodyStyle(
                               color: isSelected
                                   ? AppColors.surface
                                   : AppColors.textPrimary,
@@ -388,7 +388,7 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                           )
                         : Text(
                             'Continue to Redemption',
-                            style: GoogleFonts.inter(
+                            style: AppFonts.bodyStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,

@@ -1,7 +1,7 @@
 import 'package:discount_buddy/theme/app_colors.dart';
 
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../services/merchant_service.dart';
 import '../../widgets/skeleton_loader.dart';
 
@@ -238,7 +238,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
       appBar: AppBar(
         title: Text(
           'Menu: ${widget.restaurantName}',
-          style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold),
+          style: AppFonts.bodyStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         backgroundColor: AppColors.white,
         elevation: 0,
@@ -279,7 +279,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
                       children: [
                         Text(
                           'Manage Menu Categories',
-                          style: GoogleFonts.inter(
+                          style: AppFonts.bodyStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.w800,
                             color: AppColors.textPrimary,
@@ -289,7 +289,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
                         const SizedBox(height: 4),
                         Text(
                           'Tap a category to organize or add food items',
-                          style: GoogleFonts.inter(
+                          style: AppFonts.bodyStyle(
                             fontSize: 14,
                             color: AppColors.textSecondary,
                           ),
@@ -344,7 +344,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
           const SizedBox(height: 16),
           Text(
             'No menu categories yet',
-            style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold),
+            style: AppFonts.bodyStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           ElevatedButton(
@@ -400,7 +400,7 @@ class _CategoryCard extends StatelessWidget {
                 children: [
                   Text(
                     category['name'] ?? 'Category',
-                    style: GoogleFonts.inter(
+                    style: AppFonts.bodyStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
@@ -411,7 +411,7 @@ class _CategoryCard extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 4),
                       child: Text(
                         category['description'],
-                        style: GoogleFonts.inter(
+                        style: AppFonts.bodyStyle(
                           color: AppColors.textSecondary,
                           fontSize: 12,
                         ),
@@ -419,7 +419,7 @@ class _CategoryCard extends StatelessWidget {
                     ),
                   Text(
                     '${category['items_count'] ?? 0} items',
-                    style: GoogleFonts.inter(
+                    style: AppFonts.bodyStyle(
                       color: AppColors.primary,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,

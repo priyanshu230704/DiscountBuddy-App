@@ -1,7 +1,7 @@
 import 'package:discount_buddy/theme/app_colors.dart';
 
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class HelpSupportPage extends StatelessWidget {
   const HelpSupportPage({super.key});
@@ -13,7 +13,7 @@ class HelpSupportPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           'Help & Support',
-          style: GoogleFonts.inter(
+          style: AppFonts.bodyStyle(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.bold,
           ),
@@ -35,7 +35,7 @@ class HelpSupportPage extends StatelessWidget {
           children: [
             Text(
               'Frequently Asked Questions',
-              style: GoogleFonts.inter(
+              style: AppFonts.bodyStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
@@ -83,7 +83,7 @@ class HelpSupportPage extends StatelessWidget {
       child: ExpansionTile(
         title: Text(
           question,
-          style: GoogleFonts.inter(
+          style: AppFonts.bodyStyle(
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
           ),
@@ -92,7 +92,7 @@ class HelpSupportPage extends StatelessWidget {
         children: [
           Text(
             answer,
-            style: GoogleFonts.inter(
+            style: AppFonts.bodyStyle(
               color: AppColors.textSecondary,
               height: 1.5,
             ),

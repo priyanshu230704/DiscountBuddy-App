@@ -1,5 +1,5 @@
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../models/restaurant.dart';
 import '../services/restaurant_service.dart';
 import '../widgets/restaurant_card.dart';
@@ -110,7 +110,7 @@ class _SearchPageState extends State<SearchPage> {
             flexibleSpace: FlexibleSpaceBar(
               title: Text(
                 'Discover',
-                style: GoogleFonts.inter(
+                style: AppFonts.bodyStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
@@ -178,7 +178,7 @@ class _SearchPageState extends State<SearchPage> {
                         });
                       },
                       selectedColor: AppColors.primaryPurple,
-                      labelStyle: GoogleFonts.inter(
+                      labelStyle: AppFonts.bodyStyle(
                         color: isSelected ? Colors.white : AppColors.textPrimary,
                         fontWeight: isSelected
                             ? FontWeight.bold

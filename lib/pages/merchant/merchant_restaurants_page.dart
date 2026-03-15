@@ -1,7 +1,7 @@
 import 'package:discount_buddy/theme/app_colors.dart';
 
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../services/merchant_service.dart';
 import '../../widgets/skeleton_loader.dart';
 import 'add_restaurant_page.dart';
@@ -94,7 +94,7 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
       appBar: AppBar(
         title: Text(
           widget.selectMenuMode ? 'Select Restaurant' : 'Restaurants',
-          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+          style: AppFonts.bodyStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         backgroundColor: AppColors.white,
@@ -125,7 +125,7 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
               onChanged: _filterRestaurants,
               decoration: InputDecoration(
                 hintText: 'Search restaurants...',
-                hintStyle: GoogleFonts.inter(color: AppColors.textDisabled),
+                hintStyle: AppFonts.bodyStyle(color: AppColors.textDisabled),
                 prefixIcon: const Icon(
                   Icons.search,
                   color: AppColors.textSecondary,
@@ -242,7 +242,7 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
           const SizedBox(height: 16),
           Text(
             'No restaurants found',
-            style: GoogleFonts.inter(
+            style: AppFonts.bodyStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
@@ -261,7 +261,7 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
               },
               child: Text(
                 'Add Restaurant',
-                style: GoogleFonts.inter(
+                style: AppFonts.bodyStyle(
                   color: AppColors.primary,
                   fontWeight: FontWeight.bold,
                 ),
@@ -316,7 +316,7 @@ class _RestaurantCard extends StatelessWidget {
                   children: [
                     Text(
                       restaurant['name'] as String? ?? 'Unknown',
-                      style: GoogleFonts.inter(
+                      style: AppFonts.bodyStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -334,7 +334,7 @@ class _RestaurantCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             restaurant['address'] as String? ?? '',
-                            style: GoogleFonts.inter(
+                            style: AppFonts.bodyStyle(
                               fontSize: 12,
                               color: AppColors.textSecondary,
                             ),

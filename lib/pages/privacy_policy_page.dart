@@ -1,7 +1,7 @@
 import 'package:discount_buddy/theme/app_colors.dart';
 
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class PrivacyPolicyPage extends StatelessWidget {
   const PrivacyPolicyPage({super.key});
@@ -13,7 +13,7 @@ class PrivacyPolicyPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           'Privacy Policy',
-          style: GoogleFonts.inter(
+          style: AppFonts.bodyStyle(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.bold,
           ),
@@ -35,7 +35,7 @@ class PrivacyPolicyPage extends StatelessWidget {
           children: [
             Text(
               'Last Updated: October 2024',
-              style: GoogleFonts.inter(
+              style: AppFonts.bodyStyle(
                 color: AppColors.textSecondary,
                 fontSize: 14,
               ),
@@ -76,7 +76,7 @@ class PrivacyPolicyPage extends StatelessWidget {
         children: [
           Text(
             title,
-            style: GoogleFonts.inter(
+            style: AppFonts.bodyStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
@@ -85,7 +85,7 @@ class PrivacyPolicyPage extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             content,
-            style: GoogleFonts.inter(
+            style: AppFonts.bodyStyle(
               fontSize: 15,
               height: 1.6,
               color: AppColors.textSecondary,

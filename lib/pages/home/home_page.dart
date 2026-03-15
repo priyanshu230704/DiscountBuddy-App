@@ -466,8 +466,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       backgroundColor: Colors.white,
       automaticallyImplyLeading: false,
       toolbarHeight: 60,
-      collapsedHeight: _isSearching ? 112 + topPadding : 40 + topPadding,
-      expandedHeight: _isSearching ? 112 + topPadding : 40 + topPadding,
+      collapsedHeight: _isSearching ? 112 + topPadding : 30 + topPadding,
+      expandedHeight: _isSearching ? 112 + topPadding : 30 + topPadding,
       stretch: false,
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
@@ -493,19 +493,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       Container(
                         width: 60,
                         height: 60,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(17),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(
-                                0xFF8B5CF6,
-                              ).withValues(alpha: 0.1),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
                         padding: const EdgeInsets.all(2),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(15),
@@ -515,7 +502,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       // Title
                       Expanded(
                         child: Column(
@@ -525,7 +512,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                             Text(
                               "Discount",
                               style: AppFonts.titleStyle(
-                                fontSize: 20,
+                                fontSize: 16,
                                 fontWeight: FontWeight.w800,
                                 height: 1.0,
                                 color: const Color(0xFF1B1436),
@@ -537,7 +524,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                             Text(
                               "Buddy",
                               style: AppFonts.titleStyle(
-                                fontSize: 20,
+                                fontSize: 16,
                                 fontWeight: FontWeight.w800,
                                 height: 1.0,
                                 color: const Color(0xFF8B5CF6),
@@ -797,7 +784,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
 
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
           return Padding(
@@ -1398,23 +1385,25 @@ class _FeedTile extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(width: 6),
-                        const Icon(
-                          Icons.location_on,
-                          color: Color(0xFF8B5CF6),
-                          size: 12,
-                        ),
-                        const SizedBox(width: 3),
-                        Text(
-                          "${dist.toStringAsFixed(1)} miles away",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppFonts.bodyStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF4B5563),
+                        if (userLat != null && userLon != null) ...[
+                          const SizedBox(width: 6),
+                          const Icon(
+                            Icons.location_on,
+                            color: Color(0xFF8B5CF6),
+                            size: 12,
                           ),
-                        ),
+                          const SizedBox(width: 3),
+                          Text(
+                            "${dist.toStringAsFixed(1)} miles away",
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppFonts.bodyStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF4B5563),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),

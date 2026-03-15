@@ -1,7 +1,7 @@
 import 'package:discount_buddy/theme/app_colors.dart';
 
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../providers/auth_provider.dart';
 
 /// Edit Profile Screen
@@ -62,7 +62,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           SnackBar(
             content: Text(
               'Profile updated successfully',
-              style: GoogleFonts.inter(),
+              style: AppFonts.bodyStyle(),
             ),
             backgroundColor: AppColors.primaryPurple,
           ),
@@ -73,7 +73,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           SnackBar(
             content: Text(
               _authProvider.errorMessage ?? 'Failed to update profile',
-              style: GoogleFonts.inter(),
+              style: AppFonts.bodyStyle(),
             ),
             backgroundColor: Colors.red,
           ),
@@ -85,7 +85,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           SnackBar(
             content: Text(
               'Failed to update profile',
-              style: GoogleFonts.inter(),
+              style: AppFonts.bodyStyle(),
             ),
             backgroundColor: Colors.red,
           ),
@@ -111,7 +111,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         ),
         title: Text(
           'Edit profile',
-          style: GoogleFonts.inter(
+          style: AppFonts.bodyStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
@@ -141,7 +141,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     child: Center(
                       child: Text(
                         _getInitials(),
-                        style: GoogleFonts.inter(
+                        style: AppFonts.bodyStyle(
                           fontSize: 48,
                           fontWeight: FontWeight.bold,
                           color: AppColors.white,
@@ -216,7 +216,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         )
                       : Text(
                           'Save',
-                          style: GoogleFonts.inter(
+                          style: AppFonts.bodyStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -243,7 +243,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       children: [
         Text(
           label,
-          style: GoogleFonts.inter(
+          style: AppFonts.bodyStyle(
             fontSize: 12,
             color: AppColors.textSecondary,
           ),
@@ -259,7 +259,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             keyboardType: keyboardType,
             onChanged: onChanged,
             readOnly: readOnly,
-            style: GoogleFonts.inter(
+            style: AppFonts.bodyStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
               color: readOnly ? AppColors.textSecondary : AppColors.textPrimary,

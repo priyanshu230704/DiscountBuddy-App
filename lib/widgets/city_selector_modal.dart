@@ -1,7 +1,7 @@
 import 'package:discount_buddy/theme/app_colors.dart';
 
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:discount_buddy/services/city_service.dart';
 import 'package:discount_buddy/models/city.dart';
 import 'generic_bottom_sheet.dart';
@@ -46,7 +46,7 @@ class CitySelectorModal extends StatelessWidget {
                   child: Text(
                     "Failed to load cities\n${snapshot.error}",
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(
+                    style: AppFonts.bodyStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
                       color: AppColors.error,
@@ -65,7 +65,7 @@ class CitySelectorModal extends StatelessWidget {
                 padding: const EdgeInsets.all(32.0),
                 child: Text(
                   "No cities found",
-                  style: GoogleFonts.inter(
+                  style: AppFonts.bodyStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textSecondary,
@@ -150,7 +150,7 @@ class CitySelectorModal extends StatelessWidget {
                                 children: [
                                   Text(
                                     city.name,
-                                    style: GoogleFonts.inter(
+                                    style: AppFonts.bodyStyle(
                                       fontSize: 17,
                                       fontWeight: FontWeight.w700,
                                       color: isSelected
@@ -171,7 +171,7 @@ class CitySelectorModal extends StatelessWidget {
                                         const SizedBox(width: 4),
                                         Text(
                                           "$restaurantCount places",
-                                          style: GoogleFonts.inter(
+                                          style: AppFonts.bodyStyle(
                                             fontSize: 13,
                                             fontWeight: FontWeight.w500,
                                             color: AppColors.textSecondary,
@@ -182,7 +182,7 @@ class CitySelectorModal extends StatelessWidget {
                                   else
                                     Text(
                                       "Coming Soon",
-                                      style: GoogleFonts.inter(
+                                      style: AppFonts.bodyStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w600,
                                         color: AppColors.textDisabled,
@@ -219,7 +219,7 @@ class CitySelectorModal extends StatelessWidget {
                                 ),
                                 child: Text(
                                   'Active',
-                                  style: GoogleFonts.inter(
+                                  style: AppFonts.bodyStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w700,
                                     color: AppColors.primaryPurple,

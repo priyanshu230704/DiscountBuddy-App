@@ -1,5 +1,5 @@
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../config/environment.dart';
 import 'package:discount_buddy/theme/app_colors.dart';
@@ -215,7 +215,7 @@ class _SplashScreenState extends State<SplashScreen>
                             children: [
                               Text(
                                 Environment.appName,
-                                style: GoogleFonts.inter(
+                                style: AppFonts.bodyStyle(
                                   fontSize: 28,
                                   fontWeight: FontWeight.w900,
                                   color: const Color(0xFF111827),
@@ -225,7 +225,7 @@ class _SplashScreenState extends State<SplashScreen>
                               const SizedBox(height: 8),
                               Text(
                                 "Your discount companion",
-                                style: GoogleFonts.inter(
+                                style: AppFonts.bodyStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
                                   color: const Color(0xFF6B7280),
@@ -274,7 +274,7 @@ class _SplashScreenState extends State<SplashScreen>
                                 const SizedBox(width: 10),
                                 Text(
                                   "Loading deals...",
-                                  style: GoogleFonts.inter(
+                                  style: AppFonts.bodyStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w700,
                                     color: const Color(0xFF111827),
@@ -298,7 +298,7 @@ class _SplashScreenState extends State<SplashScreen>
                   child: Center(
                     child: Text(
                       "Powered by Markitup Group Ltd.",
-                      style: GoogleFonts.inter(
+                      style: AppFonts.bodyStyle(
                         fontSize: 12,
                         color: const Color(0xFF9CA3AF),
                         fontWeight: FontWeight.w600,

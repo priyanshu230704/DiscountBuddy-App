@@ -1,7 +1,7 @@
 import 'package:discount_buddy/theme/app_colors.dart';
 
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../services/merchant_service.dart';
 import '../../widgets/skeleton_loader.dart';
@@ -91,7 +91,7 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
       appBar: AppBar(
         title: Text(
           'Bookings',
-          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+          style: AppFonts.bodyStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         backgroundColor: AppColors.white,
@@ -157,7 +157,7 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
           const SizedBox(height: 24),
           Text(
             'No bookings found',
-            style: GoogleFonts.inter(
+            style: AppFonts.bodyStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
@@ -166,7 +166,7 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
           const SizedBox(height: 8),
           Text(
             'Your upcoming reservations will appear here',
-            style: GoogleFonts.inter(
+            style: AppFonts.bodyStyle(
               fontSize: 14,
               color: AppColors.textSecondary,
             ),
@@ -226,7 +226,7 @@ class _BookingCard extends StatelessWidget {
                         children: [
                           Text(
                             customer,
-                            style: GoogleFonts.inter(
+                            style: AppFonts.bodyStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
                               color: AppColors.textPrimary,
@@ -235,7 +235,7 @@ class _BookingCard extends StatelessWidget {
                           const SizedBox(height: 4),
                           Text(
                             restaurant,
-                            style: GoogleFonts.inter(
+                            style: AppFonts.bodyStyle(
                               fontSize: 14,
                               color: AppColors.textSecondary,
                             ),
@@ -287,7 +287,7 @@ class _BookingCard extends StatelessWidget {
                         alignment: Alignment.center,
                         child: Text(
                           'Decline',
-                          style: GoogleFonts.inter(
+                          style: AppFonts.bodyStyle(
                             color: Colors.red,
                             fontWeight: FontWeight.w600,
                           ),
@@ -311,7 +311,7 @@ class _BookingCard extends StatelessWidget {
                         alignment: Alignment.center,
                         child: Text(
                           'Confirm Booking',
-                          style: GoogleFonts.inter(
+                          style: AppFonts.bodyStyle(
                             color: AppColors.success,
                             fontWeight: FontWeight.bold,
                           ),
@@ -350,7 +350,7 @@ class _InfoChip extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             label,
-            style: GoogleFonts.inter(
+            style: AppFonts.bodyStyle(
               color: AppColors.textSecondary,
               fontSize: 13,
               fontWeight: FontWeight.w500,
@@ -406,7 +406,7 @@ class _StatusBadge extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             label,
-            style: GoogleFonts.inter(
+            style: AppFonts.bodyStyle(
               color: color,
               fontWeight: FontWeight.bold,
               fontSize: 12,

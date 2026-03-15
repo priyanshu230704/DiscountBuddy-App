@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:discount_buddy/theme/app_colors.dart';
 import '../providers/auth_provider.dart';
@@ -31,7 +32,8 @@ class _MainNavigationState extends State<MainNavigation> {
   late int _currentIndex;
   final AuthProvider _authProvider = AuthProvider();
   final Map<int, Widget> _pageCache = {};
-  bool _isVisible = true;
+  DateTime? _lastBackPressTime;
+
 
   @override
   void initState() {
@@ -91,14 +93,47 @@ class _MainNavigationState extends State<MainNavigation> {
 
     return Scaffold(
       extendBody: true, // Important for floating nav bar
-      body: NotificationListener<UserScrollNotification>(
-        onNotification: (notification) {
-          if (notification.direction == ScrollDirection.forward) {
-            if (!_isVisible) setState(() => _isVisible = true);
-          } else if (notification.direction == ScrollDirection.reverse) {
-            if (_isVisible) setState(() => _isVisible = false);
+      body: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+
+          // If current tab is not Home/Dashboard, redirect to Home/Dashboard
+          if (_currentIndex != 0) {
+            setState(() {
+              _currentIndex = 0;
+            });
+            return;
           }
-          return false; // let it bubble
+
+          // Double tap to exit logic for Home/Dashboard
+          final now = DateTime.now();
+          const backPressInterval = Duration(seconds: 2);
+
+          if (_lastBackPressTime == null ||
+              now.difference(_lastBackPressTime!) > backPressInterval) {
+            _lastBackPressTime = now;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Press back again to exit',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                backgroundColor: AppColors.primaryPurple,
+                behavior: SnackBarBehavior.floating,
+                duration: backPressInterval,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            );
+          } else {
+            // Quit the app
+            SystemNavigator.pop();
+          }
         },
         child: IndexedStack(
           index: _currentIndex,
@@ -110,91 +145,79 @@ class _MainNavigationState extends State<MainNavigation> {
           }),
         ),
       ),
-      bottomNavigationBar: AnimatedSlide(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeInOut,
-        offset: _isVisible ? Offset.zero : const Offset(0, 1.5),
-        child: Container(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).padding.bottom > 0
-                ? MediaQuery.of(context).padding.bottom - 10
-                : 0,
+      bottomNavigationBar: Container(
+        padding: EdgeInsets.only(
+          top: 12,
+          bottom: MediaQuery.of(context).padding.bottom > 0
+              ? MediaQuery.of(context).padding.bottom + 4
+              : 12,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.95),
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(32),
+            topRight: Radius.circular(32),
           ),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(24),
-              topRight: Radius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 16,
-                offset: const Offset(0, -4),
-              ),
-            ],
-          ),
-          child: SizedBox(
-            height: 80,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: isMerchant
-                  ? [
-                      _buildNavItem(
-                        context,
-                        icon: Icons.dashboard_outlined,
-                        selectedIcon: Icons.dashboard,
-                        label: 'Dashboard',
-                        index: 0,
-                      ),
-                      _buildNavItem(
-                        context,
-                        icon: Icons.local_offer_outlined,
-                        selectedIcon: Icons.local_offer,
-                        label: 'Deals',
-                        index: 1,
-                      ),
-                      _buildNavItem(
-                        context,
-                        icon: Icons.person_outline,
-                        selectedIcon: Icons.person,
-                        label: 'Profile',
-                        index: 2,
-                      ),
-                    ]
-                  : [
-                      _buildNavItem(
-                        context,
-                        icon: Icons.home_outlined,
-                        selectedIcon: Icons.home,
-                        label: 'Home',
-                        index: 0,
-                      ),
-                      _buildNavItem(
-                        context,
-                        icon: Icons.search_outlined,
-                        selectedIcon: Icons.search,
-                        label: 'Search',
-                        index: 1,
-                      ),
-                      _buildNavItem(
-                        context,
-                        icon: Icons.calendar_today_outlined,
-                        selectedIcon: Icons.calendar_today,
-                        label: 'Bookings',
-                        index: 2,
-                      ),
-                      _buildNavItem(
-                        context,
-                        icon: Icons.person_outline,
-                        selectedIcon: Icons.person,
-                        label: 'Profile',
-                        index: 3,
-                      ),
-                    ],
-            ),
-          ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: isMerchant
+              ? [
+                  _buildNavItem(
+                    context,
+                    icon: Icons.dashboard_outlined,
+                    selectedIcon: Icons.dashboard,
+                    label: 'Dashboard',
+                    index: 0,
+                  ),
+                  _buildNavItem(
+                    context,
+                    icon: Icons.local_offer_outlined,
+                    selectedIcon: Icons.local_offer,
+                    label: 'Deals',
+                    index: 1,
+                  ),
+                  _buildNavItem(
+                    context,
+                    svgPath: 'assets/svg/user.svg',
+                    label: 'Profile',
+                    index: 2,
+                  ),
+                ]
+              : [
+                  _buildNavItem(
+                    context,
+                    svgPath: 'assets/svg/home.svg',
+                    label: 'Home',
+                    index: 0,
+                  ),
+                  _buildNavItem(
+                    context,
+                    svgPath: 'assets/svg/search.svg',
+                    label: 'Search',
+                    index: 1,
+                  ),
+                  _buildNavItem(
+                    context,
+                    icon: Icons.calendar_today_outlined,
+                    selectedIcon: Icons.calendar_today,
+                    label: 'Bookings',
+                    index: 2,
+                  ),
+                  _buildNavItem(
+                    context,
+                    svgPath: 'assets/svg/user.svg',
+                    label: 'Profile',
+                    index: 3,
+                  ),
+                ],
         ),
       ),
     );
@@ -202,8 +225,9 @@ class _MainNavigationState extends State<MainNavigation> {
 
   Widget _buildNavItem(
     BuildContext context, {
-    required IconData icon,
-    required IconData selectedIcon,
+    IconData? icon,
+    IconData? selectedIcon,
+    String? svgPath,
     required String label,
     required int index,
   }) {
@@ -211,71 +235,62 @@ class _MainNavigationState extends State<MainNavigation> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final Gradient activeGradient = AppColors.purpleGradient;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _currentIndex = index;
-        });
-      },
-      behavior: HitTestBehavior.opaque,
-      child: isSelected
-          ? AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOutCubic,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               decoration: BoxDecoration(
-                gradient: activeGradient,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
-                    spreadRadius: 0,
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+                color: isSelected
+                    ? AppColors.primaryPurple.withValues(alpha: 0.08)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(selectedIcon, color: Colors.white, size: 20),
-                  const SizedBox(width: 4),
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 12,
+              child: svgPath != null
+                  ? SvgPicture.asset(
+                      svgPath,
+                      width: 24,
+                      height: 24,
+                      colorFilter: ColorFilter.mode(
+                        isSelected
+                            ? AppColors.primaryPurple
+                            : (isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280)),
+                        BlendMode.srcIn,
+                      ),
+                    )
+                  : Icon(
+                      isSelected ? selectedIcon : icon,
+                      size: 26,
+                      color: isSelected
+                          ? AppColors.primaryPurple
+                          : (isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280)),
                     ),
-                  ),
-                ],
-              ),
-            )
-          : Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  icon,
-                  size: 24,
-                  color: isDark
-                      ? const Color(0xFF9CA3AF)
-                      : const Color(0xFF6B7280),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: isDark
-                        ? const Color(0xFF9CA3AF)
-                        : const Color(0xFF6B7280),
-                    fontWeight: FontWeight.w500,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
             ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected
+                    ? AppColors.primaryPurple
+                    : (isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280)),
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                fontSize: 10,
+                letterSpacing: -0.2,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

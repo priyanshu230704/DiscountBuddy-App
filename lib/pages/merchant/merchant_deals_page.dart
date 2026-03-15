@@ -1,7 +1,7 @@
 import 'package:discount_buddy/theme/app_colors.dart';
 
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../services/merchant_service.dart';
 import '../../widgets/skeleton_loader.dart';
 import 'add_deal_page.dart';
@@ -65,7 +65,7 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
       appBar: AppBar(
         title: Text(
           'Deals',
-          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+          style: AppFonts.bodyStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         backgroundColor: AppColors.white,
@@ -131,7 +131,7 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
           const SizedBox(height: 16),
           Text(
             'No active deals',
-            style: GoogleFonts.inter(
+            style: AppFonts.bodyStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
@@ -140,7 +140,7 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
           const SizedBox(height: 8),
           Text(
             'Create a deal to attract more customers',
-            style: GoogleFonts.inter(
+            style: AppFonts.bodyStyle(
               fontSize: 14,
               color: AppColors.textSecondary,
             ),
@@ -164,7 +164,7 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
             ),
             child: Text(
               'Create Deal',
-              style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+              style: AppFonts.bodyStyle(fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -226,7 +226,7 @@ class _DealCard extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: GoogleFonts.inter(
+                      style: AppFonts.bodyStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -235,7 +235,7 @@ class _DealCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       restaurantName,
-                      style: GoogleFonts.inter(
+                      style: AppFonts.bodyStyle(
                         fontSize: 14,
                         color: AppColors.textSecondary,
                       ),
@@ -256,7 +256,7 @@ class _DealCard extends StatelessWidget {
                 ),
                 child: Text(
                   isActive ? 'Active' : 'Inactive',
-                  style: GoogleFonts.inter(
+                  style: AppFonts.bodyStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                     color: isActive ? AppColors.success : Colors.red,
@@ -306,7 +306,7 @@ class _InfoTag extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             label,
-            style: GoogleFonts.inter(
+            style: AppFonts.bodyStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
               color: AppColors.textSecondary,

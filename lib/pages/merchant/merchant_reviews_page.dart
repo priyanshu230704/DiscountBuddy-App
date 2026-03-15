@@ -1,7 +1,7 @@
 import 'package:discount_buddy/theme/app_colors.dart';
 
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../services/merchant_service.dart';
 import '../../widgets/skeleton_loader.dart';
 
@@ -61,7 +61,7 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
       appBar: AppBar(
         title: Text(
           'Reviews',
-          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+          style: AppFonts.bodyStyle(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         backgroundColor: AppColors.white,
@@ -116,7 +116,7 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
           const SizedBox(height: 16),
           Text(
             'No reviews yet',
-            style: GoogleFonts.inter(
+            style: AppFonts.bodyStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
@@ -125,7 +125,7 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
           const SizedBox(height: 8),
           Text(
             'Customer feedback will appear here',
-            style: GoogleFonts.inter(
+            style: AppFonts.bodyStyle(
               fontSize: 14,
               color: AppColors.textSecondary,
             ),
@@ -171,7 +171,7 @@ class _ReviewCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   user,
-                  style: GoogleFonts.inter(
+                  style: AppFonts.bodyStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                     color: AppColors.textPrimary,
@@ -195,7 +195,7 @@ class _ReviewCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             restaurant,
-            style: GoogleFonts.inter(
+            style: AppFonts.bodyStyle(
               fontSize: 12,
               color: AppColors.textSecondary,
               fontWeight: FontWeight.w500,
@@ -205,7 +205,7 @@ class _ReviewCard extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               comment,
-              style: GoogleFonts.inter(
+              style: AppFonts.bodyStyle(
                 color: AppColors.textPrimary,
                 height: 1.5,
               ),
@@ -214,7 +214,7 @@ class _ReviewCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             date,
-            style: GoogleFonts.inter(
+            style: AppFonts.bodyStyle(
               fontSize: 11,
               color: AppColors.textDisabled,
             ),

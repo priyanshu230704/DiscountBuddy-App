@@ -1,7 +1,7 @@
 import 'package:discount_buddy/theme/app_colors.dart';
 
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../widgets/auth/auth_text_field.dart';
 import '../../services/merchant_service.dart';
 import 'merchant_menu_page.dart';
@@ -137,7 +137,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                                     ? 'Loading cities...'
                                     : 'No cities found for "${_cityController.text}"',
                                 textAlign: TextAlign.center,
-                                style: GoogleFonts.inter(
+                                style: AppFonts.bodyStyle(
                                   color: AppColors.textSecondary,
                                   fontSize: 14,
                                 ),
@@ -169,7 +169,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                                 ),
                                 title: Text(
                                   cityName,
-                                  style: GoogleFonts.inter(
+                                  style: AppFonts.bodyStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w500,
                                     color: AppColors.textPrimary,
@@ -403,7 +403,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
       appBar: AppBar(
         title: Text(
           widget.restaurant != null ? 'Edit Restaurant' : 'Add Restaurant',
-          style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold),
+          style: AppFonts.bodyStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         backgroundColor: AppColors.white,
         elevation: 0,
@@ -642,7 +642,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                             alpha: 0.1,
                           ),
                           checkmarkColor: AppColors.primary,
-                          labelStyle: GoogleFonts.inter(
+                          labelStyle: AppFonts.bodyStyle(
                             fontSize: 14,
                             fontWeight: isSelected
                                 ? FontWeight.bold
@@ -736,7 +736,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                               child: Text(
                                 entry.key[0].toUpperCase() +
                                     entry.key.substring(1),
-                                style: GoogleFonts.inter(
+                                style: AppFonts.bodyStyle(
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -786,7 +786,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                                 widget.restaurant != null
                                     ? 'Update Restaurant'
                                     : 'Create Restaurant',
-                                style: GoogleFonts.inter(
+                                style: AppFonts.bodyStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -806,7 +806,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
       padding: const EdgeInsets.only(bottom: 12),
       child: Text(
         title,
-        style: GoogleFonts.inter(
+        style: AppFonts.bodyStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,
           color: AppColors.textPrimary,

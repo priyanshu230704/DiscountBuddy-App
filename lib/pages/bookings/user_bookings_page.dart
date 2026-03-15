@@ -1,7 +1,7 @@
 import 'package:discount_buddy/theme/app_colors.dart';
 
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../services/booking_service.dart';
 
@@ -81,7 +81,7 @@ class _UserBookingsViewState extends State<UserBookingsView> {
                 const SizedBox(height: 16),
                 Text(
                   'No bookings found',
-                  style: GoogleFonts.inter(color: AppColors.textSecondary),
+                  style: AppFonts.bodyStyle(color: AppColors.textSecondary),
                 ),
               ],
             ),
@@ -140,7 +140,7 @@ class _UserBookingCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     restaurantName,
-                    style: GoogleFonts.inter(
+                    style: AppFonts.bodyStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -158,7 +158,7 @@ class _UserBookingCard extends StatelessWidget {
                   date != null
                       ? DateFormat('MMM d, yyyy HH:mm').format(date.toLocal())
                       : dateStr ?? '',
-                  style: GoogleFonts.inter(color: Colors.grey[700]),
+                  style: AppFonts.bodyStyle(color: Colors.grey[700]),
                 ),
               ],
             ),
@@ -169,7 +169,7 @@ class _UserBookingCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   '${booking['number_of_guests']} Guests',
-                  style: GoogleFonts.inter(color: Colors.grey[700]),
+                  style: AppFonts.bodyStyle(color: Colors.grey[700]),
                 ),
               ],
             ),
@@ -245,7 +245,7 @@ class _StatusBadge extends StatelessWidget {
       ),
       child: Text(
         status.toUpperCase(),
-        style: GoogleFonts.inter(
+        style: AppFonts.bodyStyle(
           color: color,
           fontWeight: FontWeight.bold,
           fontSize: 10,

@@ -1,6 +1,6 @@
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../models/restaurant.dart';
 import 'package:discount_buddy/theme/app_colors.dart';
 
@@ -111,7 +111,7 @@ class RestaurantCard extends StatelessWidget {
                       ),
                       child: Text(
                         restaurant.discount.displayText,
-                        style: GoogleFonts.inter(
+                        style: AppFonts.bodyStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w700,
                           fontSize: 12,
@@ -144,7 +144,7 @@ class RestaurantCard extends StatelessWidget {
                           const SizedBox(width: 4),
                           Text(
                             '${restaurant.distance.toStringAsFixed(1)} km',
-                            style: GoogleFonts.inter(
+                            style: AppFonts.bodyStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w600,
                               fontSize: 12,
@@ -169,7 +169,7 @@ class RestaurantCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             restaurant.name,
-                            style: GoogleFonts.inter(
+                            style: AppFonts.bodyStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w800,
                               color: AppColors.textPrimary,
@@ -198,7 +198,7 @@ class RestaurantCard extends StatelessWidget {
                               const SizedBox(width: 4),
                               Text(
                                 restaurant.rating.toStringAsFixed(1),
-                                style: GoogleFonts.inter(
+                                style: AppFonts.bodyStyle(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 13,
                                   color: AppColors.textPrimary,
@@ -206,7 +206,7 @@ class RestaurantCard extends StatelessWidget {
                               ),
                               Text(
                                 ' (${restaurant.reviewCount})',
-                                style: GoogleFonts.inter(
+                                style: AppFonts.bodyStyle(
                                   color: AppColors.textSecondary,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
@@ -249,7 +249,7 @@ class RestaurantCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             restaurant.address,
-                            style: GoogleFonts.inter(
+                            style: AppFonts.bodyStyle(
                               color: AppColors.textSecondary,
                               fontSize: 13,
                               fontWeight: FontWeight.w400,
@@ -279,7 +279,7 @@ class RestaurantCard extends StatelessWidget {
         Flexible(
           child: Text(
             text,
-            style: GoogleFonts.inter(
+            style: AppFonts.bodyStyle(
               color: AppColors.textSecondary,
               fontSize: 13,
               fontWeight: FontWeight.w500,

@@ -1,7 +1,7 @@
 import 'package:discount_buddy/theme/app_colors.dart';
 
+import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../services/merchant_service.dart';
 import '../../widgets/auth/auth_text_field.dart';
 
@@ -171,7 +171,7 @@ class _AddDealPageState extends State<AddDealPage> {
       appBar: AppBar(
         title: Text(
           widget.deal != null ? 'Edit Deal' : 'Create Deal',
-          style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold),
+          style: AppFonts.bodyStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         backgroundColor: AppColors.white,
         elevation: 0,
@@ -318,7 +318,7 @@ class _AddDealPageState extends State<AddDealPage> {
                                 widget.deal != null
                                     ? 'Update Deal'
                                     : 'Create Deal',
-                                style: GoogleFonts.inter(
+                                style: AppFonts.bodyStyle(
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -337,7 +337,7 @@ class _AddDealPageState extends State<AddDealPage> {
       padding: const EdgeInsets.only(bottom: 8, left: 4),
       child: Text(
         text,
-        style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13),
+        style: AppFonts.bodyStyle(fontWeight: FontWeight.w600, fontSize: 13),
       ),
     );
   }

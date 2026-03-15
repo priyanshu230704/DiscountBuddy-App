@@ -1,7 +1,10 @@
-import 'package:discount_buddy/theme/app_colors.dart';
-
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
+import 'package:discount_buddy/design/app_spacing.dart';
+import 'package:discount_buddy/design/app_typography.dart';
+import 'package:discount_buddy/components/layout.dart';
+import 'package:discount_buddy/components/inputs.dart';
+import 'package:discount_buddy/components/app_app_bar.dart';
 import '../../services/merchant_service.dart';
 import '../../widgets/skeleton_loader.dart';
 import 'add_restaurant_page.dart';
@@ -91,15 +94,9 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          widget.selectMenuMode ? 'Select Restaurant' : 'Restaurants',
-          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
-        ),
+      appBar: AppAppBar(
+        titleText: widget.selectMenuMode ? 'Select restaurant' : 'Restaurants',
         centerTitle: true,
-        backgroundColor: AppColors.white,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
         actions: widget.selectMenuMode
             ? null
             : [
@@ -119,13 +116,13 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.lg),
             child: TextField(
               controller: _searchController,
               onChanged: _filterRestaurants,
               decoration: InputDecoration(
                 hintText: 'Search restaurants...',
-                hintStyle: GoogleFonts.inter(color: AppColors.textDisabled),
+                hintStyle: AppTypography.bodySmall,
                 prefixIcon: const Icon(
                   Icons.search,
                   color: AppColors.textSecondary,
@@ -149,10 +146,15 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
                     onRefresh: _loadRestaurants,
                     color: AppColors.primary,
                     child: ListView.separated(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.lg,
+                        0,
+                        AppSpacing.lg,
+                        AppSpacing.xl,
+                      ),
                       itemCount: _filteredRestaurants.length,
                       separatorBuilder: (context, index) =>
-                          const SizedBox(height: 12),
+                          const SizedBox(height: AppSpacing.md),
                       itemBuilder: (context, index) {
                         final restaurant = _filteredRestaurants[index];
                         return _RestaurantCard(
@@ -217,59 +219,35 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
 
   Widget _buildLoadingState() {
     return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       itemCount: 4,
       itemBuilder: (context, index) => Padding(
-        padding: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.only(bottom: AppSpacing.md),
         child: SkeletonLoader(
           height: 100,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
         ),
       ),
     );
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.store_mall_directory_rounded,
-            size: 64,
-            color: AppColors.textDisabled,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No restaurants found',
-            style: GoogleFonts.inter(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          if (!widget.selectMenuMode) ...[
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AddRestaurantPage(),
-                  ),
-                ).then((_) => _loadRestaurants());
-              },
-              child: Text(
-                'Add Restaurant',
-                style: GoogleFonts.inter(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.bold,
+    return EmptyStateWidget(
+      icon: Icons.store_mall_directory_rounded,
+      title: 'No restaurants found',
+      message: 'Your linked restaurants will appear here.',
+      primaryActionLabel: widget.selectMenuMode ? null : 'Add restaurant',
+      onPrimaryAction: widget.selectMenuMode
+          ? null
+          : () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const AddRestaurantPage(),
                 ),
-              ),
-            ),
-          ],
-        ],
-      ),
+              ).then((_) => _loadRestaurants());
+            },
     );
   }
 }
@@ -282,78 +260,58 @@ class _RestaurantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: AppColors.textDisabled.withValues(alpha: 0.1),
+    return AppCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: AppColors.background,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.restaurant_rounded,
+              color: AppColors.textSecondary,
             ),
           ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.circular(12),
+          const SizedBox(width: AppSpacing.lg),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  restaurant['name'] as String? ?? 'Unknown',
+                  style: AppTypography.title.copyWith(fontSize: 16),
                 ),
-                child: const Icon(
-                  Icons.restaurant_rounded,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(height: AppSpacing.xs),
+                Row(
                   children: [
-                    Text(
-                      restaurant['name'] as String? ?? 'Unknown',
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
+                    const Icon(
+                      Icons.location_on_outlined,
+                      size: 14,
+                      color: AppColors.textSecondary,
                     ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.location_on_outlined,
-                          size: 14,
-                          color: AppColors.textSecondary,
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            restaurant['address'] as String? ?? '',
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
+                    const SizedBox(width: AppSpacing.xs),
+                    Expanded(
+                      child: Text(
+                        restaurant['address'] as String? ?? '',
+                        style: AppTypography.bodySmall,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ],
                 ),
-              ),
-              const Icon(
-                Icons.chevron_right_rounded,
-                color: AppColors.textDisabled,
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+          const Icon(
+            Icons.chevron_right_rounded,
+            color: AppColors.textDisabled,
+          ),
+        ],
       ),
     );
   }

@@ -1,7 +1,9 @@
-import 'package:discount_buddy/theme/app_colors.dart';
-
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
+import 'package:discount_buddy/design/app_spacing.dart';
+import 'package:discount_buddy/design/app_typography.dart';
+import 'package:discount_buddy/components/layout.dart';
+import 'package:discount_buddy/components/app_app_bar.dart';
 import '../../services/merchant_service.dart';
 
 class MerchantCategoryItemsPage extends StatefulWidget {
@@ -251,14 +253,8 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          widget.categoryName,
-          style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: AppColors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
+      appBar: AppAppBar(
+        titleText: widget.categoryName,
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
@@ -269,12 +265,12 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
                 _loadCategory();
               }
             },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
+            itemBuilder: (context) => const [
+              PopupMenuItem(
                 value: 'default',
                 child: Text('Quick Add Default Item'),
               ),
-              const PopupMenuItem(value: 'refresh', child: Text('Refresh')),
+              PopupMenuItem(value: 'refresh', child: Text('Refresh')),
             ],
           ),
         ],
@@ -297,48 +293,26 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
     final items = _category!['items'] as List<dynamic>? ?? [];
 
     if (items.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.restaurant_menu,
-              size: 64,
-              color: AppColors.textDisabled,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No items in this category',
-              style: GoogleFonts.inter(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text('Tap + to add items'),
-          ],
-        ),
+      return const EmptyStateWidget(
+        icon: Icons.restaurant_menu,
+        title: 'No items in this category',
+        message: 'Tap the + button to add your first item.',
       );
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       itemCount: items.length,
       itemBuilder: (context, index) {
         final item = items[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+        return AppCard(
+          margin: const EdgeInsets.only(bottom: AppSpacing.md),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: ListTile(
-            contentPadding: const EdgeInsets.all(16),
+            contentPadding: EdgeInsets.zero,
             title: Text(
               item['name'] ?? 'Item',
-              style: GoogleFonts.inter(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
+              style: AppTypography.title.copyWith(fontSize: 16),
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -346,19 +320,25 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
                 if (item['description'] != null &&
                     item['description'].isNotEmpty)
                   Padding(
-                    padding: const EdgeInsets.only(top: 4, bottom: 4),
-                    child: Text(item['description']),
+                    padding: const EdgeInsets.only(
+                      top: AppSpacing.xs,
+                      bottom: AppSpacing.xs,
+                    ),
+                    child: Text(
+                      item['description'],
+                      style: AppTypography.body,
+                    ),
                   ),
                 Text(
                   '\$${item['price']}',
-                  style: GoogleFonts.inter(
+                  style: AppTypography.body.copyWith(
                     color: AppColors.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs),
                 Wrap(
-                  spacing: 4,
+                  spacing: AppSpacing.xs,
                   children: [
                     if (item['is_vegetarian'] == true)
                       _buildTag('Veg', AppColors.success),
@@ -393,7 +373,10 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
 
   Widget _buildTag(String label, Color color) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: 2,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(4),
@@ -401,11 +384,7 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
       ),
       child: Text(
         label,
-        style: GoogleFonts.inter(
-          fontSize: 10,
-          color: color,
-          fontWeight: FontWeight.w600,
-        ),
+        style: AppTypography.caption.copyWith(color: color),
       ),
     );
   }

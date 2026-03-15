@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../design/app_colors.dart';
+import '../design/app_radius.dart';
+import '../design/app_spacing.dart';
 import '../theme/app_fonts.dart';
 import '../providers/auth_provider.dart';
 import '../services/wallet_service.dart';
@@ -94,31 +97,29 @@ class _ProfilePageState extends State<ProfilePage> {
     final initials = _getInitials(displayName);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FC),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         bottom: false,
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
               Padding(
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+                padding: const EdgeInsets.fromLTRB(AppSpacing.xxl, AppSpacing.xxl, AppSpacing.xxl, 0),
                 child: Text(
                   'Profile',
                   style: AppFonts.titleStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.w800,
-                    color: const Color(0xFF1B1436),
+                    color: AppColors.textPrimary,
                     letterSpacing: -0.5,
                   ),
                 ),
               ),
-              const SizedBox(height: 32),
+              SizedBox(height: AppSpacing.xxxl),
 
-              // User Info Section
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
                 child: GestureDetector(
                   onTap: () {
                     Navigator.push(
@@ -134,20 +135,11 @@ class _ProfilePageState extends State<ProfilePage> {
                         width: 72,
                         height: 72,
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [
-                              Color(0xFF4F46E5),
-                              Color(0xFF6366F1),
-                            ], // Deep Blue/Purple for Avatar
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
+                          gradient: AppColors.purpleGradient,
                           borderRadius: BorderRadius.circular(36),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(
-                                0xFF4F46E5,
-                              ).withValues(alpha: 0.2),
+                              color: AppColors.primary.withValues(alpha: 0.2),
                               blurRadius: 15,
                               offset: const Offset(0, 8),
                             ),
@@ -171,12 +163,12 @@ class _ProfilePageState extends State<ProfilePage> {
                           children: [
                             Text(
                               displayName,
-                              style: AppFonts.titleStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w800,
-                                color: const Color(0xFF1B1436),
-                                letterSpacing: -0.4,
-                              ),
+                            style: AppFonts.titleStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary,
+                              letterSpacing: -0.4,
+                            ),
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -184,15 +176,15 @@ class _ProfilePageState extends State<ProfilePage> {
                               style: AppFonts.bodyStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
-                                color: const Color(0xFF6B7280),
+                                color: AppColors.textSecondary,
                               ),
                             ),
                           ],
                         ),
                       ),
-                      const Icon(
+                      Icon(
                         Icons.chevron_right,
-                        color: Color(0xFF1B1436),
+                        color: AppColors.textPrimary,
                         size: 28,
                       ),
                     ],
@@ -207,7 +199,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   height: 135,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
                     physics: const BouncingScrollPhysics(),
                     children: [
                       SizedBox(
@@ -216,7 +208,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           icon: Icons.emoji_events,
                           value: _stats?.userLevel ?? 'Bronze',
                           label: 'Level',
-                          iconColor: const Color(0xFF8B5CF6),
+                          iconColor: AppColors.primary,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -226,7 +218,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           icon: Icons.account_balance_wallet_rounded,
                           value: '£${_stats?.moneySaved.toStringAsFixed(0) ?? '5'}',
                           label: 'Saved',
-                          iconColor: const Color(0xFF8B5CF6),
+                          iconColor: AppColors.primary,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -236,7 +228,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           icon: Icons.favorite,
                           value: _stats?.favouriteRestaurants.toString() ?? '2',
                           label: 'Favourites',
-                          iconColor: const Color(0xFF8B5CF6),
+                          iconColor: AppColors.primary,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -246,7 +238,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           icon: Icons.local_offer,
                           value: _stats?.dealsClaimed.toString() ?? '2',
                           label: 'Deals',
-                          iconColor: const Color(0xFF8B5CF6),
+                          iconColor: AppColors.primary,
                         ),
                       ),
                     ],
@@ -261,23 +253,21 @@ class _ProfilePageState extends State<ProfilePage> {
                     height: 165,
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(28),
+                      borderRadius: AppRadius.xLarge,
                       image: const DecorationImage(
                         image: AssetImage("assets/png/invite_full_bg.png"),
                         fit: BoxFit.cover,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(
-                            0xFFC026D3,
-                          ).withValues(alpha: 0.35),
+                          color: AppColors.secondary.withValues(alpha: 0.35),
                           blurRadius: 25,
                           offset: const Offset(0, 12),
                         ),
                       ],
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(28, 24, 24, 24),
+                      padding: const EdgeInsets.fromLTRB(AppSpacing.xxl + 4, AppSpacing.xxl, AppSpacing.xxl, AppSpacing.xxl),
                       child: Row(
                         children: [
                           Expanded(
@@ -395,7 +385,7 @@ class _ProfilePageState extends State<ProfilePage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.xLarge),
         title: Text(
           'Logout',
           style: AppFonts.titleStyle(fontWeight: FontWeight.w800),
@@ -410,7 +400,7 @@ class _ProfilePageState extends State<ProfilePage> {
             child: Text(
               'Cancel',
               style: AppFonts.bodyStyle(
-                color: const Color(0xFF6B7280),
+                color: AppColors.textSecondary,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -426,7 +416,7 @@ class _ProfilePageState extends State<ProfilePage> {
             child: Text(
               'Logout',
               style: AppFonts.bodyStyle(
-                color: Colors.red,
+                color: AppColors.error,
                 fontWeight: FontWeight.w800,
               ),
             ),
@@ -455,17 +445,17 @@ class _MenuTile extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(AppSpacing.xl - 2),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
+          color: AppColors.surface,
+          borderRadius: AppRadius.xLarge,
           border: Border.all(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: AppColors.textPrimary.withValues(alpha: 0.06),
             width: 1,
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
+              color: AppColors.textPrimary.withValues(alpha: 0.04),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -476,8 +466,8 @@ class _MenuTile extends StatelessWidget {
             Icon(
               icon,
               color: isDestructive
-                  ? const Color(0xFFEF4444)
-                  : const Color(0xFF1B1436),
+                  ? AppColors.error
+                  : AppColors.textPrimary,
               size: 22,
             ),
             const SizedBox(width: 16),
@@ -488,16 +478,16 @@ class _MenuTile extends StatelessWidget {
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
                   color: isDestructive
-                      ? const Color(0xFFEF4444)
-                      : const Color(0xFF1B1436),
+                      ? AppColors.error
+                      : AppColors.textPrimary,
                 ),
               ),
             ),
             Icon(
               Icons.chevron_right,
               color: isDestructive
-                  ? const Color(0xFFEF4444).withValues(alpha: 0.5)
-                  : const Color(0xFFD1D5DB),
+                  ? AppColors.error.withValues(alpha: 0.5)
+                  : AppColors.textDisabled,
               size: 20,
             ),
           ],
@@ -523,14 +513,14 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.md),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+        color: AppColors.surface,
+        borderRadius: AppRadius.xLarge,
+        border: Border.all(color: AppColors.textPrimary.withValues(alpha: 0.06)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: AppColors.textPrimary.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -546,7 +536,7 @@ class _StatCard extends StatelessWidget {
             style: AppFonts.titleStyle(
               fontSize: 22,
               fontWeight: FontWeight.w800,
-              color: const Color(0xFF1B1436),
+              color: AppColors.textPrimary,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -557,7 +547,7 @@ class _StatCard extends StatelessWidget {
             style: AppFonts.bodyStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF6B7280),
+              color: AppColors.textSecondary,
             ),
             textAlign: TextAlign.center,
             maxLines: 1,

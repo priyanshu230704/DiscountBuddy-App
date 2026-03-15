@@ -1,7 +1,7 @@
-import 'package:discount_buddy/theme/app_colors.dart';
-
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../design/app_colors.dart';
+import '../design/app_spacing.dart';
+import '../design/app_typography.dart';
 
 class PrivacyPolicyPage extends StatelessWidget {
   const PrivacyPolicyPage({super.key});
@@ -9,38 +9,24 @@ class PrivacyPolicyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.surface,
       appBar: AppBar(
-        title: Text(
-          'Privacy Policy',
-          style: GoogleFonts.inter(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: AppColors.white,
-        elevation: 0,
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            color: AppColors.textPrimary,
-          ),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
+        title: Text('Privacy Policy', style: AppTypography.title),
+        backgroundColor: AppColors.surface,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Last Updated: October 2024',
-              style: GoogleFonts.inter(
-                color: AppColors.textSecondary,
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 24),
+            Text('Last Updated: October 2024', style: AppTypography.bodySmall),
+            SizedBox(height: AppSpacing.xxl),
             _buildSection(
               '1. Introduction',
               'Welcome to DiscountBuddy. We respect your privacy and are committed to protecting your personal data. This privacy policy will inform you as to how we look after your personal data when you visit our website or use our mobile application.',
@@ -61,7 +47,7 @@ class PrivacyPolicyPage extends StatelessWidget {
               '5. Contact Us',
               'If you have any questions about this privacy policy or our privacy practices, please contact us at:\n\nEmail: privacy@discountbuddy.com\nAddress: 123 Innovation Drive, Tech City, TC 90210',
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: AppSpacing.xxxl),
           ],
         ),
       ),
@@ -70,22 +56,15 @@ class PrivacyPolicyPage extends StatelessWidget {
 
   Widget _buildSection(String title, String content) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.only(bottom: AppSpacing.xxl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: GoogleFonts.inter(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 12),
+          Text(title, style: AppTypography.title.copyWith(fontSize: 18)),
+          SizedBox(height: AppSpacing.md),
           Text(
             content,
-            style: GoogleFonts.inter(
+            style: AppTypography.body.copyWith(
               fontSize: 15,
               height: 1.6,
               color: AppColors.textSecondary,

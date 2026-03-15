@@ -1,8 +1,9 @@
-import 'package:discount_buddy/theme/app_colors.dart';
-
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../design/app_colors.dart';
+import '../../design/app_radius.dart';
+import '../../design/app_spacing.dart';
+import '../../design/app_typography.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../models/mystery_visit.dart';
 import '../../services/mystery_guest_service.dart';
@@ -161,7 +162,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
                 children: [
                   Text(
                     'Mystery Guest Audit',
-                    style: GoogleFonts.inter(
+                    style: AppTypography.body.copyWith(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
@@ -183,7 +184,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
           ),
           if (_isLoading)
             Container(
-              color: Colors.white60,
+              color: AppColors.white.withValues(alpha: 0.6),
               child: const Center(child: CircularProgressIndicator()),
             ),
         ],
@@ -195,11 +196,11 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Icon(Icons.psychology, size: 80, color: Colors.blue),
+        const Icon(Icons.psychology, size: 80, color: AppColors.primary),
         const SizedBox(height: 24),
         Text(
           'Anonymous Audit',
-          style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold),
+          style: AppTypography.body.copyWith(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
         const Padding(
@@ -207,7 +208,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
           child: Text(
             'Once you start the audit, your status will change to "In Progress". Please ensure you are at the location and ready to evaluate.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey),
+            style: AppTypography.bodySmall,
           ),
         ),
         const SizedBox(height: 40),
@@ -217,7 +218,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
           child: ElevatedButton(
             onPressed: _startVisit,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
+              backgroundColor: AppColors.primary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),
@@ -227,7 +228,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
-                color: Colors.white,
+                color: AppColors.white,
               ),
             ),
           ),
@@ -307,7 +308,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
                 height: 80,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade300),
+                  border: Border.all(color: AppColors.textDisabled),
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
@@ -321,14 +322,14 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color: AppColors.background,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
-                    color: Colors.grey.shade300,
+                    color: AppColors.textDisabled,
                     style: BorderStyle.none,
                   ),
                 ),
-                child: const Icon(Icons.add_a_photo, color: Colors.grey),
+                child: const Icon(Icons.add_a_photo, color: AppColors.textDisabled),
               ),
             ),
           ],
@@ -339,16 +340,19 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
         _buildCommentField(_overallComment, 'Any other feedback?'),
 
         SwitchListTile(
-          title: const Text(
+          title: Text(
             'Flag for Risk?',
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+            style: AppTypography.body.copyWith(
+              fontWeight: FontWeight.bold,
+              color: AppColors.error,
+            ),
           ),
           subtitle: const Text(
             'Something major was wrong (e.g., safety, fraud)',
           ),
           value: _isRiskFlagged,
           onChanged: (val) => setState(() => _isRiskFlagged = val),
-          activeThumbColor: Colors.red,
+          activeThumbColor: AppColors.error,
         ),
 
         const SizedBox(height: 32),
@@ -358,7 +362,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
           child: ElevatedButton(
             onPressed: _submitReport,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryPurple,
+              backgroundColor: AppColors.primary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),
@@ -368,7 +372,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
-                color: Colors.white,
+                color: AppColors.white,
               ),
             ),
           ),
@@ -383,7 +387,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
       padding: const EdgeInsets.only(top: 24, bottom: 8),
       child: Text(
         title,
-        style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16),
+        style: AppTypography.body.copyWith(fontWeight: FontWeight.bold, fontSize: 16),
       ),
     );
   }
@@ -401,7 +405,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
           alignment: Alignment.center,
           child: Text(
             '$score/10',
-            style: GoogleFonts.inter(fontSize: 24, fontWeight: FontWeight.bold),
+            style: AppTypography.body.copyWith(fontSize: 24, fontWeight: FontWeight.bold),
           ),
         ),
         IconButton(
@@ -420,18 +424,18 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
         maxLines: 2,
         decoration: InputDecoration(
           hintText: hint,
-          fillColor: Colors.grey.shade50,
+          fillColor: AppColors.background,
           filled: true,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.shade200),
+            borderSide: BorderSide(color: AppColors.textDisabled),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.shade200),
+            borderSide: BorderSide(color: AppColors.textDisabled),
           ),
         ),
-        style: GoogleFonts.inter(fontSize: 14),
+        style: AppTypography.body.copyWith(fontSize: 14),
       ),
     );
   }

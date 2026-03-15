@@ -1,9 +1,12 @@
-import 'package:discount_buddy/theme/app_colors.dart';
-
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
+import 'package:discount_buddy/design/app_spacing.dart';
+import 'package:discount_buddy/design/app_typography.dart';
+import 'package:discount_buddy/components/app_app_bar.dart';
+import 'package:discount_buddy/components/layout.dart';
+import 'package:discount_buddy/components/buttons.dart';
 import '../../models/deal_redemption.dart';
 import '../../services/restaurant_service.dart';
 import '../restaurant_details_page.dart';
@@ -104,91 +107,62 @@ class _BookingsPageState extends State<BookingsPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8EEFF),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFFF4E8FF), Color(0xFFFFF2FA), Color(0xFFF8EEFF)],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'My Activity',
-                    style: GoogleFonts.outfit(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-              ),
-              TabBar(
-                controller: _tabController,
-                isScrollable: true,
-                tabAlignment: TabAlignment.start,
-                padding: const EdgeInsets.only(top: 2),
-                labelPadding: const EdgeInsets.symmetric(horizontal: 10),
-                labelColor: AppColors.primaryPurple,
-                unselectedLabelColor: AppColors.textSecondary,
-                indicatorColor: AppColors.primaryPurple,
-                indicatorWeight: 3,
-                labelStyle: GoogleFonts.inter(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                ),
-                tabs: const [
-                  Tab(text: 'Reservations'),
-                  Tab(text: 'Active Coupons'),
-                  Tab(text: 'Coupons'),
-                  Tab(text: 'Coupon History'),
-                ],
-              ),
-              const Divider(height: 1),
-              Expanded(
-                child: _isLoading
-                    ? const Center(
-                        child: CircularProgressIndicator(
-                          color: AppColors.primaryPurple,
-                        ),
-                      )
-                    : TabBarView(
-                        controller: _tabController,
-                        children: [
-                          _ReservationEmptyTab(
-                            trendingItems: _trendingItems,
-                            onExplorePressed: () {
-                              Navigator.pushReplacementNamed(context, '/home');
-                            },
-                          ),
-                          _RedemptionList(
-                            redemptions: _getRedemptionsByTab(1),
-                            onRefresh: _loadRedemptions,
-                            emptyMessage: 'No active coupons',
-                          ),
-                          _RedemptionList(
-                            redemptions: _getRedemptionsByTab(2),
-                            onRefresh: _loadRedemptions,
-                            emptyMessage: 'No coupons yet',
-                          ),
-                          _RedemptionList(
-                            redemptions: _getRedemptionsByTab(3),
-                            onRefresh: _loadRedemptions,
-                            emptyMessage: 'No coupon history',
-                          ),
-                        ],
-                      ),
-              ),
+      backgroundColor: AppColors.background,
+      appBar: AppAppBar(titleText: 'My activity', centerTitle: false),
+      body: Column(
+        children: [
+          TabBar(
+            controller: _tabController,
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
+            padding: const EdgeInsets.only(top: 2),
+            labelPadding: const EdgeInsets.symmetric(horizontal: 10),
+            labelColor: AppColors.primary,
+            unselectedLabelColor: AppColors.textSecondary,
+            indicatorColor: AppColors.primary,
+            indicatorWeight: 3,
+            labelStyle: AppTypography.bodySmall.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+            tabs: const [
+              Tab(text: 'Reservations'),
+              Tab(text: 'Active coupons'),
+              Tab(text: 'Coupons'),
+              Tab(text: 'Coupon history'),
             ],
           ),
-        ),
+          const Divider(height: 1),
+          Expanded(
+            child: _isLoading
+                ? const LoadingWidget(message: 'Loading your activity...')
+                : TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _ReservationEmptyTab(
+                        trendingItems: _trendingItems,
+                        onExplorePressed: () {
+                          Navigator.pushReplacementNamed(context, '/home');
+                        },
+                      ),
+                      _RedemptionList(
+                        redemptions: _getRedemptionsByTab(1),
+                        onRefresh: _loadRedemptions,
+                        emptyMessage: 'No active coupons',
+                      ),
+                      _RedemptionList(
+                        redemptions: _getRedemptionsByTab(2),
+                        onRefresh: _loadRedemptions,
+                        emptyMessage: 'No coupons yet',
+                      ),
+                      _RedemptionList(
+                        redemptions: _getRedemptionsByTab(3),
+                        onRefresh: _loadRedemptions,
+                        emptyMessage: 'No coupon history',
+                      ),
+                    ],
+                  ),
+          ),
+        ],
       ),
     );
   }
@@ -206,102 +180,57 @@ class _ReservationEmptyTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.lg,
+        AppSpacing.lg,
+        120,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.6),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.85)),
-            ),
+          AppCard(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const SizedBox(height: 14),
+                const SizedBox(height: AppSpacing.lg),
                 Text(
                   'No reservations yet 🍽',
-                  style: GoogleFonts.outfit(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                  ),
+                  style: AppTypography.title.copyWith(fontSize: 22),
+                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: AppSpacing.sm),
                 Text(
                   'Find a restaurant and book a table in seconds.',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(
-                    fontSize: 15,
-                    color: AppColors.textSecondary,
-                  ),
+                  style: AppTypography.subtitle,
                 ),
-                const SizedBox(height: 16),
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [
-                        AppColors.primaryPurple,
-                        AppColors.secondaryPink,
-                        AppColors.primaryOrange,
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(26),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primaryPurple.withValues(alpha: 0.24),
-                        blurRadius: 16,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: ElevatedButton(
-                    onPressed: onExplorePressed,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      minimumSize: const Size(272, 54),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(26),
-                      ),
-                    ),
-                    child: Text(
-                      'Explore Restaurants',
-                      style: GoogleFonts.inter(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
+                const SizedBox(height: AppSpacing.xl),
+                PrimaryButton(
+                  label: 'Explore restaurants',
+                  onPressed: onExplorePressed,
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 22),
+          const SizedBox(height: AppSpacing.xxl),
           Row(
             children: [
               Text(
-                '🔥 Trending Near You',
-                style: GoogleFonts.outfit(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                ),
+                'Trending near you',
+                style: AppTypography.title,
               ),
               const Spacer(),
               const Icon(Icons.chevron_right, color: AppColors.textSecondary),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.lg),
           SizedBox(
             height: 238,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: trendingItems.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 12),
+              separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.lg),
               itemBuilder: (context, index) =>
                   _TrendingCard(item: trendingItems[index]),
             ),
@@ -339,136 +268,127 @@ class _TrendingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: 300,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.85),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      clipBehavior: Clip.hardEdge,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            height: 118,
-            child: Stack(
-              children: [
-                CachedNetworkImage(
-                  imageUrl: item.imageUrl,
-                  width: double.infinity,
-                  height: double.infinity,
-                  fit: BoxFit.cover,
-                ),
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Color(0xFFF97316), Color(0xFFFB923C)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
+      child: AppCard(
+        padding: EdgeInsets.zero,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              height: 118,
+              child: Stack(
+                children: [
+                  CachedNetworkImage(
+                    imageUrl: item.imageUrl,
+                    width: double.infinity,
+                    height: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.xs,
                       ),
-                      borderRadius: BorderRadius.only(
-                        bottomRight: Radius.circular(16),
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Color(0xFFF97316), Color(0xFFFB923C)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.only(
+                          bottomRight: Radius.circular(16),
+                        ),
                       ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item.discountLabel,
-                          style: GoogleFonts.inter(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.discountLabel,
+                            style: AppTypography.body.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
-                        ),
-                        Text(
-                          'Limited Time',
-                          style: GoogleFonts.inter(
-                            color: Colors.white.withValues(alpha: 0.95),
-                            fontSize: 11,
+                          Text(
+                            'Limited time',
+                            style: AppTypography.caption.copyWith(
+                              color: Colors.white.withOpacity(0.95),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.outfit(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.md,
+                AppSpacing.lg,
+                AppSpacing.md,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.title.copyWith(fontSize: 18),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    const Icon(Icons.star, color: Color(0xFFFBBF24), size: 15),
-                    const SizedBox(width: 4),
-                    Text(
-                      item.rating.toStringAsFixed(1),
-                      style: GoogleFonts.inter(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
+                  const SizedBox(height: AppSpacing.xs),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.star,
+                        color: Color(0xFFFBBF24),
+                        size: 15,
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${item.reviews} reviews',
-                      style: GoogleFonts.inter(color: AppColors.textSecondary),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Use code ${item.code}',
-                        style: GoogleFonts.inter(
-                          color: AppColors.textSecondary,
-                          fontSize: 14,
+                      const SizedBox(width: AppSpacing.xs),
+                      Text(
+                        item.rating.toStringAsFixed(1),
+                        style: AppTypography.body.copyWith(
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                    ),
-                    const Icon(
-                      Icons.location_on,
-                      color: AppColors.primaryPurple,
-                      size: 14,
-                    ),
-                    Text(
-                      '${item.distanceKm.toStringAsFixed(1)} km away',
-                      style: GoogleFonts.inter(
-                        color: AppColors.textSecondary,
-                        fontSize: 14,
+                      const SizedBox(width: AppSpacing.sm),
+                      Text(
+                        '${item.reviews} reviews',
+                        style: AppTypography.bodySmall,
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Use code ${item.code}',
+                          style: AppTypography.bodySmall,
+                        ),
+                      ),
+                      const Icon(
+                        Icons.location_on,
+                        color: AppColors.primary,
+                        size: 14,
+                      ),
+                      Text(
+                        '${item.distanceKm.toStringAsFixed(1)} km away',
+                        style: AppTypography.bodySmall,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -494,24 +414,10 @@ class _RedemptionList extends StatelessWidget {
           physics: const AlwaysScrollableScrollPhysics(),
           child: SizedBox(
             height: MediaQuery.of(context).size.height * 0.7,
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.local_offer_outlined,
-                    size: 64,
-                    color: AppColors.textDisabled,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    emptyMessage,
-                    style: GoogleFonts.inter(
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
+            child: EmptyStateWidget(
+              icon: Icons.local_offer_outlined,
+              title: emptyMessage,
+              message: 'Pull to refresh or explore restaurants to get started.',
             ),
           ),
         ),
@@ -521,7 +427,12 @@ class _RedemptionList extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: onRefresh,
       child: ListView.builder(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.lg,
+          AppSpacing.lg,
+          100,
+        ),
         itemCount: redemptions.length,
         itemBuilder: (context, index) {
           return _RedemptionCard(redemption: redemptions[index]);
@@ -538,106 +449,74 @@ class _RedemptionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: AppColors.textDisabled.withValues(alpha: 0.3),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: InkWell(
-        onTap: () => _showRedemptionDetails(context, redemption),
-        borderRadius: BorderRadius.circular(14),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return AppCard(
+      margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+      onTap: () => _showRedemptionDetails(context, redemption),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          redemption.deal.restaurantName,
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          redemption.deal.title,
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: AppColors.textSecondary,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  _StatusBadge(isConfirmed: redemption.restaurantConfirmed),
-                ],
-              ),
-              const SizedBox(height: 12),
-              const Divider(),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(
-                    Icons.calendar_today,
-                    size: 16,
-                    color: AppColors.textSecondary,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Used: ${DateFormat('MMM d, yyyy HH:mm').format(redemption.usedAt)}',
-                    style: GoogleFonts.inter(
-                      color: AppColors.textSecondary,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
-              if (redemption.redemptionCode != null) ...[
-                const SizedBox(height: 8),
-                Row(
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.qr_code,
-                      size: 16,
-                      color: AppColors.textSecondary,
-                    ),
-                    const SizedBox(width: 8),
                     Text(
-                      'Code: ${redemption.redemptionCode}',
-                      style: GoogleFonts.inter(
-                        color: AppColors.textPrimary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 1,
-                      ),
+                      redemption.deal.restaurantName,
+                      style: AppTypography.title.copyWith(fontSize: 16),
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      redemption.deal.title,
+                      style: AppTypography.bodySmall,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
-              ],
+              ),
+              _StatusBadge(isConfirmed: redemption.restaurantConfirmed),
             ],
           ),
-        ),
+          const SizedBox(height: AppSpacing.md),
+          const Divider(),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              const Icon(
+                Icons.calendar_today,
+                size: 16,
+                color: AppColors.textSecondary,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                'Used: ${DateFormat('MMM d, yyyy HH:mm').format(redemption.usedAt)}',
+                style: AppTypography.bodySmall,
+              ),
+            ],
+          ),
+          if (redemption.redemptionCode != null) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                const Icon(
+                  Icons.qr_code,
+                  size: 16,
+                  color: AppColors.textSecondary,
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Text(
+                  'Code: ${redemption.redemptionCode}',
+                  style: AppTypography.body.copyWith(
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -660,7 +539,7 @@ class _RedemptionDetailModal extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(14),
           topRight: Radius.circular(14),
@@ -668,12 +547,12 @@ class _RedemptionDetailModal extends StatelessWidget {
       ),
       child: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 12),
+              const SizedBox(height: AppSpacing.md),
               Center(
                 child: Container(
                   width: 40,
@@ -684,7 +563,7 @@ class _RedemptionDetailModal extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xl),
               Flexible(
                 child: SingleChildScrollView(
                   child: Column(
@@ -696,49 +575,35 @@ class _RedemptionDetailModal extends StatelessWidget {
                           children: [
                             Text(
                               redemption.deal.restaurantName,
-                              style: GoogleFonts.inter(
+                              style: AppTypography.title.copyWith(
                                 fontSize: 20,
-                                fontWeight: FontWeight.bold,
                               ),
                               textAlign: TextAlign.center,
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: AppSpacing.sm),
                             _StatusBadge(
                               isConfirmed: redemption.restaurantConfirmed,
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: AppSpacing.xxxl),
 
                       // QR Code Logic
                       if (redemption.qrCodeUrl != null &&
                           redemption.qrCodeUrl!.isNotEmpty) ...[
                         Center(
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: AppColors.textDisabled.withValues(
-                                  alpha: 0.2,
-                                ),
-                              ),
-                            ),
+                          child: AppCard(
+                            padding:
+                                const EdgeInsets.all(AppSpacing.lg),
                             child: Image.network(
-                              // Handle localhost replacement if strictly needed,
-                              // but ideally backend sends accessible URLs
                               redemption.qrCodeUrl!
-                                  .replaceAll(
-                                    'localhost',
-                                    '10.0.2.2',
-                                  ) // Android emulator fix just in case
+                                  .replaceAll('localhost', '10.0.2.2')
                                   .replaceAll('127.0.0.1', '10.0.2.2'),
                               width: 200,
                               height: 200,
                               fit: BoxFit.contain,
-                              errorBuilder: (_, _, _) {
+                              errorBuilder: (_, __, ___) {
                                 return const Icon(
                                   Icons.broken_image,
                                   size: 64,
@@ -748,15 +613,15 @@ class _RedemptionDetailModal extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: AppSpacing.xl),
                       ],
 
                       if (redemption.redemptionCode != null) ...[
                         Center(
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
+                              horizontal: AppSpacing.xl,
+                              vertical: AppSpacing.md,
                             ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFF5F5F5),
@@ -764,24 +629,22 @@ class _RedemptionDetailModal extends StatelessWidget {
                             ),
                             child: Text(
                               redemption.redemptionCode!,
-                              style: GoogleFonts.inter(
+                              style: AppTypography.title.copyWith(
                                 fontSize: 24,
-                                fontWeight: FontWeight.bold,
                                 letterSpacing: 4,
                               ),
                             ),
                           ),
                         ),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: AppSpacing.xxxl),
                       ],
 
                       _DetailRow(
                         icon: Icons.local_offer,
                         label: 'Offer',
-                        value: redemption.deal.title, // or displayText logic
+                        value: redemption.deal.title,
                       ),
-                      const SizedBox(height: 16),
-                      // Deal Details
+                      const SizedBox(height: AppSpacing.lg),
                       if (redemption.deal.discountPercentage != null)
                         _DetailRow(
                           icon: Icons.percent,
@@ -792,14 +655,14 @@ class _RedemptionDetailModal extends StatelessWidget {
                       if (redemption.deal.discountAmount != null)
                         _DetailRow(
                           icon: Icons.attach_money,
-                          label: 'Fixed Discount',
+                          label: 'Fixed discount',
                           value: '£${redemption.deal.discountAmount}',
                         ),
 
-                      const SizedBox(height: 16),
+                      const SizedBox(height: AppSpacing.lg),
                       _DetailRow(
                         icon: Icons.calendar_today,
-                        label: 'Used On',
+                        label: 'Used on',
                         value: DateFormat(
                           'EEEE, MMM d, yyyy HH:mm',
                         ).format(redemption.usedAt),
@@ -807,7 +670,7 @@ class _RedemptionDetailModal extends StatelessWidget {
 
                       if (redemption.notes != null &&
                           redemption.notes!.isNotEmpty) ...[
-                        const SizedBox(height: 16),
+                        const SizedBox(height: AppSpacing.lg),
                         _DetailRow(
                           icon: Icons.note,
                           label: 'Notes',
@@ -815,29 +678,26 @@ class _RedemptionDetailModal extends StatelessWidget {
                         ),
                       ],
 
-                      const SizedBox(height: 32),
+                      const SizedBox(height: AppSpacing.xxxl),
                     ],
                   ),
                 ),
               ),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => RestaurantDetailsPage(
-                          slug: redemption.deal.restaurantSlug,
-                        ),
+              SecondaryButton(
+                label: 'View restaurant',
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => RestaurantDetailsPage(
+                        slug: redemption.deal.restaurantSlug,
                       ),
-                    );
-                  },
-                  child: const Text('View Restaurant'),
-                ),
+                    ),
+                  );
+                },
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xxl),
             ],
           ),
         ),
@@ -863,25 +723,18 @@ class _DetailRow extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(icon, size: 20, color: AppColors.textSecondary),
-        const SizedBox(width: 16),
+        const SizedBox(width: AppSpacing.lg),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 label,
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  color: AppColors.textDisabled,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: AppTypography.caption,
               ),
               Text(
                 value,
-                style: GoogleFonts.inter(
-                  fontSize: 16,
-                  color: AppColors.textPrimary,
-                ),
+                style: AppTypography.body,
               ),
             ],
           ),
@@ -907,7 +760,10 @@ class _StatusBadge extends StatelessWidget {
     final text = isConfirmed ? 'Confirmed' : 'Active';
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.xs,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
@@ -915,10 +771,9 @@ class _StatusBadge extends StatelessWidget {
       ),
       child: Text(
         text,
-        style: GoogleFonts.inter(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
+        style: AppTypography.caption.copyWith(
           color: color,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );

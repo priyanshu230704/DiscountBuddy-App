@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
+import '../../../design/app_colors.dart';
+import '../../../design/app_radius.dart';
+import '../../../design/app_spacing.dart';
 import '../../../widgets/blurred_ellipse_background.dart';
 import '../../../widgets/common_search_bar.dart';
 import '../../../widgets/border_gradient.dart';
@@ -11,14 +14,6 @@ class EventsPage extends StatefulWidget {
 
   @override
   State<EventsPage> createState() => _EventsPageState();
-}
-
-// Local constants for events page
-class _EventsConstants {
-  static const double paddingSmall = 8.0;
-  static const double paddingMedium = 16.0;
-  static const double paddingLarge = 24.0;
-  static const double radiusMedium = 12.0;
 }
 
 class _EventsPageState extends State<EventsPage> {
@@ -77,7 +72,7 @@ class _EventsPageState extends State<EventsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: AppColors.textPrimary,
       body: Stack(
         children: [
           // Blurred ellipse at the top center background
@@ -90,8 +85,8 @@ class _EventsPageState extends State<EventsPage> {
                 // Search Bar
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: _EventsConstants.paddingMedium,
-                    vertical: _EventsConstants.paddingSmall,
+                    horizontal: AppSpacing.lg,
+                    vertical: AppSpacing.sm,
                   ),
                   child: CommonSearchBar(
                     controller: _searchController,
@@ -107,9 +102,9 @@ class _EventsPageState extends State<EventsPage> {
                         // Comedy Events Section
                         Padding(
                           padding: const EdgeInsets.only(
-                            left: _EventsConstants.paddingMedium,
-                            top: _EventsConstants.paddingMedium,
-                            bottom: _EventsConstants.paddingSmall,
+                            left: AppSpacing.lg,
+                            top: AppSpacing.lg,
+                            bottom: AppSpacing.sm,
                           ),
                           child: const Text(
                             'Comedy events',
@@ -125,7 +120,7 @@ class _EventsPageState extends State<EventsPage> {
                           child: ListView.builder(
                             scrollDirection: Axis.horizontal,
                             padding: const EdgeInsets.symmetric(
-                              horizontal: _EventsConstants.paddingMedium,
+                              horizontal: AppSpacing.lg,
                             ),
                             itemCount: _comedyEvents.length,
                             itemBuilder: (context, index) {
@@ -133,23 +128,21 @@ class _EventsPageState extends State<EventsPage> {
                               return Container(
                                 width: 200,
                                 margin: const EdgeInsets.only(
-                                  right: _EventsConstants.paddingMedium,
+                                  right: AppSpacing.lg,
                                 ),
                                 child: _buildSmallEventCard(event),
                               );
                             },
                           ),
                         ),
-                        const SizedBox(height: _EventsConstants.paddingLarge),
+                        const SizedBox(height: AppSpacing.xxl),
                         // Banner Image
                         Padding(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: _EventsConstants.paddingMedium,
+                            horizontal: AppSpacing.lg,
                           ),
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(
-                              _EventsConstants.radiusMedium,
-                            ),
+                            borderRadius: AppRadius.medium,
                             child: Image.asset(
                               'assets/png/banner-sm.png',
                               width: double.infinity,
@@ -158,13 +151,13 @@ class _EventsPageState extends State<EventsPage> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: _EventsConstants.paddingLarge),
+                        const SizedBox(height: AppSpacing.xxl),
                         // Explore Events Section
                         Padding(
                           padding: const EdgeInsets.only(
-                            left: _EventsConstants.paddingMedium,
-                            top: _EventsConstants.paddingMedium,
-                            bottom: _EventsConstants.paddingSmall,
+                            left: AppSpacing.lg,
+                            top: AppSpacing.lg,
+                            bottom: AppSpacing.sm,
                           ),
                           child: const Text(
                             'Explore events',
@@ -180,7 +173,7 @@ class _EventsPageState extends State<EventsPage> {
                           child: ListView.builder(
                             scrollDirection: Axis.horizontal,
                             padding: const EdgeInsets.symmetric(
-                              horizontal: _EventsConstants.paddingMedium,
+                              horizontal: AppSpacing.lg,
                             ),
                             itemCount: _exploreCategories.length,
                             itemBuilder: (context, index) {
@@ -188,14 +181,14 @@ class _EventsPageState extends State<EventsPage> {
                               return Container(
                                 width: 90,
                                 margin: const EdgeInsets.only(
-                                  right: _EventsConstants.paddingMedium,
+                                  right: AppSpacing.lg,
                                 ),
                                 child: _buildExploreCategoryCard(category),
                               );
                             },
                           ),
                         ),
-                        const SizedBox(height: _EventsConstants.paddingLarge),
+                        const SizedBox(height: AppSpacing.xxl),
                       ],
                     ),
                   ),
@@ -215,11 +208,11 @@ class _EventsPageState extends State<EventsPage> {
 
     return BorderGradient(
       borderWidth: 0.5,
-      borderRadius: BorderRadius.circular(_EventsConstants.radiusMedium),
+      borderRadius: AppRadius.medium,
       child: Container(
         decoration: BoxDecoration(
           color: const Color(0xFF1A1B1F),
-          borderRadius: BorderRadius.circular(_EventsConstants.radiusMedium),
+          borderRadius: AppRadius.medium,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -231,8 +224,8 @@ class _EventsPageState extends State<EventsPage> {
                 children: [
                   ClipRRect(
                     borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(_EventsConstants.radiusMedium),
-                      topRight: Radius.circular(_EventsConstants.radiusMedium),
+                      topLeft: Radius.circular(12),
+                      topRight: Radius.circular(12),
                     ),
                     child: CachedNetworkImage(
                       imageUrl: event.imageUrl,
@@ -377,11 +370,11 @@ class _EventsPageState extends State<EventsPage> {
   Widget _buildExploreCategoryCard(ExploreCategory category) {
     return BorderGradient(
       borderWidth: 0.5,
-      borderRadius: BorderRadius.circular(_EventsConstants.radiusMedium),
+      borderRadius: AppRadius.medium,
       child: Container(
         decoration: BoxDecoration(
           color: const Color(0xFF1A1B1F),
-          borderRadius: BorderRadius.circular(_EventsConstants.radiusMedium),
+          borderRadius: AppRadius.medium,
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

@@ -1,7 +1,9 @@
-import 'package:discount_buddy/theme/app_colors.dart';
-
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
+import 'package:discount_buddy/design/app_spacing.dart';
+import 'package:discount_buddy/design/app_typography.dart';
+import 'package:discount_buddy/components/layout.dart';
+import 'package:discount_buddy/components/app_app_bar.dart';
 import '../../services/merchant_service.dart';
 import '../../widgets/skeleton_loader.dart';
 
@@ -58,15 +60,9 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          'Reviews',
-          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
-        ),
+      appBar: AppAppBar(
+        titleText: 'Reviews',
         centerTitle: true,
-        backgroundColor: AppColors.white,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
       ),
       body: _isLoading
           ? _buildLoadingState()
@@ -76,10 +72,10 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
               onRefresh: _loadReviews,
               color: AppColors.accent,
               child: ListView.separated(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(AppSpacing.xl),
                 itemCount: _reviews.length,
                 separatorBuilder: (context, index) =>
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
                 itemBuilder: (context, index) {
                   final review = _reviews[index];
                   return _ReviewCard(review: review);
@@ -91,47 +87,23 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
 
   Widget _buildLoadingState() {
     return ListView.builder(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       itemCount: 5,
       itemBuilder: (context, index) => Padding(
-        padding: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.only(bottom: AppSpacing.lg),
         child: SkeletonLoader(
           height: 140,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
         ),
       ),
     );
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.rate_review_rounded,
-            size: 64,
-            color: AppColors.textDisabled,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No reviews yet',
-            style: GoogleFonts.inter(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Customer feedback will appear here',
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ],
-      ),
+    return const EmptyStateWidget(
+      icon: Icons.rate_review_rounded,
+      title: 'No reviews yet',
+      message: 'Customer feedback will appear here once you receive reviews.',
     );
   }
 }
@@ -149,19 +121,8 @@ class _ReviewCard extends StatelessWidget {
     final comment = review['comment'] ?? '';
     final date = review['created_at'] ?? '';
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -171,11 +132,7 @@ class _ReviewCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   user,
-                  style: GoogleFonts.inter(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: AppColors.textPrimary,
-                  ),
+                  style: AppTypography.title.copyWith(fontSize: 16),
                 ),
               ),
               Row(
@@ -192,32 +149,22 @@ class _ReviewCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             restaurant,
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w500,
-            ),
+            style: AppTypography.bodySmall,
           ),
           if (comment.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.lg),
             Text(
               comment,
-              style: GoogleFonts.inter(
-                color: AppColors.textPrimary,
-                height: 1.5,
-              ),
+              style: AppTypography.body,
             ),
           ],
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.lg),
           Text(
             date,
-            style: GoogleFonts.inter(
-              fontSize: 11,
-              color: AppColors.textDisabled,
-            ),
+            style: AppTypography.caption,
           ),
         ],
       ),

@@ -13,7 +13,9 @@ import '../../providers/auth_provider.dart';
 import '../restaurant_details_page.dart';
 import '../notifications_page.dart';
 import '../../widgets/city_selector_modal.dart';
-import '../../theme/app_colors.dart';
+import '../../design/app_colors.dart';
+import '../../design/app_radius.dart';
+import '../../design/app_spacing.dart';
 import '../../theme/app_fonts.dart';
 
 class HomePage extends StatefulWidget {
@@ -49,9 +51,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   double? _userLongitude;
 
   HomeFilter? _activeFilter = HomeFilter.offers;
-
-  static const Color textPrimary = Color(0xFF111827);
-  static const Color textSecondary = Color(0xFF6B7280);
 
   @override
   void initState() {
@@ -214,8 +213,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           },
         ),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.medium),
+        margin: const EdgeInsets.all(AppSpacing.lg),
       ),
     );
   }
@@ -600,7 +599,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                 style: AppFonts.bodyStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,
-                                  color: textPrimary,
+                                  color: AppColors.textPrimary,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -643,7 +642,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                               child: const Icon(
                                 Icons.notifications_none,
                                 size: 21,
-                                color: textPrimary,
+                                color: AppColors.textPrimary,
                               ),
                             ),
                             if (_notificationCount > 0)
@@ -763,7 +762,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           style: AppFonts.titleStyle(
             fontSize: 20,
             fontWeight: FontWeight.w900,
-            color: textPrimary,
+            color: AppColors.textPrimary,
           ),
         ),
       ),
@@ -789,7 +788,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           child: Center(
             child: Text(
               "No restaurants found 😅",
-              style: TextStyle(color: textSecondary),
+              style: TextStyle(color: AppColors.textSecondary),
             ),
           ),
         ),

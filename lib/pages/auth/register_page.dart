@@ -1,6 +1,6 @@
-import 'package:discount_buddy/theme/app_colors.dart';
-
 import 'package:flutter/material.dart';
+import '../../design/app_colors.dart';
+import '../../design/app_radius.dart';
 import '../../theme/app_fonts.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/auth/auth_theme.dart';
@@ -114,10 +114,10 @@ class _RegisterPageState extends State<RegisterPage> {
             _authProvider!.errorMessage!,
             style: AuthTheme.bodyText,
           ),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: AppRadius.medium,
           ),
         ),
       );
@@ -227,7 +227,7 @@ class _RegisterPageState extends State<RegisterPage> {
       canPop: false,
       child: Scaffold(
         resizeToAvoidBottomInset: false,
-        backgroundColor: const Color(0xFFFDFDFF),
+        backgroundColor: AppColors.surface,
         body: GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
@@ -241,9 +241,9 @@ class _RegisterPageState extends State<RegisterPage> {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        const Color(0xFFEDE7FF),
-                        const Color(0xFFFFF2F9),
-                        const Color(0xFFF0F7FF),
+                        AppColors.background,
+                        AppColors.surface,
+                        AppColors.background,
                       ],
                     ),
                   ),
@@ -260,8 +260,8 @@ class _RegisterPageState extends State<RegisterPage> {
                       shape: BoxShape.circle,
                       gradient: RadialGradient(
                         colors: [
-                          const Color(0xFFDCCBFF).withValues(alpha: 0.5),
-                          const Color(0xFFDCCBFF).withValues(alpha: 0.2),
+                          AppColors.primary.withValues(alpha: 0.35),
+                          AppColors.primary.withValues(alpha: 0.2),
                           Colors.transparent,
                         ],
                       ),
@@ -278,8 +278,8 @@ class _RegisterPageState extends State<RegisterPage> {
                       shape: BoxShape.circle,
                       gradient: RadialGradient(
                         colors: [
-                          const Color(0xFFFFD6E7).withValues(alpha: 0.4),
-                          const Color(0xFFFFD6E7).withValues(alpha: 0.16),
+                          AppColors.secondary.withValues(alpha: 0.25),
+                          AppColors.secondary.withValues(alpha: 0.12),
                           Colors.transparent,
                         ],
                       ),
@@ -823,7 +823,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                           Text(
                                             'Continue with Google',
                                             style: AppFonts.bodyStyle(
-                                              color: const Color(0xFF1D1930),
+                                              color: AppColors.textPrimary,
                                               fontWeight: FontWeight.w700,
                                               fontSize: 14,
                                             ),

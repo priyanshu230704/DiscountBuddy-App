@@ -1,7 +1,9 @@
-import 'package:discount_buddy/theme/app_colors.dart';
-
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
+import 'package:discount_buddy/design/app_spacing.dart';
+import 'package:discount_buddy/design/app_typography.dart';
+import 'package:discount_buddy/components/layout.dart';
+import 'package:discount_buddy/components/app_app_bar.dart';
 import 'package:intl/intl.dart';
 import '../../services/merchant_service.dart';
 import '../../widgets/skeleton_loader.dart';
@@ -88,16 +90,9 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          'Bookings',
-          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
-        ),
+      appBar: AppAppBar(
+        titleText: 'Bookings',
         centerTitle: true,
-        backgroundColor: AppColors.white,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        surfaceTintColor: Colors.transparent,
       ),
       body: _isLoading
           ? _buildLoadingState()
@@ -107,10 +102,10 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
               onRefresh: _loadBookings,
               color: AppColors.accent,
               child: ListView.separated(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(AppSpacing.xl),
                 itemCount: _bookings.length,
                 separatorBuilder: (context, index) =>
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
                 itemBuilder: (context, index) {
                   final booking = _bookings[index];
                   return _BookingCard(
@@ -125,54 +120,23 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
 
   Widget _buildLoadingState() {
     return ListView.builder(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       itemCount: 5,
       itemBuilder: (context, index) => Padding(
-        padding: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.only(bottom: AppSpacing.lg),
         child: SkeletonLoader(
           height: 120,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
         ),
       ),
     );
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.calendar_today_rounded,
-              size: 48,
-              color: AppColors.textDisabled,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'No bookings found',
-            style: GoogleFonts.inter(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Your upcoming reservations will appear here',
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ],
-      ),
+    return const EmptyStateWidget(
+      icon: Icons.calendar_today_rounded,
+      title: 'No bookings found',
+      message: 'Your upcoming reservations will appear here.',
     );
   }
 }
@@ -198,72 +162,52 @@ class _BookingCard extends StatelessWidget {
 
     final isPending = status.toLowerCase() == 'pending';
 
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            customer,
-                            style: GoogleFonts.inter(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            restaurant,
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          customer,
+                          style: AppTypography.title,
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          restaurant,
+                          style: AppTypography.subtitle,
+                        ),
+                      ],
                     ),
-                    _StatusBadge(status: status),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    _InfoChip(
-                      icon: Icons.calendar_today_rounded,
-                      label: date != null
-                          ? DateFormat('MMM d, h:mm a').format(date.toLocal())
-                          : 'No date',
-                    ),
-                    const SizedBox(width: 12),
-                    _InfoChip(
-                      icon: Icons.people_outline_rounded,
-                      label: '$guests guests',
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                  _StatusBadge(status: status),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              Row(
+                children: [
+                  _InfoChip(
+                    icon: Icons.calendar_today_rounded,
+                    label: date != null
+                        ? DateFormat('MMM d, h:mm a').format(date.toLocal())
+                        : 'No date',
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  _InfoChip(
+                    icon: Icons.people_outline_rounded,
+                    label: '$guests guests',
+                  ),
+                ],
+              ),
+            ],
           ),
           if (isPending) ...[
             Container(
@@ -283,11 +227,13 @@ class _BookingCard extends StatelessWidget {
                         bottomLeft: Radius.circular(14),
                       ),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.md,
+                        ),
                         alignment: Alignment.center,
                         child: Text(
                           'Decline',
-                          style: GoogleFonts.inter(
+                          style: AppTypography.body.copyWith(
                             color: Colors.red,
                             fontWeight: FontWeight.w600,
                           ),
@@ -307,11 +253,13 @@ class _BookingCard extends StatelessWidget {
                         bottomRight: Radius.circular(14),
                       ),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.md,
+                        ),
                         alignment: Alignment.center,
                         child: Text(
                           'Confirm Booking',
-                          style: GoogleFonts.inter(
+                          style: AppTypography.body.copyWith(
                             color: AppColors.success,
                             fontWeight: FontWeight.bold,
                           ),
@@ -338,7 +286,10 @@ class _InfoChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.xs,
+      ),
       decoration: BoxDecoration(
         color: AppColors.background,
         borderRadius: BorderRadius.circular(12),
@@ -347,14 +298,10 @@ class _InfoChip extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 16, color: AppColors.textSecondary),
-          const SizedBox(width: 6),
+          const SizedBox(width: AppSpacing.xs),
           Text(
             label,
-            style: GoogleFonts.inter(
-              color: AppColors.textSecondary,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
+            style: AppTypography.bodySmall,
           ),
         ],
       ),
@@ -394,7 +341,10 @@ class _StatusBadge extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.xs,
+      ),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(14),
@@ -403,14 +353,10 @@ class _StatusBadge extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 14, color: color),
-          const SizedBox(width: 4),
+          const SizedBox(width: AppSpacing.xs),
           Text(
             label,
-            style: GoogleFonts.inter(
-              color: color,
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-            ),
+            style: AppTypography.caption.copyWith(color: color),
           ),
         ],
       ),

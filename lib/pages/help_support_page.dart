@@ -1,47 +1,32 @@
-import 'package:discount_buddy/theme/app_colors.dart';
-
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-
+import '../design/app_colors.dart';
+import '../design/app_radius.dart';
+import '../design/app_spacing.dart';
+import '../design/app_typography.dart';
 class HelpSupportPage extends StatelessWidget {
   const HelpSupportPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.surface,
       appBar: AppBar(
-        title: Text(
-          'Help & Support',
-          style: GoogleFonts.inter(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: AppColors.white,
-        elevation: 0,
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            color: AppColors.textPrimary,
-          ),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
+        title: Text('Help & Support', style: AppTypography.title),
+        backgroundColor: AppColors.surface,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Frequently Asked Questions',
-              style: GoogleFonts.inter(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 16),
+            Text('Frequently Asked Questions', style: AppTypography.title),
+            SizedBox(height: AppSpacing.lg),
             _buildFAQItem(
               'How do I redeem a deal?',
               'Simply navigate to the restaurant page, select the deal you want to use, and show the redemption screen to the staff when you ask for the bill.',
@@ -58,7 +43,7 @@ class HelpSupportPage extends StatelessWidget {
               'How do I update my profile?',
               'Go to the Profile tab and click on "Edit profile" to update your name and other details.',
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: AppSpacing.xxxl),
           ],
         ),
       ),
@@ -67,36 +52,27 @@ class HelpSupportPage extends StatelessWidget {
 
   Widget _buildFAQItem(String question, String answer) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+        color: AppColors.surface,
+        borderRadius: AppRadius.medium,
+        border: Border.all(color: AppColors.textDisabled.withValues(alpha: 0.25)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
+            color: AppColors.textPrimary.withValues(alpha: 0.04),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: ExpansionTile(
-        title: Text(
-          question,
-          style: GoogleFonts.inter(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        title: Text(question, style: AppTypography.subtitle.copyWith(
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        )),
+        childrenPadding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, AppSpacing.lg),
         children: [
-          Text(
-            answer,
-            style: GoogleFonts.inter(
-              color: AppColors.textSecondary,
-              height: 1.5,
-            ),
-          ),
+          Text(answer, style: AppTypography.body.copyWith(height: 1.5)),
         ],
       ),
     );

@@ -1,7 +1,10 @@
-import 'package:discount_buddy/theme/app_colors.dart';
-
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
+import 'package:discount_buddy/design/app_spacing.dart';
+import 'package:discount_buddy/design/app_typography.dart';
+import 'package:discount_buddy/components/layout.dart';
+import 'package:discount_buddy/components/buttons.dart';
+import 'package:discount_buddy/components/app_app_bar.dart';
 import '../../services/merchant_service.dart';
 import '../../widgets/skeleton_loader.dart';
 import 'add_deal_page.dart';
@@ -62,15 +65,9 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          'Deals',
-          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
-        ),
+      appBar: AppAppBar(
+        titleText: 'Deals',
         centerTitle: true,
-        backgroundColor: AppColors.white,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
         actions: [
           IconButton(
             icon: const Icon(Icons.add_rounded),
@@ -91,10 +88,10 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
               onRefresh: _loadDeals,
               color: AppColors.accent,
               child: ListView.separated(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(AppSpacing.xl),
                 itemCount: _deals.length,
                 separatorBuilder: (context, index) =>
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
                 itemBuilder: (context, index) {
                   final deal = _deals[index];
                   return _DealCard(deal: deal);
@@ -106,69 +103,30 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
 
   Widget _buildLoadingState() {
     return ListView.builder(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       itemCount: 4,
       itemBuilder: (context, index) => Padding(
-        padding: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.only(bottom: AppSpacing.lg),
         child: SkeletonLoader(
           height: 120,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
         ),
       ),
     );
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.local_offer_rounded,
-            size: 64,
-            color: AppColors.textDisabled,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No active deals',
-            style: GoogleFonts.inter(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Create a deal to attract more customers',
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: AppColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const AddDealPage()),
-              ).then((_) => _loadDeals());
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.accent,
-              foregroundColor: AppColors.primary,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Text(
-              'Create Deal',
-              style: GoogleFonts.inter(fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
+    return EmptyStateWidget(
+      icon: Icons.local_offer_rounded,
+      title: 'No active deals',
+      message: 'Create a deal to attract more customers.',
+      primaryActionLabel: 'Create deal',
+      onPrimaryAction: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AddDealPage()),
+        ).then((_) => _loadDeals());
+      },
     );
   }
 }
@@ -201,19 +159,7 @@ class _DealCard extends StatelessWidget {
     final usedCount = deal['used_count'] as int? ?? 0;
     final maxUses = deal['max_uses'] as int?;
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
+    return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -224,55 +170,43 @@ class _DealCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      style: GoogleFonts.inter(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
+                    Text(title, style: AppTypography.title),
+                    const SizedBox(height: AppSpacing.xs),
                     Text(
                       restaurantName,
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
-                      ),
+                      style: AppTypography.subtitle,
                     ),
                   ],
                 ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.xs,
                 ),
                 decoration: BoxDecoration(
                   color: isActive
-                      ? AppColors.success.withValues(alpha: 0.1)
-                      : Colors.red.withValues(alpha: 0.1),
+                      ? AppColors.success.withOpacity(0.1)
+                      : Colors.red.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   isActive ? 'Active' : 'Inactive',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+                  style: AppTypography.caption.copyWith(
                     color: isActive ? AppColors.success : Colors.red,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.lg),
           Row(
             children: [
               _InfoTag(
                 icon: Icons.local_offer_outlined,
                 label: _getDealTypeText(dealType),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: AppSpacing.sm),
               _InfoTag(
                 icon: Icons.people_outline,
                 label: '$usedCount${maxUses != null ? ' / $maxUses' : ''} used',
@@ -294,7 +228,10 @@ class _InfoTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.xs,
+      ),
       decoration: BoxDecoration(
         color: AppColors.background,
         borderRadius: BorderRadius.circular(10),
@@ -303,14 +240,10 @@ class _InfoTag extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 14, color: AppColors.textSecondary),
-          const SizedBox(width: 6),
+          const SizedBox(width: AppSpacing.xs),
           Text(
             label,
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: AppColors.textSecondary,
-            ),
+            style: AppTypography.bodySmall,
           ),
         ],
       ),

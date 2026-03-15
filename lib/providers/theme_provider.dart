@@ -1,40 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_fonts.dart';
-
-/// Discount Buddy – Clean, Modern, Premium Design System
-class AppColors {
-  // ── Brand ──────────────────────────────────────────────────────────────
-  /// Solid primary action color for buttons only
-  static const Color primaryBlue = Color(0xFF2563EB);
-
-  // Functional colors
-  static const Color discount = Color(0xFFFF7A00); // badge / discount labels
-  static const Color success = Color(0xFF16A34A); // confirmed / redeemed
-  static const Color error = Color(0xFFEF4444);
-
-  // Surfaces
-  static const Color background = Color(0xFFF8F9FC); // neutral light-grey
-  static const Color white = Color(0xFFFFFFFF); // card background
-
-  // Text
-  static const Color textPrimary = Color(0xFF111827);
-  static const Color textSecondary = Color(0xFF6B7280);
-  static const Color textDisabled = Color(0xFF9CA3AF);
-
-  // Backward-compat aliases
-  static const Color primary = primaryBlue;
-  static const Color primaryLight = primaryBlue;
-  static const Color accent = primaryBlue;
-  static const Color green = success;
-  static const Color pink =
-      primaryBlue; // Remove pink accent, use purple consistently
-
-  // No gradients in new design, returning solid purple fallback for legacy
-  static const List<Color> primaryGradientColors = [primaryBlue, primaryBlue];
-
-  static Gradient get primaryGradient =>
-      const LinearGradient(colors: primaryGradientColors);
-}
+import '../theme/app_colors.dart';
 
 class ThemeProvider extends ChangeNotifier {
   final bool _isDarkMode = false;
@@ -50,9 +16,9 @@ class ThemeProvider extends ChangeNotifier {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
       colorScheme: const ColorScheme.light(
-        primary: AppColors.primaryBlue,
-        secondary: AppColors.primaryBlue,
-        surface: AppColors.white,
+        primary: AppColors.primary,
+        secondary: AppColors.secondary,
+        surface: AppColors.surface,
         error: AppColors.error,
         onPrimary: AppColors.white,
         onSecondary: AppColors.white,
@@ -77,7 +43,7 @@ class ThemeProvider extends ChangeNotifier {
       cardColor: AppColors.white,
       cardTheme: CardThemeData(
         elevation: 0,
-        color: AppColors.white,
+        color: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         shadowColor: AppColors.textPrimary.withValues(
           alpha: 0.04,
@@ -85,8 +51,8 @@ class ThemeProvider extends ChangeNotifier {
         margin: EdgeInsets.zero,
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: AppColors.white,
-        selectedItemColor: AppColors.primaryBlue,
+        backgroundColor: AppColors.surface,
+        selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textDisabled,
         elevation: 0,
         type: BottomNavigationBarType.fixed,
@@ -194,7 +160,7 @@ class ThemeProvider extends ChangeNotifier {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryBlue,
+          backgroundColor: AppColors.primary,
           foregroundColor: AppColors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(
@@ -230,7 +196,7 @@ class ThemeProvider extends ChangeNotifier {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: AppColors.primaryBlue,
+          foregroundColor: AppColors.primary,
           textStyle: const TextStyle(
             fontFamily: AppFonts.buttonFont,
             fontWeight: FontWeight.w600,
@@ -262,7 +228,7 @@ class ThemeProvider extends ChangeNotifier {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(
-            color: AppColors.primaryBlue,
+            color: AppColors.primary,
             width: 1.5,
           ),
         ),

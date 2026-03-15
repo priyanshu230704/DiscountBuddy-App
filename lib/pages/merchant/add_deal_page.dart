@@ -1,7 +1,10 @@
-import 'package:discount_buddy/theme/app_colors.dart';
-
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
+import 'package:discount_buddy/design/app_spacing.dart';
+import 'package:discount_buddy/design/app_typography.dart';
+import 'package:discount_buddy/components/inputs.dart';
+import 'package:discount_buddy/components/buttons.dart';
+import 'package:discount_buddy/components/app_app_bar.dart';
 import '../../services/merchant_service.dart';
 import '../../widgets/auth/auth_text_field.dart';
 
@@ -168,89 +171,76 @@ class _AddDealPageState extends State<AddDealPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          widget.deal != null ? 'Edit Deal' : 'Create Deal',
-          style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: AppColors.white,
-        elevation: 0,
+      appBar: AppAppBar(
+        titleText: widget.deal != null ? 'Edit deal' : 'Create deal',
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Form(
               key: _formKey,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppSpacing.lg),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildLabel('Select Restaurant *'),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<int>(
-                          isExpanded: true,
-                          value: _selectedRestaurantId,
-                          items: _myRestaurants.map((r) {
-                            return DropdownMenuItem<int>(
-                              value: r['id'],
-                              child: Text(r['name']),
-                            );
-                          }).toList(),
-                          onChanged: (val) =>
-                              setState(() => _selectedRestaurantId = val),
-                        ),
-                      ),
+                    AppDropdown<int>(
+                      value: _selectedRestaurantId,
+                      label: 'Restaurant *',
+                      items: _myRestaurants
+                          .map(
+                            (r) => DropdownMenuItem<int>(
+                              value: r['id'] as int,
+                              child: Text(r['name'] as String),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (val) =>
+                          setState(() => _selectedRestaurantId = val),
                     ),
-                    const SizedBox(height: 16),
-                    AuthTextField(
+                    const SizedBox(height: AppSpacing.lg),
+                    AppTextField(
                       controller: _titleController,
-                      placeholder: 'Deal Title *',
+                      label: 'Deal title *',
                       validator: (v) => v!.isEmpty ? 'Title required' : null,
                     ),
-                    const SizedBox(height: 16),
-                    AuthTextField(
+                    const SizedBox(height: AppSpacing.lg),
+                    AppTextField(
                       controller: _descriptionController,
-                      placeholder: 'Description',
+                      label: 'Description',
                       maxLines: 3,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
                     _buildLabel('Deal Type'),
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
                           _buildTypeChip('percentage', 'Percentage'),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: AppSpacing.sm),
                           _buildTypeChip('fixed', 'Fixed Amount'),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: AppSpacing.sm),
                           _buildTypeChip('two_for_one', '2 for 1'),
                         ],
                       ),
                     ),
                     if (_dealType != 'two_for_one') ...[
-                      const SizedBox(height: 16),
-                      AuthTextField(
+                      const SizedBox(height: AppSpacing.lg),
+                      AppTextField(
                         controller: _discountController,
-                        placeholder: _dealType == 'percentage'
+                        label: _dealType == 'percentage'
                             ? 'Discount %'
-                            : 'Discount Amount',
+                            : 'Discount amount',
                         keyboardType: TextInputType.number,
                       ),
                     ],
-                    const SizedBox(height: 16),
-                    AuthTextField(
+                    const SizedBox(height: AppSpacing.lg),
+                    AppTextField(
                       controller: _minSpendController,
-                      placeholder: 'Minimum Spend (e.g. 30.00)',
+                      label: 'Minimum spend (e.g. 30.00)',
                       keyboardType: TextInputType.number,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
                     Row(
                       children: [
                         Expanded(
@@ -260,71 +250,52 @@ class _AddDealPageState extends State<AddDealPage> {
                             true,
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: AppSpacing.lg),
                         Expanded(
                           child: _buildDatePicker('End Date', _endDate, false),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
                     Row(
                       children: [
                         Expanded(
-                          child: AuthTextField(
+                          child: AppTextField(
                             controller: _maxUsesController,
-                            placeholder: 'Max Total Uses',
+                            label: 'Max total uses',
                             keyboardType: TextInputType.number,
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: AppSpacing.lg),
                         Expanded(
-                          child: AuthTextField(
+                          child: AppTextField(
                             controller: _maxPerUserController,
-                            placeholder: 'Max Per User',
+                            label: 'Max per user',
                             keyboardType: TextInputType.number,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    AuthTextField(
+                    const SizedBox(height: AppSpacing.lg),
+                    AppTextField(
                       controller: _termsController,
-                      placeholder: 'Terms & Conditions',
+                      label: 'Terms & Conditions',
                       maxLines: 3,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
                     SwitchListTile(
                       title: const Text('Featured Deal'),
                       value: _isFeatured,
                       onChanged: (v) => setState(() => _isFeatured = v),
                       activeThumbColor: AppColors.accent,
                     ),
-                    const SizedBox(height: 32),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed: _isSaving ? null : _saveDeal,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: AppColors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: _isSaving
-                            ? const CircularProgressIndicator()
-                            : Text(
-                                widget.deal != null
-                                    ? 'Update Deal'
-                                    : 'Create Deal',
-                                style: GoogleFonts.inter(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                      ),
+                    const SizedBox(height: AppSpacing.xxxl),
+                    PrimaryButton(
+                      label: widget.deal != null ? 'Update deal' : 'Create deal',
+                      isLoading: _isSaving,
+                      onPressed: _isSaving ? null : _saveDeal,
                     ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: AppSpacing.xxxl),
                   ],
                 ),
               ),
@@ -334,10 +305,15 @@ class _AddDealPageState extends State<AddDealPage> {
 
   Widget _buildLabel(String text) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8, left: 4),
+      padding: const EdgeInsets.only(
+        bottom: AppSpacing.sm,
+        left: 4,
+      ),
       child: Text(
         text,
-        style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 13),
+        style: AppTypography.bodySmall.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -349,7 +325,9 @@ class _AddDealPageState extends State<AddDealPage> {
       selected: selected,
       onSelected: (s) => setState(() => _dealType = type),
       selectedColor: AppColors.accent.withValues(alpha: 0.2),
-      labelStyle: TextStyle(color: selected ? AppColors.accent : Colors.black),
+      labelStyle: AppTypography.bodySmall.copyWith(
+        color: selected ? AppColors.accent : Colors.black,
+      ),
     );
   }
 
@@ -357,7 +335,7 @@ class _AddDealPageState extends State<AddDealPage> {
     return InkWell(
       onTap: () => _selectDate(context, isStart),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(12),
@@ -368,12 +346,13 @@ class _AddDealPageState extends State<AddDealPage> {
           children: [
             Text(
               label,
-              style: const TextStyle(fontSize: 10, color: Colors.grey),
+              style: AppTypography.caption,
             ),
             Text(
               date == null
                   ? 'Select Date'
                   : '${date.day}/${date.month}/${date.year}',
+              style: AppTypography.body,
             ),
           ],
         ),

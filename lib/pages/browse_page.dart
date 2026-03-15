@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../design/app_colors.dart';
+import '../design/app_radius.dart';
+import '../design/app_spacing.dart';
 import '../models/restaurant.dart';
 import '../services/restaurant_service.dart';
 import '../widgets/restaurant_card.dart';
@@ -9,13 +12,6 @@ import '../widgets/blurred_ellipse_background.dart';
 import '../widgets/common_search_bar.dart';
 import '../widgets/border_gradient.dart';
 import 'restaurant_details_page.dart';
-
-// Local constants for browse page
-class _BrowseConstants {
-  static const double paddingSmall = 8.0;
-  static const double paddingMedium = 16.0;
-  static const double radiusMedium = 12.0;
-}
 
 /// Browse page with list and map view toggle
 class BrowsePage extends StatefulWidget {
@@ -136,9 +132,9 @@ class _BrowsePageState extends State<BrowsePage> {
                 Padding(
                   padding: EdgeInsets.only(
                     top: MediaQuery.of(context).padding.top,
-                    left: _BrowseConstants.paddingMedium,
-                    right: _BrowseConstants.paddingMedium,
-                    bottom: _BrowseConstants.paddingMedium,
+                    left: AppSpacing.lg,
+                    right: AppSpacing.lg,
+                    bottom: AppSpacing.lg,
                   ),
                   child: Row(
                     children: [
@@ -151,7 +147,7 @@ class _BrowsePageState extends State<BrowsePage> {
                           },
                         ),
                       ),
-                      const SizedBox(width: _BrowseConstants.paddingSmall),
+                      const SizedBox(width: AppSpacing.sm),
                       BorderGradient(
                         borderWidth: 0.5,
                         borderRadius: BorderRadius.circular(12),
@@ -181,7 +177,7 @@ class _BrowsePageState extends State<BrowsePage> {
           // Floating Action Button (Map/List Toggle)
           if (!_isMapView)
             Positioned(
-              right: _BrowseConstants.paddingMedium,
+              right: AppSpacing.lg,
               bottom: 100,
               child: FloatingActionButton(
                 onPressed: _toggleView,
@@ -193,7 +189,7 @@ class _BrowsePageState extends State<BrowsePage> {
             )
           else
             Positioned(
-              right: _BrowseConstants.paddingMedium,
+              right: AppSpacing.lg,
               bottom: 100,
               child: FloatingActionButton(
                 onPressed: _toggleView,
@@ -228,7 +224,7 @@ class _BrowsePageState extends State<BrowsePage> {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(_BrowseConstants.paddingMedium),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       itemCount: _filteredRestaurants.length,
       itemBuilder: (context, index) {
         final restaurant = _filteredRestaurants[index];
@@ -274,12 +270,12 @@ class _BrowsePageState extends State<BrowsePage> {
             right: 0,
             child: Container(
               height: 120,
-              margin: const EdgeInsets.all(_BrowseConstants.paddingMedium),
+              margin: const EdgeInsets.all(AppSpacing.lg),
               child: Card(
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(
-                    _BrowseConstants.radiusMedium,
+                    AppRadius.medium,
                   ),
                 ),
                 child: InkWell(
@@ -299,10 +295,10 @@ class _BrowsePageState extends State<BrowsePage> {
                       ClipRRect(
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(
-                            _BrowseConstants.radiusMedium,
+                            AppRadius.medium,
                           ),
                           bottomLeft: Radius.circular(
-                            _BrowseConstants.radiusMedium,
+                            AppRadius.medium,
                           ),
                         ),
                         child: CachedNetworkImage(
@@ -327,7 +323,7 @@ class _BrowsePageState extends State<BrowsePage> {
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.all(
-                            _BrowseConstants.paddingMedium,
+                            AppSpacing.lg,
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -392,7 +388,7 @@ class _BrowsePageState extends State<BrowsePage> {
                       // Thumbs Up and Bookmark
                       Padding(
                         padding: const EdgeInsets.all(
-                          _BrowseConstants.paddingSmall,
+                          AppSpacing.sm,
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,

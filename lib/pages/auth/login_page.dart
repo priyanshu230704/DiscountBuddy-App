@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_fonts.dart';
+import '../../design/app_colors.dart';
+import '../../design/app_radius.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/auth/auth_theme.dart';
 import 'register_page.dart';
@@ -108,7 +110,7 @@ class _LoginPageState extends State<LoginPage> {
               'Google sign-in was canceled. Please choose an account to continue.',
               style: AuthTheme.bodyText,
             ),
-            backgroundColor: Colors.orange,
+            backgroundColor: AppColors.accent,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -125,7 +127,7 @@ class _LoginPageState extends State<LoginPage> {
             'Please enter your email address first',
             style: AuthTheme.bodyText,
           ),
-          backgroundColor: Colors.orange,
+          backgroundColor: AppColors.accent,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -140,7 +142,7 @@ class _LoginPageState extends State<LoginPage> {
             'Password reset link sent to your email',
             style: AuthTheme.bodyText,
           ),
-          backgroundColor: Colors.green,
+          backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -180,12 +182,12 @@ class _LoginPageState extends State<LoginPage> {
               Positioned(
                 top: -100,
                 right: -50,
-                child: _GlowBubble(size: 450, color:  Color(0xFFDCCBFF).withValues(alpha: 0.5)),
+                child: _GlowBubble(size: 450, color: AppColors.primary.withValues(alpha: 0.35)),
               ),
               Positioned(
                 bottom: -80,
                 left: -60,
-                child: _GlowBubble(size: 500, color:  Color(0xFFFFD6E7).withValues(alpha: 0.4)),
+                child: _GlowBubble(size: 500, color: AppColors.secondary.withValues(alpha: 0.25)),
               ),
             ],
 
@@ -274,9 +276,9 @@ class _LoginPageState extends State<LoginPage> {
                                           border: Border.all(color: Colors.white, width: 2),
                                           boxShadow: [
                                             BoxShadow(
-                                              color:  Color(0xFF8B5CF6).withValues(alpha: 0.12),
+                                              color: AppColors.primary.withValues(alpha: 0.12),
                                               blurRadius: 25,
-                                              offset:  Offset(0, 6),
+                                              offset: const Offset(0, 6),
                                             ),
                                           ],
                                         ),
@@ -312,7 +314,7 @@ class _LoginPageState extends State<LoginPage> {
                                         'Ready for amazing deals? 🍜\nLog in and start exploring now.',
                                         textAlign: TextAlign.center,
                                         style: AppFonts.bodyStyle(
-                                          color:  Color(0xFF5F567A).withValues(alpha: 0.8),
+                                          color: AppColors.textSecondary.withValues(alpha: 0.9),
                                           fontSize: 16 * scale,
                                           height: 1.3,
                                           fontWeight: FontWeight.w600,
@@ -335,9 +337,9 @@ class _LoginPageState extends State<LoginPage> {
                                         borderRadius: BorderRadius.circular(32 * scale),
                                         boxShadow: [
                                           BoxShadow(
-                                            color:  Color(0xFF2E1A47).withValues(alpha: 0.08),
+                                            color: AppColors.textPrimary.withValues(alpha: 0.08),
                                             blurRadius: 40,
-                                            offset:  Offset(0, 15),
+                                            offset: const Offset(0, 15),
                                           ),
                                         ],
                                       ),
@@ -377,7 +379,7 @@ class _LoginPageState extends State<LoginPage> {
                                                 _obscurePassword
                                                     ? Icons.visibility_outlined
                                                     : Icons.visibility_off_outlined,
-                                                color:  Color(0xFF9A8FB7),
+                                                color: AppColors.textDisabled,
                                                 size: 20 * scale,
                                               ),
                                             ),
@@ -395,7 +397,7 @@ class _LoginPageState extends State<LoginPage> {
                                               child: Text(
                                                 'Forgot password?',
                                                 style: AppFonts.bodyStyle(
-                                                  color:  Color(0xFF8B5CF6),
+                                                  color: AppColors.primary,
                                                   fontWeight: FontWeight.w700,
                                                   fontSize: 13 * scale,
                                                 ),
@@ -409,19 +411,15 @@ class _LoginPageState extends State<LoginPage> {
                                             curve: Curves.easeOutCubic,
                                             height: (isKeyboardOpen ? 48 : 56) * scale,
                                             decoration: BoxDecoration(
-                                              gradient:  LinearGradient(
-                                                colors: [Color(0xFF8B5CF6), Color(0xFFD946EF)],
-                                                begin: Alignment.centerLeft,
-                                                end: Alignment.centerRight,
+                                              gradient: AppColors.purpleGradient,
+                                            borderRadius: BorderRadius.circular(18 * scale),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: AppColors.primary.withValues(alpha: 0.25),
+                                                blurRadius: 15,
+                                                offset: const Offset(0, 6),
                                               ),
-                                              borderRadius: BorderRadius.circular(18 * scale),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color:  Color(0xFF8B5CF6).withValues(alpha: 0.25),
-                                                  blurRadius: 15,
-                                                  offset:  Offset(0, 6),
-                                                ),
-                                              ],
+                                            ],
                                             ),
                                             child: ElevatedButton(
                                               onPressed: _isFormValid && !_isLoading ? _handleLogin : null,
@@ -439,7 +437,10 @@ class _LoginPageState extends State<LoginPage> {
                                                   ? SizedBox(
                                                       width: 22 * scale,
                                                       height: 22 * scale,
-                                                      child:  CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                                                      child: const CircularProgressIndicator(
+                                                  color: AppColors.white,
+                                                  strokeWidth: 2,
+                                                ),
                                                     )
                                                   : Text(
                                                       'Log In',
@@ -454,19 +455,19 @@ class _LoginPageState extends State<LoginPage> {
                                           SizedBox(height: (isKeyboardOpen ? 18 : 24) * scale),
                                           Row(
                                             children: [
-                                              Expanded(child: Divider(color: Colors.grey.withValues(alpha: 0.1))),
+                                              Expanded(child: Divider(color: AppColors.textDisabled.withValues(alpha: 0.3))),
                                               Padding(
                                                 padding: const EdgeInsets.symmetric(horizontal: 16),
                                                 child: Text(
                                                   'OR',
-                                                  style: AppFonts.bodyStyle(
-                                                    color:  Color(0xFFA7A0BB),
-                                                    fontWeight: FontWeight.w700,
-                                                    fontSize: 12 * scale,
-                                                  ),
+                                                    style: AppFonts.bodyStyle(
+                                                      color: AppColors.textDisabled,
+                                                      fontWeight: FontWeight.w700,
+                                                      fontSize: 12 * scale,
+                                                    ),
                                                 ),
                                               ),
-                                              Expanded(child: Divider(color: Colors.grey.withValues(alpha: 0.1))),
+                                              Expanded(child: Divider(color: AppColors.textDisabled.withValues(alpha: 0.3))),
                                             ],
                                           ),
                                           SizedBox(height: (isKeyboardOpen ? 18 : 24) * scale),
@@ -474,8 +475,8 @@ class _LoginPageState extends State<LoginPage> {
                                             onPressed: _isLoading ? null : _handleGoogleLogin,
                                             style: OutlinedButton.styleFrom(
                                               minimumSize: Size(double.infinity, (isKeyboardOpen ? 48 : 56) * scale),
-                                              side: BorderSide(color: Colors.grey.withValues(alpha: 0.15)),
-                                              backgroundColor: Colors.white,
+                                              side: BorderSide(color: AppColors.textDisabled.withValues(alpha: 0.2)),
+                                              backgroundColor: AppColors.white,
                                               shape: RoundedRectangleBorder(
                                                 borderRadius: BorderRadius.circular(16 * scale),
                                               ),
@@ -492,7 +493,7 @@ class _LoginPageState extends State<LoginPage> {
                                                 Text(
                                                   'Continue with Google',
                                                   style: AppFonts.bodyStyle(
-                                                    color:  Color(0xFF1D1930),
+                                                    color: AppColors.textPrimary,
                                                     fontWeight: FontWeight.w700,
                                                     fontSize: 14 * scale,
                                                   ),
@@ -508,7 +509,7 @@ class _LoginPageState extends State<LoginPage> {
                                               Text(
                                                 'New here?',
                                                 style: AppFonts.bodyStyle(
-                                                  color:  Color(0xFF5F567A).withValues(alpha: 0.7),
+                                                  color: AppColors.textSecondary.withValues(alpha: 0.8),
                                                   fontSize: 14 * scale,
                                                   fontWeight: FontWeight.w500,
                                                 ),
@@ -528,7 +529,7 @@ class _LoginPageState extends State<LoginPage> {
                                                 child: Text(
                                                   'Create account',
                                                   style: AppFonts.bodyStyle(
-                                                    color:  Color(0xFF8B5CF6),
+                                                    color: AppColors.primary,
                                                     fontWeight: FontWeight.w800,
                                                     fontSize: 14 * scale,
                                                   ),
@@ -564,7 +565,7 @@ class _LoginPageState extends State<LoginPage> {
                                             Text(
                                               'Trending Deal Today',
                                               style: AppFonts.titleStyle(
-                                                color:  Color(0xFF3A2F55),
+                                                color: AppColors.textPrimary,
                                                 fontSize: 13 * scale,
                                                 fontWeight: FontWeight.w700,
                                               ),
@@ -620,19 +621,19 @@ class _LoginPageState extends State<LoginPage> {
       keyboardType: keyboardType,
       obscureText: obscureText,
       style: AppFonts.bodyStyle(
-        color:  Color(0xFF2E2648),
+        color: AppColors.textPrimary,
         fontSize: 16 * scale,
         fontWeight: FontWeight.w600,
       ),
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: AppFonts.bodyStyle(
-          color:  Color(0xFF9C94B2),
+          color: AppColors.textDisabled,
           fontSize: 16 * scale,
           fontWeight: FontWeight.w500,
         ),
         filled: true,
-        fillColor:  Color(0xFFF7F7FD),
+        fillColor: AppColors.background,
         contentPadding: EdgeInsets.symmetric(
           horizontal: 18 * scale,
           vertical: (isSmall ? 14 : 16) * scale,
@@ -640,15 +641,15 @@ class _LoginPageState extends State<LoginPage> {
         suffixIcon: suffixIcon,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16 * scale),
-          borderSide: BorderSide(color:  Color(0xFF8B5CF6).withValues(alpha: 0.08)),
+          borderSide: BorderSide(color: AppColors.primary.withValues(alpha: 0.08)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16 * scale),
-          borderSide: BorderSide(color:  Color(0xFF8B5CF6).withValues(alpha: 0.06)),
+          borderSide: BorderSide(color: AppColors.primary.withValues(alpha: 0.06)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16 * scale),
-          borderSide:  BorderSide(color: Color(0xFF8B5CF6), width: 1.5),
+          borderSide: BorderSide(color: AppColors.primary, width: 1.5),
         ),
       ),
     );

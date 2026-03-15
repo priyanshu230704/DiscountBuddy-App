@@ -1,8 +1,10 @@
-import 'package:discount_buddy/theme/app_colors.dart';
-
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import '../../widgets/auth/auth_text_field.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
+import 'package:discount_buddy/design/app_spacing.dart';
+import 'package:discount_buddy/design/app_typography.dart';
+import 'package:discount_buddy/components/inputs.dart';
+import 'package:discount_buddy/components/buttons.dart';
+import 'package:discount_buddy/components/app_app_bar.dart';
 import '../../services/merchant_service.dart';
 import 'merchant_menu_page.dart';
 
@@ -137,10 +139,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                                     ? 'Loading cities...'
                                     : 'No cities found for "${_cityController.text}"',
                                 textAlign: TextAlign.center,
-                                style: GoogleFonts.inter(
-                                  color: AppColors.textSecondary,
-                                  fontSize: 14,
-                                ),
+                                style: AppTypography.bodySmall,
                               ),
                             ],
                           ),
@@ -169,10 +168,8 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                                 ),
                                 title: Text(
                                   cityName,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 15,
+                                  style: AppTypography.body.copyWith(
                                     fontWeight: FontWeight.w500,
-                                    color: AppColors.textPrimary,
                                   ),
                                 ),
                                 onTap: () {
@@ -400,18 +397,14 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          widget.restaurant != null ? 'Edit Restaurant' : 'Add Restaurant',
-          style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: AppColors.white,
-        elevation: 0,
+      appBar: AppAppBar(
+        titleText:
+            widget.restaurant != null ? 'Edit restaurant' : 'Add restaurant',
         actions: widget.restaurant != null
             ? [
                 IconButton(
                   icon: const Icon(Icons.menu_book),
-                  tooltip: 'Manage Menu',
+                  tooltip: 'Manage menu',
                   onPressed: () {
                     final restaurantId = widget.restaurant!['id'];
                     final id = restaurantId is int
@@ -487,15 +480,15 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
           : Form(
               key: _formKey,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppSpacing.lg),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Basic Information
                     _buildSectionTitle('Basic Information'),
-                    AuthTextField(
+                    AppTextField(
                       controller: _nameController,
-                      placeholder: 'Restaurant Name *',
+                      label: 'Restaurant name *',
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Restaurant name is required';
@@ -503,26 +496,26 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
-                    AuthTextField(
+                    const SizedBox(height: AppSpacing.lg),
+                    AppTextField(
                       controller: _slugController,
-                      placeholder: 'Slug (auto-generated if empty)',
+                      label: 'Slug (auto-generated if empty)',
                     ),
-                    const SizedBox(height: 16),
-                    AuthTextField(
+                    const SizedBox(height: AppSpacing.lg),
+                    AppTextField(
                       controller: _descriptionController,
-                      placeholder: 'Description',
+                      label: 'Description',
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.xxl),
 
                     _buildSectionTitle('Location'),
                     CompositedTransformTarget(
                       link: _cityLayerLink,
-                      child: AuthTextField(
+                      child: AppTextField(
                         key: _cityFieldKey,
                         controller: _cityController,
                         focusNode: _cityFocusNode,
-                        placeholder: 'Search City *',
+                        label: 'City *',
                         readOnly: true,
                         onTap: () {
                           if (!_cityFocusNode.hasFocus) {
@@ -531,22 +524,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                             _showOverlay();
                           }
                         },
-                        onChanged: (value) {
-                          setState(() {
-                            if (value.isEmpty) {
-                              _filteredCities = _cities;
-                              _selectedCityId = null;
-                            } else {
-                              _filteredCities = _cities.where((city) {
-                                final cityName = (city['name'] as String? ?? '')
-                                    .toLowerCase();
-                                return cityName.contains(value.toLowerCase());
-                              }).toList();
-                            }
-                            // Rebuild overlay with filtered list
-                            _cityOverlayEntry?.markNeedsBuild();
-                          });
-                        },
+                        onChanged: (_) {},
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'City is required';
@@ -558,10 +536,10 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                         },
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    AuthTextField(
+                    const SizedBox(height: AppSpacing.lg),
+                    AppTextField(
                       controller: _addressController,
-                      placeholder: 'Address *',
+                      label: 'Address *',
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Address is required';
@@ -569,44 +547,44 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
-                    AuthTextField(
+                    const SizedBox(height: AppSpacing.lg),
+                    AppTextField(
                       controller: _postcodeController,
-                      placeholder: 'Postcode',
+                      label: 'Postcode',
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.lg),
                     Row(
                       children: [
                         Expanded(
-                          child: AuthTextField(
+                          child: AppTextField(
                             controller: _latitudeController,
-                            placeholder: 'Latitude',
+                            label: 'Latitude',
                             keyboardType: TextInputType.number,
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: AppSpacing.lg),
                         Expanded(
-                          child: AuthTextField(
+                          child: AppTextField(
                             controller: _longitudeController,
-                            placeholder: 'Longitude',
+                            label: 'Longitude',
                             keyboardType: TextInputType.number,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.xxl),
 
                     // Contact Information
                     _buildSectionTitle('Contact Information'),
-                    AuthTextField(
+                    AppTextField(
                       controller: _phoneController,
-                      placeholder: 'Phone Number',
+                      label: 'Phone number',
                       keyboardType: TextInputType.phone,
                     ),
-                    const SizedBox(height: 16),
-                    AuthTextField(
+                    const SizedBox(height: AppSpacing.lg),
+                    AppTextField(
                       controller: _emailController,
-                      placeholder: 'Email',
+                      label: 'Email',
                       keyboardType: TextInputType.emailAddress,
                       validator: (value) {
                         if (value != null &&
@@ -617,13 +595,13 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
-                    AuthTextField(
+                    const SizedBox(height: AppSpacing.lg),
+                    AppTextField(
                       controller: _websiteController,
-                      placeholder: 'Website URL',
+                      label: 'Website URL',
                       keyboardType: TextInputType.url,
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.xxl),
 
                     // Categories
                     _buildSectionTitle('Categories'),
@@ -642,11 +620,9 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                             alpha: 0.1,
                           ),
                           checkmarkColor: AppColors.primary,
-                          labelStyle: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: isSelected
-                                ? FontWeight.bold
-                                : FontWeight.w500,
+                          labelStyle: AppTypography.body.copyWith(
+                            fontWeight:
+                                isSelected ? FontWeight.w700 : FontWeight.w500,
                             color: isSelected
                                 ? AppColors.primary
                                 : AppColors.textPrimary,
@@ -673,7 +649,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                         );
                       }).toList(),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.xxl),
 
                     // Price Range
                     _buildSectionTitle('Price Range'),
@@ -719,7 +695,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.xxl),
 
                     // Opening Hours
                     _buildSectionTitle('Opening Hours (Optional)'),
@@ -728,7 +704,9 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                         text: entry.value,
                       );
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.only(
+                          bottom: AppSpacing.md,
+                        ),
                         child: Row(
                           children: [
                             SizedBox(
@@ -736,15 +714,15 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                               child: Text(
                                 entry.key[0].toUpperCase() +
                                     entry.key.substring(1),
-                                style: GoogleFonts.inter(
+                                style: AppTypography.bodySmall.copyWith(
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ),
                             Expanded(
-                              child: AuthTextField(
+                              child: AppTextField(
                                 controller: controller,
-                                placeholder: 'e.g., 10:00-22:00',
+                                label: 'e.g., 10:00-22:00',
                                 onChanged: (value) {
                                   setState(() {
                                     _openingHours[entry.key] = value;
@@ -756,44 +734,17 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                         ),
                       );
                     }),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: AppSpacing.xxxl),
 
                     // Save Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _saveRestaurant,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: AppColors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    AppColors.white,
-                                  ),
-                                ),
-                              )
-                            : Text(
-                                widget.restaurant != null
-                                    ? 'Update Restaurant'
-                                    : 'Create Restaurant',
-                                style: GoogleFonts.inter(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                      ),
+                    PrimaryButton(
+                      label: widget.restaurant != null
+                          ? 'Update restaurant'
+                          : 'Create restaurant',
+                      isLoading: _isLoading,
+                      onPressed: _isLoading ? null : _saveRestaurant,
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: AppSpacing.xxl),
                   ],
                 ),
               ),
@@ -803,14 +754,10 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
 
   Widget _buildSectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Text(
         title,
-        style: GoogleFonts.inter(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: AppColors.textPrimary,
-        ),
+        style: AppTypography.title,
       ),
     );
   }

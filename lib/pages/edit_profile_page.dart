@@ -1,7 +1,10 @@
-import 'package:discount_buddy/theme/app_colors.dart';
-
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../design/app_colors.dart';
+import '../design/app_radius.dart';
+import '../design/app_spacing.dart';
+import '../design/app_typography.dart';
+import '../components/buttons.dart';
+import '../components/inputs.dart';
 import '../providers/auth_provider.dart';
 
 /// Edit Profile Screen
@@ -60,11 +63,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'Profile updated successfully',
-              style: GoogleFonts.inter(),
-            ),
-            backgroundColor: AppColors.primaryPurple,
+            content: Text('Profile updated successfully', style: AppTypography.body),
+            backgroundColor: AppColors.primary,
           ),
         );
         Navigator.pop(context);
@@ -73,9 +73,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
           SnackBar(
             content: Text(
               _authProvider.errorMessage ?? 'Failed to update profile',
-              style: GoogleFonts.inter(),
+              style: AppTypography.body,
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -83,11 +83,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'Failed to update profile',
-              style: GoogleFonts.inter(),
-            ),
-            backgroundColor: Colors.red,
+            content: Text('Failed to update profile', style: AppTypography.body),
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -103,53 +100,42 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.surface,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          'Edit profile',
-          style: GoogleFonts.inter(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        backgroundColor: AppColors.white,
+        title: Text('Edit profile', style: AppTypography.title),
+        backgroundColor: AppColors.surface,
         elevation: 0,
+        surfaceTintColor: Colors.transparent,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           child: Column(
             children: [
-              const SizedBox(height: 32),
-
-              // Profile Picture Section
+              SizedBox(height: AppSpacing.xxxl),
               Stack(
                 children: [
-                  // Large circular avatar
                   Container(
                     width: 120,
                     height: 120,
                     decoration: const BoxDecoration(
-                      color: AppColors.primaryPurple,
+                      color: AppColors.primary,
                       shape: BoxShape.circle,
                     ),
                     child: Center(
                       child: Text(
                         _getInitials(),
-                        style: GoogleFonts.inter(
+                        style: AppTypography.headline.copyWith(
                           fontSize: 48,
-                          fontWeight: FontWeight.bold,
                           color: AppColors.white,
                         ),
                       ),
                     ),
                   ),
-                  // Edit icon overlay
                   Positioned(
                     bottom: 0,
                     right: 0,
@@ -157,7 +143,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       width: 36,
                       height: 36,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF343A40),
+                        color: AppColors.textPrimary,
                         shape: BoxShape.circle,
                         border: Border.all(color: AppColors.white, width: 3),
                       ),
@@ -170,60 +156,27 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 32),
-
-              // User Name Field
+              SizedBox(height: AppSpacing.xxxl),
               _buildTextField(
                 label: 'User name',
                 controller: _userNameController,
                 onChanged: (value) => setState(() {}),
               ),
-              const SizedBox(height: 16),
-
-              // Email Field
+              SizedBox(height: AppSpacing.lg),
               _buildTextField(
                 label: 'Email',
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 readOnly: true,
               ),
-              const SizedBox(height: 32),
-
-              // Save Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _saveProfile,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryPurple,
-                    foregroundColor: AppColors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              AppColors.white,
-                            ),
-                          ),
-                        )
-                      : Text(
-                          'Save',
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                ),
+              SizedBox(height: AppSpacing.xxxl),
+              PrimaryButton(
+                label: 'Save',
+                onPressed: _saveProfile,
+                isLoading: _isLoading,
+                expand: true,
               ),
-              const SizedBox(height: 32),
+              SizedBox(height: AppSpacing.xxxl),
             ],
           ),
         ),
@@ -238,42 +191,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
     void Function(String)? onChanged,
     bool readOnly = false,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.inter(
-            fontSize: 12,
-            color: AppColors.textSecondary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: readOnly ? const Color(0xFFEEEEEE) : const Color(0xFFF5F5F5),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: TextField(
-            controller: controller,
-            keyboardType: keyboardType,
-            onChanged: onChanged,
-            readOnly: readOnly,
-            style: GoogleFonts.inter(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: readOnly ? AppColors.textSecondary : AppColors.textPrimary,
-            ),
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 14,
-              ),
-            ),
-          ),
-        ),
-      ],
+    return AppTextField(
+      controller: controller,
+      label: label,
+      keyboardType: keyboardType,
+      onChanged: onChanged,
+      readOnly: readOnly,
     );
   }
 }

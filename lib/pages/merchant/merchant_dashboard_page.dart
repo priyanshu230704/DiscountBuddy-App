@@ -1,7 +1,9 @@
-import 'package:discount_buddy/theme/app_colors.dart';
-
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
+import 'package:discount_buddy/design/app_spacing.dart';
+import 'package:discount_buddy/design/app_typography.dart';
+import 'package:discount_buddy/components/layout.dart';
+import 'package:discount_buddy/components/app_app_bar.dart';
 import 'merchant_restaurants_page.dart';
 import 'merchant_deals_page.dart';
 import 'merchant_bookings_page.dart';
@@ -82,119 +84,73 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      appBar: AppAppBar(titleText: 'Dashboard'),
       body: SafeArea(
         bottom: false,
         child: RefreshIndicator(
           onRefresh: _fetchDashboardData,
           color: AppColors.accent,
-          child: CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              // Header
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Dashboard',
-                        style: GoogleFonts.inter(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textPrimary,
-                          letterSpacing: -1.0,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Track your Restaurant and its realtime progress',
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
-                          color: AppColors.textSecondary,
-                          height: 1.5,
-                        ),
-                      ),
-                    ],
-                  ),
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
+            padding: AppSpacing.screenPadding.copyWith(
+              bottom: AppSpacing.xxxl,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Track your restaurant and its real-time progress',
+                  style: AppTypography.subtitle,
                 ),
-              ),
-
-              // Quick Actions (Scan)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: _ScanActionCard(
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const QRScannerPage(),
-                      ),
-                    ).then((_) => _fetchDashboardData()),
-                  ),
-                ),
-              ),
-
-              const SliverToBoxAdapter(child: SizedBox(height: 24)),
-
-              // Stats Section
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _StatCard(
-                          label: 'Total Bookings',
-                          value: _totalBookings.toString(),
-                          isLoading: _isLoading,
-                          icon: Icons.calendar_today_rounded,
-                          color: Colors.blue,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _StatCard(
-                          label: 'Average Rating',
-                          value: _averageRating.toStringAsFixed(1),
-                          isLoading: _isLoading,
-                          icon: Icons.star_rounded,
-                          color: AppColors.discount,
-                          isRating: true,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SliverToBoxAdapter(child: SizedBox(height: 32)),
-
-              // Menu Grid Header
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Text(
-                    'Manage Business',
-                    style: GoogleFonts.inter(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+                const SizedBox(height: AppSpacing.xxl),
+                _ScanActionCard(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const QRScannerPage(),
                     ),
-                  ),
+                  ).then((_) => _fetchDashboardData()),
                 ),
-              ),
-
-              const SliverToBoxAdapter(child: SizedBox(height: 16)),
-
-              // Menu Grid
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(24, 0, 24, 100),
-                sliver: SliverGrid.count(
+                const SizedBox(height: AppSpacing.xxl),
+                Row(
+                  children: [
+                    Expanded(
+                      child: StatCard(
+                        label: 'Total Bookings',
+                        value: _totalBookings.toString(),
+                        isLoading: _isLoading,
+                        icon: Icons.calendar_today_rounded,
+                        color: Colors.blue,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.lg),
+                    Expanded(
+                      child: StatCard(
+                        label: 'Average Rating',
+                        value: _averageRating.toStringAsFixed(1),
+                        isLoading: _isLoading,
+                        icon: Icons.star_rounded,
+                        color: AppColors.discount,
+                        isRating: true,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xxxl),
+                SectionHeader(
+                  title: 'Manage Business',
+                  subtitle: 'Quick access to your core merchant tools',
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                GridView.count(
                   crossAxisCount: 2,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  childAspectRatio: 1.0,
+                  mainAxisSpacing: AppSpacing.lg,
+                  crossAxisSpacing: AppSpacing.lg,
+                  childAspectRatio: 1,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
                   children: [
                     _MenuCard(
                       title: 'Bookings',
@@ -260,8 +216,8 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                     ),
                   ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -276,72 +232,45 @@ class _ScanActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+    return AppCard(
+      onTap: onTap,
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(
+              Icons.qr_code_scanner_rounded,
+              color: AppColors.primary,
+              size: 32,
+            ),
           ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(14),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Row(
+          const SizedBox(width: AppSpacing.xl),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: const Icon(
-                    Icons.qr_code_scanner_rounded,
-                    color: Colors.white,
-                    size: 32,
-                  ),
+                Text(
+                  'Scan redemption',
+                  style: AppTypography.title,
                 ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Scan Redemption',
-                        style: GoogleFonts.inter(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Process customer codes',
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          color: Colors.white.withValues(alpha: 0.7),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  Icons.arrow_forward_rounded,
-                  color: Colors.white.withValues(alpha: 0.5),
-                  size: 24,
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  'Process customer QR codes at the door',
+                  style: AppTypography.subtitle,
                 ),
               ],
             ),
           ),
-        ),
+          const Icon(
+            Icons.arrow_forward_rounded,
+            color: AppColors.textSecondary,
+            size: 24,
+          ),
+        ],
       ),
     );
   }
@@ -402,10 +331,8 @@ class _StatCard extends StatelessWidget {
               children: [
                 Text(
                   value,
-                  style: GoogleFonts.inter(
+                  style: AppTypography.headline.copyWith(
                     fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
                     letterSpacing: -0.5,
                   ),
                 ),
@@ -418,11 +345,7 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             label,
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: AppColors.textSecondary,
-            ),
+            style: AppTypography.bodySmall,
           ),
         ],
       ),
@@ -447,63 +370,39 @@ class _MenuCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+    return AppCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.08),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 28),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: AppTypography.body.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: AppTypography.bodySmall,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(14),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.08),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(icon, color: color, size: 28),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    color: AppColors.textSecondary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }

@@ -1,8 +1,11 @@
-import 'package:discount_buddy/theme/app_colors.dart';
-
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
+import 'package:discount_buddy/design/app_spacing.dart';
+import 'package:discount_buddy/design/app_typography.dart';
+import 'package:discount_buddy/components/app_app_bar.dart';
+import 'package:discount_buddy/components/buttons.dart';
+import 'package:discount_buddy/components/layout.dart';
 import '../../services/booking_service.dart';
 
 class CreateBookingPage extends StatefulWidget {
@@ -149,138 +152,101 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
-      appBar: AppBar(
-        title: Text(
-          'Book Table',
-          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: AppColors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
-      ),
+      backgroundColor: AppColors.background,
+      appBar: AppAppBar(titleText: 'Book table'),
       body: SafeArea(
         child: Form(
           key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.all(24),
-            children: [
-              Text(
-                widget.restaurantName,
-                style: GoogleFonts.inter(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+          child: SingleChildScrollView(
+            padding: AppSpacing.screenPadding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.restaurantName,
+                  style: AppTypography.title.copyWith(fontSize: 22),
                 ),
-              ),
-              const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.xxl),
 
-              // Date & Time Selection
-              Row(
-                children: [
-                  Expanded(
-                    child: _DetailSelector(
-                      icon: Icons.calendar_today,
-                      label: 'Date',
-                      value: DateFormat('MMM d, yyyy').format(_selectedDate),
-                      onTap: () => _selectDate(context),
+                // Date & Time Selection
+                Row(
+                  children: [
+                    Expanded(
+                      child: _DetailSelector(
+                        icon: Icons.calendar_today,
+                        label: 'Date',
+                        value: DateFormat('MMM d, yyyy').format(_selectedDate),
+                        onTap: () => _selectDate(context),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _DetailSelector(
-                      icon: Icons.access_time,
-                      label: 'Time',
-                      value: _selectedTime.format(context),
-                      onTap: () => _selectTime(context),
+                    const SizedBox(width: AppSpacing.lg),
+                    Expanded(
+                      child: _DetailSelector(
+                        icon: Icons.access_time,
+                        label: 'Time',
+                        value: _selectedTime.format(context),
+                        onTap: () => _selectTime(context),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xxl),
 
-              // Guests
-              TextFormField(
-                controller: _guestsController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: 'Number of Guests',
-                  prefixIcon: const Icon(Icons.people_outline),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                // Guests
+                TextFormField(
+                  controller: _guestsController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Number of guests',
+                    prefixIcon: Icon(Icons.people_outline),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) return 'Required';
+                    if (int.tryParse(value) == null) return 'Invalid number';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: AppSpacing.lg),
+
+                // Contact Info
+                TextFormField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Contact name (optional)',
+                    prefixIcon: Icon(Icons.person_outline),
                   ),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) return 'Required';
-                  if (int.tryParse(value) == null) return 'Invalid number';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-
-              // Contact Info
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Contact Name (Optional)',
-                  prefixIcon: const Icon(Icons.person_outline),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                const SizedBox(height: AppSpacing.lg),
+                TextFormField(
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(
+                    labelText: 'Phone number (optional)',
+                    prefixIcon: Icon(Icons.phone_outlined),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                decoration: InputDecoration(
-                  labelText: 'Phone Number (Optional)',
-                  prefixIcon: const Icon(Icons.phone_outlined),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                const SizedBox(height: AppSpacing.lg),
+
+                // Special Requests
+                TextFormField(
+                  controller: _requestController,
+                  maxLines: 3,
+                  decoration: const InputDecoration(
+                    labelText: 'Special requests (optional)',
+                    prefixIcon: Icon(Icons.message_outlined),
+                    alignLabelWithHint: true,
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.xxxl),
 
-              // Special Requests
-              TextFormField(
-                controller: _requestController,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  labelText: 'Special Requests (Optional)',
-                  prefixIcon: const Icon(Icons.message_outlined),
-                  alignLabelWithHint: true,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              // Submit Button
-              SizedBox(
-                width: double.infinity,
-                height: 54,
-                child: ElevatedButton(
+                // Submit Button
+                PrimaryButton(
+                  label: 'Confirm booking',
+                  isLoading: _isLoading,
                   onPressed: _isLoading ? null : _submitBooking,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryPurple,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : Text(
-                          'Confirm Booking',
-                          style: GoogleFonts.inter(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -303,38 +269,30 @@ class _DetailSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
+    return AppCard(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, size: 16, color: Colors.grey),
-                const SizedBox(width: 8),
-                Text(
-                  label,
-                  style: GoogleFonts.inter(fontSize: 12, color: Colors.grey),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: GoogleFonts.inter(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 16, color: AppColors.textSecondary),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                label,
+                style: AppTypography.bodySmall,
               ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            value,
+            style: AppTypography.body.copyWith(
+              fontWeight: FontWeight.w600,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

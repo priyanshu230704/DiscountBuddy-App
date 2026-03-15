@@ -1,7 +1,9 @@
-import 'package:discount_buddy/theme/app_colors.dart';
-
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
+import 'package:discount_buddy/design/app_spacing.dart';
+import 'package:discount_buddy/design/app_typography.dart';
+import 'package:discount_buddy/components/layout.dart';
+import 'package:discount_buddy/components/app_app_bar.dart';
 import '../../services/merchant_service.dart';
 import '../../widgets/skeleton_loader.dart';
 
@@ -235,13 +237,8 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          'Menu: ${widget.restaurantName}',
-          style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: AppColors.white,
-        elevation: 0,
+      appBar: AppAppBar(
+        titleText: 'Menu: ${widget.restaurantName}',
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.add),
@@ -252,9 +249,9 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
                 _addDefaultCategory();
               }
             },
-            itemBuilder: (context) => [
-              const PopupMenuItem(value: 'add', child: Text('Add Category')),
-              const PopupMenuItem(
+            itemBuilder: (context) => const [
+              PopupMenuItem(value: 'add', child: Text('Add Category')),
+              PopupMenuItem(
                 value: 'default',
                 child: Text('Quick Add Default'),
               ),
@@ -270,29 +267,24 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
               onRefresh: _loadMenu,
               color: AppColors.primary,
               child: ListView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppSpacing.lg),
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 20, left: 4),
+                    padding: const EdgeInsets.only(
+                      bottom: AppSpacing.xl,
+                      left: 4,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           'Manage Menu Categories',
-                          style: GoogleFonts.inter(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.textPrimary,
-                            letterSpacing: -0.5,
-                          ),
+                          style: AppTypography.headline.copyWith(fontSize: 22),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'Tap a category to organize or add food items',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: AppColors.textSecondary,
-                          ),
+                          style: AppTypography.subtitle,
                         ),
                       ],
                     ),
@@ -323,40 +315,25 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
 
   Widget _buildLoadingState() {
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       itemCount: 5,
       itemBuilder: (context, index) => Padding(
-        padding: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.only(bottom: AppSpacing.lg),
         child: SkeletonLoader(
           height: 80,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
         ),
       ),
     );
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.menu_book, size: 64, color: AppColors.textDisabled),
-          const SizedBox(height: 16),
-          Text(
-            'No menu categories yet',
-            style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          ElevatedButton(
-            onPressed: _addCategory,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.white,
-            ),
-            child: const Text('Add Category'),
-          ),
-        ],
-      ),
+    return EmptyStateWidget(
+      icon: Icons.menu_book,
+      title: 'No menu categories yet',
+      message: 'Organise your dishes into categories to make browsing easier.',
+      primaryActionLabel: 'Add category',
+      onPrimaryAction: _addCategory,
     );
   }
 }
@@ -376,73 +353,54 @@ class _CategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return AppCard(
       onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 5,
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    category['name'] ?? 'Category',
-                    style: GoogleFonts.inter(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  if (category['description'] != null &&
-                      category['description'].isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        category['description'],
-                        style: GoogleFonts.inter(
-                          color: AppColors.textSecondary,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  Text(
-                    '${category['items_count'] ?? 0} items',
-                    style: GoogleFonts.inter(
-                      color: AppColors.primary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.blue),
-                  onPressed: onEdit,
+                Text(
+                  category['name'] ?? 'Category',
+                  style: AppTypography.title.copyWith(fontSize: 16),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline, color: Colors.grey),
-                  onPressed: onDelete,
+                if (category['description'] != null &&
+                    category['description'].isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: AppSpacing.xs),
+                    child: Text(
+                      category['description'],
+                      style: AppTypography.bodySmall,
+                    ),
+                  ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  '${category['items_count'] ?? 0} items',
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.primary,
+                  ),
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.edit, color: Colors.blue),
+                onPressed: onEdit,
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline, color: Colors.grey),
+                onPressed: onDelete,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

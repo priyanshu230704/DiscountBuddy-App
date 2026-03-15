@@ -1,78 +1,39 @@
-import 'package:discount_buddy/theme/app_colors.dart';
-
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:discount_buddy/design/app_colors.dart';
+import 'package:discount_buddy/design/app_typography.dart';
 
-/// Discount Buddy Auth Theme – Modern Purple
+/// Auth-specific theme aligned with app design system.
 class AuthTheme {
   // Surfaces
-  static Color background = AppColors.background; // #F8F9FC neutral
-  static Color cardBackground = AppColors.white;
+  static Color get background => AppColors.background;
+  static Color get cardBackground => AppColors.white;
 
   // Brand
-  static Color accent = AppColors.primaryPurple; // solid primary action
-  static Color pink = AppColors.primaryPurple;
-  static const List<Color> gradientColors = [
-    AppColors.primaryPurple,
-    AppColors.primaryPurple,
-  ];
+  static Color get accent => AppColors.primary;
+  static Color get pink => AppColors.primary;
+  static List<Color> get gradientColors => AppColors.purpleGradientColors;
 
   // Text
-  static Color textPrimary = AppColors.textPrimary;
-  static Color textSecondary = AppColors.textSecondary;
-  static Color textGrey = AppColors.textDisabled;
+  static Color get textPrimary => AppColors.textPrimary;
+  static Color get textSecondary => AppColors.textSecondary;
+  static Color get textGrey => AppColors.textDisabled;
 
-  // Button Styles
+  // Button / input (use design radius where applicable)
   static const double buttonHeight = 56.0;
   static const double buttonBorderRadius = 14.0;
-
-  // Input Styles
   static const double inputBorderRadius = 14.0;
   static const double inputBorderWidth = 1.0;
 
-  // Typography
-  static TextStyle headingLarge = GoogleFonts.inter(
-    fontSize: 32,
-    fontWeight: FontWeight.w800,
-    color: textPrimary,
-    letterSpacing: -1,
-  );
-
-  static TextStyle headingMedium = GoogleFonts.inter(
-    fontSize: 24,
-    fontWeight: FontWeight.w700,
-    color: textPrimary,
-    letterSpacing: -0.5,
-  );
-
-  static TextStyle subtitle = GoogleFonts.inter(
-    fontSize: 16,
-    fontWeight: FontWeight.w400,
-    color: textSecondary,
-  );
-
-  static TextStyle bodyText = GoogleFonts.inter(
-    fontSize: 16,
-    fontWeight: FontWeight.w400,
-    color: textPrimary,
-  );
-
-  static TextStyle buttonText = GoogleFonts.inter(
-    fontSize: 16,
+  // Typography – delegate to design system
+  static TextStyle get headingLarge => AppTypography.headline;
+  static TextStyle get headingMedium => AppTypography.title;
+  static TextStyle get subtitle => AppTypography.subtitle;
+  static TextStyle get bodyText => AppTypography.body;
+  static TextStyle get buttonText => AppTypography.button.copyWith(color: AppColors.white);
+  static TextStyle get linkText => AppTypography.body.copyWith(
     fontWeight: FontWeight.w600,
-    color: AppColors.white,
-    letterSpacing: -0.1,
-  );
-
-  static TextStyle linkText = GoogleFonts.inter(
+    color: accent,
     fontSize: 14,
-    fontWeight: FontWeight.w600,
-    color: accent, // primaryBlue
   );
-
-  static TextStyle hintText = GoogleFonts.inter(
-    fontSize: 16,
-    fontWeight: FontWeight.normal,
-    color: textGrey,
-  );
+  static TextStyle get hintText => AppTypography.bodySmall;
 }

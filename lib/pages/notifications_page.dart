@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import '../../design/app_colors.dart';
+import '../../design/app_spacing.dart';
+import '../../design/app_typography.dart';
+import '../../components/layout.dart';
 import '../../models/notification.dart';
 import '../../services/notification_service.dart';
 
@@ -21,11 +24,6 @@ class _NotificationsPageState extends State<NotificationsPage> {
   int _currentPage = 1;
   bool _hasMore = true;
   int _unreadCount = 0;
-
-  static const Color buddyOrange = Color(0xFFFF7A00);
-  static const Color bg = Color(0xFFF7F8FA);
-  static const Color textPrimary = Color(0xFF111827);
-  static const Color textSecondary = Color(0xFF6B7280);
 
   @override
   void initState() {
@@ -136,7 +134,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('$count notifications marked as read'),
-              backgroundColor: buddyOrange,
+              backgroundColor: AppColors.accent,
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -153,8 +151,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
+        content: Text(message, style: AppTypography.body),
+        backgroundColor: AppColors.error,
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -180,32 +178,24 @@ class _NotificationsPageState extends State<NotificationsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: bg,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: textPrimary),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          'Notifications',
-          style: GoogleFonts.inter(
-            fontSize: 20,
-            fontWeight: FontWeight.w900,
-            color: textPrimary,
-          ),
-        ),
+        title: Text('Notifications', style: AppTypography.title),
         actions: [
           if (_unreadCount > 0)
             TextButton(
               onPressed: () => _markAllAsRead(),
               child: Text(
                 'Mark all read',
-                style: GoogleFonts.inter(
-                  fontSize: 13,
+                style: AppTypography.bodySmall.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: buddyOrange,
+                  color: AppColors.accent,
                 ),
               ),
             ),
@@ -215,7 +205,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
         onRefresh: () async {
           await _initPage();
         },
-        color: buddyOrange,
+        color: AppColors.accent,
         child: _buildBody(),
       ),
     );
@@ -223,56 +213,29 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: buddyOrange));
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.accent),
+      );
     }
 
     if (_notifications.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: buddyOrange.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.notifications_none,
-                size: 60,
-                color: buddyOrange,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'No notifications yet',
-              style: GoogleFonts.inter(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: textPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'We\'ll notify you when something arrives',
-              style: GoogleFonts.inter(fontSize: 14, color: textSecondary),
-            ),
-          ],
-        ),
+      return EmptyStateWidget(
+        icon: Icons.notifications_none,
+        title: 'No notifications yet',
+        message: "We'll notify you when something arrives",
       );
     }
 
     return ListView.builder(
       controller: _scrollController,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       itemCount: _notifications.length + (_isLoadingMore ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == _notifications.length) {
           return const Center(
             child: Padding(
-              padding: EdgeInsets.all(16),
-              child: CircularProgressIndicator(color: buddyOrange),
+              padding: EdgeInsets.all(AppSpacing.lg),
+              child: CircularProgressIndicator(color: AppColors.accent),
             ),
           );
         }
@@ -301,9 +264,6 @@ class _NotificationTile extends StatelessWidget {
     required this.formatTime,
     required this.notificationService,
   });
-
-  static const Color textPrimary = Color(0xFF111827);
-  static const Color textSecondary = Color(0xFF6B7280);
 
   @override
   Widget build(BuildContext context) {
@@ -386,7 +346,7 @@ class _NotificationTile extends StatelessWidget {
                                 : '',
                           )
                           .join(' '),
-                      style: GoogleFonts.inter(
+                      style: AppTypography.bodySmall.copyWith(
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
                         color: color,
@@ -399,10 +359,8 @@ class _NotificationTile extends StatelessWidget {
                       Expanded(
                         child: Text(
                           notification.title,
-                          style: GoogleFonts.inter(
-                            fontSize: 15,
+                          style: AppTypography.body.copyWith(
                             fontWeight: FontWeight.w700,
-                            color: textPrimary,
                           ),
                         ),
                       ),
@@ -420,9 +378,8 @@ class _NotificationTile extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     notification.message,
-                    style: GoogleFonts.inter(
+                    style: AppTypography.bodySmall.copyWith(
                       fontSize: 13,
-                      color: textSecondary,
                       height: 1.4,
                     ),
                     maxLines: 2,
@@ -431,10 +388,9 @@ class _NotificationTile extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     formatTime(notification.createdAt),
-                    style: GoogleFonts.inter(
+                    style: AppTypography.bodySmall.copyWith(
                       fontSize: 12,
-                      color: textSecondary.withValues(alpha: 0.7),
-                      fontWeight: FontWeight.w500,
+                      color: AppColors.textSecondary.withValues(alpha: 0.7),
                     ),
                   ),
                 ],

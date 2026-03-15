@@ -11,7 +11,7 @@ import '../models/restaurant_detail.dart';
 import '../models/review.dart';
 import '../models/menu_item.dart';
 import '../services/restaurant_service.dart';
-import 'package:discount_buddy/theme/app_colors.dart';
+import 'package:discount_buddy/design/app_colors.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import '../widgets/generic_bottom_sheet.dart';
@@ -145,7 +145,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     canvas.drawPath(path, borderPaint);
 
     // Draw the white inner circle
-    final innerCirclePaint = Paint()..color = const Color(0xFFF8F9FC);
+    final innerCirclePaint = Paint()..color = AppColors.background;
     canvas.drawCircle(topCenter, topRadius * 0.95, innerCirclePaint);
 
     // Draw the actual db_logo.png app logo inside the pin

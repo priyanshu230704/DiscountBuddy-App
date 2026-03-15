@@ -719,15 +719,14 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             onTap: () {
                               final dealText = restaurant.discount.displayText;
                               final dealDesc = restaurant.discount.description;
-                              final appLink = 'https://discountbuddy.app/restaurant/${restaurant.id}';
+                              final appLink = 'https://discountbuddy.app/deal/${restaurant.id}';
                               
                               final message =
                                   '🔥 Check out this amazing deal at ${restaurant.name}!\n\n'
                                   '✨ $dealText\n'
                                   '📝 $dealDesc\n\n'
                                   '📍 ${restaurant.address}\n\n'
-                                  '📲 View this deal on Discount Buddy:\n$appLink\n\n'
-                                  '#DiscountBuddy #Deals #Foodie';
+                                  '📲 View this deal on Discount Buddy:\n$appLink';
                               
                               // ignore: deprecated_member_use
                               Share.share(message);

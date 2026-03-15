@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import '../services/api_service.dart';
 import '../models/api_user.dart';
 import '../config/api_endpoints.dart';
@@ -422,9 +424,10 @@ class AuthService {
     String? firstName,
     String? lastName,
     String? email,
+    File? imageFile,
   }) async {
     try {
-      final body = <String, dynamic>{};
+      final fields = <String, String>{};
       if (firstName != null || lastName != null) {
         // App uses space-separated names in username
         final currentUsername = (await getStoredUser())?.username ?? '';
@@ -432,17 +435,41 @@ class AuthService {
         final fName = firstName ?? (parts.isNotEmpty ? parts[0] : '');
         final lName =
             lastName ?? (parts.length > 1 ? parts.sublist(1).join(' ') : '');
-        body['username'] = '$fName $lName'.trim();
+        fields['username'] = '$fName $lName'.trim();
       }
       if (email != null) {
-        body['email'] = email;
+        fields['email'] = email;
       }
 
-      final response = await _apiService.patch(
-        ApiEndpoints.currentUser,
-        body: body,
+      Map<String, dynamic> response;
+      if (imageFile != null) {
+        final files = <String, http.MultipartFile>{
+          'profile_picture': await http.MultipartFile.fromPath(
+            'profile_picture',
+            imageFile.path,
+          ),
+        };
+        response = await _apiService.patchMultipart(
+          ApiEndpoints.currentUser,
+          fields: fields,
+          files: files,
+        );
+      } else {
+        response = await _apiService.patch(
+          ApiEndpoints.currentUser,
+          body: fields,
+        );
+      }
+
+      final updatedUser = ApiUser.fromJson(response);
+      
+      // Update stored user data
+      await _storage.write(
+        key: _userKey,
+        value: jsonEncode(updatedUser.toJson()),
       );
-      return ApiUser.fromJson(response);
+
+      return updatedUser;
     } catch (e) {
       if (e is ApiException) {
         throw ApiException(e.message, statusCode: e.statusCode, data: e.data);

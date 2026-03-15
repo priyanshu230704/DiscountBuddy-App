@@ -718,7 +718,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                           child: Row(
                             children: [
                               SizedBox(
-                                width: 100,
+                                width: 85,
                                 child: Text(
                                   entry.key[0].toUpperCase() + entry.key.substring(1),
                                   style: AppTypography.bodySmall.copyWith(
@@ -771,7 +771,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                                     }
                                   },
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                                     decoration: BoxDecoration(
                                       color: AppColors.background,
                                       borderRadius: BorderRadius.circular(12),
@@ -785,13 +785,16 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                                           color: entry.value.isEmpty ? AppColors.textDisabled : AppColors.merchantIndigo,
                                         ),
                                         const SizedBox(width: 8),
-                                        Text(
-                                          entry.value.isEmpty ? 'Closed / Select Time' : entry.value,
-                                          style: AppTypography.body.copyWith(
-                                            color: entry.value.isEmpty ? AppColors.textSecondary : AppColors.textPrimary,
+                                        Expanded(
+                                          child: Text(
+                                            entry.value.isEmpty ? 'Closed' : entry.value,
+                                            style: AppTypography.bodySmall.copyWith(
+                                              color: entry.value.isEmpty ? AppColors.textSecondary : AppColors.textPrimary,
+                                              fontSize: 13,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
-                                        const Spacer(),
                                         if (entry.value.isNotEmpty)
                                           GestureDetector(
                                             onTap: () {

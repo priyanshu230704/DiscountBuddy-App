@@ -696,10 +696,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       child: Padding(
         padding: const EdgeInsets.only(top: 0, bottom: 6),
         child: SizedBox(
-          height: 190, // Increased from 140 to fix overflow
+          height: 170,
           child: const _GradientBanner(
             title: "Get the Best Restaurant Deals",
-            subtitle: "Exclusive offers and table\nreservations in your city.",
+            subtitle: "",
           ),
         ),
       ),

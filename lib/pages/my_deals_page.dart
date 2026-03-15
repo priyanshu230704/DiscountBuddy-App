@@ -100,11 +100,10 @@ class _DealUseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final deal = use['deal'];
-    final restaurant = deal['restaurant_name'] ?? 'Restaurant';
-    final dateStr = use['used_at'];
-    final date = dateStr != null ? DateTime.tryParse(dateStr) : null;
-    final isRedeemed = use['is_redeemed'] ?? false;
+    final deal = use.deal;
+    final restaurant = deal.restaurantName;
+    final date = use.usedAt;
+    final isRedeemed = use.isRedeemed;
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.lg),
@@ -123,7 +122,7 @@ class _DealUseCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  deal['title'] ?? 'Deal',
+                  deal.title,
                   style: AppTypography.title.copyWith(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -154,12 +153,12 @@ class _DealUseCard extends StatelessWidget {
               const Icon(Icons.access_time, size: 16, color: Colors.grey),
               const SizedBox(width: 8),
               Text(
-                date != null ? DateFormat('MMM d, yyyy HH:mm').format(date.toLocal()) : 'Unknown date',
+                DateFormat('MMM d, yyyy HH:mm').format(date.toLocal()),
                 style: AppTypography.bodySmall,
               ),
             ],
           ),
-          if (use['redemption_code'] != null && !isRedeemed) ...[
+          if (use.redemptionCode != null && !isRedeemed) ...[
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(12),
@@ -173,7 +172,7 @@ class _DealUseCard extends StatelessWidget {
                 children: [
                   const Text('Redemption Code: ', style: TextStyle(fontWeight: FontWeight.w600)),
                   Text(
-                    use['redemption_code'],
+                    use.redemptionCode!,
                     style: const TextStyle(
                       letterSpacing: 2,
                       fontSize: 18,

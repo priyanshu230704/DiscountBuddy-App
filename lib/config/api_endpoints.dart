@@ -56,6 +56,8 @@ class ApiEndpoints {
   static const String merchantRestaurants = '/restaurants/restaurant/manage';
   static String merchantRestaurantDetail(int id) =>
       '/restaurants/restaurant/manage/$id';
+  static const String merchantUpdateOccupancy = '/restaurants/restaurant/occupancy';
+  static const String merchantDashboard = '/merchant/dashboard';
 
   static const String merchantDeals = '/restaurants/deals';
   static String merchantDealDetail(int id) => '/restaurants/deals/$id';

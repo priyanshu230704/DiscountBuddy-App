@@ -47,8 +47,6 @@ class _QRScannerPageState extends State<QRScannerPage> {
   Future<void> _handleQRCode(String qrData) async {
     if (_isProcessing) return;
 
-    setState(() => _isProcessing = true);
-
     // Pause scanner to prevent multiple scans
     await _controller.stop();
 
@@ -57,7 +55,6 @@ class _QRScannerPageState extends State<QRScannerPage> {
       if (mounted) {
         _showErrorDialog('Invalid QR code format', null);
       }
-      setState(() => _isProcessing = false);
       // Resume scanner after a delay
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) _controller.start();
@@ -65,40 +62,189 @@ class _QRScannerPageState extends State<QRScannerPage> {
       return;
     }
 
-    // Show loading
+    // Show details modal to collect price and people count
+    if (mounted) {
+      _showRedemptionDetailsModal(qrData: qrData);
+    }
+  }
+
+  void _showRedemptionDetailsModal({String? qrData, String? manualCode}) {
+    final priceController = TextEditingController();
+    final peopleController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.textDisabled.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Redemption Details',
+                  style: AppTypography.title.copyWith(fontSize: 20),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Enter bill details to complete redemption',
+                  style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Total Bill Amount',
+                  style: AppTypography.bodySmall.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: priceController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    hintText: '0.00',
+                    prefixIcon: const Icon(Icons.receipt_long_rounded),
+                    filled: true,
+                    fillColor: AppColors.background,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(color: AppColors.cardBorder),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) return 'Required';
+                    if (double.tryParse(value) == null) return 'Invalid number';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Number of People',
+                  style: AppTypography.bodySmall.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: peopleController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    hintText: '1',
+                    prefixIcon: const Icon(Icons.people_alt_rounded),
+                    filled: true,
+                    fillColor: AppColors.background,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(color: AppColors.cardBorder),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) return 'Required';
+                    if (int.tryParse(value) == null) return 'Invalid number';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (formKey.currentState!.validate()) {
+                        final price = double.parse(priceController.text);
+                        final peopleCount = int.parse(peopleController.text);
+                        Navigator.of(context).pop();
+                        _processRedemption(
+                          qrData: qrData,
+                          manualCode: manualCode,
+                          price: price,
+                          peopleCount: peopleCount,
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.merchantIndigo,
+                      foregroundColor: AppColors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      'Redeem Deal',
+                      style: AppTypography.title.copyWith(color: AppColors.white),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _processRedemption({
+    String? qrData,
+    String? manualCode,
+    required double price,
+    required int peopleCount,
+  }) async {
+    setState(() => _isProcessing = true);
     _showLoadingDialog();
 
     try {
-      // Call redemption API
-      final response = await _merchantService.redeemDealByQR(qrData);
+      final response = qrData != null
+          ? await _merchantService.redeemDealByQR(qrData, price: price, peopleCount: peopleCount)
+          : await _merchantService.redeemDealByCode(manualCode!, price: price, peopleCount: peopleCount);
 
-      // Hide loading
       if (!mounted) return;
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(); // Hide loading
 
-      // Check if redemption was successful
       final success = response['success'] ?? false;
       if (success) {
         final dealRedemption = DealRedemption.fromJson(response);
-        if (mounted) _showSuccessDialog(dealRedemption);
+        _showSuccessDialog(dealRedemption);
       } else {
-        final reason = _cleanErrorMessage(
-          response['reason'] ?? 'Redemption failed',
-        );
-        if (mounted) _showErrorDialog(reason, null);
+        final reason = _cleanErrorMessage(response['reason'] ?? 'Redemption failed');
+        _showErrorDialog(reason, null);
       }
     } catch (e) {
-      // Hide loading
       if (!mounted) return;
-      Navigator.of(context).pop();
-
-      // Extract and clean error message
-      String errorMessage = _cleanErrorMessage(e.toString());
-
-      if (mounted) _showErrorDialog(errorMessage, null);
+      Navigator.of(context).pop(); // Hide loading
+      _showErrorDialog(_cleanErrorMessage(e.toString()), null);
+    } finally {
+      setState(() => _isProcessing = false);
     }
-
-    setState(() => _isProcessing = false);
   }
 
   String _cleanErrorMessage(String message) {
@@ -534,7 +680,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
             ),
           ),
           ElevatedButton(
-            onPressed: () async {
+            onPressed: () {
               final code = controller.text.trim();
               if (code.length != 6) {
                 _showError('Code must be 6 digits');
@@ -542,35 +688,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
               }
 
               Navigator.of(context).pop();
-              _showLoadingDialog();
-
-              try {
-                final response = await _merchantService.redeemDealByCode(code);
-
-                if (!context.mounted) return;
-                Navigator.of(context).pop();
-
-                final success = response['success'] ?? false;
-                if (success) {
-                  final dealRedemption = DealRedemption.fromJson(response);
-                  _showSuccessDialog(dealRedemption);
-                } else {
-                  final reason = response['reason'] ?? 'Redemption failed';
-                  _showErrorDialog(reason, null);
-                }
-              } catch (e) {
-                if (!context.mounted) return;
-                Navigator.of(context).pop();
-
-                String errorMessage = e.toString();
-                if (errorMessage.startsWith('Exception: Redemption failed: ')) {
-                  errorMessage = errorMessage.substring(
-                    'Exception: Redemption failed: '.length,
-                  );
-                }
-
-                _showErrorDialog(errorMessage, null);
-              }
+              _showRedemptionDetailsModal(manualCode: code);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.merchantIndigo,
@@ -579,7 +697,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            child: const Text('Redeem', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: const Text('Next', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),

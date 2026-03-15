@@ -5,6 +5,8 @@ import '../design/app_typography.dart';
 import '../components/buttons.dart';
 import '../components/inputs.dart';
 import '../providers/auth_provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 /// Edit Profile Screen
 class EditProfilePage extends StatefulWidget {
@@ -19,6 +21,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final TextEditingController _userNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   bool _isLoading = false;
+  File? _image;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -47,6 +51,31 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return '?';
   }
 
+  Future<void> _pickImage() async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 75,
+      );
+      if (pickedFile != null) {
+        setState(() {
+          _image = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to pick image: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _saveProfile() async {
     setState(() {
       _isLoading = true;
@@ -57,6 +86,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         firstName: _userNameController.text.trim(),
         lastName: '',
         email: _emailController.text.trim(),
+        imageFile: _image,
       );
 
       if (success && mounted) {
@@ -116,51 +146,79 @@ class _EditProfilePageState extends State<EditProfilePage> {
           child: Column(
             children: [
               SizedBox(height: AppSpacing.xxxl),
-              Stack(
-                children: [
-                  Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      gradient: AppColors.purpleGradient,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.2),
-                          blurRadius: 15,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: Text(
-                        _getInitials(),
-                        style: AppTypography.headline.copyWith(
-                          fontSize: 48,
-                          color: AppColors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      width: 36,
-                      height: 36,
+              GestureDetector(
+                onTap: _pickImage,
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 120,
+                      height: 120,
                       decoration: BoxDecoration(
-                        color: AppColors.textPrimary,
+                        gradient: AppColors.purpleGradient,
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.white, width: 3),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.2),
+                            blurRadius: 15,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
                       ),
-                      child: const Icon(
-                        Icons.edit,
-                        color: AppColors.white,
-                        size: 18,
+                      child: ClipOval(
+                        child: _image != null
+                            ? Image.file(
+                                _image!,
+                                width: 120,
+                                height: 120,
+                                fit: BoxFit.cover,
+                              )
+                            : (_authProvider.user?.profilePicture != null
+                                ? Image.network(
+                                    _authProvider.user!.profilePicture!,
+                                    width: 120,
+                                    height: 120,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) => Center(
+                                      child: Text(
+                                        _getInitials(),
+                                        style: AppTypography.headline.copyWith(
+                                          fontSize: 48,
+                                          color: AppColors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : Center(
+                                    child: Text(
+                                      _getInitials(),
+                                      style: AppTypography.headline.copyWith(
+                                        fontSize: 48,
+                                        color: AppColors.white,
+                                      ),
+                                    ),
+                                  )),
                       ),
                     ),
-                  ),
-                ],
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: AppColors.textPrimary,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: AppColors.white, width: 3),
+                        ),
+                        child: const Icon(
+                          Icons.edit,
+                          color: AppColors.white,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               SizedBox(height: AppSpacing.xxxl),
               _buildTextField(

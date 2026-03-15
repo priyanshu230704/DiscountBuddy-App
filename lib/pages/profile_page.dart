@@ -14,7 +14,7 @@ import 'privacy_policy_page.dart';
 import 'saved_restaurants_page.dart';
 import 'my_deals_page.dart';
 import '../services/auth_service.dart';
-import '../widgets/loading_widget.dart';
+import 'package:share_plus/share_plus.dart';
 
 /// Profile Screen - NeoTaste style
 class ProfilePage extends StatefulWidget {
@@ -28,7 +28,6 @@ class _ProfilePageState extends State<ProfilePage> {
   final WalletService _walletService = WalletService();
   final RestaurantService _restaurantService = RestaurantService();
   final AuthProvider _authProvider = AuthProvider();
-  final AuthService _authService = AuthService();
   ProfileStats? _stats;
 
   @override
@@ -292,64 +291,71 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ],
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(AppSpacing.xxl + 4, AppSpacing.xxl, AppSpacing.xxl, AppSpacing.xxl),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            flex: 6,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Earn €10 for every\nfriend you invite!',
-                                  style: AppTypography.title.copyWith(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                    height: 1.15,
-                                    letterSpacing: -0.2,
-                                    shadows: [
-                                      Shadow(
-                                        color: Colors.black.withValues(
-                                          alpha: 0.2,
-                                        ),
-                                        offset: const Offset(0, 2),
-                                        blurRadius: 4,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 18),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 24,
-                                    vertical: 10,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(24),
-                                    border: Border.all(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.4,
-                                      ),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Invite friends',
-                                    style: AppTypography.body.copyWith(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
+                    child: InkWell(
+                      onTap: () {
+                        const message = 'Hey! Check out Discount Buddy and save money at your favorite local restaurants! 🍕🍔\n\nDownload the app here: https://discountbuddy.app/invite';
+                        Share.share(message);
+                      },
+                      borderRadius: AppRadius.xLarge,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(AppSpacing.xxl + 4, AppSpacing.xxl, AppSpacing.xxl, AppSpacing.xxl),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 6,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Earn €10 for every\nfriend you invite!',
+                                    style: AppTypography.title.copyWith(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w800,
                                       color: Colors.white,
+                                      height: 1.15,
+                                      letterSpacing: -0.2,
+                                      shadows: [
+                                        Shadow(
+                                          color: Colors.black.withValues(
+                                            alpha: 0.2,
+                                          ),
+                                          offset: const Offset(0, 2),
+                                          blurRadius: 4,
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(height: 18),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 10,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(alpha: 0.2),
+                                      borderRadius: BorderRadius.circular(24),
+                                      border: Border.all(
+                                        color: Colors.white.withValues(
+                                          alpha: 0.4,
+                                        ),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      'Invite friends',
+                                      style: AppTypography.body.copyWith(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          const Spacer(flex: 4),
-                        ],
+                            const Spacer(flex: 4),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -445,7 +451,8 @@ class _ProfilePageState extends State<ProfilePage> {
               Navigator.pop(context);
               await _authProvider.logout();
               if (context.mounted) {
-                Navigator.of(context).pushReplacementNamed('/login');
+                // Use rootNavigator: true to ensure we pop everything and go to login
+                Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil('/login', (route) => false);
               }
             },
             child: Text(
@@ -527,12 +534,18 @@ class _ProfilePageState extends State<ProfilePage> {
     );
 
     try {
-      await _authService.deleteAccount();
-      if (mounted) {
+      final success = await _authProvider.deleteAccount();
+      if (success && mounted) {
         Navigator.pop(context); // Close loading
-        Navigator.of(context).pushReplacementNamed('/login');
+        // Use rootNavigator: true to ensure we pop everything and go to login
+        Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil('/login', (route) => false);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Account deleted successfully')),
+        );
+      } else if (mounted) {
+        Navigator.pop(context); // Close loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_authProvider.errorMessage ?? 'Failed to delete account')),
         );
       }
     } catch (e) {

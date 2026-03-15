@@ -16,6 +16,9 @@ class ApiUser {
     this.profile,
   });
 
+  /// Convenience getter for profile picture
+  String? get profilePicture => profile?.profilePicture;
+
   factory ApiUser.fromJson(Map<String, dynamic> json) {
     return ApiUser(
       id: json['id'] as int? ?? 0,
@@ -55,11 +58,13 @@ class UserProfile {
 
   final String role;
   final String? phoneNumber;
+  final String? profilePicture;
   final bool marketingOptIn;
 
   UserProfile({
     required this.role,
     this.phoneNumber,
+    this.profilePicture,
     this.marketingOptIn = true,
   });
 
@@ -67,6 +72,7 @@ class UserProfile {
     return UserProfile(
       role: json['role'] as String? ?? 'customer',
       phoneNumber: json['phone_number'] as String?,
+      profilePicture: json['profile_picture'] as String?,
       marketingOptIn: json['marketing_opt_in'] as bool? ?? true,
     );
   }
@@ -75,6 +81,7 @@ class UserProfile {
     return {
       'role': role,
       'phone_number': phoneNumber,
+      'profile_picture': profilePicture,
       'marketing_opt_in': marketingOptIn,
     };
   }

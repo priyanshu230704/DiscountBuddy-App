@@ -257,19 +257,7 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
     }
   }
 
-  Future<void> _addDefaultItem() async {
-    final newItem = {
-      'name': 'Signature Burger',
-      'description': 'Juicy beef patty with premium cheddar, fresh lettuce, tomato, and our secret house sauce.',
-      'price': '14.99',
-      'is_vegetarian': false,
-      'is_vegan': false,
-      'is_gluten_free': false,
-      'is_available': true,
-      'order': 0,
-    };
-    await _saveItem(newItem, isEdit: false);
-  }
+
 
   Future<void> _deleteItem(Map<String, dynamic> item) async {
     final confirm = await showDialog<bool>(
@@ -339,23 +327,12 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
             icon: const Icon(Icons.more_vert_rounded, color: AppColors.textPrimary),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             onSelected: (value) {
-              if (value == 'default') {
-                _addDefaultItem();
-              } else if (value == 'refresh') {
+              if (value == 'refresh') {
                 _loadCategory();
               }
             },
             itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'default',
-                child: Row(
-                  children: [
-                    const Icon(Icons.flash_on_rounded, color: AppColors.merchantAmber),
-                    const SizedBox(width: 8),
-                    Text('Quick Add Default', style: AppTypography.body),
-                  ],
-                ),
-              ),
+
               PopupMenuItem(
                 value: 'refresh',
                 child: Row(

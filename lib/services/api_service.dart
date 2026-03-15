@@ -275,6 +275,52 @@ class ApiService {
     }
   }
 
+  /// PATCH request with multipart/form-data (for file uploads)
+  Future<Map<String, dynamic>> patchMultipart(
+    String endpoint, {
+    Map<String, String>? fields,
+    Map<String, http.MultipartFile>? files,
+    ApiType type = ApiType.user,
+  }) async {
+    try {
+      final normalizedEndpoint = _normalizeEndpoint(endpoint);
+      final baseUrl = _getBaseUrl(type);
+      final uri = Uri.parse('$baseUrl$normalizedEndpoint');
+
+      if (Environment.enableLogging) {
+        debugPrint('PATCH MULTIPART: $uri');
+        debugPrint('Fields: $fields');
+        debugPrint('Files: ${files?.keys}');
+      }
+
+      final request = http.MultipartRequest('PATCH', uri);
+      request.headers.addAll(headers);
+      
+      // Update Content-Type for multipart
+      request.headers['Content-Type'] = 'multipart/form-data';
+
+      if (fields != null) {
+        request.fields.addAll(fields);
+      }
+
+      if (files != null) {
+        files.forEach((key, value) {
+          request.files.add(value);
+        });
+      }
+
+      final streamedResponse = await _client
+          .send(request)
+          .timeout(Environment.apiTimeout);
+
+      final response = await http.Response.fromStream(streamedResponse);
+
+      return _handleResponse(response);
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   /// DELETE request
   Future<Map<String, dynamic>> delete(
     String endpoint, {

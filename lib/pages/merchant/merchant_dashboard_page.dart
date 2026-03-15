@@ -10,7 +10,6 @@ import 'merchant_reviews_page.dart';
 import 'qr_scanner_page.dart';
 import '../../services/merchant_service.dart';
 import '../../services/auth_service.dart';
-import '../../services/auth_service.dart';
 
 /// Merchant Dashboard Page - Central hub for restaurant owners
 class MerchantDashboardPage extends StatefulWidget {
@@ -28,6 +27,10 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
   int _activeDeals = 0;
   double _averageRating = 0.0;
   String _totalViews = "0";
+  double _totalEarnings = 0.0;
+  int? _primaryRestaurantId;
+  String? _currentOccupancy;
+  final MerchantService _merchantService = MerchantService();
 
   @override
   void initState() {
@@ -49,14 +52,24 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
       // Simulating a brief delay for a premium feel
       await Future.delayed(const Duration(milliseconds: 800));
       
+      final stats = await _merchantService.getMerchantDashboardStats();
+      
       if (mounted) {
         setState(() {
-          // Static Demo Data
-          _totalBookings = 124;
-          _activeDeals = 8;
-          _averageRating = 4.8;
-          _totalViews = "12.5k";
+          _totalBookings = stats['total_bookings'] ?? 0;
+          _activeDeals = stats['active_deals'] ?? 0;
+          _averageRating = (stats['average_rating'] ?? 0.0).toDouble();
           
+          final views = stats['total_views_30d'] ?? 0;
+          if (views >= 1000) {
+            _totalViews = "${(views / 1000).toStringAsFixed(1)}k";
+          } else {
+            _totalViews = views.toString();
+          }
+          
+          _totalEarnings = (stats['total_earnings'] ?? 0.0).toDouble();
+          _primaryRestaurantId = stats['primary_restaurant_id'];
+          _currentOccupancy = stats['primary_restaurant_occupancy'];
           _isLoading = false;
         });
       }
@@ -87,6 +100,14 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
           ),
           slivers: [
             _buildHeader(),
+            
+            if (_primaryRestaurantId != null)
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 0),
+                sliver: SliverToBoxAdapter(
+                  child: _buildOccupancyToggle(),
+                ),
+              ),
             
             // Business Overview Section
             SliverPadding(
@@ -149,6 +170,16 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
     return SliverToBoxAdapter(
       child: Column(
         children: [
+          _ModernStatCard(
+            label: 'Total Earnings',
+            value: '\$${_totalEarnings.toStringAsFixed(2)}',
+            isLoading: _isLoading,
+            icon: Icons.payments_rounded,
+            color: const Color(0xFF059669),
+            backgroundColor: const Color(0xFFECFDF5),
+            isFullWidth: true,
+          ),
+          const SizedBox(height: AppSpacing.md),
           Row(
             children: [
               Expanded(
@@ -295,6 +326,129 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
         ]),
       ),
     );
+  }
+
+  Widget _buildOccupancyToggle() {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(color: Colors.black.withValues(alpha: 0.02)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Business Status',
+                style: AppTypography.title.copyWith(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              _getStatusBadge(_currentOccupancy ?? 'available'),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Row(
+            children: [
+              _OccupancyChip(
+                label: 'Available',
+                value: 'available',
+                selectedValue: _currentOccupancy,
+                onSelected: (val) => _updateOccupancy(val),
+                color: const Color(0xFF059669),
+              ),
+              const SizedBox(width: 8),
+              _OccupancyChip(
+                label: 'Moderate',
+                value: 'moderately_busy',
+                selectedValue: _currentOccupancy,
+                onSelected: (val) => _updateOccupancy(val),
+                color: const Color(0xFFD97706),
+              ),
+              const SizedBox(width: 8),
+              _OccupancyChip(
+                label: 'Busy',
+                value: 'very_busy',
+                selectedValue: _currentOccupancy,
+                onSelected: (val) => _updateOccupancy(val),
+                color: const Color(0xFFDC2626),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _getStatusBadge(String occupancy) {
+    Color color;
+    String text;
+    switch (occupancy) {
+      case 'very_busy':
+        color = const Color(0xFFDC2626);
+        text = 'Very Busy';
+        break;
+      case 'moderately_busy':
+        color = const Color(0xFFD97706);
+        text = 'Moderate';
+        break;
+      default:
+        color = const Color(0xFF059669);
+        text = 'Available';
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Text(
+        text,
+        style: AppTypography.caption.copyWith(
+          color: color,
+          fontWeight: FontWeight.bold,
+          fontSize: 11,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _updateOccupancy(String newOccupancy) async {
+    if (_primaryRestaurantId == null || _currentOccupancy == newOccupancy) return;
+
+    final oldOccupancy = _currentOccupancy;
+    setState(() => _currentOccupancy = newOccupancy);
+
+    try {
+      await _merchantService.updateOccupancy(_primaryRestaurantId!, newOccupancy);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Status updated to ${newOccupancy.replaceAll('_', ' ')}'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppColors.merchantIndigo,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => _currentOccupancy = oldOccupancy);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update status: $e')),
+        );
+      }
+    }
   }
 
   Widget _buildHeader() {
@@ -495,7 +649,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
               Navigator.pop(context);
               await _authService.logout();
               if (mounted) {
-                Navigator.of(context).pushReplacementNamed('/login');
+                Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
               }
             },
             child: const Text('Logout', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
@@ -579,6 +733,62 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
   }
 }
 
+class _OccupancyChip extends StatelessWidget {
+  final String label;
+  final String value;
+  final String? selectedValue;
+  final Function(String) onSelected;
+  final Color color;
+
+  const _OccupancyChip({
+    required this.label,
+    required this.value,
+    this.selectedValue,
+    required this.onSelected,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = selectedValue == value;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => onSelected(value),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? color : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected ? color : AppColors.cardBorder,
+              width: 1.5,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: color.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : [],
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: AppTypography.bodySmall.copyWith(
+                color: isSelected ? Colors.white : AppColors.textSecondary,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _ModernStatCard extends StatelessWidget {
   final String label;
   final String value;
@@ -587,6 +797,7 @@ class _ModernStatCard extends StatelessWidget {
   final Color color;
   final Color backgroundColor;
   final String? suffix;
+  final bool isFullWidth;
 
   const _ModernStatCard({
     required this.label,
@@ -596,11 +807,13 @@ class _ModernStatCard extends StatelessWidget {
     required this.color,
     required this.backgroundColor,
     this.suffix,
+    this.isFullWidth = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: isFullWidth ? double.infinity : null,
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: Colors.white,

@@ -83,11 +83,20 @@ class _RegisterPageState extends State<RegisterPage> {
     } else if (_currentStep == 1) {
       // Step 2: OTP
       isValid = _otpController.text.length == 4;
-    } else {
       // Step 3: Password
-      isValid =
-          _passwordController.text.length >= 6 &&
-          _confirmPasswordController.text == _passwordController.text;
+      final password = _passwordController.text;
+      final confirmPassword = _confirmPasswordController.text;
+      
+      final hasUppercase = password.contains(RegExp(r'[A-Z]'));
+      final hasLowercase = password.contains(RegExp(r'[a-z]'));
+      final hasDigits = password.contains(RegExp(r'[0-9]'));
+      final hasMinLength = password.length >= 8;
+
+      isValid = hasMinLength &&
+          hasUppercase &&
+          hasLowercase &&
+          hasDigits &&
+          confirmPassword == password;
     }
 
     if (isValid != _isFormValid) {
@@ -667,8 +676,17 @@ class _RegisterPageState extends State<RegisterPage> {
                                         if (value == null || value.isEmpty) {
                                           return 'Please enter a password';
                                         }
-                                        if (value.length < 6) {
-                                          return 'Password must be at least 6 characters';
+                                        if (value.length < 8) {
+                                          return 'Password must be at least 8 characters';
+                                        }
+                                        if (!value.contains(RegExp(r'[A-Z]'))) {
+                                          return 'Must contain at least one capital letter';
+                                        }
+                                        if (!value.contains(RegExp(r'[a-z]'))) {
+                                          return 'Must contain at least one small letter';
+                                        }
+                                        if (!value.contains(RegExp(r'[0-9]'))) {
+                                          return 'Must contain at least one number';
                                         }
                                         return null;
                                       },

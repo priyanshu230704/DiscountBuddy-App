@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'dart:io';
 import '../services/auth_service.dart';
 import '../models/api_user.dart';
 
@@ -38,23 +39,30 @@ class AuthProvider extends ChangeNotifier {
       final isLoggedIn = await _authService.isLoggedIn();
 
       if (isLoggedIn) {
-        final user = await _authService.getCurrentUser();
+        ApiUser? user = await _authService.getCurrentUser();
+        
+        // If getting user fails, try refreshing the token
+        if (user == null) {
+          debugPrint('DEBUG AuthProvider._initializeAuth: Access token might be expired, trying refresh...');
+          final newToken = await _authService.refreshAccessToken();
+          if (newToken != null) {
+            user = await _authService.getCurrentUser();
+          }
+        }
+
         if (user != null) {
           _user = user;
-          // Determine role from user profile or default to customer
-          _userRole =
-              user.profile?.role ?? (user.isMerchant ? 'merchant' : 'customer');
+          _userRole = user.profile?.role ?? (user.isMerchant ? 'merchant' : 'customer');
           _isAuthenticated = true;
           debugPrint(
-            'DEBUG AuthProvider._initializeAuth: user=${user.email}, profile.role=${user.profile?.role}, isMerchant=${user.isMerchant}, FINAL _userRole=$_userRole',
+            'DEBUG AuthProvider._initializeAuth: user=${user.email}, _userRole=$_userRole',
           );
         } else {
-          // Token might be invalid, clear auth
           await _authService.logout();
           _isAuthenticated = false;
           _userRole = 'customer';
           debugPrint(
-            'DEBUG AuthProvider._initializeAuth: user is null, defaulting to customer',
+            'DEBUG AuthProvider._initializeAuth: login failed after refresh attempt, logging out',
           );
         }
       } else {
@@ -310,6 +318,7 @@ class AuthProvider extends ChangeNotifier {
     String? firstName,
     String? lastName,
     String? email,
+    File? imageFile,
   }) async {
     _isLoading = true;
     _errorMessage = null;
@@ -320,8 +329,30 @@ class AuthProvider extends ChangeNotifier {
         firstName: firstName,
         lastName: lastName,
         email: email,
+        imageFile: imageFile,
       );
       _user = updatedUser;
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+  /// Delete current user account
+  Future<bool> deleteAccount() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _authService.deleteAccount();
+      _user = null;
+      _isAuthenticated = false;
+      _userRole = 'customer';
       _isLoading = false;
       notifyListeners();
       return true;

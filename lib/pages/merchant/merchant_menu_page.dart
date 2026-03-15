@@ -162,35 +162,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
     }
   }
 
-  Future<void> _addDefaultCategory() async {
-    try {
-      await _merchantService.createMenuCategory({
-        'restaurant': widget.restaurantId,
-        'name': 'Classic Burgers',
-        'description': 'Our signature beef and chicken burgers',
-        'order': _categories.length,
-        'is_active': true,
-      });
-      _loadMenu();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Category "Classic Burgers" added successfully'),
-            backgroundColor: AppColors.success,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to add default category: ${e.toString()}'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    }
-  }
+
 
   Future<void> _editCategory(Map<String, dynamic> category) async {
     final nameController = TextEditingController(text: category['name']);
@@ -324,8 +296,6 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
             onSelected: (value) {
               if (value == 'add') {
                 _addCategory();
-              } else if (value == 'default') {
-                _addDefaultCategory();
               }
             },
             itemBuilder: (context) => [
@@ -339,16 +309,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
                   ],
                 ),
               ),
-              PopupMenuItem(
-                value: 'default',
-                child: Row(
-                  children: [
-                    const Icon(Icons.flash_on_rounded, color: AppColors.merchantAmber),
-                    const SizedBox(width: 8),
-                    Text('Quick Add Default', style: AppTypography.body),
-                  ],
-                ),
-              ),
+
             ],
           ),
         ],

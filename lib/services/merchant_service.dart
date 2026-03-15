@@ -29,7 +29,7 @@ class MerchantService {
       await _ensureAuthenticated();
 
       final response = await _apiService.get(
-        '/merchant/dashboard', // The URL endpoint we just added in Django
+        ApiEndpoints.merchantDashboard,
         type: ApiType.merchant,
       );
       
@@ -510,12 +510,20 @@ class MerchantService {
 
   /// Redeem a deal using QR code data
   /// QR data format: `DEALUSE:<deal_use_id>:<redemption_code>`
-  Future<Map<String, dynamic>> redeemDealByQR(String qrData) async {
+  Future<Map<String, dynamic>> redeemDealByQR(
+    String qrData, {
+    required double price,
+    required int peopleCount,
+  }) async {
     try {
       await _ensureAuthenticated();
       final response = await _apiService.post(
         ApiEndpoints.merchantRedeemDeal,
-        body: {'qr_data': qrData},
+        body: {
+          'qr_data': qrData,
+          'price': price,
+          'people_count': peopleCount,
+        },
         type: ApiType.merchant,
       );
       return response;
@@ -528,12 +536,20 @@ class MerchantService {
   }
 
   /// Redeem a deal using manual redemption code
-  Future<Map<String, dynamic>> redeemDealByCode(String redemptionCode) async {
+  Future<Map<String, dynamic>> redeemDealByCode(
+    String redemptionCode, {
+    required double price,
+    required int peopleCount,
+  }) async {
     try {
       await _ensureAuthenticated();
       final response = await _apiService.post(
         ApiEndpoints.merchantRedeemDeal,
-        body: {'redemption_code': redemptionCode},
+        body: {
+          'redemption_code': redemptionCode,
+          'price': price,
+          'people_count': peopleCount,
+        },
         type: ApiType.merchant,
       );
       return response;
@@ -542,6 +558,21 @@ class MerchantService {
         throw Exception('Redemption failed: ${e.message}');
       }
       throw Exception('Redemption failed: ${e.toString()}');
+    }
+  }
+
+  /// Update restaurant occupancy status
+  Future<Map<String, dynamic>> updateOccupancy(int restaurantId, String occupancy) async {
+    try {
+      await _ensureAuthenticated();
+      final response = await _apiService.patch(
+        ApiEndpoints.merchantUpdateOccupancy,
+        body: {'restaurant_id': restaurantId, 'occupancy': occupancy},
+        type: ApiType.merchant,
+      );
+      return response;
+    } catch (e) {
+      throw Exception('Failed to update occupancy: ${e.toString()}');
     }
   }
 

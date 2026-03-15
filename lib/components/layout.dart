@@ -11,6 +11,8 @@ class AppCard extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final EdgeInsetsGeometry? margin;
   final VoidCallback? onTap;
+  final Gradient? gradient;
+  final Color? borderColor;
 
   const AppCard({
     super.key,
@@ -18,6 +20,8 @@ class AppCard extends StatelessWidget {
     this.padding,
     this.margin,
     this.onTap,
+    this.gradient,
+    this.borderColor,
   });
 
   @override
@@ -25,10 +29,15 @@ class AppCard extends StatelessWidget {
     final content = Container(
       margin: margin,
       padding: padding ?? AppSpacing.cardPadding,
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
+      decoration: BoxDecoration(
+        gradient: gradient,
+        color: gradient == null ? AppColors.surface : null,
         borderRadius: AppRadius.card,
-        boxShadow: AppShadows.medium,
+        border: Border.all(
+          color: borderColor ?? AppColors.cardBorder,
+          width: 1,
+        ),
+        boxShadow: AppShadows.card,
       ),
       child: child,
     );
@@ -62,38 +71,32 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.xl,
-        vertical: AppSpacing.sm,
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: AppTypography.title),
-                if (subtitle != null) ...[
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(subtitle!, style: AppTypography.subtitle),
-                ],
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: AppTypography.title),
+              if (subtitle != null) ...[
+                const SizedBox(height: AppSpacing.xs),
+                Text(subtitle!, style: AppTypography.subtitle),
               ],
-            ),
+            ],
           ),
-          if (actionLabel != null && onActionTap != null)
-            TextButton(
-              onPressed: onActionTap,
-              child: Text(
-                actionLabel!,
-                style: AppTypography.body.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
-                ),
+        ),
+        if (actionLabel != null && onActionTap != null)
+          TextButton(
+            onPressed: onActionTap,
+            child: Text(
+              actionLabel!,
+              style: AppTypography.body.copyWith(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w600,
               ),
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 }
@@ -118,18 +121,54 @@ class StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppCard(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppRadius.card,
+        border: Border.all(color: AppColors.cardBorder),
+        boxShadow: AppShadows.card,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.sm),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.08),
-              borderRadius: AppRadius.medium,
-            ),
-            child: Icon(icon, color: color, size: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: color, size: 22),
+              ),
+              if (isRating && !isLoading)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                    vertical: 3,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.star_rounded, size: 14, color: Colors.amber),
+                      const SizedBox(width: 2),
+                      Text(
+                        value,
+                        style: AppTypography.caption.copyWith(
+                          color: const Color(0xFFB45309),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: AppSpacing.lg),
           if (isLoading)
@@ -139,20 +178,20 @@ class StatCard extends StatelessWidget {
               child: CircularProgressIndicator(strokeWidth: 2, color: color),
             )
           else
-            Row(
-              children: [
-                Text(
-                  value,
-                  style: AppTypography.headline.copyWith(fontSize: 24),
-                ),
-                if (isRating) ...[
-                  const SizedBox(width: AppSpacing.xs),
-                  const Icon(Icons.star_rounded, size: 18, color: Colors.amber),
-                ],
-              ],
+            Text(
+              value,
+              style: AppTypography.headline.copyWith(
+                fontSize: 26,
+                letterSpacing: -0.5,
+              ),
             ),
           const SizedBox(height: AppSpacing.xs),
-          Text(label, style: AppTypography.bodySmall),
+          Text(
+            label,
+            style: AppTypography.bodySmall.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
         ],
       ),
     );
@@ -179,13 +218,24 @@ class EmptyStateWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
+        padding: const EdgeInsets.all(AppSpacing.xxxl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 64, color: AppColors.textDisabled),
-            const SizedBox(height: AppSpacing.lg),
-            Text(title, style: AppTypography.title),
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.06),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 48, color: AppColors.primary.withValues(alpha: 0.5)),
+            ),
+            const SizedBox(height: AppSpacing.xxl),
+            Text(
+              title,
+              style: AppTypography.title,
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: AppSpacing.sm),
             Text(
               message,
@@ -193,7 +243,7 @@ class EmptyStateWidget extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             if (primaryActionLabel != null && onPrimaryAction != null) ...[
-              const SizedBox(height: AppSpacing.xl),
+              const SizedBox(height: AppSpacing.xxl),
               PrimaryButton(
                 label: primaryActionLabel!,
                 onPressed: onPrimaryAction,
@@ -256,4 +306,3 @@ class AppDivider extends StatelessWidget {
     );
   }
 }
-

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:discount_buddy/theme/app_colors.dart';
-import 'package:discount_buddy/design/app_spacing.dart';
-import 'package:discount_buddy/design/app_typography.dart';
-import 'package:discount_buddy/components/inputs.dart';
-import 'package:discount_buddy/components/buttons.dart';
-import 'package:discount_buddy/components/app_app_bar.dart';
+import '../../theme/app_colors.dart';
+import '../../design/app_spacing.dart';
+import '../../design/app_typography.dart';
+import '../../components/inputs.dart';
+import '../../components/buttons.dart';
+import '../../components/app_app_bar.dart';
 import '../../services/merchant_service.dart';
+import 'package:intl/intl.dart';
 
 /// Add/Edit Deal Page for Merchants
 class AddDealPage extends StatefulWidget {
@@ -63,6 +64,7 @@ class _AddDealPageState extends State<AddDealPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to load restaurants: ${e.toString()}'),
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -96,9 +98,23 @@ class _AddDealPageState extends State<AddDealPage> {
   Future<void> _selectDate(BuildContext context, bool isStart) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: isStart 
+          ? (_startDate ?? DateTime.now())
+          : (_endDate ?? (_startDate ?? DateTime.now())),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: AppColors.merchantIndigo,
+              onPrimary: Colors.white,
+              onSurface: AppColors.textDarkest,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null) {
       setState(() {
@@ -113,6 +129,12 @@ class _AddDealPageState extends State<AddDealPage> {
 
   Future<void> _saveDeal() async {
     if (!_formKey.currentState!.validate() || _selectedRestaurantId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill out all required fields.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
       return;
     }
 
@@ -148,7 +170,7 @@ class _AddDealPageState extends State<AddDealPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Deal saved successfully'),
-            backgroundColor: AppColors.primaryPurple,
+            backgroundColor: AppColors.success,
           ),
         );
       }
@@ -157,7 +179,7 @@ class _AddDealPageState extends State<AddDealPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to save deal: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -171,130 +193,173 @@ class _AddDealPageState extends State<AddDealPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppAppBar(
-        titleText: widget.deal != null ? 'Edit deal' : 'Create deal',
+        titleText: widget.deal != null ? 'Edit Deal' : 'Create Deal',
+        backgroundColor: AppColors.surface,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.merchantIndigo),
+            )
           : Form(
               key: _formKey,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(AppSpacing.lg),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.xl,
+                ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildLabel('Select Restaurant *'),
-                    AppDropdown<int>(
-                      value: _selectedRestaurantId,
-                      label: 'Restaurant *',
-                      items: _myRestaurants
-                          .map(
-                            (r) => DropdownMenuItem<int>(
-                              value: r['id'] as int,
-                              child: Text(r['name'] as String),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (val) =>
-                          setState(() => _selectedRestaurantId = val),
+                    _buildSectionHeader('Basic Details', Icons.info_outline_rounded),
+                    const SizedBox(height: AppSpacing.md),
+                    _buildFormSection(
+                      children: [
+                        _buildLabel('Select Restaurant *'),
+                        AppDropdown<int>(
+                          value: _selectedRestaurantId,
+                          label: 'Restaurant *',
+                          items: _myRestaurants
+                              .map(
+                                (r) => DropdownMenuItem<int>(
+                                  value: r['id'] as int,
+                                  child: Text(r['name'] as String),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (val) =>
+                              setState(() => _selectedRestaurantId = val),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        AppTextField(
+                          controller: _titleController,
+                          label: 'Deal Title *',
+                          hintText: 'e.g. 50% Off Burgers',
+                          validator: (v) => v!.isEmpty ? 'Title required' : null,
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        AppTextField(
+                          controller: _descriptionController,
+                          label: 'Description',
+                          hintText: 'Explain the details of this deal to your customers...',
+                          maxLines: 3,
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: AppSpacing.lg),
-                    AppTextField(
-                      controller: _titleController,
-                      label: 'Deal title *',
-                      validator: (v) => v!.isEmpty ? 'Title required' : null,
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    AppTextField(
-                      controller: _descriptionController,
-                      label: 'Description',
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    _buildLabel('Deal Type'),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          _buildTypeChip('percentage', 'Percentage'),
-                          const SizedBox(width: AppSpacing.sm),
-                          _buildTypeChip('fixed', 'Fixed Amount'),
-                          const SizedBox(width: AppSpacing.sm),
-                          _buildTypeChip('two_for_one', '2 for 1'),
+
+                    const SizedBox(height: AppSpacing.xl),
+                    _buildSectionHeader('Deal Configuration', Icons.local_offer_outlined),
+                    const SizedBox(height: AppSpacing.md),
+                    _buildFormSection(
+                      children: [
+                        _buildLabel('Deal Type *'),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              _buildTypeChip('percentage', 'Percentage', Icons.percent_rounded),
+                              const SizedBox(width: AppSpacing.sm),
+                              _buildTypeChip('fixed', 'Fixed Amount', Icons.attach_money_rounded),
+                              const SizedBox(width: AppSpacing.sm),
+                              _buildTypeChip('two_for_one', '2-for-1', Icons.people_alt_rounded),
+                            ],
+                          ),
+                        ),
+                        if (_dealType != 'two_for_one') ...[
+                          const SizedBox(height: AppSpacing.lg),
+                          AppTextField(
+                            controller: _discountController,
+                            label: _dealType == 'percentage'
+                                ? 'Discount Percentage (%) *'
+                                : 'Discount Amount (\$)',
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            validator: (v) => _dealType != 'two_for_one' && v!.isEmpty 
+                                ? 'Value required' 
+                                : null,
+                          ),
                         ],
-                      ),
-                    ),
-                    if (_dealType != 'two_for_one') ...[
-                      const SizedBox(height: AppSpacing.lg),
-                      AppTextField(
-                        controller: _discountController,
-                        label: _dealType == 'percentage'
-                            ? 'Discount %'
-                            : 'Discount amount',
-                        keyboardType: TextInputType.number,
-                      ),
-                    ],
-                    const SizedBox(height: AppSpacing.lg),
-                    AppTextField(
-                      controller: _minSpendController,
-                      label: 'Minimum spend (e.g. 30.00)',
-                      keyboardType: TextInputType.number,
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildDatePicker(
-                            'Start Date',
-                            _startDate,
-                            true,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.lg),
-                        Expanded(
-                          child: _buildDatePicker('End Date', _endDate, false),
+                        const SizedBox(height: AppSpacing.lg),
+                        AppTextField(
+                          controller: _minSpendController,
+                          label: 'Minimum Spend required (Optional)',
+                          hintText: 'e.g. 30.00',
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         ),
                       ],
                     ),
-                    const SizedBox(height: AppSpacing.lg),
-                    Row(
+
+                    const SizedBox(height: AppSpacing.xl),
+                    _buildSectionHeader('Usage & Restrictions', Icons.rule_rounded),
+                    const SizedBox(height: AppSpacing.md),
+                    _buildFormSection(
                       children: [
-                        Expanded(
-                          child: AppTextField(
-                            controller: _maxUsesController,
-                            label: 'Max total uses',
-                            keyboardType: TextInputType.number,
-                          ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildDatePicker('Valid From', _startDate, true),
+                            ),
+                            const SizedBox(width: AppSpacing.lg),
+                            Expanded(
+                              child: _buildDatePicker('Valid Until', _endDate, false),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: AppSpacing.lg),
-                        Expanded(
-                          child: AppTextField(
-                            controller: _maxPerUserController,
-                            label: 'Max per user',
-                            keyboardType: TextInputType.number,
-                          ),
+                        const SizedBox(height: AppSpacing.lg),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: AppTextField(
+                                controller: _maxUsesController,
+                                label: 'Max Total Uses',
+                                hintText: 'Leave empty for unlimited',
+                                keyboardType: TextInputType.number,
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.lg),
+                            Expanded(
+                              child: AppTextField(
+                                controller: _maxPerUserController,
+                                label: 'Max Per User',
+                                hintText: 'Default is 1',
+                                keyboardType: TextInputType.number,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        AppTextField(
+                          controller: _termsController,
+                          label: 'Terms & Conditions',
+                          hintText: 'e.g. Valid only for dine-in. Not valid with other promos.',
+                          maxLines: 3,
                         ),
                       ],
                     ),
-                    const SizedBox(height: AppSpacing.lg),
-                    AppTextField(
-                      controller: _termsController,
-                      label: 'Terms & Conditions',
-                      maxLines: 3,
+
+                    const SizedBox(height: AppSpacing.xl),
+                    _buildFormSection(
+                      padding: const EdgeInsets.all(8),
+                      children: [
+                        SwitchListTile(
+                          title: Text(
+                            'Featured Deal',
+                            style: AppTypography.title.copyWith(fontSize: 16),
+                          ),
+                          subtitle: const Text('Highlight this deal at the top of your page'),
+                          value: _isFeatured,
+                          onChanged: (v) => setState(() => _isFeatured = v),
+                          activeThumbColor: AppColors.merchantIndigo,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: AppSpacing.lg),
-                    SwitchListTile(
-                      title: const Text('Featured Deal'),
-                      value: _isFeatured,
-                      onChanged: (v) => setState(() => _isFeatured = v),
-                      activeThumbColor: AppColors.accent,
-                    ),
+
                     const SizedBox(height: AppSpacing.xxxl),
                     PrimaryButton(
-                      label: widget.deal != null ? 'Update deal' : 'Create deal',
+                      label: widget.deal != null ? 'Save Changes' : 'Create Deal',
                       isLoading: _isSaving,
                       onPressed: _isSaving ? null : _saveDeal,
                     ),
-                    const SizedBox(height: AppSpacing.xxxl),
+                    const SizedBox(height: 100), // Bottom padding
                   ],
                 ),
               ),
@@ -302,60 +367,130 @@ class _AddDealPageState extends State<AddDealPage> {
     );
   }
 
+  Widget _buildSectionHeader(String title, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: AppColors.merchantIndigo),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: AppTypography.title.copyWith(fontSize: 18),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFormSection({
+    required List<Widget> children,
+    EdgeInsets padding = const EdgeInsets.all(AppSpacing.xl),
+  }) {
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.cardBorder),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.textDarkest.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      ),
+    );
+  }
+
   Widget _buildLabel(String text) {
     return Padding(
-      padding: const EdgeInsets.only(
-        bottom: AppSpacing.sm,
-        left: 4,
-      ),
+      padding: const EdgeInsets.only(bottom: 8, left: 4),
       child: Text(
         text,
         style: AppTypography.bodySmall.copyWith(
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
+          color: AppColors.textSecondary,
         ),
       ),
     );
   }
 
-  Widget _buildTypeChip(String type, String label) {
+  Widget _buildTypeChip(String type, String label, IconData icon) {
     final selected = _dealType == type;
     return ChoiceChip(
-      label: Text(label),
+      label: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon, 
+            size: 16, 
+            color: selected ? AppColors.white : AppColors.textSecondary,
+          ),
+          const SizedBox(width: 6),
+          Text(label),
+        ],
+      ),
       selected: selected,
       onSelected: (s) => setState(() => _dealType = type),
-      selectedColor: AppColors.accent.withValues(alpha: 0.2),
-      labelStyle: AppTypography.bodySmall.copyWith(
-        color: selected ? AppColors.accent : Colors.black,
+      showCheckmark: false,
+      backgroundColor: AppColors.background,
+      selectedColor: AppColors.merchantIndigo,
+      side: BorderSide(
+        color: selected ? AppColors.merchantIndigo : AppColors.cardBorder,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      labelPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      labelStyle: AppTypography.body.copyWith(
+        color: selected ? AppColors.white : AppColors.textPrimary,
+        fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
       ),
     );
   }
 
   Widget _buildDatePicker(String label, DateTime? date, bool isStart) {
-    return InkWell(
-      onTap: () => _selectDate(context, isStart),
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: AppColors.white,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel(label),
+        InkWell(
+          onTap: () => _selectDate(context, isStart),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: AppTypography.caption,
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: 14,
             ),
-            Text(
-              date == null
-                  ? 'Select Date'
-                  : '${date.day}/${date.month}/${date.year}',
-              style: AppTypography.body,
+            decoration: BoxDecoration(
+              color: AppColors.background,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.cardBorder),
             ),
-          ],
+            child: Row(
+              children: [
+                Icon(
+                  Icons.calendar_today_rounded,
+                  size: 18,
+                  color: date == null ? AppColors.textDisabled : AppColors.merchantIndigo,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    date == null
+                        ? 'Select Date'
+                        : DateFormat('MMM d, yyyy').format(date),
+                    style: AppTypography.body.copyWith(
+                      color: date == null ? AppColors.textSecondary : AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 }

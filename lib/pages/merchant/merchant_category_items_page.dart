@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:discount_buddy/theme/app_colors.dart';
-import 'package:discount_buddy/design/app_spacing.dart';
-import 'package:discount_buddy/design/app_typography.dart';
-import 'package:discount_buddy/components/layout.dart';
-import 'package:discount_buddy/components/app_app_bar.dart';
 import '../../services/merchant_service.dart';
+import '../../design/app_colors.dart';
+import '../../design/app_spacing.dart';
+import '../../design/app_typography.dart';
+import '../../components/layout.dart';
+import '../../components/app_app_bar.dart';
+import '../../widgets/skeleton_loader.dart';
 
 class MerchantCategoryItemsPage extends StatefulWidget {
   final int categoryId;
@@ -48,22 +49,57 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load category: ${e.toString()}')),
+          SnackBar(
+            content: Text('Failed to load category: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     }
   }
 
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    TextInputType keyboardType = TextInputType.text,
+    int maxLines = 1,
+    Widget? prefix,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        maxLines: maxLines,
+        style: AppTypography.body,
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: AppTypography.bodySmall,
+          filled: true,
+          fillColor: AppColors.background,
+          prefixIcon: prefix,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: AppColors.cardBorder),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: AppColors.cardBorder),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.merchantIndigo, width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        ),
+      ),
+    );
+  }
+
   Future<void> _addOrUpdateItem({Map<String, dynamic>? existingItem}) async {
-    final nameController = TextEditingController(
-      text: existingItem?['name'] ?? '',
-    );
-    final descriptionController = TextEditingController(
-      text: existingItem?['description'] ?? '',
-    );
-    final priceController = TextEditingController(
-      text: existingItem?['price']?.toString() ?? '',
-    );
+    final nameController = TextEditingController(text: existingItem?['name'] ?? '');
+    final descriptionController = TextEditingController(text: existingItem?['description'] ?? '');
+    final priceController = TextEditingController(text: existingItem?['price']?.toString() ?? '');
 
     bool isVegetarian = existingItem?['is_vegetarian'] ?? false;
     bool isVegan = existingItem?['is_vegan'] ?? false;
@@ -75,68 +111,83 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
       builder: (context) => StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
-            title: Text(existingItem == null ? 'Add Item' : 'Edit Item'),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: nameController,
-                    decoration: const InputDecoration(labelText: 'Name *'),
-                  ),
-                  TextField(
-                    controller: descriptionController,
-                    decoration: const InputDecoration(labelText: 'Description'),
-                    maxLines: 2,
-                  ),
-                  TextField(
-                    controller: priceController,
-                    decoration: const InputDecoration(labelText: 'Price *'),
-                    keyboardType: TextInputType.numberWithOptions(
-                      decimal: true,
+            backgroundColor: AppColors.surface,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+            title: Text(existingItem == null ? 'Add Item' : 'Edit Item', style: AppTypography.title),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: AppSpacing.sm),
+                    _buildTextField(controller: nameController, label: 'Item Name *'),
+                    _buildTextField(
+                      controller: priceController,
+                      label: 'Price *',
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      prefix: const Icon(Icons.attach_money_rounded, size: 20, color: AppColors.textSecondary),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  CheckboxListTile(
-                    title: const Text('Vegetarian'),
-                    value: isVegetarian,
-                    onChanged: (v) => setState(() => isVegetarian = v!),
-                  ),
-                  CheckboxListTile(
-                    title: const Text('Vegan'),
-                    value: isVegan,
-                    onChanged: (v) => setState(() => isVegan = v!),
-                  ),
-                  CheckboxListTile(
-                    title: const Text('Gluten Free'),
-                    value: isGlutenFree,
-                    onChanged: (v) => setState(() => isGlutenFree = v!),
-                  ),
-                  CheckboxListTile(
-                    title: const Text('Available'),
-                    value: isAvailable,
-                    onChanged: (v) => setState(() => isAvailable = v!),
-                  ),
-                ],
+                    _buildTextField(
+                      controller: descriptionController,
+                      label: 'Description (Optional)',
+                      maxLines: 3,
+                    ),
+                    const Divider(height: 32),
+                    Text('Dietary Tags', style: AppTypography.subtitle.copyWith(color: AppColors.textPrimary)),
+                    const SizedBox(height: AppSpacing.sm),
+                    SwitchListTile(
+                      title: Text('Vegetarian', style: AppTypography.body),
+                      value: isVegetarian,
+                      activeThumbColor: AppColors.success,
+                      contentPadding: EdgeInsets.zero,
+                      onChanged: (v) => setState(() => isVegetarian = v),
+                    ),
+                    SwitchListTile(
+                      title: Text('Vegan', style: AppTypography.body),
+                      value: isVegan,
+                      activeThumbColor: AppColors.success,
+                      contentPadding: EdgeInsets.zero,
+                      onChanged: (v) => setState(() => isVegan = v),
+                    ),
+                    SwitchListTile(
+                      title: Text('Gluten Free', style: AppTypography.body),
+                      value: isGlutenFree,
+                      activeThumbColor: AppColors.merchantAmber,
+                      contentPadding: EdgeInsets.zero,
+                      onChanged: (v) => setState(() => isGlutenFree = v),
+                    ),
+                    const Divider(height: 32),
+                    SwitchListTile(
+                      title: Text('Available', style: AppTypography.body.copyWith(fontWeight: FontWeight.bold)),
+                      value: isAvailable,
+                      activeThumbColor: AppColors.merchantIndigo,
+                      contentPadding: EdgeInsets.zero,
+                      onChanged: (v) => setState(() => isAvailable = v),
+                    ),
+                  ],
+                ),
               ),
             ),
+            actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
+                child: Text(
+                  'Cancel',
+                  style: AppTypography.body.copyWith(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                ),
               ),
               ElevatedButton(
                 onPressed: () {
-                  if (nameController.text.isEmpty ||
-                      priceController.text.isEmpty) {
-                    return;
-                  }
+                  if (nameController.text.trim().isEmpty || priceController.text.trim().isEmpty) return;
                   Navigator.pop(context, {
                     if (existingItem != null && existingItem.containsKey('id'))
                       'id': existingItem['id'],
-                    'name': nameController.text,
-                    'description': descriptionController.text,
-                    'price': priceController.text,
+                    'name': nameController.text.trim(),
+                    'description': descriptionController.text.trim(),
+                    'price': priceController.text.trim(),
                     'is_vegetarian': isVegetarian,
                     'is_vegan': isVegan,
                     'is_gluten_free': isGlutenFree,
@@ -144,10 +195,16 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
                   });
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.white,
+                  backgroundColor: AppColors.merchantIndigo,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: Text(existingItem == null ? 'Add' : 'Save'),
+                child: Text(
+                  existingItem == null ? 'Add Item' : 'Save Changes',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
             ],
           );
@@ -168,11 +225,9 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
 
     try {
       if (isEdit) {
-        // Update existing item
         final int id = itemData['id'];
         await _merchantService.updateMenuItem(id, itemData);
       } else {
-        // Add new item
         final newItemData = Map<String, dynamic>.from(itemData);
         newItemData['category'] = widget.categoryId;
         if (!newItemData.containsKey('order')) {
@@ -184,13 +239,19 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
       _loadCategory();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Item saved successfully')),
+          const SnackBar(
+            content: Text('Item saved successfully'),
+            backgroundColor: AppColors.success,
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save item: ${e.toString()}')),
+          SnackBar(
+            content: Text('Failed to save item: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     }
@@ -198,10 +259,9 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
 
   Future<void> _addDefaultItem() async {
     final newItem = {
-      'name': 'Cheeseburger Deluxe',
-      'description':
-          'Juicy beef patty with cheddar cheese, lettuce, tomato, and our secret sauce.',
-      'price': '12.99',
+      'name': 'Signature Burger',
+      'description': 'Juicy beef patty with premium cheddar, fresh lettuce, tomato, and our secret house sauce.',
+      'price': '14.99',
       'is_vegetarian': false,
       'is_vegan': false,
       'is_gluten_free': false,
@@ -215,17 +275,32 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Item'),
-        content: Text('Are you sure you want to delete ${item['name']}?'),
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text('Delete Item?', style: AppTypography.title),
+        content: Text(
+          'Are you sure you want to delete "${item['name']}"? This action cannot be undone.',
+          style: AppTypography.body,
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child: Text(
+              'Cancel',
+              style: AppTypography.body.copyWith(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+            ),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -242,7 +317,10 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to delete item: ${e.toString()}')),
+            SnackBar(
+              content: Text('Failed to delete item: ${e.toString()}'),
+              backgroundColor: AppColors.error,
+            ),
           );
         }
       }
@@ -255,9 +333,11 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
       backgroundColor: AppColors.background,
       appBar: AppAppBar(
         titleText: widget.categoryName,
+        backgroundColor: AppColors.surface,
         actions: [
           PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
+            icon: const Icon(Icons.more_vert_rounded, color: AppColors.textPrimary),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             onSelected: (value) {
               if (value == 'default') {
                 _addDefaultItem();
@@ -265,27 +345,86 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
                 _loadCategory();
               }
             },
-            itemBuilder: (context) => const [
+            itemBuilder: (context) => [
               PopupMenuItem(
                 value: 'default',
-                child: Text('Quick Add Default Item'),
+                child: Row(
+                  children: [
+                    const Icon(Icons.flash_on_rounded, color: AppColors.merchantAmber),
+                    const SizedBox(width: 8),
+                    Text('Quick Add Default', style: AppTypography.body),
+                  ],
+                ),
               ),
-              PopupMenuItem(value: 'refresh', child: Text('Refresh')),
+              PopupMenuItem(
+                value: 'refresh',
+                child: Row(
+                  children: [
+                    const Icon(Icons.refresh_rounded, color: AppColors.textPrimary),
+                    const SizedBox(width: 8),
+                    Text('Refresh List', style: AppTypography.body),
+                  ],
+                ),
+              ),
             ],
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _addOrUpdateItem(),
-        backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.white,
-        child: const Icon(Icons.add),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(28),
+          gradient: const LinearGradient(
+            colors: [AppColors.merchantIndigo, AppColors.merchantBlue],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.merchantIndigo.withValues(alpha: 0.3),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: FloatingActionButton.extended(
+          onPressed: () => _addOrUpdateItem(),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          highlightElevation: 0,
+          icon: const Icon(Icons.add, color: Colors.white),
+          label: const Text(
+            'Add Item', 
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+        ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? _buildLoadingState()
           : _category == null
           ? const Center(child: Text('Failed to load category'))
           : _buildItemsList(),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      itemCount: 5,
+      itemBuilder: (context, index) => Padding(
+        padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+        child: SkeletonLoader(
+          height: 120,
+          borderRadius: BorderRadius.circular(24),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return const EmptyStateWidget(
+      icon: Icons.fastfood_rounded,
+      title: 'No items in this category',
+      message: 'Tap the + button to add your first menu item.',
     );
   }
 
@@ -293,98 +432,123 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
     final items = _category!['items'] as List<dynamic>? ?? [];
 
     if (items.isEmpty) {
-      return const EmptyStateWidget(
-        icon: Icons.restaurant_menu,
-        title: 'No items in this category',
-        message: 'Tap the + button to add your first item.',
-      );
+      return _buildEmptyState();
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        final item = items[index];
-        return AppCard(
-          margin: const EdgeInsets.only(bottom: AppSpacing.md),
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          child: ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(
-              item['name'] ?? 'Item',
-              style: AppTypography.title.copyWith(fontSize: 16),
-            ),
-            subtitle: Column(
+    return RefreshIndicator(
+      onRefresh: _loadCategory,
+      color: AppColors.merchantIndigo,
+      child: ListView.separated(
+        padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, 100),
+        physics: const AlwaysScrollableScrollPhysics(),
+        itemCount: items.length,
+        separatorBuilder: (context, index) => const SizedBox(height: AppSpacing.md),
+        itemBuilder: (context, index) {
+          final item = items[index];
+          final bool isAvailable = item['is_available'] ?? true;
+          
+          return AppCard(
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (item['description'] != null &&
-                    item['description'].isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      top: AppSpacing.xs,
-                      bottom: AppSpacing.xs,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        item['name'] ?? 'Item',
+                        style: AppTypography.title.copyWith(
+                          fontSize: 18,
+                          decoration: isAvailable ? null : TextDecoration.lineThrough,
+                          color: isAvailable ? AppColors.textDarkest : AppColors.textDisabled,
+                        ),
+                      ),
                     ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(
+                      '\$${item['price']}',
+                      style: AppTypography.title.copyWith(
+                        color: isAvailable ? AppColors.merchantIndigo : AppColors.textDisabled,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ],
+                ),
+                if (item['description'] != null && item['description'].toString().trim().isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6, bottom: 12),
                     child: Text(
                       item['description'],
-                      style: AppTypography.body,
+                      style: AppTypography.body.copyWith(
+                        color: isAvailable ? AppColors.textSecondary : AppColors.textDisabled,
+                      ),
                     ),
-                  ),
-                Text(
-                  '\$${item['price']}',
-                  style: AppTypography.body.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Wrap(
-                  spacing: AppSpacing.xs,
+                  )
+                else
+                  const SizedBox(height: 12),
+                Row(
                   children: [
-                    if (item['is_vegetarian'] == true)
-                      _buildTag('Veg', AppColors.success),
-                    if (item['is_vegan'] == true)
-                      _buildTag('Vegan', AppColors.success),
-                    if (item['is_gluten_free'] == true)
-                      _buildTag('GF', AppColors.discount),
-                    if (item['is_available'] == false)
-                      _buildTag('Unavailable', Colors.grey),
+                    Expanded(
+                      child: Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          if (item['is_vegetarian'] == true)
+                            _buildTag('Veg', AppColors.success),
+                          if (item['is_vegan'] == true)
+                            _buildTag('Vegan', AppColors.success),
+                          if (item['is_gluten_free'] == true)
+                            _buildTag('GF', AppColors.merchantAmber),
+                          if (!isAvailable)
+                            _buildTag('Sold Out', AppColors.error),
+                        ],
+                      ),
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit_rounded, color: AppColors.merchantBlue, size: 22),
+                          onPressed: () => _addOrUpdateItem(existingItem: item),
+                          padding: const EdgeInsets.all(8),
+                          constraints: const BoxConstraints(),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error, size: 22),
+                          onPressed: () => _deleteItem(item),
+                          padding: const EdgeInsets.all(8),
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ],
             ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.blue),
-                  onPressed: () => _addOrUpdateItem(existingItem: item),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () => _deleteItem(item),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
   Widget _buildTag(String label, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: 2,
+        horizontal: 8,
+        vertical: 4,
       ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: color.withValues(alpha: 0.5)),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Text(
         label,
-        style: AppTypography.caption.copyWith(color: color),
+        style: AppTypography.caption.copyWith(
+          color: color,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }

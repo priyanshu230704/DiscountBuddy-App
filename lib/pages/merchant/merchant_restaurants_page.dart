@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:discount_buddy/theme/app_colors.dart';
-import 'package:discount_buddy/design/app_spacing.dart';
-import 'package:discount_buddy/design/app_typography.dart';
-import 'package:discount_buddy/components/layout.dart';
-import 'package:discount_buddy/components/app_app_bar.dart';
 import '../../services/merchant_service.dart';
-import '../../widgets/skeleton_loader.dart';
+import '../../design/app_colors.dart';
+import '../../design/app_spacing.dart';
+import '../../design/app_typography.dart';
+import '../../components/layout.dart';
+import '../../components/app_app_bar.dart';
 import 'add_restaurant_page.dart';
 import 'merchant_menu_page.dart';
 
-/// Merchant Restaurants Management Page
 class MerchantRestaurantsPage extends StatefulWidget {
   final bool selectMenuMode;
 
-  const MerchantRestaurantsPage({super.key, this.selectMenuMode = false});
+  const MerchantRestaurantsPage({
+    super.key,
+    this.selectMenuMode = false,
+  });
 
   @override
   State<MerchantRestaurantsPage> createState() =>
@@ -22,10 +23,11 @@ class MerchantRestaurantsPage extends StatefulWidget {
 
 class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
   final MerchantService _merchantService = MerchantService();
+  final TextEditingController _searchController = TextEditingController();
+
   List<Map<String, dynamic>> _restaurants = [];
   List<Map<String, dynamic>> _filteredRestaurants = [];
   bool _isLoading = true;
-  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -39,16 +41,9 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
     super.dispose();
   }
 
-  bool _isFetching = false;
-
   Future<void> _loadRestaurants() async {
-    if (_isFetching) return;
-
     try {
-      setState(() {
-        _isLoading = true;
-        _isFetching = true;
-      });
+      if (mounted) setState(() => _isLoading = true);
       final restaurants = await _merchantService.getMerchantRestaurants();
       if (mounted) {
         setState(() {
@@ -64,28 +59,25 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to load restaurants: ${e.toString()}'),
+            backgroundColor: AppColors.error,
           ),
         );
-      }
-    } finally {
-      if (mounted) {
-        _isFetching = false;
       }
     }
   }
 
   void _filterRestaurants(String query) {
-    if (query.isEmpty) {
-      setState(() => _filteredRestaurants = _restaurants);
-      return;
-    }
     setState(() {
-      _filteredRestaurants = _restaurants.where((restaurant) {
-        final name = (restaurant['name'] as String? ?? '').toLowerCase();
-        final city = (restaurant['city'] as Map?)?['name'] as String? ?? '';
-        return name.contains(query.toLowerCase()) ||
-            city.toLowerCase().contains(query.toLowerCase());
-      }).toList();
+      if (query.isEmpty) {
+        _filteredRestaurants = _restaurants;
+      } else {
+        _filteredRestaurants = _restaurants.where((r) {
+          final name = (r['name'] as String?)?.toLowerCase() ?? '';
+          final address = (r['address'] as String?)?.toLowerCase() ?? '';
+          final searchLower = query.toLowerCase();
+          return name.contains(searchLower) || address.contains(searchLower);
+        }).toList();
+      }
     });
   }
 
@@ -94,13 +86,16 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppAppBar(
-        titleText: widget.selectMenuMode ? 'Select restaurant' : 'Restaurants',
-        centerTitle: true,
+        titleText: widget.selectMenuMode ? 'Select Restaurant' : 'Restaurants',
+        backgroundColor: AppColors.surface,
         actions: widget.selectMenuMode
             ? null
             : [
                 IconButton(
-                  icon: const Icon(Icons.add_rounded),
+                  icon: const Icon(
+                    Icons.add_circle_outline_rounded,
+                    color: AppColors.merchantIndigo,
+                  ),
                   onPressed: () {
                     Navigator.push(
                       context,
@@ -113,44 +108,72 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
               ],
       ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: TextField(
-              controller: _searchController,
-              onChanged: _filterRestaurants,
-              decoration: InputDecoration(
-                hintText: 'Search restaurants...',
-                hintStyle: AppTypography.bodySmall,
-                prefixIcon: const Icon(
-                  Icons.search,
-                  color: AppColors.textSecondary,
-                ),
-                filled: true,
-                fillColor: AppColors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+          Container(
+            color: AppColors.surface,
+            padding: const EdgeInsets.fromLTRB(
+                AppSpacing.xl, AppSpacing.sm, AppSpacing.xl, AppSpacing.lg),
+            child: Container(
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.cardBorder),
+              ),
+              child: Row(
+                children: [
+                  const SizedBox(width: AppSpacing.md),
+                  const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: _filterRestaurants,
+                      decoration: InputDecoration(
+                        hintText: "Search restaurants...",
+                        hintStyle: AppTypography.bodySmall.copyWith(fontSize: 14),
+                        border: InputBorder.none,
+                      ),
+                      style: AppTypography.body.copyWith(fontSize: 14),
+                    ),
+                  ),
+                  if (_searchController.text.isNotEmpty)
+                    IconButton(
+                      icon: const Icon(Icons.close, size: 18, color: AppColors.textSecondary),
+                      onPressed: () {
+                        _searchController.clear();
+                        _filterRestaurants('');
+                      },
+                    ),
+                ],
               ),
             ),
           ),
+          if (!_isLoading && _filteredRestaurants.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.sm),
+              child: Text(
+                '${_filteredRestaurants.length} Restaurant${_filteredRestaurants.length == 1 ? '' : 's'}',
+                style: AppTypography.title.copyWith(fontSize: 18),
+              ),
+            ),
           Expanded(
             child: _isLoading
-                ? _buildLoadingState()
+                ? const LoadingWidget(message: 'Loading restaurants...')
                 : _filteredRestaurants.isEmpty
                 ? _buildEmptyState()
                 : RefreshIndicator(
                     onRefresh: _loadRestaurants,
-                    color: AppColors.primary,
+                    color: AppColors.merchantIndigo,
                     child: ListView.separated(
                       padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.lg,
-                        0,
-                        AppSpacing.lg,
                         AppSpacing.xl,
+                        AppSpacing.sm,
+                        AppSpacing.xl,
+                        AppSpacing.xxxl,
                       ),
+                      physics: const AlwaysScrollableScrollPhysics(),
                       itemCount: _filteredRestaurants.length,
                       separatorBuilder: (context, index) =>
                           const SizedBox(height: AppSpacing.md),
@@ -208,7 +231,7 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Failed to load restaurant: ${e.toString()}'),
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.error,
             ),
           );
         }
@@ -216,28 +239,15 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
     }
   }
 
-  Widget _buildLoadingState() {
-    return ListView.builder(
-      padding:
-          const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-      itemCount: 4,
-      itemBuilder: (context, index) => Padding(
-        padding: const EdgeInsets.only(bottom: AppSpacing.md),
-        child: SkeletonLoader(
-          height: 100,
-          borderRadius: BorderRadius.circular(16),
-        ),
-      ),
-    );
-  }
-
   Widget _buildEmptyState() {
     return EmptyStateWidget(
       icon: Icons.store_mall_directory_rounded,
       title: 'No restaurants found',
-      message: 'Your linked restaurants will appear here.',
-      primaryActionLabel: widget.selectMenuMode ? null : 'Add restaurant',
-      onPrimaryAction: widget.selectMenuMode
+      message: _searchController.text.isNotEmpty
+          ? 'Try adjusting your search query.'
+          : 'Your linked restaurants will appear here.',
+      primaryActionLabel: widget.selectMenuMode || _searchController.text.isNotEmpty ? null : 'Add restaurant',
+      onPrimaryAction: widget.selectMenuMode || _searchController.text.isNotEmpty
           ? null
           : () {
               Navigator.push(
@@ -267,12 +277,13 @@ class _RestaurantCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(12),
+              color: AppColors.merchantIndigo.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
             ),
             child: const Icon(
-              Icons.restaurant_rounded,
-              color: AppColors.textSecondary,
+              Icons.storefront_rounded,
+              color: AppColors.merchantIndigo,
+              size: 24,
             ),
           ),
           const SizedBox(width: AppSpacing.lg),
@@ -283,21 +294,27 @@ class _RestaurantCard extends StatelessWidget {
                 Text(
                   restaurant['name'] as String? ?? 'Unknown',
                   style: AppTypography.title.copyWith(fontSize: 16),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: AppSpacing.xs),
+                const SizedBox(height: 4),
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(
-                      Icons.location_on_outlined,
-                      size: 14,
-                      color: AppColors.textSecondary,
+                    const Padding(
+                      padding: EdgeInsets.only(top: 2),
+                      child: Icon(
+                        Icons.location_on,
+                        size: 13,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
-                    const SizedBox(width: AppSpacing.xs),
+                    const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        restaurant['address'] as String? ?? '',
+                        restaurant['address'] as String? ?? 'No address provided',
                         style: AppTypography.bodySmall,
-                        maxLines: 1,
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -306,9 +323,18 @@ class _RestaurantCard extends StatelessWidget {
               ],
             ),
           ),
-          const Icon(
-            Icons.chevron_right_rounded,
-            color: AppColors.textDisabled,
+          const SizedBox(width: AppSpacing.sm),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.background,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.chevron_right_rounded,
+              color: AppColors.textDisabled,
+              size: 20,
+            ),
           ),
         ],
       ),

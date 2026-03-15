@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:discount_buddy/theme/app_colors.dart';
-import 'package:discount_buddy/design/app_spacing.dart';
-import 'package:discount_buddy/design/app_typography.dart';
-import 'package:discount_buddy/components/layout.dart';
-import 'package:discount_buddy/components/app_app_bar.dart';
-import 'package:intl/intl.dart';
 import '../../services/merchant_service.dart';
+import '../../design/app_colors.dart';
+import '../../design/app_spacing.dart';
+import '../../design/app_typography.dart';
+import '../../components/layout.dart';
+import '../../components/app_app_bar.dart';
 import '../../widgets/skeleton_loader.dart';
+import 'package:intl/intl.dart';
 
 class MerchantBookingsPage extends StatefulWidget {
   const MerchantBookingsPage({super.key});
@@ -53,7 +53,10 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load bookings: ${e.toString()}')),
+          SnackBar(
+            content: Text('Failed to load bookings: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     } finally {
@@ -80,7 +83,10 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update: ${e.toString()}')),
+          SnackBar(
+            content: Text('Failed to update: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     }
@@ -92,41 +98,61 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
       backgroundColor: AppColors.background,
       appBar: AppAppBar(
         titleText: 'Bookings',
-        centerTitle: true,
+        backgroundColor: AppColors.surface,
       ),
-      body: _isLoading
-          ? _buildLoadingState()
-          : _bookings.isEmpty
-          ? _buildEmptyState()
-          : RefreshIndicator(
-              onRefresh: _loadBookings,
-              color: AppColors.accent,
-              child: ListView.separated(
-                padding: const EdgeInsets.all(AppSpacing.xl),
-                itemCount: _bookings.length,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: AppSpacing.lg),
-                itemBuilder: (context, index) {
-                  final booking = _bookings[index];
-                  return _BookingCard(
-                    booking: booking,
-                    onReview: _reviewBooking,
-                  );
-                },
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!_isLoading && _bookings.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.sm),
+              child: Text(
+                '${_bookings.length} Booking${_bookings.length == 1 ? '' : 's'}',
+                style: AppTypography.title.copyWith(fontSize: 18),
               ),
             ),
+          Expanded(
+            child: _isLoading
+                ? _buildLoadingState()
+                : _bookings.isEmpty
+                ? _buildEmptyState()
+                : RefreshIndicator(
+                    onRefresh: _loadBookings,
+                    color: AppColors.merchantBlue,
+                    child: ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.xl,
+                        AppSpacing.sm,
+                        AppSpacing.xl,
+                        AppSpacing.xxxl,
+                      ),
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemCount: _bookings.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: AppSpacing.lg),
+                      itemBuilder: (context, index) {
+                        return _BookingCard(
+                          booking: _bookings[index],
+                          onReview: _reviewBooking,
+                        );
+                      },
+                    ),
+                  ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildLoadingState() {
     return ListView.builder(
       padding: const EdgeInsets.all(AppSpacing.xl),
-      itemCount: 5,
+      itemCount: 4,
       itemBuilder: (context, index) => Padding(
         padding: const EdgeInsets.only(bottom: AppSpacing.lg),
         child: SkeletonLoader(
-          height: 120,
-          borderRadius: BorderRadius.circular(16),
+          height: 160,
+          borderRadius: BorderRadius.circular(24),
         ),
       ),
     );
@@ -150,7 +176,9 @@ class _BookingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final restaurant = booking['restaurant_name'] ?? 'Restaurant';
-    final customer = booking['contact_name'] ?? 'Guest';
+    final customer = booking['contact_name']?.toString().isNotEmpty == true 
+        ? booking['contact_name'] 
+        : 'Guest';
     final dateStr = booking['booking_date'];
     final guests = booking['number_of_guests'] ?? 0;
     final status = booking['status'] ?? 'pending';
@@ -161,113 +189,168 @@ class _BookingCard extends StatelessWidget {
     }
 
     final isPending = status.toLowerCase() == 'pending';
+    final initial = customer.toString().substring(0, 1).toUpperCase();
 
     return AppCard(
-      padding: const EdgeInsets.all(AppSpacing.xl),
+      padding: EdgeInsets.zero, // Padding handled internally for full-width action bar
       child: Column(
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          customer,
-                          style: AppTypography.title,
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: AppColors.merchantBlue.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.merchantBlue.withValues(alpha: 0.2),
+                          width: 2,
                         ),
-                        const SizedBox(height: AppSpacing.xs),
-                        Text(
-                          restaurant,
-                          style: AppTypography.subtitle,
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        initial,
+                        style: AppTypography.title.copyWith(
+                          color: AppColors.merchantBlue,
+                          fontSize: 18,
                         ),
-                      ],
+                      ),
                     ),
-                  ),
-                  _StatusBadge(status: status),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              Row(
-                children: [
-                  _InfoChip(
-                    icon: Icons.calendar_today_rounded,
-                    label: date != null
-                        ? DateFormat('MMM d, h:mm a').format(date.toLocal())
-                        : 'No date',
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  _InfoChip(
-                    icon: Icons.people_outline_rounded,
-                    label: '$guests guests',
-                  ),
-                ],
-              ),
-            ],
+                    const SizedBox(width: AppSpacing.lg),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            customer,
+                            style: AppTypography.title.copyWith(fontSize: 17),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            restaurant,
+                            style: AppTypography.subtitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    _StatusBadge(status: status),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _InfoChip(
+                        icon: Icons.calendar_today_rounded,
+                        label: date != null
+                            ? DateFormat('MMM d, h:mm a').format(date.toLocal())
+                            : 'No date',
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    _InfoChip(
+                      icon: Icons.people_outline_rounded,
+                      label: '$guests guests',
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
           if (isPending) ...[
             Container(
               decoration: BoxDecoration(
+                color: AppColors.background,
                 border: Border(
                   top: BorderSide(
-                    color: AppColors.textDisabled.withValues(alpha: 0.1),
+                    color: AppColors.textDisabled.withValues(alpha: 0.15),
                   ),
                 ),
+                borderRadius: const BorderRadius.vertical(
+                  bottom: Radius.circular(24), // Matches AppRadius.card
+                ),
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: InkWell(
-                      onTap: () => onReview(booking['id'], 'cancelled'),
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(14),
-                      ),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: AppSpacing.md,
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          'Decline',
-                          style: AppTypography.body.copyWith(
-                            color: Colors.red,
-                            fontWeight: FontWeight.w600,
+              child: IntrinsicHeight(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => onReview(booking['id'], 'cancelled'),
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(24),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.close_rounded, size: 18, color: AppColors.error),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Decline',
+                                  style: AppTypography.body.copyWith(
+                                    color: AppColors.error,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  Container(
-                    width: 1,
-                    height: 50,
-                    color: AppColors.textDisabled.withValues(alpha: 0.1),
-                  ),
-                  Expanded(
-                    child: InkWell(
-                      onTap: () => onReview(booking['id'], 'confirmed'),
-                      borderRadius: const BorderRadius.only(
-                        bottomRight: Radius.circular(14),
-                      ),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: AppSpacing.md,
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          'Confirm Booking',
-                          style: AppTypography.body.copyWith(
-                            color: AppColors.success,
-                            fontWeight: FontWeight.bold,
+                    Container(
+                      width: 1,
+                      color: AppColors.textDisabled.withValues(alpha: 0.15),
+                    ),
+                    Expanded(
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () => onReview(booking['id'], 'confirmed'),
+                          borderRadius: const BorderRadius.only(
+                            bottomRight: Radius.circular(24),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.check_rounded, size: 18, color: AppColors.success),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Confirm',
+                                  style: AppTypography.body.copyWith(
+                                    color: AppColors.success,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
@@ -288,10 +371,11 @@ class _InfoChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
-        vertical: AppSpacing.xs,
+        vertical: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: AppColors.surface,
+        border: Border.all(color: AppColors.cardBorder),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -299,9 +383,16 @@ class _InfoChip extends StatelessWidget {
         children: [
           Icon(icon, size: 16, color: AppColors.textSecondary),
           const SizedBox(width: AppSpacing.xs),
-          Text(
-            label,
-            style: AppTypography.bodySmall,
+          Flexible(
+            child: Text(
+              label,
+              style: AppTypography.bodySmall.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       ),
@@ -324,39 +415,43 @@ class _StatusBadge extends StatelessWidget {
       case 'confirmed':
         color = const Color(0xFF2E7D32);
         bg = const Color(0xFFE8F5E9);
-        icon = Icons.check_circle_outline_rounded;
+        icon = Icons.check_circle_rounded;
         label = 'Confirmed';
         break;
       case 'cancelled':
         color = const Color(0xFFC62828);
         bg = const Color(0xFFFFEBEE);
-        icon = Icons.cancel_outlined;
-        label = 'Cancelled';
+        icon = Icons.cancel_rounded;
+        label = 'Declined';
         break;
       default:
-        color = const Color(0xFFEF6C00);
-        bg = const Color(0xFFFFF3E0);
-        icon = Icons.hourglass_empty_rounded;
+        color = const Color(0xFFED8936);
+        bg = const Color(0xFFFEEBC8);
+        icon = Icons.hourglass_top_rounded;
         label = 'Pending';
     }
 
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.xs,
+        horizontal: 10,
+        vertical: 6,
       ),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: AppSpacing.xs),
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 4),
           Text(
             label,
-            style: AppTypography.caption.copyWith(color: color),
+            style: AppTypography.caption.copyWith(
+              color: color,
+              fontWeight: FontWeight.w700,
+              fontSize: 11,
+            ),
           ),
         ],
       ),

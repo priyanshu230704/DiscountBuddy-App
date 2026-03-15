@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:discount_buddy/theme/app_colors.dart';
-import 'package:discount_buddy/design/app_spacing.dart';
-import 'package:discount_buddy/design/app_typography.dart';
-import 'package:discount_buddy/components/layout.dart';
-import 'package:discount_buddy/components/app_app_bar.dart';
+import 'package:intl/intl.dart';
 import '../../services/merchant_service.dart';
+import '../../design/app_colors.dart';
+import '../../design/app_spacing.dart';
+import '../../design/app_typography.dart';
+import '../../components/layout.dart';
+import '../../components/app_app_bar.dart';
 import '../../widgets/skeleton_loader.dart';
 
 class MerchantReviewsPage extends StatefulWidget {
@@ -46,7 +47,10 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load reviews: ${e.toString()}')),
+          SnackBar(
+            content: Text('Failed to load reviews: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     } finally {
@@ -61,39 +65,59 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppAppBar(
-        titleText: 'Reviews',
-        centerTitle: true,
+        titleText: 'Customer Reviews',
+        backgroundColor: AppColors.surface,
       ),
-      body: _isLoading
-          ? _buildLoadingState()
-          : _reviews.isEmpty
-          ? _buildEmptyState()
-          : RefreshIndicator(
-              onRefresh: _loadReviews,
-              color: AppColors.accent,
-              child: ListView.separated(
-                padding: const EdgeInsets.all(AppSpacing.xl),
-                itemCount: _reviews.length,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: AppSpacing.lg),
-                itemBuilder: (context, index) {
-                  final review = _reviews[index];
-                  return _ReviewCard(review: review);
-                },
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!_isLoading && _reviews.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.sm),
+              child: Text(
+                '${_reviews.length} Review${_reviews.length == 1 ? '' : 's'}',
+                style: AppTypography.title.copyWith(fontSize: 18),
               ),
             ),
+          Expanded(
+            child: _isLoading
+                ? _buildLoadingState()
+                : _reviews.isEmpty
+                ? _buildEmptyState()
+                : RefreshIndicator(
+                    onRefresh: _loadReviews,
+                    color: AppColors.merchantAmber,
+                    child: ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.xl,
+                        AppSpacing.sm,
+                        AppSpacing.xl,
+                        AppSpacing.xxxl,
+                      ),
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemCount: _reviews.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: AppSpacing.lg),
+                      itemBuilder: (context, index) {
+                        return _ReviewCard(review: _reviews[index]);
+                      },
+                    ),
+                  ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildLoadingState() {
     return ListView.builder(
       padding: const EdgeInsets.all(AppSpacing.xl),
-      itemCount: 5,
+      itemCount: 4,
       itemBuilder: (context, index) => Padding(
         padding: const EdgeInsets.only(bottom: AppSpacing.lg),
         child: SkeletonLoader(
           height: 140,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(24),
         ),
       ),
     );
@@ -115,11 +139,23 @@ class _ReviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = review['user_name'] ?? 'Anonymous';
+    final user = review['user_name']?.toString().isNotEmpty == true 
+        ? review['user_name'].toString() 
+        : 'Anonymous';
     final restaurant = review['restaurant_name'] ?? 'Restaurant';
-    final rating = (review['rating'] ?? 0);
-    final comment = review['comment'] ?? '';
-    final date = review['created_at'] ?? '';
+    final rating = (review['rating'] ?? 0) is num ? (review['rating'] as num).toInt() : 0;
+    final comment = review['comment']?.toString().trim() ?? '';
+    final dateStr = review['created_at'] ?? '';
+
+    String? formattedDate;
+    if (dateStr.isNotEmpty) {
+      final parsedDate = DateTime.tryParse(dateStr);
+      if (parsedDate != null) {
+        formattedDate = DateFormat('MMMM d, yyyy').format(parsedDate.toLocal());
+      }
+    }
+
+    final initial = user.substring(0, 1).toUpperCase();
 
     return AppCard(
       padding: const EdgeInsets.all(AppSpacing.xl),
@@ -127,43 +163,83 @@ class _ReviewCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Text(
-                  user,
-                  style: AppTypography.title.copyWith(fontSize: 16),
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.merchantAmber.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
                 ),
-              ),
-              Row(
-                children: List.generate(
-                  5,
-                  (index) => Icon(
-                    index < rating
-                        ? Icons.star_rounded
-                        : Icons.star_outline_rounded,
-                    size: 18,
-                    color: Colors.amber,
+                alignment: Alignment.center,
+                child: Text(
+                  initial,
+                  style: AppTypography.title.copyWith(
+                    color: AppColors.merchantAmber,
+                    fontSize: 18,
                   ),
                 ),
               ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user,
+                      style: AppTypography.title.copyWith(fontSize: 16),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      restaurant,
+                      style: AppTypography.subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.star_rounded, size: 20, color: Colors.amber.shade400),
+                  const SizedBox(width: 4),
+                  Text(
+                    rating.toString(),
+                    style: AppTypography.body.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
             ],
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            restaurant,
-            style: AppTypography.bodySmall,
           ),
           if (comment.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.lg),
-            Text(
-              comment,
-              style: AppTypography.body,
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.cardBorder),
+              ),
+              child: Text(
+                comment,
+                style: AppTypography.body.copyWith(
+                  color: AppColors.textPrimary,
+                  height: 1.4,
+                ),
+              ),
             ),
           ],
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.md),
           Text(
-            date,
+            formattedDate ?? dateStr,
             style: AppTypography.caption,
           ),
         ],

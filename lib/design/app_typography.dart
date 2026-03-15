@@ -11,7 +11,7 @@ class AppTypography {
     fontWeight: FontWeight.w800,
     letterSpacing: -0.8,
     height: 1.1,
-    color: AppColors.textPrimary,
+    color: AppColors.textDarkest,
   );
 
   static const TextStyle title = TextStyle(
@@ -20,7 +20,7 @@ class AppTypography {
     fontWeight: FontWeight.w700,
     letterSpacing: -0.3,
     height: 1.2,
-    color: AppColors.textPrimary,
+    color: AppColors.textDarkest,
   );
 
   static const TextStyle subtitle = TextStyle(

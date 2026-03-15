@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:discount_buddy/theme/app_colors.dart';
 import 'package:discount_buddy/design/app_spacing.dart';
 import 'package:discount_buddy/design/app_typography.dart';
+import 'package:discount_buddy/design/app_shadows.dart';
+import 'package:discount_buddy/design/app_radius.dart';
 import 'package:discount_buddy/components/layout.dart';
-import 'package:discount_buddy/components/app_app_bar.dart';
 import 'merchant_restaurants_page.dart';
 import 'merchant_deals_page.dart';
 import 'merchant_bookings_page.dart';
@@ -41,7 +42,6 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
         _isFetching = true;
       });
 
-      // Run requests in parallel for better performance and deduplication
       final results = await Future.wait([
         _merchantService.getMerchantBookings(),
         _merchantService.getMerchantReviews(),
@@ -84,7 +84,6 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppAppBar(titleText: 'Dashboard'),
       body: SafeArea(
         bottom: false,
         child: RefreshIndicator(
@@ -94,127 +93,121 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
             physics: const BouncingScrollPhysics(
               parent: AlwaysScrollableScrollPhysics(),
             ),
-            padding: AppSpacing.screenPadding.copyWith(
-              bottom: AppSpacing.xxxl,
-            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Track your restaurant and its real-time progress',
-                  style: AppTypography.subtitle,
-                ),
-                const SizedBox(height: AppSpacing.xxl),
-                _ScanActionCard(
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const QRScannerPage(),
-                    ),
-                  ).then((_) => _fetchDashboardData()),
-                ),
-                const SizedBox(height: AppSpacing.xxl),
-                Row(
-                  children: [
-                    Expanded(
-                      child: StatCard(
-                        label: 'Total Bookings',
-                        value: _totalBookings.toString(),
-                        isLoading: _isLoading,
-                        icon: Icons.calendar_today_rounded,
-                        color: Colors.blue,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.lg),
-                    Expanded(
-                      child: StatCard(
-                        label: 'Average Rating',
-                        value: _averageRating.toStringAsFixed(1),
-                        isLoading: _isLoading,
-                        icon: Icons.star_rounded,
-                        color: AppColors.discount,
-                        isRating: true,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.xxxl),
-                SectionHeader(
-                  title: 'Manage Business',
-                  subtitle: 'Quick access to your core merchant tools',
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                GridView.count(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: AppSpacing.lg,
-                  crossAxisSpacing: AppSpacing.lg,
-                  childAspectRatio: 1,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  children: [
-                    _MenuCard(
-                      title: 'Bookings',
-                      subtitle: 'View reservations',
-                      icon: Icons.event_note_rounded,
-                      color: Colors.blue,
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const MerchantBookingsPage(),
-                        ),
-                      ).then((_) => _fetchDashboardData()),
-                    ),
-                    _MenuCard(
-                      title: 'Restaurants',
-                      subtitle: 'Edit details',
-                      icon: Icons.storefront_rounded,
-                      color: Colors.blue,
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const MerchantRestaurantsPage(),
-                        ),
-                      ).then((_) => _fetchDashboardData()),
-                    ),
-                    _MenuCard(
-                      title: 'Menu Items',
-                      subtitle: 'Update food',
-                      icon: Icons.restaurant_menu_rounded,
-                      color: AppColors.discount,
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const MerchantRestaurantsPage(
-                            selectMenuMode: true,
+                _buildGradientHeader(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: AppSpacing.xxl),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: StatCard(
+                              label: 'Total Bookings',
+                              value: _totalBookings.toString(),
+                              isLoading: _isLoading,
+                              icon: Icons.calendar_today_rounded,
+                              color: AppColors.merchantBlue,
+                            ),
                           ),
-                        ),
-                      ).then((_) => _fetchDashboardData()),
-                    ),
-                    _MenuCard(
-                      title: 'Active Deals',
-                      subtitle: 'Promotions',
-                      icon: Icons.local_offer_rounded,
-                      color: Colors.red,
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const MerchantDealsPage(),
-                        ),
-                      ).then((_) => _fetchDashboardData()),
-                    ),
-                    _MenuCard(
-                      title: 'Reviews',
-                      subtitle: 'Feedback',
-                      icon: Icons.rate_review_rounded,
-                      color: Colors.teal,
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const MerchantReviewsPage(),
-                        ),
-                      ).then((_) => _fetchDashboardData()),
-                    ),
-                  ],
+                          const SizedBox(width: AppSpacing.md),
+                          Expanded(
+                            child: StatCard(
+                              label: 'Avg Rating',
+                              value: _averageRating.toStringAsFixed(1),
+                              isLoading: _isLoading,
+                              icon: Icons.star_rounded,
+                              color: AppColors.merchantAmber,
+                              isRating: true,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.xxxl),
+                      SectionHeader(
+                        title: 'Manage Business',
+                        subtitle: 'Quick access to your core tools',
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      GridView.count(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: AppSpacing.md,
+                        crossAxisSpacing: AppSpacing.md,
+                        childAspectRatio: 1.05,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        children: [
+                          _MenuCard(
+                            title: 'Bookings',
+                            subtitle: 'View reservations',
+                            icon: Icons.event_note_rounded,
+                            color: AppColors.merchantBlue,
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const MerchantBookingsPage(),
+                              ),
+                            ).then((_) => _fetchDashboardData()),
+                          ),
+                          _MenuCard(
+                            title: 'Restaurants',
+                            subtitle: 'Edit details',
+                            icon: Icons.storefront_rounded,
+                            color: AppColors.merchantIndigo,
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const MerchantRestaurantsPage(),
+                              ),
+                            ).then((_) => _fetchDashboardData()),
+                          ),
+                          _MenuCard(
+                            title: 'Menu Items',
+                            subtitle: 'Update food',
+                            icon: Icons.restaurant_menu_rounded,
+                            color: AppColors.merchantTeal,
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const MerchantRestaurantsPage(
+                                  selectMenuMode: true,
+                                ),
+                              ),
+                            ).then((_) => _fetchDashboardData()),
+                          ),
+                          _MenuCard(
+                            title: 'Active Deals',
+                            subtitle: 'Promotions',
+                            icon: Icons.local_offer_rounded,
+                            color: AppColors.primaryOrange,
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const MerchantDealsPage(),
+                              ),
+                            ).then((_) => _fetchDashboardData()),
+                          ),
+                          _MenuCard(
+                            title: 'Reviews',
+                            subtitle: 'Customer feedback',
+                            icon: Icons.rate_review_rounded,
+                            color: AppColors.merchantAmber,
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const MerchantReviewsPage(),
+                              ),
+                            ).then((_) => _fetchDashboardData()),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.xxxl),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -223,59 +216,109 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
       ),
     );
   }
-}
 
-class _ScanActionCard extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _ScanActionCard({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return AppCard(
-      onTap: onTap,
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: const Icon(
-              Icons.qr_code_scanner_rounded,
-              color: AppColors.primary,
-              size: 32,
-            ),
+  Widget _buildGradientHeader() {
+    return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: AppColors.merchantGradient,
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, AppSpacing.xxl,
           ),
-          const SizedBox(width: AppSpacing.xl),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Scan redemption',
-                  style: AppTypography.title,
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  'Process customer QR codes at the door',
-                  style: AppTypography.subtitle,
-                ),
-              ],
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Dashboard',
+                        style: AppTypography.headline.copyWith(
+                          color: Colors.white,
+                          fontSize: 26,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        'Track your restaurant progress',
+                        style: AppTypography.subtitle.copyWith(
+                          color: Colors.white.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    ],
+                  ),
+                  _ScanButton(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const QRScannerPage(),
+                      ),
+                    ).then((_) => _fetchDashboardData()),
+                  ),
+                ],
+              ),
+            ],
           ),
-          const Icon(
-            Icons.arrow_forward_rounded,
-            color: AppColors.textSecondary,
-            size: 24,
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
+class _ScanButton extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _ScanButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.md,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.18),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.25),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.qr_code_scanner_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                'Scan',
+                style: AppTypography.body.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class _MenuCard extends StatelessWidget {
   final String title;
@@ -294,39 +337,55 @@ class _MenuCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AppCard(
-      onTap: onTap,
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.08),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: color, size: 28),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: AppRadius.card,
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: AppRadius.card,
+            border: Border.all(color: AppColors.cardBorder),
+            boxShadow: AppShadows.card,
           ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: AppTypography.body.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(icon, color: color, size: 24),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: AppTypography.body.copyWith(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: AppTypography.caption,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ],
           ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            subtitle,
-            textAlign: TextAlign.center,
-            style: AppTypography.bodySmall,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+        ),
       ),
     );
   }

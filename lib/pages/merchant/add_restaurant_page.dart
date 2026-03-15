@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:discount_buddy/theme/app_colors.dart';
-import 'package:discount_buddy/design/app_spacing.dart';
-import 'package:discount_buddy/design/app_typography.dart';
-import 'package:discount_buddy/components/inputs.dart';
-import 'package:discount_buddy/components/buttons.dart';
-import 'package:discount_buddy/components/app_app_bar.dart';
+import '../../theme/app_colors.dart';
+import '../../design/app_spacing.dart';
+import '../../design/app_typography.dart';
+import '../../components/inputs.dart';
+import '../../components/buttons.dart';
+import '../../components/app_app_bar.dart';
 import '../../services/merchant_service.dart';
 import 'merchant_menu_page.dart';
 
 /// Add/Edit Restaurant Page for Merchants
 class AddRestaurantPage extends StatefulWidget {
-  final Map<String, dynamic>?
-  restaurant; // If provided, edit mode; otherwise, create mode
+  final Map<String, dynamic>? restaurant; // If provided, edit mode; otherwise, create mode
 
   const AddRestaurantPage({super.key, this.restaurant});
 
@@ -92,8 +91,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
   }
 
   OverlayEntry _createOverlayEntry() {
-    RenderBox? renderBox =
-        _cityFieldKey.currentContext?.findRenderObject() as RenderBox?;
+    RenderBox? renderBox = _cityFieldKey.currentContext?.findRenderObject() as RenderBox?;
     var size = renderBox?.size ?? Size.zero;
 
     return OverlayEntry(
@@ -119,6 +117,13 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                     border: Border.all(
                       color: AppColors.textDisabled.withValues(alpha: 0.2),
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -152,24 +157,21 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                             itemCount: _filteredCities.length,
                             separatorBuilder: (context, index) => Divider(
                               height: 1,
-                              color: AppColors.textDisabled.withValues(
-                                alpha: 0.1,
-                              ),
+                              color: AppColors.textDisabled.withValues(alpha: 0.1),
                             ),
                             itemBuilder: (context, index) {
                               final city = _filteredCities[index];
-                              final cityName =
-                                  city['name'] as String? ?? 'Unknown';
+                              final cityName = city['name'] as String? ?? 'Unknown';
                               return ListTile(
                                 leading: const Icon(
-                                  Icons.location_city,
+                                  Icons.location_city_rounded,
                                   size: 20,
-                                  color: AppColors.accent,
+                                  color: AppColors.merchantIndigo,
                                 ),
                                 title: Text(
                                   cityName,
                                   style: AppTypography.body.copyWith(
-                                    fontWeight: FontWeight.w500,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                                 onTap: () {
@@ -238,7 +240,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to load reference data: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -296,6 +298,12 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
 
   Future<void> _saveRestaurant() async {
     if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill out all required fields.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
       return;
     }
 
@@ -357,7 +365,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Restaurant updated successfully'),
-              backgroundColor: AppColors.primaryPurple,
+              backgroundColor: AppColors.success,
             ),
           );
           Navigator.pop(context, true);
@@ -369,7 +377,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Restaurant created successfully'),
-              backgroundColor: AppColors.primaryPurple,
+              backgroundColor: AppColors.success,
             ),
           );
           Navigator.pop(context, true);
@@ -380,7 +388,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to save restaurant: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -398,12 +406,12 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppAppBar(
-        titleText:
-            widget.restaurant != null ? 'Edit restaurant' : 'Add restaurant',
+        titleText: widget.restaurant != null ? 'Edit Restaurant' : 'Add Restaurant',
+        backgroundColor: AppColors.surface,
         actions: widget.restaurant != null
             ? [
                 IconButton(
-                  icon: const Icon(Icons.menu_book),
+                  icon: const Icon(Icons.restaurant_menu_rounded, color: AppColors.merchantIndigo),
                   tooltip: 'Manage menu',
                   onPressed: () {
                     final restaurantId = widget.restaurant!['id'];
@@ -422,26 +430,37 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                   },
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete),
+                  icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
                   onPressed: () async {
                     final confirm = await showDialog<bool>(
                       context: context,
                       builder: (context) => AlertDialog(
-                        title: const Text('Delete Restaurant'),
-                        content: const Text(
-                          'Are you sure you want to delete this restaurant?',
+                        backgroundColor: AppColors.surface,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                        title: Text('Delete Restaurant?', style: AppTypography.title),
+                        content: Text(
+                          'Are you sure you want to delete this restaurant? This action cannot be undone.',
+                          style: AppTypography.body,
                         ),
+                        actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context, false),
-                            child: const Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, true),
-                            style: TextButton.styleFrom(
-                              foregroundColor: Colors.red,
+                            child: Text(
+                              'Cancel',
+                              style: AppTypography.body.copyWith(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
                             ),
-                            child: const Text('Delete'),
+                          ),
+                          ElevatedButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.error,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.bold)),
                           ),
                         ],
                       ),
@@ -450,9 +469,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                     if (confirm == true) {
                       try {
                         final restaurantId = widget.restaurant!['id'];
-                        final id = restaurantId is int
-                            ? restaurantId
-                            : int.parse(restaurantId.toString());
+                        final id = restaurantId is int ? restaurantId : int.parse(restaurantId.toString());
                         await _merchantService.deleteRestaurant(id);
                         if (context.mounted) {
                           Navigator.pop(context, true);
@@ -461,10 +478,8 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(
-                                'Failed to delete: ${e.toString()}',
-                              ),
-                              backgroundColor: Colors.red,
+                              content: Text('Failed to delete: ${e.toString()}'),
+                              backgroundColor: AppColors.error,
                             ),
                           );
                         }
@@ -476,275 +491,287 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
             : null,
       ),
       body: _isLoadingData
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: AppColors.merchantIndigo))
           : Form(
               key: _formKey,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(AppSpacing.lg),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.xl,
+                ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Basic Information
-                    _buildSectionTitle('Basic Information'),
-                    AppTextField(
-                      controller: _nameController,
-                      label: 'Restaurant name *',
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Restaurant name is required';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    AppTextField(
-                      controller: _slugController,
-                      label: 'Slug (auto-generated if empty)',
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    AppTextField(
-                      controller: _descriptionController,
-                      label: 'Description',
-                    ),
-                    const SizedBox(height: AppSpacing.xxl),
-
-                    _buildSectionTitle('Location'),
-                    CompositedTransformTarget(
-                      link: _cityLayerLink,
-                      child: AppTextField(
-                        key: _cityFieldKey,
-                        controller: _cityController,
-                        focusNode: _cityFocusNode,
-                        label: 'City *',
-                        readOnly: true,
-                        onTap: () {
-                          if (!_cityFocusNode.hasFocus) {
-                            _cityFocusNode.requestFocus();
-                          } else {
-                            _showOverlay();
-                          }
-                        },
-                        onChanged: (_) {},
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'City is required';
-                          }
-                          if (_selectedCityId == null) {
-                            return 'Please select a city from the dropdown';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    AppTextField(
-                      controller: _addressController,
-                      label: 'Address *',
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Address is required';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    AppTextField(
-                      controller: _postcodeController,
-                      label: 'Postcode',
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    Row(
+                    _buildSectionHeader('Basic Information', Icons.storefront_rounded),
+                    const SizedBox(height: AppSpacing.md),
+                    _buildFormSection(
                       children: [
-                        Expanded(
-                          child: AppTextField(
-                            controller: _latitudeController,
-                            label: 'Latitude',
-                            keyboardType: TextInputType.number,
-                          ),
+                        AppTextField(
+                          controller: _nameController,
+                          label: 'Restaurant Name *',
+                          hintText: 'e.g. Burger King',
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Restaurant name is required';
+                            }
+                            return null;
+                          },
                         ),
-                        const SizedBox(width: AppSpacing.lg),
-                        Expanded(
-                          child: AppTextField(
-                            controller: _longitudeController,
-                            label: 'Longitude',
-                            keyboardType: TextInputType.number,
-                          ),
+                        const SizedBox(height: AppSpacing.lg),
+                        AppTextField(
+                          controller: _slugController,
+                          label: 'Slug URL (Optional)',
+                          hintText: 'e.g. burger-king (Auto-generated if empty)',
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        AppTextField(
+                          controller: _descriptionController,
+                          label: 'Description',
+                          hintText: 'Tell customers about your restaurant...',
+                          maxLines: 3,
                         ),
                       ],
                     ),
-                    const SizedBox(height: AppSpacing.xxl),
 
-                    // Contact Information
-                    _buildSectionTitle('Contact Information'),
-                    AppTextField(
-                      controller: _phoneController,
-                      label: 'Phone number',
-                      keyboardType: TextInputType.phone,
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    AppTextField(
-                      controller: _emailController,
-                      label: 'Email',
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (value) {
-                        if (value != null &&
-                            value.isNotEmpty &&
-                            !value.contains('@')) {
-                          return 'Invalid email address';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    AppTextField(
-                      controller: _websiteController,
-                      label: 'Website URL',
-                      keyboardType: TextInputType.url,
-                    ),
-                    const SizedBox(height: AppSpacing.xxl),
-
-                    // Categories
-                    _buildSectionTitle('Categories'),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _categories.map((category) {
-                        final categoryId = category['id'] as int;
-                        final isSelected = _selectedCategoryIds.contains(
-                          categoryId,
-                        );
-                        return FilterChip(
-                          label: Text(category['name'] as String),
-                          selected: isSelected,
-                          selectedColor: AppColors.primary.withValues(
-                            alpha: 0.1,
-                          ),
-                          checkmarkColor: AppColors.primary,
-                          labelStyle: AppTypography.body.copyWith(
-                            fontWeight:
-                                isSelected ? FontWeight.w700 : FontWeight.w500,
-                            color: isSelected
-                                ? AppColors.primary
-                                : AppColors.textPrimary,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            side: BorderSide(
-                              color: isSelected
-                                  ? AppColors.primary
-                                  : AppColors.textDisabled.withValues(
-                                      alpha: 0.3,
-                                    ),
-                            ),
-                          ),
-                          onSelected: (selected) {
-                            setState(() {
-                              if (selected) {
-                                _selectedCategoryIds.add(categoryId);
+                    const SizedBox(height: AppSpacing.xl),
+                    _buildSectionHeader('Location', Icons.location_on_rounded),
+                    const SizedBox(height: AppSpacing.md),
+                    _buildFormSection(
+                      children: [
+                        CompositedTransformTarget(
+                          link: _cityLayerLink,
+                          child: AppTextField(
+                            key: _cityFieldKey,
+                            controller: _cityController,
+                            focusNode: _cityFocusNode,
+                            label: 'City *',
+                            readOnly: true,
+                            hintText: 'Select a city',
+                            onTap: () {
+                              if (!_cityFocusNode.hasFocus) {
+                                _cityFocusNode.requestFocus();
                               } else {
-                                _selectedCategoryIds.remove(categoryId);
+                                _showOverlay();
                               }
-                            });
-                          },
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: AppSpacing.xxl),
-
-                    // Price Range
-                    _buildSectionTitle('Price Range'),
-                    RadioGroup<int>(
-                      groupValue: _priceRange,
-                      onChanged: (value) {
-                        if (value != null) {
-                          setState(() {
-                            _priceRange = value;
-                          });
-                        }
-                      },
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: RadioListTile<int>(
-                              title: const Text('£'),
-                              value: 1,
-                              activeColor: AppColors.primary,
-                            ),
+                            },
+                            onChanged: (_) {},
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'City is required';
+                              }
+                              if (_selectedCityId == null) {
+                                return 'Please select a city from the dropdown';
+                              }
+                              return null;
+                            },
                           ),
-                          Expanded(
-                            child: RadioListTile<int>(
-                              title: const Text('££'),
-                              value: 2,
-                              activeColor: AppColors.primary,
-                            ),
-                          ),
-                          Expanded(
-                            child: RadioListTile<int>(
-                              title: const Text('£££'),
-                              value: 3,
-                              activeColor: AppColors.primary,
-                            ),
-                          ),
-                          Expanded(
-                            child: RadioListTile<int>(
-                              title: const Text('££££'),
-                              value: 4,
-                              activeColor: AppColors.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.xxl),
-
-                    // Opening Hours
-                    _buildSectionTitle('Opening Hours (Optional)'),
-                    ..._openingHours.entries.map((entry) {
-                      final controller = TextEditingController(
-                        text: entry.value,
-                      );
-                      return Padding(
-                        padding: const EdgeInsets.only(
-                          bottom: AppSpacing.md,
                         ),
-                        child: Row(
+                        const SizedBox(height: AppSpacing.lg),
+                        AppTextField(
+                          controller: _addressController,
+                          label: 'Full Address *',
+                          hintText: 'e.g. 123 High Street',
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Address is required';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        AppTextField(
+                          controller: _postcodeController,
+                          label: 'Postcode',
+                          hintText: 'e.g. W1D 1AA',
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        Row(
                           children: [
-                            SizedBox(
-                              width: 100,
-                              child: Text(
-                                entry.key[0].toUpperCase() +
-                                    entry.key.substring(1),
-                                style: AppTypography.bodySmall.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
                             Expanded(
                               child: AppTextField(
-                                controller: controller,
-                                label: 'e.g., 10:00-22:00',
-                                onChanged: (value) {
-                                  setState(() {
-                                    _openingHours[entry.key] = value;
-                                  });
-                                },
+                                controller: _latitudeController,
+                                label: 'Latitude',
+                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.lg),
+                            Expanded(
+                              child: AppTextField(
+                                controller: _longitudeController,
+                                label: 'Longitude',
+                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
                               ),
                             ),
                           ],
                         ),
-                      );
-                    }),
-                    const SizedBox(height: AppSpacing.xxxl),
+                      ],
+                    ),
 
-                    // Save Button
+                    const SizedBox(height: AppSpacing.xl),
+                    _buildSectionHeader('Contact Information', Icons.contact_phone_rounded),
+                    const SizedBox(height: AppSpacing.md),
+                    _buildFormSection(
+                      children: [
+                        AppTextField(
+                          controller: _phoneController,
+                          label: 'Phone Number',
+                          keyboardType: TextInputType.phone,
+                          hintText: 'e.g. +44 20 7123 4567',
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        AppTextField(
+                          controller: _emailController,
+                          label: 'Email Address',
+                          keyboardType: TextInputType.emailAddress,
+                          hintText: 'e.g. contact@restaurant.com',
+                          validator: (value) {
+                            if (value != null && value.isNotEmpty && !value.contains('@')) {
+                              return 'Invalid email address';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        AppTextField(
+                          controller: _websiteController,
+                          label: 'Website URL',
+                          keyboardType: TextInputType.url,
+                          hintText: 'e.g. https://www.restaurant.com',
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: AppSpacing.xl),
+                    _buildSectionHeader('Categories', Icons.category_rounded),
+                    const SizedBox(height: AppSpacing.md),
+                    _buildFormSection(
+                      children: [
+                        Text(
+                          'Select the types of cuisine and offerings that best describe your restaurant.',
+                          style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: _categories.map((category) {
+                            final categoryId = category['id'] as int;
+                            final isSelected = _selectedCategoryIds.contains(categoryId);
+                            return FilterChip(
+                              label: Text(category['name'] as String),
+                              selected: isSelected,
+                              showCheckmark: false,
+                              selectedColor: AppColors.merchantIndigo,
+                              backgroundColor: AppColors.background,
+                              labelStyle: AppTypography.body.copyWith(
+                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                color: isSelected ? AppColors.white : AppColors.textPrimary,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                side: BorderSide(
+                                  color: isSelected
+                                      ? AppColors.merchantIndigo
+                                      : AppColors.cardBorder,
+                                ),
+                              ),
+                              onSelected: (selected) {
+                                setState(() {
+                                  if (selected) {
+                                    _selectedCategoryIds.add(categoryId);
+                                  } else {
+                                    _selectedCategoryIds.remove(categoryId);
+                                  }
+                                });
+                              },
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: AppSpacing.xl),
+                    _buildSectionHeader('Price Range', Icons.attach_money_rounded),
+                    const SizedBox(height: AppSpacing.md),
+                    _buildFormSection(
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      children: [
+                        Row(
+                          children: [
+                            _buildPriceTier(1, '£', 'Cheap Eats'),
+                            _buildPriceTier(2, '££', 'Moderate'),
+                            _buildPriceTier(3, '£££', 'Expensive'),
+                            _buildPriceTier(4, '££££', 'Fine Dining'),
+                          ],
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: AppSpacing.xl),
+                    _buildSectionHeader('Opening Hours (Optional)', Icons.access_time_rounded),
+                    const SizedBox(height: AppSpacing.md),
+                    _buildFormSection(
+                      padding: const EdgeInsets.only(top: 8, bottom: 8, left: 24, right: 24),
+                      children: _openingHours.entries.map((entry) {
+                        final controller = TextEditingController(text: entry.value);
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.md, top: AppSpacing.sm),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 100,
+                                child: Text(
+                                  entry.key[0].toUpperCase() + entry.key.substring(1),
+                                  style: AppTypography.bodySmall.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: TextField(
+                                  controller: controller,
+                                  style: AppTypography.body,
+                                  decoration: InputDecoration(
+                                    hintText: 'e.g., 10:00-22:00',
+                                    hintStyle: AppTypography.body.copyWith(color: AppColors.textDisabled),
+                                    isDense: true,
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                    filled: true,
+                                    fillColor: AppColors.background,
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide(color: AppColors.cardBorder),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide(color: AppColors.cardBorder),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: const BorderSide(color: AppColors.merchantIndigo, width: 2),
+                                    ),
+                                  ),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _openingHours[entry.key] = value;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+
+                    const SizedBox(height: AppSpacing.xxxl),
                     PrimaryButton(
-                      label: widget.restaurant != null
-                          ? 'Update restaurant'
-                          : 'Create restaurant',
+                      label: widget.restaurant != null ? 'Save Changes' : 'Create Restaurant',
                       isLoading: _isLoading,
                       onPressed: _isLoading ? null : _saveRestaurant,
                     ),
-                    const SizedBox(height: AppSpacing.xxl),
+                    const SizedBox(height: 100), // Bottom padding
                   ],
                 ),
               ),
@@ -752,12 +779,77 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: AppSpacing.md),
-      child: Text(
-        title,
-        style: AppTypography.title,
+  Widget _buildSectionHeader(String title, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: AppColors.merchantIndigo),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: AppTypography.title.copyWith(fontSize: 18),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFormSection({
+    required List<Widget> children,
+    EdgeInsets padding = const EdgeInsets.all(AppSpacing.xl),
+  }) {
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.cardBorder),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.textDarkest.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      ),
+    );
+  }
+
+  Widget _buildPriceTier(int value, String label, String tooltip) {
+    final isSelected = _priceRange == value;
+    return Expanded(
+      child: InkWell(
+        onTap: () => setState(() => _priceRange = value),
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.merchantIndigo.withValues(alpha: 0.1) : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            children: [
+              Text(
+                label,
+                style: AppTypography.title.copyWith(
+                  color: isSelected ? AppColors.merchantIndigo : AppColors.textSecondary,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                tooltip,
+                style: AppTypography.caption.copyWith(
+                  color: isSelected ? AppColors.merchantIndigo : AppColors.textDisabled,
+                  fontSize: 10,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

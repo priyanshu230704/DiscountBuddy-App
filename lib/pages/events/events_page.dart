@@ -3,7 +3,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import '../../../design/app_colors.dart';
 import '../../../design/app_radius.dart';
+import '../../../design/app_shadows.dart';
 import '../../../design/app_spacing.dart';
+import '../../../design/app_typography.dart';
 import '../../../widgets/blurred_ellipse_background.dart';
 import '../../../widgets/common_search_bar.dart';
 import '../../../widgets/border_gradient.dart';
@@ -106,11 +108,10 @@ class _EventsPageState extends State<EventsPage> {
                             top: AppSpacing.lg,
                             bottom: AppSpacing.sm,
                           ),
-                          child: const Text(
+                          child: Text(
                             'Comedy events',
-                            style: TextStyle(
+                            style: AppTypography.title.copyWith(
                               color: Colors.white,
-                              fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -159,11 +160,10 @@ class _EventsPageState extends State<EventsPage> {
                             top: AppSpacing.lg,
                             bottom: AppSpacing.sm,
                           ),
-                          child: const Text(
+                          child: Text(
                             'Explore events',
-                            style: TextStyle(
+                            style: AppTypography.title.copyWith(
                               color: Colors.white,
-                              fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -301,9 +301,8 @@ class _EventsPageState extends State<EventsPage> {
                     Flexible(
                       child: Text(
                         event.title,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
+                        style: AppTypography.body.copyWith(
+                          color: AppColors.white,
                           fontWeight: FontWeight.bold,
                           height: 1.2,
                         ),
@@ -379,15 +378,14 @@ class _EventsPageState extends State<EventsPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(category.icon, size: 28, color: const Color(0xFF3E25F6)),
+            Icon(category.icon, size: 28, color: AppColors.primary),
             const SizedBox(height: 6),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: Text(
                 category.name,
-                style: const TextStyle(
+                style: AppTypography.bodySmall.copyWith(
                   color: Colors.white,
-                  fontSize: 10,
                   fontWeight: FontWeight.w500,
                 ),
                 textAlign: TextAlign.center,

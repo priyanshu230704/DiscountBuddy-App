@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../design/app_colors.dart';
 import '../design/app_radius.dart';
+import '../design/app_shadows.dart';
 import '../design/app_spacing.dart';
 import '../theme/app_fonts.dart';
 import '../providers/auth_provider.dart';
@@ -449,17 +450,8 @@ class _MenuTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: AppRadius.xLarge,
-          border: Border.all(
-            color: AppColors.textPrimary.withValues(alpha: 0.06),
-            width: 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.textPrimary.withValues(alpha: 0.04),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          border: Border.all(color: AppColors.cardBorder),
+          boxShadow: AppShadows.card,
         ),
         child: Row(
           children: [
@@ -517,14 +509,8 @@ class _StatCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: AppRadius.xLarge,
-        border: Border.all(color: AppColors.textPrimary.withValues(alpha: 0.06)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.textPrimary.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: AppColors.cardBorder),
+        boxShadow: AppShadows.card,
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

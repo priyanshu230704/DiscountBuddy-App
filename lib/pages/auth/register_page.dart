@@ -99,29 +99,39 @@ class _RegisterPageState extends State<RegisterPage> {
 
   void _authListener() {
     if (!mounted) return;
-    if (_authProvider?.isAuthenticated ?? false) {
-      Navigator.of(context).pushReplacementNamed('/home');
-    } else if ((_authProvider?.isLoading ?? false) != _isLoading) {
-      setState(() {
-        _isLoading = _authProvider?.isLoading ?? false;
-      });
-    }
 
-    if (_authProvider?.errorMessage != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _authProvider!.errorMessage!,
-            style: AuthTheme.bodyText,
+    // Safety check for navigation and snackbars which must be outside build/layout
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      if (_authProvider?.isAuthenticated ?? false) {
+        Navigator.of(context).pushReplacementNamed('/home');
+        return; // Exit after navigation
+      }
+
+      if (_authProvider?.errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _authProvider!.errorMessage!,
+              style: AuthTheme.bodyText,
+            ),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: AppRadius.medium,
+            ),
           ),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: AppRadius.medium,
-          ),
-        ),
-      );
-      _authProvider?.clearError();
+        );
+        _authProvider?.clearError();
+      }
+    });
+
+    final newIsLoading = _authProvider?.isLoading ?? false;
+    if (newIsLoading != _isLoading) {
+      setState(() {
+        _isLoading = newIsLoading;
+      });
     }
   }
 

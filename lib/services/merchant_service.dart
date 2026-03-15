@@ -23,6 +23,22 @@ class MerchantService {
     }
   }
 
+  /// Get merchant aggregate dashboard statistics
+  Future<Map<String, dynamic>> getMerchantDashboardStats() async {
+    try {
+      await _ensureAuthenticated();
+
+      final response = await _apiService.get(
+        '/merchant/dashboard', // The URL endpoint we just added in Django
+        type: ApiType.merchant,
+      );
+      
+      return response;
+    } catch (e) {
+      throw Exception('Failed to load dashboard stats: ${e.toString()}');
+    }
+  }
+
   /// List merchant's restaurants - returns raw API response as List<Map>
   Future<List<Map<String, dynamic>>> getMerchantRestaurants({
     int? page,

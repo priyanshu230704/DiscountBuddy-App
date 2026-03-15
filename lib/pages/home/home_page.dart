@@ -15,6 +15,7 @@ import '../notifications_page.dart';
 import '../../widgets/city_selector_modal.dart';
 import '../../design/app_colors.dart';
 import '../../design/app_radius.dart';
+import '../../design/app_shadows.dart';
 import '../../design/app_spacing.dart';
 import '../../theme/app_fonts.dart';
 
@@ -430,7 +431,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF7F8FC),
+        backgroundColor: AppColors.background,
         body: RefreshIndicator(
           onRefresh: _loadRestaurants,
           color: AppColors.discount,
@@ -695,7 +696,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       child: Padding(
         padding: const EdgeInsets.only(top: 0, bottom: 6),
         child: SizedBox(
-          height: 200,
+          height: 140, // Compressed from 200
           child: const _GradientBanner(
             title: "Get the Best Restaurant Deals",
             subtitle: "Exclusive offers and table\nreservations in your city.",
@@ -711,8 +712,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
         child: LayoutBuilder(
           builder: (context, constraints) {
+            final double maxWidth = constraints.maxWidth.isFinite 
+                ? constraints.maxWidth 
+                : MediaQuery.of(context).size.width - 32;
             const gap = 10.0;
-            final chipWidth = (constraints.maxWidth - (gap * 2)) / 3;
+            final chipWidth = (maxWidth - (gap * 2)) / 3;
             return Row(
               children: [
                 SizedBox(
@@ -833,16 +837,10 @@ class _SearchBar extends StatelessWidget {
     return Container(
       height: 48,
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.black.withValues(alpha: 0.06)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: AppColors.surface,
+        borderRadius: AppRadius.xLarge,
+        border: Border.all(color: AppColors.cardBorder),
+        boxShadow: AppShadows.card,
       ),
       child: Row(
         children: [
@@ -890,12 +888,6 @@ class _FilterChipX extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Gradient bgGradient = const LinearGradient(
-      colors: [Color(0xFF8B5CF6), Color(0xFFD946EF)],
-      begin: Alignment.centerLeft,
-      end: Alignment.centerRight,
-    );
-
     return GestureDetector(
       onTap: onTap,
       child: Center(
@@ -905,24 +897,20 @@ class _FilterChipX extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            gradient: active ? bgGradient : null,
-            color: active ? null : Colors.white,
+            gradient: active ? AppColors.purpleGradient : null,
+            color: active ? null : AppColors.surface,
             border: active
                 ? null
-                : Border.all(color: Colors.black.withValues(alpha: 0.05)),
+                : Border.all(color: AppColors.cardBorder),
             boxShadow: [
               if (active)
                 BoxShadow(
-                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
+                  color: AppColors.primary.withValues(alpha: 0.3),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 )
               else
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.03),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
+                ...AppShadows.card,
             ],
           ),
           child: FittedBox(
@@ -960,15 +948,10 @@ class _GradientBanner extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF8B5CF6), Color(0xFFD946EF), Color(0xFFF97316)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          stops: [0.0, 0.5, 1.0],
-        ),
+        gradient: AppColors.purpleGradient,
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
+            color: AppColors.primary.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -1140,10 +1123,8 @@ class _FeedTile extends StatelessWidget {
     this.userLon,
   });
 
-  @override
   Widget build(BuildContext context) {
-    const double cardRadius = 28;
-    const double imageHeight = 118;
+    const double imageHeight = 90; // Compressed from 118
     final tags = offerTags(restaurant);
     final dist = restaurant.distanceMiles ?? kmToMiles(restaurant.distance);
     final String discountText = tags.isNotEmpty ? tags.first : "30% OFF";
@@ -1169,15 +1150,10 @@ class _FeedTile extends StatelessWidget {
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(cardRadius),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 14,
-              offset: const Offset(0, 6),
-            ),
-          ],
+          color: AppColors.surface,
+          borderRadius: AppRadius.xLarge,
+          border: Border.all(color: AppColors.cardBorder),
+          boxShadow: AppShadows.card,
         ),
         clipBehavior: Clip.hardEdge,
         child: Column(
@@ -1303,17 +1279,11 @@ class _FeedTile extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF8B5CF6), Color(0xFFD946EF)],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                            ),
+                            gradient: AppColors.purpleGradient,
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(
-                                  0xFF8B5CF6,
-                                ).withValues(alpha: 0.2),
+                                color: AppColors.primary.withValues(alpha: 0.2),
                                 blurRadius: 8,
                                 offset: const Offset(0, 3),
                               ),

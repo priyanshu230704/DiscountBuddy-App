@@ -12,6 +12,8 @@ import '../models/review.dart';
 import '../models/menu_item.dart';
 import '../services/restaurant_service.dart';
 import 'package:discount_buddy/design/app_colors.dart';
+import 'package:discount_buddy/design/app_radius.dart';
+import 'package:discount_buddy/design/app_shadows.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import '../widgets/generic_bottom_sheet.dart';
@@ -637,8 +639,10 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         child: Container(
                           height: 48,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF5F5F5),
-                            borderRadius: BorderRadius.circular(14),
+                            color: AppColors.surface,
+                            borderRadius: AppRadius.xLarge,
+                            border: Border.all(color: AppColors.cardBorder),
+                            boxShadow: AppShadows.card,
                           ),
                           child: Material(
                             color: Colors.transparent,
@@ -678,19 +682,8 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         decoration: BoxDecoration(
                           color: AppColors.surface,
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppColors.textDisabled.withValues(
-                              alpha: 0.3,
-                            ),
-                            width: 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
+                          border: Border.all(color: AppColors.cardBorder),
+                          boxShadow: AppShadows.card,
                         ),
                         child: Material(
                           color: Colors.transparent,
@@ -717,19 +710,8 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         decoration: BoxDecoration(
                           color: AppColors.surface,
                           shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppColors.textDisabled.withValues(
-                              alpha: 0.3,
-                            ),
-                            width: 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
+                          border: Border.all(color: AppColors.cardBorder),
+                          boxShadow: AppShadows.card,
                         ),
                         child: Material(
                           color: Colors.transparent,
@@ -1211,14 +1193,13 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     child: Container(
                       height: 200,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: AppColors.textDisabled.withValues(alpha: 0.3),
-                          width: 1,
-                        ),
+                        color: AppColors.surface,
+                        borderRadius: AppRadius.xLarge,
+                        border: Border.all(color: AppColors.cardBorder),
+                        boxShadow: AppShadows.card,
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(24),
                         child: MapWidget(
                           key: const ValueKey("restaurantMap"),
                           cameraOptions: CameraOptions(

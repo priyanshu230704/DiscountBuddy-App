@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../design/app_colors.dart';
+import '../../design/app_radius.dart';
+import '../../design/app_shadows.dart';
 import '../../design/app_spacing.dart';
 import '../../design/app_typography.dart';
 import '../../components/layout.dart';
@@ -284,22 +286,16 @@ class _NotificationTile extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: notification.isRead
-              ? Colors.white
+              ? AppColors.surface
               : color.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: AppRadius.large,
           border: Border.all(
             color: notification.isRead
-                ? Colors.black.withValues(alpha: 0.06)
-                : color.withValues(alpha: 0.2),
-            width: notification.isRead ? 1 : 2,
+                ? AppColors.cardBorder
+                : color.withValues(alpha: 0.5),
+            width: notification.isRead ? 1 : 1.5,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          boxShadow: AppShadows.card,
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,

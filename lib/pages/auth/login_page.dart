@@ -64,29 +64,40 @@ class _LoginPageState extends State<LoginPage> {
 
   void _authListener() {
     if (!mounted) return;
-    if (_authProvider?.isAuthenticated ?? false) {
-      Navigator.of(context).pushReplacementNamed('/home');
-    } else if ((_authProvider?.isLoading ?? false) != _isLoading) {
-      setState(() {
-        _isLoading = _authProvider?.isLoading ?? false;
-      });
-    }
+    
+    // Safety check for navigation and snackbars which must be outside build/layout
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
 
-    if (_authProvider?.errorMessage != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _authProvider!.errorMessage!,
-            style: AuthTheme.bodyText,
+      if (_authProvider?.isAuthenticated ?? false) {
+        Navigator.of(context).pushReplacementNamed('/home');
+        return; // Exit after navigation
+      }
+
+      if (_authProvider?.errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _authProvider!.errorMessage!,
+              style: AuthTheme.bodyText,
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
-      _authProvider?.clearError();
+        );
+        _authProvider?.clearError();
+      }
+    });
+
+    // setState is fine here as it's a listener, but good to be defensive
+    final newIsLoading = _authProvider?.isLoading ?? false;
+    if (newIsLoading != _isLoading) {
+      setState(() {
+        _isLoading = newIsLoading;
+      });
     }
   }
 
@@ -251,12 +262,14 @@ class _LoginPageState extends State<LoginPage> {
                         key:  ValueKey('login_safe_area'),
                         child: Form(
                           key: _formKey,
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 24 * scale),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                 Spacer(flex: 3),
+                          child: SingleChildScrollView(
+                            physics: const BouncingScrollPhysics(),
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 24 * scale),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  SizedBox(height: (isKeyboardOpen ? 20 : 60) * scale),
                                 
                                 // Logo and Text Section
                                 Column(
@@ -323,7 +336,7 @@ class _LoginPageState extends State<LoginPage> {
                                   ],
                                 ),
                                 
-                                 Spacer(flex: 2),
+                                 SizedBox(height: 32 * scale),
                                 
                                 // Main Card
                                 Center(
@@ -542,7 +555,7 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                 ),
                                 
-                                 Spacer(flex: 3),
+                                 SizedBox(height: 40 * scale),
                                 
                                 if (!isKeyboardOpen) ...[
                                   // Trending Deal Banner
@@ -585,8 +598,9 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                 ],
                                 
-                                 Spacer(flex: 2),
-                              ],
+                                  SizedBox(height: (isKeyboardOpen ? 30 : 60) * scale),
+                                ],
+                              ),
                             ),
                           ),
                         ),

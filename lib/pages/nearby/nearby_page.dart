@@ -13,6 +13,8 @@ import '../../services/restaurant_service.dart';
 import '../../services/location_service.dart';
 import '../../services/city_service.dart';
 import '../../design/app_colors.dart';
+import '../../design/app_radius.dart';
+import '../../design/app_shadows.dart';
 import '../restaurant_details_page.dart';
 import '../../widgets/city_selector_modal.dart';
 import '../../widgets/filter_modal.dart';
@@ -749,22 +751,10 @@ class _NearbyPageState extends State<NearbyPage>
                                   margin: const EdgeInsets.only(bottom: 12),
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(14),
-                                    border: Border.all(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.06,
-                                      ),
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        blurRadius: 14,
-                                        color: Colors.black.withValues(
-                                          alpha: 0.06,
-                                        ),
-                                        offset: const Offset(0, 6),
-                                      ),
-                                    ],
+                                    color: AppColors.surface,
+                                    borderRadius: AppRadius.xLarge,
+                                    border: Border.all(color: AppColors.cardBorder),
+                                    boxShadow: AppShadows.card,
                                   ),
                                   child: Row(
                                     children: [
@@ -1076,15 +1066,10 @@ class _NearbyPageState extends State<NearbyPage>
             height: 46,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.surface,
               borderRadius: BorderRadius.circular(14),
-              boxShadow: [
-                BoxShadow(
-                  blurRadius: 14,
-                  color: Colors.black.withValues(alpha: 0.08),
-                  offset: const Offset(0, 6),
-                ),
-              ],
+              border: Border.all(color: AppColors.cardBorder),
+              boxShadow: AppShadows.card,
             ),
             child: Row(
               children: [
@@ -1162,15 +1147,10 @@ class _NearbyPageState extends State<NearbyPage>
     return Container(
       height: 40,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            blurRadius: 12,
-            color: Colors.black.withValues(alpha: 0.10),
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: AppColors.cardBorder),
+        boxShadow: AppShadows.card,
       ),
       child: Material(
         color: Colors.transparent,
@@ -1202,15 +1182,10 @@ class _NearbyPageState extends State<NearbyPage>
       width: 40,
       height: 40,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            blurRadius: 12,
-            color: Colors.black.withValues(alpha: 0.10),
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: AppColors.cardBorder),
+        boxShadow: AppShadows.card,
       ),
       child: Material(
         color: Colors.transparent,
@@ -1232,15 +1207,10 @@ class _NearbyPageState extends State<NearbyPage>
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.98),
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 22,
-              color: Colors.black.withValues(alpha: 0.18),
-              offset: const Offset(0, 4),
-            ),
-          ],
+          color: AppColors.surface.withValues(alpha: 0.98),
+          borderRadius: AppRadius.xLarge,
+          border: Border.all(color: AppColors.cardBorder),
+          boxShadow: AppShadows.card,
         ),
         child: Row(
           children: [
@@ -1373,15 +1343,10 @@ class _NearbyPageState extends State<NearbyPage>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.95),
+        color: AppColors.surface.withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            blurRadius: 12,
-            color: Colors.black.withValues(alpha: 0.10),
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: AppColors.cardBorder),
+        boxShadow: AppShadows.card,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

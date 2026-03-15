@@ -3,6 +3,9 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../design/app_radius.dart';
 import '../design/app_spacing.dart';
+import '../design/app_colors.dart';
+import '../design/app_shadows.dart';
+import '../theme/app_fonts.dart';
 import '../models/restaurant.dart';
 import '../services/restaurant_service.dart';
 import '../widgets/restaurant_card.dart';
@@ -117,7 +120,7 @@ class _BrowsePageState extends State<BrowsePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: AppColors.background,
       body: Stack(
         children: [
           // Blurred ellipse at the top center background
@@ -153,13 +156,13 @@ class _BrowsePageState extends State<BrowsePage> {
                         child: Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1E1E1E),
+                            color: AppColors.surface,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(
                             Icons.tune,
                             size: 20,
-                            color: Colors.grey,
+                            color: AppColors.textSecondary,
                           ),
                         ),
                       ),
@@ -211,11 +214,11 @@ class _BrowsePageState extends State<BrowsePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.search_off, size: 64, color: Colors.grey[400]),
+            Icon(Icons.search_off, size: 64, color: AppColors.textDisabled),
             const SizedBox(height: 16),
             Text(
               'No restaurants found',
-              style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+              style: AppFonts.titleStyle(fontSize: 18, color: AppColors.textSecondary),
             ),
           ],
         ),
@@ -270,10 +273,12 @@ class _BrowsePageState extends State<BrowsePage> {
             child: Container(
               height: 120,
               margin: const EdgeInsets.all(AppSpacing.lg),
-              child: Card(
-                elevation: 0,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: AppRadius.medium,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: AppRadius.xLarge,
+                  border: Border.all(color: AppColors.cardBorder),
+                  boxShadow: AppShadows.card,
                 ),
                 child: InkWell(
                   onTap: () {
@@ -292,10 +297,10 @@ class _BrowsePageState extends State<BrowsePage> {
                       ClipRRect(
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(
-                            12,
+                            24,
                           ),
                           bottomLeft: Radius.circular(
-                            12,
+                            24,
                           ),
                         ),
                         child: CachedNetworkImage(
@@ -347,10 +352,11 @@ class _BrowsePageState extends State<BrowsePage> {
                               const SizedBox(height: 4),
                               Text(
                                 _filteredRestaurants[0].name,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                  style: AppFonts.titleStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.textPrimary,
+                                  ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),

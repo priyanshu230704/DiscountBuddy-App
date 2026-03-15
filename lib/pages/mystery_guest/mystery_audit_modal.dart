@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../design/app_colors.dart';
+import '../../design/app_radius.dart';
+import '../../design/app_shadows.dart';
 import '../../design/app_typography.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../models/mystery_visit.dart';
@@ -146,8 +148,8 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.9,
       decoration: const BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: const EdgeInsets.all(20),
       child: Stack(
@@ -201,8 +203,8 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
           style: AppTypography.body.copyWith(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 32),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
           child: Text(
             'Once you start the audit, your status will change to "In Progress". Please ensure you are at the location and ready to evaluate.',
             textAlign: TextAlign.center,
@@ -218,7 +220,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: AppRadius.large,
               ),
             ),
             child: const Text(
@@ -305,11 +307,12 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.textDisabled),
+                  borderRadius: AppRadius.medium,
+                  border: Border.all(color: AppColors.cardBorder),
+                  boxShadow: AppShadows.card,
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: AppRadius.medium,
                   child: Image.network(e.fileUrl, fit: BoxFit.cover),
                 ),
               ),
@@ -320,12 +323,12 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.circular(8),
+                  color: AppColors.surface,
+                  borderRadius: AppRadius.medium,
                   border: Border.all(
-                    color: AppColors.textDisabled,
-                    style: BorderStyle.none,
+                    color: AppColors.cardBorder,
                   ),
+                  boxShadow: AppShadows.card,
                 ),
                 child: const Icon(Icons.add_a_photo, color: AppColors.textDisabled),
               ),
@@ -362,7 +365,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: AppRadius.large,
               ),
             ),
             child: const Text(
@@ -425,12 +428,12 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
           fillColor: AppColors.background,
           filled: true,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: AppColors.textDisabled),
+            borderRadius: AppRadius.large,
+            borderSide: BorderSide(color: AppColors.cardBorder),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: AppColors.textDisabled),
+            borderRadius: AppRadius.large,
+            borderSide: BorderSide(color: AppColors.cardBorder),
           ),
         ),
         style: AppTypography.body.copyWith(fontSize: 14),

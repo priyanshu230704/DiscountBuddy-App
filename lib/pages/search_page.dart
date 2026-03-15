@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../design/app_colors.dart';
 import '../design/app_radius.dart';
+import '../design/app_shadows.dart';
 import '../design/app_spacing.dart';
 import '../design/app_typography.dart';
 import '../models/restaurant.dart';
@@ -117,24 +118,30 @@ class _SearchPageState extends State<SearchPage> {
           // Search Bar
           SliverToBoxAdapter(
             child: Container(
-              padding: const EdgeInsets.all(AppSpacing.lg),
+              margin: const EdgeInsets.all(AppSpacing.lg),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: AppRadius.xLarge,
+                border: Border.all(color: AppColors.cardBorder),
+                boxShadow: AppShadows.card,
+              ),
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
                   hintText: 'Search restaurants...',
-                  prefixIcon: const Icon(Icons.search),
+                  prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(Icons.clear),
+                          icon: const Icon(Icons.clear, color: AppColors.textSecondary),
                           onPressed: () {
                             _searchController.clear();
                           },
                         )
                       : null,
                   filled: true,
-                  fillColor: AppColors.surface,
+                  fillColor: Colors.transparent,
                   border: OutlineInputBorder(
-                    borderRadius: AppRadius.medium,
+                    borderRadius: AppRadius.xLarge,
                     borderSide: BorderSide.none,
                   ),
                 ),
@@ -166,6 +173,13 @@ class _SearchPageState extends State<SearchPage> {
                         });
                       },
                       selectedColor: AppColors.primary,
+                      backgroundColor: AppColors.surface,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        side: BorderSide(
+                          color: isSelected ? Colors.transparent : AppColors.cardBorder,
+                        ),
+                      ),
                       labelStyle: AppTypography.body.copyWith(
                         color: isSelected ? AppColors.white : AppColors.textPrimary,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../design/app_colors.dart';
 import '../../design/app_radius.dart';
+import '../../design/app_shadows.dart';
 import '../../design/app_spacing.dart';
 import '../../design/app_typography.dart';
 import '../../components/buttons.dart';
@@ -134,15 +135,14 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                           color: isSelected
                               ? AppColors.primary.withValues(alpha: 0.05)
                               : AppColors.surface,
-                          borderRadius: AppRadius.medium,
+                          borderRadius: AppRadius.large,
                           border: Border.all(
                             color: isSelected
                                 ? AppColors.primary
-                                : AppColors.textDisabled.withValues(
-                                    alpha: 0.3,
-                                  ),
+                                : AppColors.cardBorder,
                             width: isSelected ? 2 : 1,
                           ),
+                          boxShadow: isSelected ? [] : AppShadows.card,
                         ),
                         child: RadioListTile<Discount>(
                           value: deal,
@@ -184,7 +184,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                 padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
                   color: AppColors.accent.withValues(alpha: 0.12),
-                  borderRadius: AppRadius.medium,
+                  borderRadius: AppRadius.large,
                 ),
                 child: Row(
                   children: [
@@ -266,18 +266,10 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: AppColors.textDisabled.withValues(alpha: 0.2),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+                color: AppColors.surface,
+                borderRadius: AppRadius.xLarge,
+                border: Border.all(color: AppColors.cardBorder),
+                boxShadow: AppShadows.card,
               ),
               child: Image.network(
                 qrUrl,
@@ -318,11 +310,10 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             decoration: BoxDecoration(
-              color: const Color(0xFFF5F5F5),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AppColors.textDisabled.withValues(alpha: 0.2),
-              ),
+              color: AppColors.surface,
+              borderRadius: AppRadius.large,
+              border: Border.all(color: AppColors.cardBorder),
+              boxShadow: AppShadows.card,
             ),
             child: Text(
               code.toString(),
@@ -342,7 +333,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                 foregroundColor: AppColors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: AppRadius.large,
                 ),
               ),
               child: Text(

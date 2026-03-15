@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:discount_buddy/theme/app_colors.dart';
+import 'package:discount_buddy/design/app_radius.dart';
+import 'package:discount_buddy/design/app_shadows.dart';
 import 'package:discount_buddy/design/app_spacing.dart';
 import 'package:discount_buddy/design/app_typography.dart';
 import 'package:discount_buddy/components/layout.dart';
@@ -228,7 +230,8 @@ class _StatusBadge extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: AppRadius.medium,
+        border: Border.all(color: color.withValues(alpha: 0.5)),
       ),
       child: Text(
         status.toUpperCase(),

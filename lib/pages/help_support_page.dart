@@ -3,6 +3,7 @@ import '../design/app_colors.dart';
 import '../design/app_radius.dart';
 import '../design/app_spacing.dart';
 import '../design/app_typography.dart';
+import '../design/app_shadows.dart';
 class HelpSupportPage extends StatelessWidget {
   const HelpSupportPage({super.key});
 
@@ -55,15 +56,9 @@ class HelpSupportPage extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: AppRadius.medium,
-        border: Border.all(color: AppColors.textDisabled.withValues(alpha: 0.25)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.textPrimary.withValues(alpha: 0.04),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        borderRadius: AppRadius.large,
+        border: Border.all(color: AppColors.cardBorder),
+        boxShadow: AppShadows.card,
       ),
       child: ExpansionTile(
         title: Text(question, style: AppTypography.subtitle.copyWith(

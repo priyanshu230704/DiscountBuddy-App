@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import 'package:discount_buddy/theme/app_colors.dart';
+import 'package:discount_buddy/design/app_radius.dart';
+import 'package:discount_buddy/design/app_shadows.dart';
 import 'package:discount_buddy/design/app_spacing.dart';
 import 'package:discount_buddy/design/app_typography.dart';
 import 'package:discount_buddy/components/app_app_bar.dart';
@@ -121,6 +123,7 @@ class _BookingsPageState extends State<BookingsPage>
             unselectedLabelColor: AppColors.textSecondary,
             indicatorColor: AppColors.primary,
             indicatorWeight: 3,
+            dividerColor: Colors.transparent, // Fix: Remove Material 3 underline in TabBar
             labelStyle: AppTypography.bodySmall.copyWith(
               fontWeight: FontWeight.w700,
             ),
@@ -131,7 +134,7 @@ class _BookingsPageState extends State<BookingsPage>
               Tab(text: 'Coupon history'),
             ],
           ),
-          const Divider(height: 1),
+          // const Divider(height: 1), // Fix: Removed unwanted black line below TabBar
           Expanded(
             child: _isLoading
                 ? const LoadingWidget(message: 'Loading your activity...')
@@ -540,10 +543,7 @@ class _RedemptionDetailModal extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(14),
-          topRight: Radius.circular(14),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: SafeArea(
         child: Padding(
@@ -624,8 +624,10 @@ class _RedemptionDetailModal extends StatelessWidget {
                               vertical: AppSpacing.md,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF5F5F5),
-                              borderRadius: BorderRadius.circular(12),
+                              color: AppColors.surface,
+                              borderRadius: AppRadius.large,
+                              border: Border.all(color: AppColors.cardBorder),
+                              boxShadow: AppShadows.card,
                             ),
                             child: Text(
                               redemption.redemptionCode!,
@@ -766,7 +768,7 @@ class _StatusBadge extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: AppRadius.medium,
         border: Border.all(color: color.withValues(alpha: 0.5)),
       ),
       child: Text(

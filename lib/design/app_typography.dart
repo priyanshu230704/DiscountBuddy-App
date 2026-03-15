@@ -5,7 +5,7 @@ import 'app_colors.dart';
 /// Semantic typography scale reused across screens and components.
 class AppTypography {
   // Display / page headers
-  static const TextStyle headline = TextStyle(
+  static TextStyle headline = TextStyle(
     fontFamily: AppFonts.headingFont,
     fontSize: 28,
     fontWeight: FontWeight.w800,
@@ -14,7 +14,7 @@ class AppTypography {
     color: AppColors.textDarkest,
   );
 
-  static const TextStyle title = TextStyle(
+  static TextStyle title = TextStyle(
     fontFamily: AppFonts.titleFont,
     fontSize: 20,
     fontWeight: FontWeight.w700,
@@ -23,7 +23,7 @@ class AppTypography {
     color: AppColors.textDarkest,
   );
 
-  static const TextStyle subtitle = TextStyle(
+  static TextStyle subtitle = TextStyle(
     fontFamily: AppFonts.bodyFont,
     fontSize: 14,
     fontWeight: FontWeight.w500,
@@ -31,7 +31,7 @@ class AppTypography {
     color: AppColors.textSecondary,
   );
 
-  static const TextStyle body = TextStyle(
+  static TextStyle body = TextStyle(
     fontFamily: AppFonts.bodyFont,
     fontSize: 14,
     fontWeight: FontWeight.w400,
@@ -39,7 +39,7 @@ class AppTypography {
     color: AppColors.textPrimary,
   );
 
-  static const TextStyle bodySmall = TextStyle(
+  static TextStyle bodySmall = TextStyle(
     fontFamily: AppFonts.bodyFont,
     fontSize: 12,
     fontWeight: FontWeight.w400,
@@ -47,7 +47,7 @@ class AppTypography {
     color: AppColors.textSecondary,
   );
 
-  static const TextStyle caption = TextStyle(
+  static TextStyle caption = TextStyle(
     fontFamily: AppFonts.bodyFont,
     fontSize: 11,
     fontWeight: FontWeight.w500,
@@ -55,7 +55,7 @@ class AppTypography {
     color: AppColors.textDisabled,
   );
 
-  static const TextStyle button = TextStyle(
+  static TextStyle button = TextStyle(
     fontFamily: AppFonts.buttonFont,
     fontSize: 16,
     fontWeight: FontWeight.w600,

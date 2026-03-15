@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../design/app_colors.dart';
+import '../../design/app_radius.dart';
+import '../../design/app_shadows.dart';
 import '../../design/app_spacing.dart';
 import '../../design/app_typography.dart';
 import '../../widgets/blurred_ellipse_background.dart';
@@ -394,11 +396,7 @@ class _MorePageState extends State<MorePage> {
             children: [
               const Text(
                 'My Vouchers',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: AppTypography.bodyLarge,
               ),
               if (!_isLoadingVouchers && _voucherCount > 0)
                 Text(
@@ -569,7 +567,7 @@ class _MorePageState extends State<MorePage> {
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.xxl),
-      color: const Color(0xFF1E1E1E),
+      color: AppColors.textPrimary.withValues(alpha: 0.9),
       child: Row(
         children: [
           CircleAvatar(
@@ -591,17 +589,13 @@ class _MorePageState extends State<MorePage> {
               children: [
                 Text(
                   displayName,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+                  style: AppTypography.title.copyWith(color: AppColors.white),
                 ),
                 if (email.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Text(
                     email,
-                    style: TextStyle(fontSize: 14, color: Colors.grey[400]),
+                    style: AppTypography.bodySmall.copyWith(color: AppColors.white.withValues(alpha: 0.6)),
                   ),
                 ],
               ],
@@ -644,9 +638,8 @@ class _MorePageState extends State<MorePage> {
           ),
           child: Text(
             title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
+            style: AppTypography.body.copyWith(
+              color: AppColors.white,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -682,20 +675,19 @@ class _MorePageState extends State<MorePage> {
                 color: const Color(0xFF3E25F6).withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(icon, color: const Color(0xFF3E25F6), size: 18),
+              child: Icon(icon, color: AppColors.primary, size: 18),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
+                style: AppTypography.body.copyWith(
+                  color: AppColors.white,
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 14),
+            Icon(Icons.arrow_forward_ios, color: AppColors.white.withValues(alpha: 0.5), size: 14),
           ],
         ),
       ),

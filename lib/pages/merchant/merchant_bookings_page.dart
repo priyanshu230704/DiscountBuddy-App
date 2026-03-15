@@ -173,6 +173,73 @@ class _BookingCard extends StatelessWidget {
 
   const _BookingCard({required this.booking, required this.onReview});
 
+  void _showBookingDetails(BuildContext context) {
+    final restaurant = booking['restaurant_name'] ?? 'Restaurant';
+    final customer = booking['contact_name']?.toString().isNotEmpty == true 
+        ? booking['contact_name'] 
+        : 'Guest';
+    final phone = booking['contact_phone'] ?? 'No phone provided';
+    final email = booking['contact_email'] ?? 'No email provided';
+    final guests = booking['number_of_guests'] ?? 0;
+    final dateStr = booking['booking_date'];
+    final status = booking['status'] ?? 'pending';
+    final specialRequests = booking['special_requests'] ?? 'None';
+
+    DateTime? date;
+    if (dateStr != null) {
+      date = DateTime.tryParse(dateStr);
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(
+          'Booking Details',
+          style: AppTypography.title.copyWith(fontWeight: FontWeight.bold),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _DetailRow(label: 'Customer', value: customer),
+              const SizedBox(height: 12),
+              _DetailRow(label: 'Phone', value: phone, isLink: true),
+              const SizedBox(height: 12),
+              _DetailRow(label: 'Email', value: email),
+              const SizedBox(height: 12),
+              _DetailRow(label: 'Restaurant', value: restaurant),
+              const SizedBox(height: 12),
+              _DetailRow(
+                label: 'Date & Time',
+                value: date != null ? DateFormat('MMM d, yyyy - h:mm a').format(date.toLocal()) : 'N/A',
+              ),
+              const SizedBox(height: 12),
+              _DetailRow(label: 'Guests', value: guests.toString()),
+              const SizedBox(height: 12),
+              _DetailRow(label: 'Status', value: status.toUpperCase()),
+              const SizedBox(height: 12),
+              const Text('Special Requests:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              const SizedBox(height: 4),
+              Text(
+                specialRequests,
+                style: AppTypography.bodySmall,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final restaurant = booking['restaurant_name'] ?? 'Restaurant';
@@ -191,7 +258,9 @@ class _BookingCard extends StatelessWidget {
     final isPending = status.toLowerCase() == 'pending';
     final initial = customer.toString().substring(0, 1).toUpperCase();
 
-    return AppCard(
+    return GestureDetector(
+      onTap: () => _showBookingDetails(context),
+      child: AppCard(
       padding: EdgeInsets.zero, // Padding handled internally for full-width action bar
       child: Column(
         children: [
@@ -356,6 +425,7 @@ class _BookingCard extends StatelessWidget {
           ],
         ],
       ),
+      ),
     );
   }
 }
@@ -455,6 +525,32 @@ class _StatusBadge extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool isLink;
+
+  const _DetailRow({required this.label, required this.value, this.isLink = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: AppTypography.caption.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: AppTypography.body.copyWith(
+            fontWeight: FontWeight.w600,
+            color: isLink ? AppColors.merchantBlue : AppColors.textPrimary,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -713,7 +713,6 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                     _buildFormSection(
                       padding: const EdgeInsets.only(top: 8, bottom: 8, left: 24, right: 24),
                       children: _openingHours.entries.map((entry) {
-                        final controller = TextEditingController(text: entry.value);
                         return Padding(
                           padding: const EdgeInsets.only(bottom: AppSpacing.md, top: AppSpacing.sm),
                           child: Row(
@@ -727,36 +726,84 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                                     color: AppColors.textPrimary,
                                   ),
                                 ),
-                              ),
+                               ),
                               Expanded(
-                                child: TextField(
-                                  controller: controller,
-                                  style: AppTypography.body,
-                                  decoration: InputDecoration(
-                                    hintText: 'e.g., 10:00-22:00',
-                                    hintStyle: AppTypography.body.copyWith(color: AppColors.textDisabled),
-                                    isDense: true,
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                    filled: true,
-                                    fillColor: AppColors.background,
-                                    border: OutlineInputBorder(
+                                child: InkWell(
+                                  onTap: () async {
+                                    final currentVal = entry.value;
+                                    TimeOfDay? start;
+                                    TimeOfDay? end;
+                                    
+                                    if (currentVal.contains('-')) {
+                                      final parts = currentVal.split('-');
+                                      final startParts = parts[0].split(':');
+                                      final endParts = parts[1].split(':');
+                                      if (startParts.length == 2) {
+                                        start = TimeOfDay(hour: int.parse(startParts[0]), minute: int.parse(startParts[1]));
+                                      }
+                                      if (endParts.length == 2) {
+                                        end = TimeOfDay(hour: int.parse(endParts[0]), minute: int.parse(endParts[1]));
+                                      }
+                                    }
+
+                                    final TimeOfDay? pickedStart = await showTimePicker(
+                                      context: context,
+                                      initialTime: start ?? const TimeOfDay(hour: 9, minute: 0),
+                                      helpText: 'Opening Time for ${entry.key}',
+                                    );
+
+                                    if (pickedStart != null) {
+                                      if (context.mounted) {
+                                        final TimeOfDay? pickedEnd = await showTimePicker(
+                                          context: context,
+                                          initialTime: end ?? const TimeOfDay(hour: 22, minute: 0),
+                                          helpText: 'Closing Time for ${entry.key}',
+                                        );
+                                        
+                                        if (pickedEnd != null) {
+                                          setState(() {
+                                            final startStr = '${pickedStart.hour.toString().padLeft(2, '0')}:${pickedStart.minute.toString().padLeft(2, '0')}';
+                                            final endStr = '${pickedEnd.hour.toString().padLeft(2, '0')}:${pickedEnd.minute.toString().padLeft(2, '0')}';
+                                            _openingHours[entry.key] = '$startStr-$endStr';
+                                          });
+                                        }
+                                      }
+                                    }
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.background,
                                       borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(color: AppColors.cardBorder),
+                                      border: Border.all(color: AppColors.cardBorder),
                                     ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(color: AppColors.cardBorder),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: const BorderSide(color: AppColors.merchantIndigo, width: 2),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.access_time_rounded,
+                                          size: 16,
+                                          color: entry.value.isEmpty ? AppColors.textDisabled : AppColors.merchantIndigo,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          entry.value.isEmpty ? 'Closed / Select Time' : entry.value,
+                                          style: AppTypography.body.copyWith(
+                                            color: entry.value.isEmpty ? AppColors.textSecondary : AppColors.textPrimary,
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                        if (entry.value.isNotEmpty)
+                                          GestureDetector(
+                                            onTap: () {
+                                              setState(() {
+                                                _openingHours[entry.key] = '';
+                                              });
+                                            },
+                                            child: const Icon(Icons.close, size: 16, color: AppColors.error),
+                                          ),
+                                      ],
                                     ),
                                   ),
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _openingHours[entry.key] = value;
-                                    });
-                                  },
                                 ),
                               ),
                             ],

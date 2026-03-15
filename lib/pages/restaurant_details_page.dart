@@ -717,11 +717,18 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                           color: Colors.transparent,
                           child: InkWell(
                             onTap: () {
+                              final dealText = restaurant.discount.displayText;
+                              final dealDesc = restaurant.discount.description;
+                              final appLink = 'https://discountbuddy.app/restaurant/${restaurant.id}';
+                              
                               final message =
-                                  'Check out this deal at ${restaurant.name}!\n\n'
-                                  '${restaurant.discount.displayText} - ${restaurant.discount.description}\n\n'
-                                  '📍 ${restaurant.address}\n'
-                                  'Found on DiscountBuddy';
+                                  '🔥 Check out this amazing deal at ${restaurant.name}!\n\n'
+                                  '✨ $dealText\n'
+                                  '📝 $dealDesc\n\n'
+                                  '📍 ${restaurant.address}\n\n'
+                                  '📲 View this deal on Discount Buddy:\n$appLink\n\n'
+                                  '#DiscountBuddy #Deals #Foodie';
+                              
                               // ignore: deprecated_member_use
                               Share.share(message);
                             },

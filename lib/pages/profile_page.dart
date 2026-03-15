@@ -3,7 +3,7 @@ import '../design/app_colors.dart';
 import '../design/app_radius.dart';
 import '../design/app_shadows.dart';
 import '../design/app_spacing.dart';
-import '../theme/app_fonts.dart';
+import '../design/app_typography.dart';
 import '../providers/auth_provider.dart';
 import '../services/wallet_service.dart';
 import '../services/restaurant_service.dart';
@@ -11,6 +11,10 @@ import '../models/user_interactions.dart';
 import 'edit_profile_page.dart';
 import 'help_support_page.dart';
 import 'privacy_policy_page.dart';
+import 'saved_restaurants_page.dart';
+import 'my_deals_page.dart';
+import '../services/auth_service.dart';
+import '../widgets/loading_widget.dart';
 
 /// Profile Screen - NeoTaste style
 class ProfilePage extends StatefulWidget {
@@ -24,6 +28,7 @@ class _ProfilePageState extends State<ProfilePage> {
   final WalletService _walletService = WalletService();
   final RestaurantService _restaurantService = RestaurantService();
   final AuthProvider _authProvider = AuthProvider();
+  final AuthService _authService = AuthService();
   ProfileStats? _stats;
 
   @override
@@ -109,7 +114,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 padding: const EdgeInsets.fromLTRB(AppSpacing.xxl, AppSpacing.xxl, AppSpacing.xxl, 0),
                 child: Text(
                   'Profile',
-                  style: AppFonts.titleStyle(
+                  style: AppTypography.headline.copyWith(
                     fontSize: 32,
                     fontWeight: FontWeight.w800,
                     color: AppColors.textPrimary,
@@ -149,7 +154,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         child: Center(
                           child: Text(
                             initials,
-                            style: AppFonts.titleStyle(
+                            style: AppTypography.title.copyWith(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -164,7 +169,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           children: [
                             Text(
                               displayName,
-                            style: AppFonts.titleStyle(
+                            style: AppTypography.title.copyWith(
                               fontSize: 22,
                               fontWeight: FontWeight.w800,
                               color: AppColors.textPrimary,
@@ -174,7 +179,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             const SizedBox(height: 4),
                             Text(
                               'Edit profile',
-                              style: AppFonts.bodyStyle(
+                              style: AppTypography.body.copyWith(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.textSecondary,
@@ -225,21 +230,41 @@ class _ProfilePageState extends State<ProfilePage> {
                       const SizedBox(width: 16),
                       SizedBox(
                         width: 120,
-                        child: _StatCard(
-                          icon: Icons.favorite,
-                          value: _stats?.favouriteRestaurants.toString() ?? '2',
-                          label: 'Favourites',
-                          iconColor: AppColors.primary,
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const SavedRestaurantsPage(),
+                              ),
+                            );
+                          },
+                          child: _StatCard(
+                            icon: Icons.favorite,
+                            value: _stats?.favouriteRestaurants.toString() ?? '2',
+                            label: 'Favourites',
+                            iconColor: AppColors.primary,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 16),
                       SizedBox(
                         width: 120,
-                        child: _StatCard(
-                          icon: Icons.local_offer,
-                          value: _stats?.dealsClaimed.toString() ?? '2',
-                          label: 'Deals',
-                          iconColor: AppColors.primary,
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const MyDealsPage(),
+                              ),
+                            );
+                          },
+                          child: _StatCard(
+                            icon: Icons.local_offer,
+                            value: _stats?.dealsClaimed.toString() ?? '2',
+                            label: 'Deals',
+                            iconColor: AppColors.primary,
+                          ),
                         ),
                       ),
                     ],
@@ -251,7 +276,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   child: Container(
-                    height: 165,
+                    height: 190, // Increased from 165 to fix overflow
                     width: double.infinity,
                     decoration: BoxDecoration(
                       borderRadius: AppRadius.xLarge,
@@ -279,7 +304,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               children: [
                                 Text(
                                   'Earn €10 for every\nfriend you invite!',
-                                  style: AppFonts.titleStyle(
+                                  style: AppTypography.title.copyWith(
                                     fontSize: 20,
                                     fontWeight: FontWeight.w800,
                                     color: Colors.white,
@@ -313,7 +338,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   ),
                                   child: Text(
                                     'Invite friends',
-                                    style: AppFonts.bodyStyle(
+                                    style: AppTypography.body.copyWith(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w700,
                                       color: Colors.white,
@@ -366,9 +391,18 @@ class _ProfilePageState extends State<ProfilePage> {
                     _MenuTile(
                       icon: Icons.logout_rounded,
                       title: 'Logout',
-                      isDestructive: true,
+                      isDestructive: false,
                       onTap: () {
                         _showLogoutConfirmation();
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _MenuTile(
+                      icon: Icons.delete_forever_rounded,
+                      title: 'Delete Account',
+                      isDestructive: true,
+                      onTap: () {
+                        _showDeleteAccountConfirmation();
                       },
                     ),
                   ],
@@ -389,18 +423,18 @@ class _ProfilePageState extends State<ProfilePage> {
         shape: RoundedRectangleBorder(borderRadius: AppRadius.xLarge),
         title: Text(
           'Logout',
-          style: AppFonts.titleStyle(fontWeight: FontWeight.w800),
+          style: AppTypography.title.copyWith(fontWeight: FontWeight.w800),
         ),
         content: Text(
           'Are you sure you want to logout?',
-          style: AppFonts.bodyStyle(fontWeight: FontWeight.w500),
+          style: AppTypography.body.copyWith(fontWeight: FontWeight.w500),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
               'Cancel',
-              style: AppFonts.bodyStyle(
+              style: AppTypography.body.copyWith(
                 color: AppColors.textSecondary,
                 fontWeight: FontWeight.w700,
               ),
@@ -416,7 +450,7 @@ class _ProfilePageState extends State<ProfilePage> {
             },
             child: Text(
               'Logout',
-              style: AppFonts.bodyStyle(
+              style: AppTypography.body.copyWith(
                 color: AppColors.error,
                 fontWeight: FontWeight.w800,
               ),
@@ -425,6 +459,90 @@ class _ProfilePageState extends State<ProfilePage> {
         ],
       ),
     );
+  }
+
+  void _showDeleteAccountConfirmation() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.xLarge),
+        title: Text(
+          'Delete Account',
+          style: AppTypography.title.copyWith(
+            fontWeight: FontWeight.w800,
+            color: AppColors.error,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'This action is permanent and cannot be undone.',
+              style: AppTypography.body.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'All your data, including favourites, bookings, and claimed deals, will be deleted forever.',
+              style: AppTypography.bodySmall,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: AppTypography.body.copyWith(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              _performDeleteAccount();
+            },
+            child: Text(
+              'Delete Forever',
+              style: AppTypography.body.copyWith(
+                color: AppColors.error,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _performDeleteAccount() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    try {
+      await _authService.deleteAccount();
+      if (mounted) {
+        Navigator.pop(context); // Close loading
+        Navigator.of(context).pushReplacementNamed('/login');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Account deleted successfully')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Close loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete account: ${e.toString()}')),
+        );
+      }
+    }
   }
 }
 
@@ -466,7 +584,7 @@ class _MenuTile extends StatelessWidget {
             Expanded(
               child: Text(
                 title,
-                style: AppFonts.bodyStyle(
+                style: AppTypography.body.copyWith(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
                   color: isDestructive
@@ -519,7 +637,7 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             value,
-            style: AppFonts.titleStyle(
+            style: AppTypography.title.copyWith(
               fontSize: 22,
               fontWeight: FontWeight.w800,
               color: AppColors.textPrimary,
@@ -530,7 +648,7 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             label,
-            style: AppFonts.bodyStyle(
+            style: AppTypography.body.copyWith(
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: AppColors.textSecondary,

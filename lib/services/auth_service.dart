@@ -314,6 +314,19 @@ class AuthService {
     await _googleSignIn.signOut();
   }
 
+  /// Delete user account
+  Future<void> deleteAccount() async {
+    try {
+      await _apiService.delete(ApiEndpoints.deleteAccount);
+      await logout();
+    } catch (e) {
+      if (e is ApiException) {
+        throw ApiException(e.message, statusCode: e.statusCode, data: e.data);
+      }
+      rethrow;
+    }
+  }
+
   /// Get stored access token
   Future<String?> getAccessToken() async {
     return await _storage.read(key: _accessTokenKey);

@@ -116,6 +116,11 @@ class RestaurantService {
     }
   }
 
+  /// Get deal uses for the current user
+  Future<List<DealRedemption>> getDealUses() async {
+    return getUserDealRedemptions();
+  }
+
   /// Get detail for a specific booking
   Future<Booking> getBookingDetail(int bookingId) async {
     try {

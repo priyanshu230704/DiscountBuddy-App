@@ -31,6 +31,14 @@ class AppTypography {
     color: AppColors.textSecondary,
   );
 
+  static TextStyle bodyLarge = TextStyle(
+    fontFamily: AppFonts.bodyFont,
+    fontSize: 16,
+    fontWeight: FontWeight.w600,
+    height: 1.5,
+    color: AppColors.textPrimary,
+  );
+
   static TextStyle body = TextStyle(
     fontFamily: AppFonts.bodyFont,
     fontSize: 14,

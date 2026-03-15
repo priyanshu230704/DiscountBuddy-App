@@ -9,6 +9,7 @@ class ApiEndpoints {
   static const String googleLogin = '/users/google';
   static const String currentUser = '/users/me';
   static const String passwordReset = '/users/password-reset';
+  static const String deleteAccount = '/users/account-delete';
 
   // Restaurant Routes
   static const String restaurants = '/restaurants/restaurants';

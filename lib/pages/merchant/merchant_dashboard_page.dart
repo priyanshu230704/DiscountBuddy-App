@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:discount_buddy/theme/app_colors.dart';
 import 'package:discount_buddy/design/app_spacing.dart';
 import 'package:discount_buddy/design/app_typography.dart';
-import 'package:discount_buddy/design/app_shadows.dart';
 import 'package:discount_buddy/design/app_radius.dart';
-import 'package:discount_buddy/components/layout.dart';
 import 'merchant_restaurants_page.dart';
 import 'merchant_deals_page.dart';
 import 'merchant_bookings_page.dart';
 import 'merchant_reviews_page.dart';
 import 'qr_scanner_page.dart';
 import '../../services/merchant_service.dart';
+import '../../services/auth_service.dart';
+import '../../services/auth_service.dart';
 
 /// Merchant Dashboard Page - Central hub for restaurant owners
 class MerchantDashboardPage extends StatefulWidget {
@@ -21,7 +21,7 @@ class MerchantDashboardPage extends StatefulWidget {
 }
 
 class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
-  final MerchantService _merchantService = MerchantService();
+  final AuthService _authService = AuthService();
   bool _isLoading = true;
   bool _isFetching = false;
   int _totalBookings = 0;
@@ -284,6 +284,14 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
               ),
             ).then((_) => _fetchDashboardData()),
           ),
+          _MenuCard(
+            title: 'Settings',
+            subtitle: 'Account & security',
+            icon: Icons.settings_rounded,
+            color: const Color(0xFF6B7280),
+            gradient: const [Color(0xFF9CA3AF), Color(0xFF4B5563)],
+            onTap: () => _showSettingsDialog(),
+          ),
         ]),
       ),
     );
@@ -420,6 +428,154 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
         ),
       ),
     );
+  }
+
+  void _showSettingsDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(
+          'Settings',
+          style: AppTypography.title.copyWith(fontWeight: FontWeight.bold),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.logout_rounded, color: AppColors.error),
+              title: const Text('Logout', style: TextStyle(fontWeight: FontWeight.bold)),
+              onTap: () {
+                Navigator.pop(context);
+                _showLogoutConfirmation();
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.delete_forever_rounded, color: AppColors.error),
+              title: const Text('Delete Account', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.error)),
+              onTap: () {
+                Navigator.pop(context);
+                _showDeleteAccountConfirmation();
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLogoutConfirmation() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.xLarge),
+        title: Text(
+          'Logout',
+          style: AppTypography.title.copyWith(fontWeight: FontWeight.w800),
+        ),
+        content: const Text(
+          'Are you sure you want to logout?',
+          style: TextStyle(fontWeight: FontWeight.w500),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await _authService.logout();
+              if (mounted) {
+                Navigator.of(context).pushReplacementNamed('/login');
+              }
+            },
+            child: const Text('Logout', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteAccountConfirmation() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.xLarge),
+        title: Text(
+          'Delete Account',
+          style: AppTypography.title.copyWith(
+            fontWeight: FontWeight.w800,
+            color: AppColors.error,
+          ),
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'This action is permanent and cannot be undone.',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 12),
+            Text(
+              'All your merchant data, restaurants, and active deals will be deleted forever.',
+              style: TextStyle(fontSize: 13),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              _performDeleteAccount();
+            },
+            child: const Text(
+              'Delete Forever',
+              style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _performDeleteAccount() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      await _authService.deleteAccount();
+      if (mounted) {
+        Navigator.pop(context); // Close loading
+        Navigator.of(context).pushReplacementNamed('/login');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Account deleted successfully')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Close loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete account: ${e.toString()}')),
+        );
+      }
+    }
   }
 }
 

@@ -17,7 +17,7 @@ import '../../design/app_colors.dart';
 import '../../design/app_radius.dart';
 import '../../design/app_shadows.dart';
 import '../../design/app_spacing.dart';
-import '../../theme/app_fonts.dart';
+import '../../design/app_typography.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -524,7 +524,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                           children: [
                             Text(
                               "Discount",
-                              style: AppFonts.titleStyle(
+                              style: AppTypography.title.copyWith(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w800,
                                 height: 1.0,
@@ -536,7 +536,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                             ),
                             Text(
                               "Buddy",
-                              style: AppFonts.titleStyle(
+                              style: AppTypography.title.copyWith(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w800,
                                 height: 1.0,
@@ -597,9 +597,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                               const SizedBox(width: 3),
                               Text(
                                 _cityName,
-                                style: AppFonts.bodyStyle(
+                                style: AppTypography.body.copyWith(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 12,
+                                  fontSize: 14,
                                   color: AppColors.textPrimary,
                                 ),
                                 maxLines: 1,
@@ -696,7 +696,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       child: Padding(
         padding: const EdgeInsets.only(top: 0, bottom: 6),
         child: SizedBox(
-          height: 140, // Compressed from 200
+          height: 190, // Increased from 140 to fix overflow
           child: const _GradientBanner(
             title: "Get the Best Restaurant Deals",
             subtitle: "Exclusive offers and table\nreservations in your city.",
@@ -763,7 +763,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               : _activeFilter == HomeFilter.nearest
               ? "Best Near You"
               : "Top Rated Restaurants",
-          style: AppFonts.titleStyle(
+          style: AppTypography.title.copyWith(
             fontSize: 20,
             fontWeight: FontWeight.w900,
             color: AppColors.textPrimary,
@@ -853,13 +853,13 @@ class _SearchBar extends StatelessWidget {
               focusNode: focusNode,
               decoration: InputDecoration(
                 hintText: "Search restaurants, cuisines...",
-                hintStyle: AppFonts.bodyStyle(
+                hintStyle: AppTypography.body.copyWith(
                   fontSize: 13,
                   color: const Color(0xFF9CA3AF),
                 ),
                 border: InputBorder.none,
               ),
-              style: AppFonts.bodyStyle(
+              style: AppTypography.body.copyWith(
                 fontSize: 13,
                 color: const Color(0xFF111827),
               ),
@@ -921,7 +921,7 @@ class _FilterChipX extends StatelessWidget {
               children: [
                 Text(
                   text,
-                  style: AppFonts.bodyStyle(
+                  style: AppTypography.body.copyWith(
                     fontSize: 13.5,
                     fontWeight: FontWeight.bold,
                     color: active ? Colors.white : const Color(0xFF4B5563),
@@ -987,7 +987,7 @@ class _GradientBanner extends StatelessWidget {
                     children: [
                       Text(
                         title,
-                        style: AppFonts.titleStyle(
+                        style: AppTypography.title.copyWith(
                           fontSize: 22,
                           height: 1.1,
                           fontWeight: FontWeight.w800,
@@ -1000,7 +1000,7 @@ class _GradientBanner extends StatelessWidget {
                       const SizedBox(height: 10),
                       Text(
                         subtitle,
-                        style: AppFonts.bodyStyle(
+                        style: AppTypography.body.copyWith(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w500,
                           height: 1.3,
@@ -1025,7 +1025,7 @@ class _GradientBanner extends StatelessWidget {
                         ),
                         child: Text(
                           "Explore Now",
-                          style: AppFonts.bodyStyle(
+                          style: AppTypography.body.copyWith(
                             fontSize: 13,
                             fontWeight: FontWeight.w700,
                             color: Colors.white,
@@ -1091,7 +1091,7 @@ class _GradientBanner extends StatelessWidget {
                   const SizedBox(width: 5),
                   Text(
                     "LIVE DEALS",
-                    style: AppFonts.titleStyle(
+                    style: AppTypography.title.copyWith(
                       fontSize: 11,
                       fontWeight: FontWeight.w900,
                       color: const Color(0xFFF97316),
@@ -1229,7 +1229,7 @@ class _FeedTile extends StatelessWidget {
                         children: [
                           Text(
                             discountText,
-                            style: AppFonts.titleStyle(
+                            style: AppTypography.title.copyWith(
                               fontSize: 17,
                               fontWeight: FontWeight.w900,
                               color: Colors.white,
@@ -1238,7 +1238,7 @@ class _FeedTile extends StatelessWidget {
                           ),
                           Text(
                             "Limited Time",
-                            style: AppFonts.bodyStyle(
+                            style: AppTypography.body.copyWith(
                               fontSize: 10.5,
                               fontWeight: FontWeight.w600,
                               color: Colors.white.withValues(alpha: 0.95),
@@ -1263,7 +1263,7 @@ class _FeedTile extends StatelessWidget {
                         Expanded(
                           child: Text(
                             restaurant.name,
-                            style: AppFonts.titleStyle(
+                            style: AppTypography.title.copyWith(
                               fontSize: 16,
                               fontWeight: FontWeight.w800,
                               color: const Color(0xFF1B1436),
@@ -1291,7 +1291,7 @@ class _FeedTile extends StatelessWidget {
                           ),
                           child: Text(
                             "Reserve a Table",
-                            style: AppFonts.bodyStyle(
+                            style: AppTypography.body.copyWith(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -1314,7 +1314,7 @@ class _FeedTile extends StatelessWidget {
                         const SizedBox(width: 3),
                         Text(
                           restaurant.rating.toStringAsFixed(1),
-                          style: AppFonts.bodyStyle(
+                          style: AppTypography.body.copyWith(
                             fontSize: 11.5,
                             fontWeight: FontWeight.w800,
                             color: const Color(0xFF1B1436),
@@ -1340,7 +1340,7 @@ class _FeedTile extends StatelessWidget {
                             "${restaurant.reviewCount} reviews",
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: AppFonts.bodyStyle(
+                            style: AppTypography.body.copyWith(
                               fontSize: 11,
                               fontWeight: FontWeight.w400,
                               color: const Color(0xFF6B7280),
@@ -1358,7 +1358,7 @@ class _FeedTile extends StatelessWidget {
                         Expanded(
                           child: Text(
                             "Use code BUDDY$numeric to get ${discountText.toLowerCase()}",
-                            style: AppFonts.bodyStyle(
+                            style: AppTypography.body.copyWith(
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
                               color: const Color(0xFF4B5563),
@@ -1378,7 +1378,7 @@ class _FeedTile extends StatelessWidget {
                           "${dist.toStringAsFixed(1)} miles away",
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: AppFonts.bodyStyle(
+                          style: AppTypography.body.copyWith(
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: const Color(0xFF4B5563),

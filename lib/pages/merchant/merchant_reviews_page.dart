@@ -151,6 +151,7 @@ class _ReviewCard extends StatelessWidget {
     if (dateStr.isNotEmpty) {
       final parsedDate = DateTime.tryParse(dateStr);
       if (parsedDate != null) {
+        // Format to MMMM d, yyyy (e.g., October 15, 2023)
         formattedDate = DateFormat('MMMM d, yyyy').format(parsedDate.toLocal());
       }
     }

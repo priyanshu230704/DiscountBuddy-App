@@ -39,13 +39,11 @@ class ApiService {
   /// Add authorization token to headers
   void setAuthToken(String token) {
     _authToken = token;
-    _headers['Authorization'] = 'Bearer $token';
   }
 
   /// Remove authorization token from headers
   void removeAuthToken() {
     _authToken = null;
-    _headers.remove('Authorization');
   }
 
   /// Get current auth token
@@ -64,8 +62,12 @@ class ApiService {
   /// Get headers with current auth token if available
   Map<String, String> get headers {
     final headers = Map<String, String>.from(_headers);
-    if (_authToken != null) {
-      headers['Authorization'] = 'Bearer $_authToken';
+    if (_authToken != null && _authToken!.isNotEmpty) {
+      if (_authToken!.startsWith('Bearer ')) {
+        headers['Authorization'] = _authToken!;
+      } else {
+        headers['Authorization'] = 'Bearer $_authToken';
+      }
     }
     return headers;
   }

@@ -113,7 +113,17 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
                       separatorBuilder: (context, index) =>
                           const SizedBox(height: AppSpacing.lg),
                       itemBuilder: (context, index) {
-                        return _DealCard(deal: _deals[index]);
+                        return _DealCard(
+                          deal: _deals[index],
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AddDealPage(deal: _deals[index]),
+                              ),
+                            ).then((_) => _loadDeals());
+                          },
+                        );
                       },
                     ),
                   ),
@@ -155,8 +165,9 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
 
 class _DealCard extends StatelessWidget {
   final Map<String, dynamic> deal;
+  final VoidCallback onTap;
 
-  const _DealCard({required this.deal});
+  const _DealCard({required this.deal, required this.onTap});
 
   String _getDealTypeText(String? dealType) {
     switch (dealType) {
@@ -215,11 +226,13 @@ class _DealCard extends StatelessWidget {
       progress = (usedCount / maxUses).clamp(0.0, 1.0);
     }
 
-    return AppCard(
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return GestureDetector(
+      onTap: onTap,
+      child: AppCard(
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -300,8 +313,9 @@ class _DealCard extends StatelessWidget {
           ],
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _InfoTag extends StatelessWidget {

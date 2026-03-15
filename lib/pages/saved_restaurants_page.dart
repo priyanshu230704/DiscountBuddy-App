@@ -1,0 +1,106 @@
+import 'package:flutter/material.dart';
+import '../design/app_colors.dart';
+import '../design/app_spacing.dart';
+import '../design/app_typography.dart';
+import '../services/restaurant_service.dart';
+import '../models/restaurant.dart';
+import '../widgets/restaurant_card.dart';
+import '../widgets/loading_widget.dart';
+import 'restaurant_details_page.dart';
+
+class SavedRestaurantsPage extends StatefulWidget {
+  const SavedRestaurantsPage({super.key});
+
+  @override
+  State<SavedRestaurantsPage> createState() => _SavedRestaurantsPageState();
+}
+
+class _SavedRestaurantsPageState extends State<SavedRestaurantsPage> {
+  final RestaurantService _restaurantService = RestaurantService();
+  List<Restaurant> _savedRestaurants = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSaved();
+  }
+
+  Future<void> _loadSaved() async {
+    setState(() => _isLoading = true);
+    try {
+      final restaurants = await _restaurantService.getSavedRestaurants();
+      if (mounted) {
+        setState(() {
+          _savedRestaurants = restaurants;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load saved restaurants: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        backgroundColor: AppColors.background,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text(
+          'Saved Restaurants',
+          style: AppTypography.title.copyWith(fontSize: 20, fontWeight: FontWeight.bold),
+        ),
+      ),
+      body: _isLoading
+          ? const LoadingWidget(message: 'Loading favorites...')
+          : _savedRestaurants.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.favorite_border, size: 64, color: AppColors.textDisabled),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No saved restaurants yet',
+                        style: AppTypography.body.copyWith(color: AppColors.textSecondary),
+                      ),
+                    ],
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _loadSaved,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    itemCount: _savedRestaurants.length,
+                    itemBuilder: (context, index) {
+                      final restaurant = _savedRestaurants[index];
+                      return RestaurantCard(
+                        restaurant: restaurant,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => RestaurantDetailsPage(
+                                slug: restaurant.slug ?? restaurant.id,
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+    );
+  }
+}

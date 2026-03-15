@@ -22,7 +22,7 @@ class AppTheme {
     );
 
     return base.copyWith(
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         centerTitle: false,
         elevation: 0,
         backgroundColor: AppColors.background,
@@ -52,7 +52,7 @@ class AppTheme {
           fontWeight: FontWeight.w500,
         ),
       ),
-      textTheme: const TextTheme(
+      textTheme: TextTheme(
         headlineSmall: AppTypography.headline,
         titleMedium: AppTypography.title,
         bodyMedium: AppTypography.body,

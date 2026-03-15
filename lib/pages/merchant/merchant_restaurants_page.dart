@@ -3,7 +3,6 @@ import 'package:discount_buddy/theme/app_colors.dart';
 import 'package:discount_buddy/design/app_spacing.dart';
 import 'package:discount_buddy/design/app_typography.dart';
 import 'package:discount_buddy/components/layout.dart';
-import 'package:discount_buddy/components/inputs.dart';
 import 'package:discount_buddy/components/app_app_bar.dart';
 import '../../services/merchant_service.dart';
 import '../../widgets/skeleton_loader.dart';

@@ -13,7 +13,6 @@ import '../../services/restaurant_service.dart';
 import '../../services/location_service.dart';
 import '../../services/city_service.dart';
 import '../../design/app_colors.dart';
-import '../../design/app_spacing.dart';
 import '../restaurant_details_page.dart';
 import '../../widgets/city_selector_modal.dart';
 import '../../widgets/filter_modal.dart';

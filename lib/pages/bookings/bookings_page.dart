@@ -230,7 +230,7 @@ class _ReservationEmptyTab extends StatelessWidget {
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: trendingItems.length,
-              separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.lg),
+              separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.lg),
               itemBuilder: (context, index) =>
                   _TrendingCard(item: trendingItems[index]),
             ),
@@ -316,7 +316,7 @@ class _TrendingCard extends StatelessWidget {
                           Text(
                             'Limited time',
                             style: AppTypography.caption.copyWith(
-                              color: Colors.white.withOpacity(0.95),
+                              color: Colors.white.withValues(alpha: 0.95),
                             ),
                           ),
                         ],
@@ -603,7 +603,7 @@ class _RedemptionDetailModal extends StatelessWidget {
                               width: 200,
                               height: 200,
                               fit: BoxFit.contain,
-                              errorBuilder: (_, __, ___) {
+                              errorBuilder: (_, _, _) {
                                 return const Icon(
                                   Icons.broken_image,
                                   size: 64,

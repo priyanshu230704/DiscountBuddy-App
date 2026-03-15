@@ -239,7 +239,7 @@ class _ScanActionCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(14),
             ),
             child: const Icon(
@@ -276,82 +276,6 @@ class _ScanActionCard extends StatelessWidget {
   }
 }
 
-class _StatCard extends StatelessWidget {
-  final String label;
-  final String value;
-  final bool isLoading;
-  final IconData icon;
-  final Color color;
-  final bool isRating;
-
-  const _StatCard({
-    required this.label,
-    required this.value,
-    required this.isLoading,
-    required this.icon,
-    required this.color,
-    this.isRating = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: color, size: 20),
-          ),
-          const SizedBox(height: 16),
-          if (isLoading)
-            SizedBox(
-              height: 28,
-              width: 28,
-              child: CircularProgressIndicator(strokeWidth: 2, color: color),
-            )
-          else
-            Row(
-              children: [
-                Text(
-                  value,
-                  style: AppTypography.headline.copyWith(
-                    fontSize: 24,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                if (isRating) ...[
-                  const SizedBox(width: 4),
-                  const Icon(Icons.star_rounded, size: 18, color: Colors.amber),
-                ],
-              ],
-            ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: AppTypography.bodySmall,
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _MenuCard extends StatelessWidget {
   final String title;
@@ -379,7 +303,7 @@ class _MenuCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.08),
+              color: color.withValues(alpha: 0.08),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color, size: 28),

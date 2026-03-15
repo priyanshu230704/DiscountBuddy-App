@@ -762,3 +762,7 @@ class _MorePageState extends State<MorePage> {
     );
   }
 }
+
+class _MoreConstants {
+  static const double paddingSmall = 8.0;
+}

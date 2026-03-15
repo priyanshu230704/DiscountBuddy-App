@@ -3,7 +3,6 @@ import 'package:discount_buddy/theme/app_colors.dart';
 import 'package:discount_buddy/design/app_spacing.dart';
 import 'package:discount_buddy/design/app_typography.dart';
 import 'package:discount_buddy/components/layout.dart';
-import 'package:discount_buddy/components/buttons.dart';
 import 'package:discount_buddy/components/app_app_bar.dart';
 import '../../services/merchant_service.dart';
 import '../../widgets/skeleton_loader.dart';
@@ -186,8 +185,8 @@ class _DealCard extends StatelessWidget {
                 ),
                 decoration: BoxDecoration(
                   color: isActive
-                      ? AppColors.success.withOpacity(0.1)
-                      : Colors.red.withOpacity(0.1),
+                      ? AppColors.success.withValues(alpha: 0.1)
+                      : Colors.red.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(

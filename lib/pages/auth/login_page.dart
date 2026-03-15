@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_fonts.dart';
 import '../../design/app_colors.dart';
-import '../../design/app_radius.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/auth/auth_theme.dart';
 import 'register_page.dart';

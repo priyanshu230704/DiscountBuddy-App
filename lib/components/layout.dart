@@ -126,7 +126,7 @@ class StatCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(AppSpacing.sm),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.08),
+              color: color.withValues(alpha: 0.08),
               borderRadius: AppRadius.medium,
             ),
             child: Icon(icon, color: color, size: 20),
@@ -252,7 +252,7 @@ class AppDivider extends StatelessWidget {
       thickness: 1,
       indent: indent,
       endIndent: endIndent,
-      color: AppColors.textDisabled.withOpacity(0.12),
+      color: AppColors.textDisabled.withValues(alpha: 0.12),
     );
   }
 }

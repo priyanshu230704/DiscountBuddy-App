@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../design/app_colors.dart';
 import '../design/app_radius.dart';
 import '../design/app_spacing.dart';
 import '../models/restaurant.dart';
@@ -273,10 +272,8 @@ class _BrowsePageState extends State<BrowsePage> {
               margin: const EdgeInsets.all(AppSpacing.lg),
               child: Card(
                 elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                    AppRadius.medium,
-                  ),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: AppRadius.medium,
                 ),
                 child: InkWell(
                   onTap: () {
@@ -295,10 +292,10 @@ class _BrowsePageState extends State<BrowsePage> {
                       ClipRRect(
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(
-                            AppRadius.medium,
+                            12,
                           ),
                           bottomLeft: Radius.circular(
-                            AppRadius.medium,
+                            12,
                           ),
                         ),
                         child: CachedNetworkImage(

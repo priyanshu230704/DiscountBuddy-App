@@ -6,7 +6,6 @@ import 'package:discount_buddy/components/inputs.dart';
 import 'package:discount_buddy/components/buttons.dart';
 import 'package:discount_buddy/components/app_app_bar.dart';
 import '../../services/merchant_service.dart';
-import '../../widgets/auth/auth_text_field.dart';
 
 /// Add/Edit Deal Page for Merchants
 class AddDealPage extends StatefulWidget {

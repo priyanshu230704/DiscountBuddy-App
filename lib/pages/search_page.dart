@@ -7,7 +7,6 @@ import '../models/restaurant.dart';
 import '../services/restaurant_service.dart';
 import '../components/layout.dart';
 import '../widgets/restaurant_card.dart';
-import '../widgets/loading_widget.dart';
 import 'restaurant_details_page.dart';
 
 /// Search/Discover page for finding restaurants

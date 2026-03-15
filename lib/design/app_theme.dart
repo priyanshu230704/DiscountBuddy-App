@@ -30,7 +30,7 @@ class AppTheme {
         surfaceTintColor: Colors.transparent,
         titleTextStyle: AppTypography.headline,
       ),
-      cardTheme: const CardTheme(
+      cardTheme: const CardThemeData(
         color: AppColors.surface,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(

@@ -1,5 +1,6 @@
 import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/restaurant.dart';
 import 'package:discount_buddy/theme/app_colors.dart';
@@ -82,9 +83,9 @@ class RestaurantCard extends StatelessWidget {
                         ],
                       ),
                       child: IconButton(
-                        icon: const Icon(
-                          Icons.bookmark_border,
-                          color: AppColors.textPrimary,
+                        icon: Icon(
+                          restaurant.isFavourite ? Icons.favorite : Icons.favorite_border,
+                          color: restaurant.isFavourite ? Colors.orange : AppColors.textPrimary,
                           size: 20,
                         ),
                         onPressed: () {},
@@ -97,29 +98,30 @@ class RestaurantCard extends StatelessWidget {
                     ),
                   ),
                   // Discount Badge
-                  Positioned(
-                    bottom: _spacing * 1.5,
-                    left: _spacing * 1.5,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: _spacing * 1.5,
-                        vertical: _spacing,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.discount, // Orange discount badge
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        restaurant.discount.displayText,
-                        style: AppFonts.bodyStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
-                          letterSpacing: 0.2,
+                  if (restaurant.discount.type != 'none' && restaurant.discount.displayText.isNotEmpty)
+                    Positioned(
+                      bottom: _spacing * 1.5,
+                      left: _spacing * 1.5,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: _spacing * 1.5,
+                          vertical: _spacing,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.discount, // Orange discount badge
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          restaurant.discount.displayText,
+                          style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                            letterSpacing: 0.2,
+                          ),
                         ),
                       ),
                     ),
-                  ),
                   // Distance Badge
                   Positioned(
                     top: _spacing * 1.5,

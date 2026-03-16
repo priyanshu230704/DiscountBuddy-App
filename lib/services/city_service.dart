@@ -7,11 +7,16 @@ class CityService {
 
   Future<List<City>> getCities() async {
     try {
-      final Map<String, dynamic> body = await _apiService.get(
+      final response = await _apiService.get(
         ApiEndpoints.cities,
+        type: ApiType.common,
       );
-      final List results = body["results"] ?? [];
-      return results.map((e) => City.fromJson(e)).toList();
+
+      final List<dynamic> results = response is List
+          ? response as List<dynamic>
+          : (response['results'] ?? response['data'] ?? []) as List<dynamic>;
+
+      return results.map((e) => City.fromJson(e as Map<String, dynamic>)).toList();
     } catch (e) {
       if (e is ApiException) {
         String errorMessage = "Failed to load cities";

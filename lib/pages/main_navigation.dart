@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:discount_buddy/theme/app_colors.dart';
 import '../providers/auth_provider.dart';
@@ -32,13 +30,30 @@ class _MainNavigationState extends State<MainNavigation> {
   late int _currentIndex;
   final AuthProvider _authProvider = AuthProvider();
   final Map<int, Widget> _pageCache = {};
-  DateTime? _lastBackPressTime;
-
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+    _authProvider.addListener(_onAuthStateChanged);
+  }
+
+  @override
+  void dispose() {
+    _authProvider.removeListener(_onAuthStateChanged);
+    super.dispose();
+  }
+
+  void _onAuthStateChanged() {
+    if (!mounted) return;
+    if (!_authProvider.isAuthenticated) {
+      // User logged out or session expired, forcibly return to login
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+        }
+      });
+    }
   }
 
   Widget _getPage(int index) {
@@ -92,203 +107,80 @@ class _MainNavigationState extends State<MainNavigation> {
     final isMerchant = _authProvider.isMerchant;
 
     return Scaffold(
-      extendBody: true, // Important for floating nav bar
-      body: PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (didPop, result) {
-          if (didPop) return;
-
-          // If current tab is not Home/Dashboard, redirect to Home/Dashboard
-          if (_currentIndex != 0) {
-            setState(() {
-              _currentIndex = 0;
-            });
-            return;
+      body: IndexedStack(
+        index: _currentIndex,
+        children: List.generate(isMerchant ? 3 : 4, (index) {
+          if (index == _currentIndex || _pageCache.containsKey(index)) {
+            return _getPage(index);
           }
-
-          // Double tap to exit logic for Home/Dashboard
-          final now = DateTime.now();
-          const backPressInterval = Duration(seconds: 2);
-
-          if (_lastBackPressTime == null ||
-              now.difference(_lastBackPressTime!) > backPressInterval) {
-            _lastBackPressTime = now;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  'Press back again to exit',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                backgroundColor: AppColors.primaryPurple,
-                behavior: SnackBarBehavior.floating,
-                duration: backPressInterval,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            );
-          } else {
-            // Quit the app
-            SystemNavigator.pop();
-          }
-        },
-        child: IndexedStack(
-          index: _currentIndex,
-          children: List.generate(isMerchant ? 3 : 4, (index) {
-            if (index == _currentIndex || _pageCache.containsKey(index)) {
-              return _getPage(index);
-            }
-            return const SizedBox.shrink();
-          }),
-        ),
+          return const SizedBox.shrink();
+        }),
       ),
       bottomNavigationBar: Container(
-        padding: EdgeInsets.only(
-          top: 12,
-          bottom: MediaQuery.of(context).padding.bottom > 0
-              ? MediaQuery.of(context).padding.bottom + 4
-              : 12,
-        ),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.95),
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(32),
-            topRight: Radius.circular(32),
-          ),
+          color: AppColors.surface,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.08),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 20,
-              offset: const Offset(0, -5),
+              offset: const Offset(0, -4),
             ),
           ],
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: isMerchant
-              ? [
-                  _buildNavItem(
-                    context,
-                    icon: Icons.dashboard_outlined,
-                    selectedIcon: Icons.dashboard,
-                    label: 'Dashboard',
-                    index: 0,
-                  ),
-                  _buildNavItem(
-                    context,
-                    icon: Icons.local_offer_outlined,
-                    selectedIcon: Icons.local_offer,
-                    label: 'Deals',
-                    index: 1,
-                  ),
-                  _buildNavItem(
-                    context,
-                    svgPath: 'assets/svg/user.svg',
-                    label: 'Profile',
-                    index: 2,
-                  ),
-                ]
-              : [
-                  _buildNavItem(
-                    context,
-                    svgPath: 'assets/svg/home.svg',
-                    label: 'Home',
-                    index: 0,
-                  ),
-                  _buildNavItem(
-                    context,
-                    svgPath: 'assets/svg/search.svg',
-                    label: 'Search',
-                    index: 1,
-                  ),
-                  _buildNavItem(
-                    context,
-                    icon: Icons.calendar_today_outlined,
-                    selectedIcon: Icons.calendar_today,
-                    label: 'Bookings',
-                    index: 2,
-                  ),
-                  _buildNavItem(
-                    context,
-                    svgPath: 'assets/svg/user.svg',
-                    label: 'Profile',
-                    index: 3,
-                  ),
-                ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(
-    BuildContext context, {
-    IconData? icon,
-    IconData? selectedIcon,
-    String? svgPath,
-    required String label,
-    required int index,
-  }) {
-    final isSelected = _currentIndex == index;
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        behavior: HitTestBehavior.opaque,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeOutCubic,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.primaryPurple.withValues(alpha: 0.08)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: svgPath != null
-                  ? SvgPicture.asset(
-                      svgPath,
-                      width: 24,
-                      height: 24,
-                      colorFilter: ColorFilter.mode(
-                        isSelected
-                            ? AppColors.primaryPurple
-                            : (isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280)),
-                        BlendMode.srcIn,
-                      ),
-                    )
-                  : Icon(
-                      isSelected ? selectedIcon : icon,
-                      size: 26,
-                      color: isSelected
-                          ? AppColors.primaryPurple
-                          : (isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280)),
-                    ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected
-                    ? AppColors.primaryPurple
-                    : (isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280)),
-                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                fontSize: 10,
-                letterSpacing: -0.2,
-              ),
-            ),
-          ],
+        child: BottomNavigationBar(
+          elevation: 0,
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: AppColors.surface,
+          selectedItemColor: AppColors.primary,
+          unselectedItemColor: const Color(0xFF9CA3AF),
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
+          currentIndex: _currentIndex,
+          onTap: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+        items: isMerchant
+            ? const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.dashboard_outlined),
+                  activeIcon: Icon(Icons.dashboard),
+                  label: 'Dashboard',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.local_offer_outlined),
+                  activeIcon: Icon(Icons.local_offer),
+                  label: 'Deals',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.person_outline),
+                  activeIcon: Icon(Icons.person),
+                  label: 'Profile',
+                ),
+              ]
+            : const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home_outlined),
+                  activeIcon: Icon(Icons.home),
+                  label: 'Home',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.search_outlined),
+                  activeIcon: Icon(Icons.search),
+                  label: 'Search',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.calendar_today_outlined),
+                  activeIcon: Icon(Icons.calendar_today),
+                  label: 'Bookings',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.person_outline),
+                  activeIcon: Icon(Icons.person),
+                  label: 'Profile',
+                ),
+              ],
         ),
       ),
     );

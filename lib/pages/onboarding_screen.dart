@@ -1,5 +1,6 @@
 import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
+import '../design/app_colors.dart';
 import '../services/onboarding_service.dart';
 import 'auth/login_page.dart';
 import 'auth/register_page.dart';
@@ -86,14 +87,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           // Premium Mesh Gradient Background
           Positioned.fill(
             child: Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Color(0xFFEDE7FF),
-                    Color(0xFFFFF2F9),
-                    Color(0xFFF0F7FF),
+                    AppColors.background,
+                    AppColors.surface,
+                    AppColors.background,
                   ],
                 ),
               ),
@@ -119,7 +120,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             child: Center(
               child: _GlowBubble(
                 size: 700 * scale,
-                color: const Color(0xFFFFB2D9).withValues(alpha: 0.4),
+                color: AppColors.secondary.withValues(alpha: 0.3),
               ),
             ),
           ),

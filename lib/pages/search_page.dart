@@ -1,10 +1,13 @@
-import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
+import '../design/app_colors.dart';
+import '../design/app_radius.dart';
+import '../design/app_shadows.dart';
+import '../design/app_spacing.dart';
+import '../design/app_typography.dart';
 import '../models/restaurant.dart';
 import '../services/restaurant_service.dart';
+import '../components/layout.dart';
 import '../widgets/restaurant_card.dart';
-import '../widgets/loading_widget.dart';
-import 'package:discount_buddy/theme/app_colors.dart';
 import 'restaurant_details_page.dart';
 
 /// Search/Discover page for finding restaurants
@@ -13,13 +16,6 @@ class SearchPage extends StatefulWidget {
 
   @override
   State<SearchPage> createState() => _SearchPageState();
-}
-
-// Local constants for search page
-class _SearchConstants {
-  static const double paddingSmall = 8.0;
-  static const double paddingMedium = 16.0;
-  static const double radiusMedium = 12.0;
 }
 
 class _SearchPageState extends State<SearchPage> {
@@ -106,14 +102,11 @@ class _SearchPageState extends State<SearchPage> {
             expandedHeight: 100,
             floating: true,
             pinned: true,
-            backgroundColor: AppColors.primaryPurple,
+            backgroundColor: AppColors.primary,
             flexibleSpace: FlexibleSpaceBar(
               title: Text(
                 'Discover',
-                style: AppFonts.bodyStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: AppTypography.title.copyWith(color: AppColors.white),
               ),
               background: Container(
                 decoration: const BoxDecoration(
@@ -125,26 +118,30 @@ class _SearchPageState extends State<SearchPage> {
           // Search Bar
           SliverToBoxAdapter(
             child: Container(
-              padding: const EdgeInsets.all(_SearchConstants.paddingMedium),
+              margin: const EdgeInsets.all(AppSpacing.lg),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: AppRadius.xLarge,
+                border: Border.all(color: AppColors.cardBorder),
+                boxShadow: AppShadows.card,
+              ),
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
                   hintText: 'Search restaurants...',
-                  prefixIcon: const Icon(Icons.search),
+                  prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(Icons.clear),
+                          icon: const Icon(Icons.clear, color: AppColors.textSecondary),
                           onPressed: () {
                             _searchController.clear();
                           },
                         )
                       : null,
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: Colors.transparent,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(
-                      _SearchConstants.radiusMedium,
-                    ),
+                    borderRadius: AppRadius.xLarge,
                     borderSide: BorderSide.none,
                   ),
                 ),
@@ -158,16 +155,14 @@ class _SearchPageState extends State<SearchPage> {
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: _SearchConstants.paddingMedium,
+                  horizontal: AppSpacing.lg,
                 ),
                 itemCount: _cuisines.length,
                 itemBuilder: (context, index) {
                   final cuisine = _cuisines[index];
                   final isSelected = cuisine == _selectedCuisine;
                   return Padding(
-                    padding: const EdgeInsets.only(
-                      right: _SearchConstants.paddingSmall,
-                    ),
+                    padding: const EdgeInsets.only(right: AppSpacing.sm),
                     child: FilterChip(
                       label: Text(cuisine),
                       selected: isSelected,
@@ -177,12 +172,17 @@ class _SearchPageState extends State<SearchPage> {
                           _filterRestaurants();
                         });
                       },
-                      selectedColor: AppColors.primaryPurple,
-                      labelStyle: AppFonts.bodyStyle(
-                        color: isSelected ? Colors.white : AppColors.textPrimary,
-                        fontWeight: isSelected
-                            ? FontWeight.bold
-                            : FontWeight.normal,
+                      selectedColor: AppColors.primary,
+                      backgroundColor: AppColors.surface,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        side: BorderSide(
+                          color: isSelected ? Colors.transparent : AppColors.cardBorder,
+                        ),
+                      ),
+                      labelStyle: AppTypography.body.copyWith(
+                        color: isSelected ? AppColors.white : AppColors.textPrimary,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                       ),
                     ),
                   );
@@ -194,12 +194,12 @@ class _SearchPageState extends State<SearchPage> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(
-                horizontal: _SearchConstants.paddingMedium,
-                vertical: _SearchConstants.paddingSmall,
+                horizontal: AppSpacing.lg,
+                vertical: AppSpacing.sm,
               ),
               child: Text(
                 '${_filteredRestaurants.length} restaurants found',
-                style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                style: AppTypography.bodySmall,
               ),
             ),
           ),
@@ -210,30 +210,15 @@ class _SearchPageState extends State<SearchPage> {
             )
           else if (_filteredRestaurants.isEmpty)
             SliverFillRemaining(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.search_off, size: 64, color: Colors.grey[400]),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No restaurants found',
-                      style: TextStyle(fontSize: 18, color: Colors.grey[600]),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Try a different search term',
-                      style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-                    ),
-                  ],
-                ),
+              child: EmptyStateWidget(
+                icon: Icons.search_off,
+                title: 'No restaurants found',
+                message: 'Try a different search term',
               ),
             )
           else
             SliverPadding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: _SearchConstants.paddingMedium,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate((context, index) {
                   final restaurant = _filteredRestaurants[index];

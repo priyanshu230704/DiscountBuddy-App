@@ -39,13 +39,11 @@ class ApiService {
   /// Add authorization token to headers
   void setAuthToken(String token) {
     _authToken = token;
-    _headers['Authorization'] = 'Bearer $token';
   }
 
   /// Remove authorization token from headers
   void removeAuthToken() {
     _authToken = null;
-    _headers.remove('Authorization');
   }
 
   /// Get current auth token
@@ -64,8 +62,12 @@ class ApiService {
   /// Get headers with current auth token if available
   Map<String, String> get headers {
     final headers = Map<String, String>.from(_headers);
-    if (_authToken != null) {
-      headers['Authorization'] = 'Bearer $_authToken';
+    if (_authToken != null && _authToken!.isNotEmpty) {
+      if (_authToken!.startsWith('Bearer ')) {
+        headers['Authorization'] = _authToken!;
+      } else {
+        headers['Authorization'] = 'Bearer $_authToken';
+      }
     }
     return headers;
   }
@@ -273,9 +275,101 @@ class ApiService {
     }
   }
 
+  /// POST request with multipart/form-data (for file uploads)
+  Future<Map<String, dynamic>> postMultipart(
+    String endpoint, {
+    Map<String, String>? fields,
+    Map<String, http.MultipartFile>? files,
+    ApiType type = ApiType.user,
+  }) async {
+    try {
+      final normalizedEndpoint = _normalizeEndpoint(endpoint);
+      final baseUrl = _getBaseUrl(type);
+      final uri = Uri.parse('$baseUrl$normalizedEndpoint');
+
+      if (Environment.enableLogging) {
+        debugPrint('POST MULTIPART: $uri');
+        debugPrint('Fields: $fields');
+        debugPrint('Files: ${files?.keys}');
+      }
+
+      final request = http.MultipartRequest('POST', uri);
+      request.headers.addAll(headers);
+
+      // Update Content-Type for multipart
+      request.headers['Content-Type'] = 'multipart/form-data';
+
+      if (fields != null) {
+        request.fields.addAll(fields);
+      }
+
+      if (files != null) {
+        files.forEach((key, value) {
+          request.files.add(value);
+        });
+      }
+
+      final streamedResponse =
+          await _client.send(request).timeout(Environment.apiTimeout);
+
+      final response = await http.Response.fromStream(streamedResponse);
+
+      return _handleResponse(response);
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  /// PATCH request with multipart/form-data (for file uploads)
+  Future<Map<String, dynamic>> patchMultipart(
+    String endpoint, {
+    Map<String, String>? fields,
+    Map<String, http.MultipartFile>? files,
+    ApiType type = ApiType.user,
+  }) async {
+    try {
+      final normalizedEndpoint = _normalizeEndpoint(endpoint);
+      final baseUrl = _getBaseUrl(type);
+      final uri = Uri.parse('$baseUrl$normalizedEndpoint');
+
+      if (Environment.enableLogging) {
+        debugPrint('PATCH MULTIPART: $uri');
+        debugPrint('Fields: $fields');
+        debugPrint('Files: ${files?.keys}');
+      }
+
+      final request = http.MultipartRequest('PATCH', uri);
+      request.headers.addAll(headers);
+      
+      // Update Content-Type for multipart
+      request.headers['Content-Type'] = 'multipart/form-data';
+
+      if (fields != null) {
+        request.fields.addAll(fields);
+      }
+
+      if (files != null) {
+        files.forEach((key, value) {
+          request.files.add(value);
+        });
+      }
+
+      final streamedResponse = await _client
+          .send(request)
+          .timeout(Environment.apiTimeout);
+
+      final response = await http.Response.fromStream(streamedResponse);
+
+      return _handleResponse(response);
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   /// DELETE request
   Future<Map<String, dynamic>> delete(
     String endpoint, {
+    Map<String, dynamic>? body,
     ApiType type = ApiType.user,
   }) async {
     try {
@@ -285,11 +379,15 @@ class ApiService {
 
       if (Environment.enableLogging) {
         debugPrint('DELETE: $uri');
+        if (body != null) debugPrint('Body: $body');
       }
 
       final request = http.Request('DELETE', uri)
         ..headers.addAll(headers)
         ..followRedirects = false;
+      if (body != null) {
+        request.body = jsonEncode(body);
+      }
 
       final streamedResponse = await _client
           .send(request)

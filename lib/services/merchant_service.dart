@@ -1,6 +1,7 @@
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../config/api_endpoints.dart';
+import 'package:http/http.dart' as http;
 
 /// Merchant Service for restaurant and deal management
 class MerchantService {
@@ -20,6 +21,22 @@ class MerchantService {
       _apiService.setAuthToken(token);
     } else {
       throw Exception('Authentication required. Please login again.');
+    }
+  }
+
+  /// Get merchant aggregate dashboard statistics
+  Future<Map<String, dynamic>> getMerchantDashboardStats() async {
+    try {
+      await _ensureAuthenticated();
+
+      final response = await _apiService.get(
+        ApiEndpoints.merchantDashboard,
+        type: ApiType.merchant,
+      );
+      
+      return response;
+    } catch (e) {
+      throw Exception('Failed to load dashboard stats: ${e.toString()}');
     }
   }
 
@@ -56,7 +73,7 @@ class MerchantService {
   }
 
   /// Get restaurant details - returns raw Map for form compatibility
-  Future<Map<String, dynamic>> getRestaurantDetails(int restaurantId) async {
+  Future<Map<String, dynamic>> getRestaurantDetail(int restaurantId) async {
     try {
       await _ensureAuthenticated();
 
@@ -494,12 +511,20 @@ class MerchantService {
 
   /// Redeem a deal using QR code data
   /// QR data format: `DEALUSE:<deal_use_id>:<redemption_code>`
-  Future<Map<String, dynamic>> redeemDealByQR(String qrData) async {
+  Future<Map<String, dynamic>> redeemDealByQR(
+    String qrData, {
+    required double price,
+    required int peopleCount,
+  }) async {
     try {
       await _ensureAuthenticated();
       final response = await _apiService.post(
         ApiEndpoints.merchantRedeemDeal,
-        body: {'qr_data': qrData},
+        body: {
+          'qr_data': qrData,
+          'price': price,
+          'people_count': peopleCount,
+        },
         type: ApiType.merchant,
       );
       return response;
@@ -512,12 +537,20 @@ class MerchantService {
   }
 
   /// Redeem a deal using manual redemption code
-  Future<Map<String, dynamic>> redeemDealByCode(String redemptionCode) async {
+  Future<Map<String, dynamic>> redeemDealByCode(
+    String redemptionCode, {
+    required double price,
+    required int peopleCount,
+  }) async {
     try {
       await _ensureAuthenticated();
       final response = await _apiService.post(
         ApiEndpoints.merchantRedeemDeal,
-        body: {'redemption_code': redemptionCode},
+        body: {
+          'redemption_code': redemptionCode,
+          'price': price,
+          'people_count': peopleCount,
+        },
         type: ApiType.merchant,
       );
       return response;
@@ -526,6 +559,21 @@ class MerchantService {
         throw Exception('Redemption failed: ${e.message}');
       }
       throw Exception('Redemption failed: ${e.toString()}');
+    }
+  }
+
+  /// Update restaurant occupancy status
+  Future<Map<String, dynamic>> updateOccupancy(int restaurantId, String occupancy) async {
+    try {
+      await _ensureAuthenticated();
+      final response = await _apiService.patch(
+        ApiEndpoints.merchantUpdateOccupancy,
+        body: {'restaurant_id': restaurantId, 'occupancy': occupancy},
+        type: ApiType.merchant,
+      );
+      return response;
+    } catch (e) {
+      throw Exception('Failed to update occupancy: ${e.toString()}');
     }
   }
 
@@ -594,6 +642,98 @@ class MerchantService {
       return [];
     } catch (e) {
       throw Exception('Failed to load categories: ${e.toString()}');
+    }
+  }
+
+  /// Get reference data - Facilities (public endpoint, no auth required)
+  Future<List<Map<String, dynamic>>> getFacilities({
+    String? search,
+    String? ordering,
+  }) async {
+    try {
+      final queryParams = <String, String>{};
+      if (search != null && search.isNotEmpty) queryParams['search'] = search;
+      if (ordering != null) queryParams['ordering'] = ordering;
+
+      final response = await _apiService.get(
+        ApiEndpoints.facilityList,
+        queryParameters: queryParams,
+        type: ApiType.common,
+      );
+
+      if (response.containsKey('results')) {
+        final results = response['results'];
+        if (results is List) {
+          return (results).map((item) => item as Map<String, dynamic>).toList();
+        }
+      } else if (response is List) {
+        return (response as List)
+            .map((item) => item as Map<String, dynamic>)
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      throw Exception('Failed to load facilities: ${e.toString()}');
+    }
+  }
+
+  /// --- Image Management ---
+
+  /// Upload restaurant image
+  Future<Map<String, dynamic>> uploadRestaurantImage({
+    required int restaurantId,
+    required String imagePath,
+    required String imageType, // gallery, menu
+    String? altText,
+    bool isPrimary = false,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+
+      final fields = {
+        'restaurant': restaurantId.toString(),
+        'image_type': imageType,
+        'is_primary': isPrimary.toString(),
+      };
+      if (altText != null) fields['alt_text'] = altText;
+
+      final file = await http.MultipartFile.fromPath('image', imagePath);
+
+      return await _apiService.postMultipart(
+        ApiEndpoints.merchantRestaurantImages,
+        fields: fields,
+        files: {'image': file},
+        type: ApiType.merchant,
+      );
+    } catch (e) {
+      throw Exception('Failed to upload image: ${e.toString()}');
+    }
+  }
+
+  /// Delete restaurant image
+  Future<void> deleteRestaurantImage(int imageId) async {
+    try {
+      await _ensureAuthenticated();
+      await _apiService.delete(
+        ApiEndpoints.merchantRestaurantImageDetail(imageId),
+        type: ApiType.merchant,
+      );
+    } catch (e) {
+      throw Exception('Failed to delete image: ${e.toString()}');
+    }
+  }
+
+  /// Set primary image for restaurant gallery
+  Future<Map<String, dynamic>> setPrimaryImage(int imageId) async {
+    try {
+      await _ensureAuthenticated();
+      return await _apiService.patch(
+        ApiEndpoints.merchantRestaurantImageDetail(imageId),
+        body: {'is_primary': true},
+        type: ApiType.merchant,
+      );
+    } catch (e) {
+      throw Exception('Failed to set primary image: ${e.toString()}');
     }
   }
 }

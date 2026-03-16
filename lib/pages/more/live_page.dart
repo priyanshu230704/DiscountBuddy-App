@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../design/app_colors.dart';
+import '../../design/app_radius.dart';
+import '../../design/app_spacing.dart';
 import '../../widgets/blurred_ellipse_background.dart';
 import '../../widgets/border_gradient.dart';
 
@@ -10,13 +13,6 @@ class LivePage extends StatefulWidget {
 
   @override
   State<LivePage> createState() => _LivePageState();
-}
-
-// Local constants for live page
-class _LiveConstants {
-  static const double paddingMedium = 16.0;
-  static const double paddingLarge = 24.0;
-  static const double radiusLarge = 16.0;
 }
 
 class _LivePageState extends State<LivePage> {
@@ -157,11 +153,11 @@ class _LivePageState extends State<LivePage> {
 
   Color _getUrgencyColor(Duration remaining) {
     if (remaining.inMinutes < 5) {
-      return Colors.red;
+      return AppColors.error;
     } else if (remaining.inMinutes < 15) {
-      return Colors.orange;
+      return AppColors.accent;
     } else {
-      return Colors.green;
+      return AppColors.success;
     }
   }
 
@@ -172,7 +168,7 @@ class _LivePageState extends State<LivePage> {
         .toList();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: AppColors.textPrimary,
       body: Stack(
         children: [
           const BlurredEllipseBackground(),
@@ -183,8 +179,8 @@ class _LivePageState extends State<LivePage> {
                 // Header with live indicator
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: _LiveConstants.paddingMedium,
-                    vertical: _LiveConstants.paddingMedium,
+                    horizontal: AppSpacing.lg,
+                    vertical: AppSpacing.lg,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -298,9 +294,9 @@ class _LivePageState extends State<LivePage> {
                           color: const Color(0xFF3E25F6),
                           child: ListView.builder(
                             padding: const EdgeInsets.only(
-                              left: _LiveConstants.paddingMedium,
-                              right: _LiveConstants.paddingMedium,
-                              bottom: _LiveConstants.paddingLarge,
+                              left: AppSpacing.lg,
+                              right: AppSpacing.lg,
+                              bottom: AppSpacing.xxl,
                             ),
                             itemCount: activeOffers.length,
                             itemBuilder: (context, index) {
@@ -418,14 +414,14 @@ class _LivePageState extends State<LivePage> {
     final isUrgent = remaining.inMinutes < 5;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: _LiveConstants.paddingMedium),
+      margin: const EdgeInsets.only(bottom: AppSpacing.lg),
       child: BorderGradient(
         borderWidth: isUrgent ? 1.5 : 0.5,
-        borderRadius: BorderRadius.circular(_LiveConstants.radiusLarge),
+        borderRadius: AppRadius.large,
         child: Container(
           decoration: BoxDecoration(
             color: const Color(0xFF1A1B1F),
-            borderRadius: BorderRadius.circular(_LiveConstants.radiusLarge),
+            borderRadius: AppRadius.large,
             boxShadow: [
               BoxShadow(
                 color: urgencyColor.withValues(alpha: isUrgent ? 0.3 : 0.15),
@@ -440,8 +436,8 @@ class _LivePageState extends State<LivePage> {
               // Image section (compact)
               ClipRRect(
                 borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(_LiveConstants.radiusLarge),
-                  bottomLeft: Radius.circular(_LiveConstants.radiusLarge),
+                  topLeft: Radius.circular(16),
+                  bottomLeft: Radius.circular(16),
                 ),
                 child: Stack(
                   children: [

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../design/app_colors.dart';
 import '../providers/auth_provider.dart';
 import '../services/onboarding_service.dart';
 import 'onboarding_screen.dart';
@@ -63,28 +64,27 @@ class _OnboardingCheckScreenState extends State<OnboardingCheckScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFDFDFF),
+      backgroundColor: AppColors.surface,
       body: Stack(
         children: [
-          // Subtle background gradient for consistency
           Positioned.fill(
             child: Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Color(0xFFEDE7FF),
-                    Color(0xFFFFF2F9),
-                    Color(0xFFF0F7FF),
+                    AppColors.background,
+                    AppColors.surface,
+                    AppColors.background,
                   ],
                 ),
               ),
             ),
           ),
-          const Center(
+          Center(
             child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8B5CF6)),
+              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
             ),
           ),
         ],

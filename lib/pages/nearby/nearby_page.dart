@@ -3,16 +3,18 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+import '../../design/app_typography.dart';
 import '../../models/restaurant.dart';
 import '../../models/city.dart';
 import '../../services/restaurant_service.dart';
 import '../../services/location_service.dart';
 import '../../services/city_service.dart';
-import '../../theme/app_colors.dart';
+import '../../design/app_colors.dart';
+import '../../design/app_radius.dart';
+import '../../design/app_shadows.dart';
 import '../restaurant_details_page.dart';
 import '../../widgets/city_selector_modal.dart';
 import '../../widgets/filter_modal.dart';
@@ -185,7 +187,7 @@ class _NearbyPageState extends State<NearbyPage>
             );
             final cities = await _cityService.getCities();
 
-            if (mounted && !_isManualCitySelected) {
+            if (mounted && !_isManualCitySelected && cities.isNotEmpty) {
               // Find matching city in our database list
               final matchedCity = cities.firstWhere(
                 (c) =>
@@ -205,7 +207,9 @@ class _NearbyPageState extends State<NearbyPage>
               // Re-run restaurant load now that we have the proper city ID
               await _loadCityRestaurants();
             }
-          } catch (_) {}
+          } catch (e) {
+            debugPrint("Error detecting city: $e");
+          }
         }
       }
 
@@ -699,8 +703,7 @@ class _NearbyPageState extends State<NearbyPage>
                         _isCityListLoading
                             ? "Loading..."
                             : "${_cityRestaurants.length} places",
-                        style: AppFonts.bodyStyle(
-                          fontSize: 13,
+                        style: AppTypography.bodySmall.copyWith(
                           fontWeight: FontWeight.w700,
                           color: Colors.black54,
                         ),
@@ -715,8 +718,7 @@ class _NearbyPageState extends State<NearbyPage>
                         ? Center(
                             child: Text(
                               "No restaurants found in $_cityName 😕",
-                              style: AppFonts.bodyStyle(
-                                fontSize: 14,
+                              style: AppTypography.body.copyWith(
                                 fontWeight: FontWeight.w700,
                                 color: Colors.black54,
                               ),
@@ -749,22 +751,10 @@ class _NearbyPageState extends State<NearbyPage>
                                   margin: const EdgeInsets.only(bottom: 12),
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(14),
-                                    border: Border.all(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.06,
-                                      ),
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        blurRadius: 14,
-                                        color: Colors.black.withValues(
-                                          alpha: 0.06,
-                                        ),
-                                        offset: const Offset(0, 6),
-                                      ),
-                                    ],
+                                    color: AppColors.surface,
+                                    borderRadius: AppRadius.xLarge,
+                                    border: Border.all(color: AppColors.cardBorder),
+                                    boxShadow: AppShadows.card,
                                   ),
                                   child: Row(
                                     children: [
@@ -798,7 +788,7 @@ class _NearbyPageState extends State<NearbyPage>
                                               r.name,
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
-                                              style: AppFonts.bodyStyle(
+                                              style: AppTypography.title.copyWith(
                                                 fontSize: 16,
                                                 fontWeight: FontWeight.w900,
                                                 color: Colors.black,
@@ -809,8 +799,7 @@ class _NearbyPageState extends State<NearbyPage>
                                               _cityName,
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
-                                              style: AppFonts.bodyStyle(
-                                                fontSize: 13,
+                                              style: AppTypography.bodySmall.copyWith(
                                                 fontWeight: FontWeight.w600,
                                                 color: Colors.black54,
                                               ),
@@ -956,7 +945,7 @@ class _NearbyPageState extends State<NearbyPage>
                     left: 16,
                     right: 16,
                     bottom:
-                        125, // Adjusted to prevent touching bottom navigation bar
+                        50, // Adjusted to prevent touching bottom navigation bar
                     child: SlideTransition(
                       position: _cardSlide,
                       child: _restaurantPreviewCard(_selectedRestaurant!),
@@ -968,7 +957,7 @@ class _NearbyPageState extends State<NearbyPage>
                     left: 16,
                     right: 16,
                     bottom:
-                        135, // Adjusted to prevent touching bottom navigation bar
+                        50, // Adjusted to prevent touching bottom navigation bar
                     child: _bottomButtons(),
                   ),
 
@@ -1028,7 +1017,7 @@ class _NearbyPageState extends State<NearbyPage>
                     _cityName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: AppFonts.titleStyle(
+                    style: AppTypography.headline.copyWith(
                       fontSize: cityFontSize,
                       fontWeight: FontWeight.w900,
                       color: Colors.black,
@@ -1075,15 +1064,10 @@ class _NearbyPageState extends State<NearbyPage>
             height: 46,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.surface,
               borderRadius: BorderRadius.circular(14),
-              boxShadow: [
-                BoxShadow(
-                  blurRadius: 14,
-                  color: Colors.black.withValues(alpha: 0.08),
-                  offset: const Offset(0, 6),
-                ),
-              ],
+              border: Border.all(color: AppColors.cardBorder),
+              boxShadow: AppShadows.card,
             ),
             child: Row(
               children: [
@@ -1097,8 +1081,7 @@ class _NearbyPageState extends State<NearbyPage>
                       border: InputBorder.none,
                       hintText: "Search restaurants...",
                     ),
-                    style: AppFonts.bodyStyle(
-                      fontSize: 14,
+                    style: AppTypography.body.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -1161,15 +1144,10 @@ class _NearbyPageState extends State<NearbyPage>
     return Container(
       height: 40,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            blurRadius: 12,
-            color: Colors.black.withValues(alpha: 0.10),
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: AppColors.cardBorder),
+        boxShadow: AppShadows.card,
       ),
       child: Material(
         color: Colors.transparent,
@@ -1183,9 +1161,8 @@ class _NearbyPageState extends State<NearbyPage>
               const SizedBox(width: 8),
               Text(
                 label,
-                style: AppFonts.bodyStyle(
+                style: AppTypography.button.copyWith(
                   fontSize: 13,
-                  fontWeight: FontWeight.w800,
                   color: Colors.black,
                 ),
               ),
@@ -1201,15 +1178,10 @@ class _NearbyPageState extends State<NearbyPage>
       width: 40,
       height: 40,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         shape: BoxShape.circle,
-        boxShadow: [
-          BoxShadow(
-            blurRadius: 12,
-            color: Colors.black.withValues(alpha: 0.10),
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: AppColors.cardBorder),
+        boxShadow: AppShadows.card,
       ),
       child: Material(
         color: Colors.transparent,
@@ -1231,15 +1203,10 @@ class _NearbyPageState extends State<NearbyPage>
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.98),
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 22,
-              color: Colors.black.withValues(alpha: 0.18),
-              offset: const Offset(0, 4),
-            ),
-          ],
+          color: AppColors.surface.withValues(alpha: 0.98),
+          borderRadius: AppRadius.xLarge,
+          border: Border.all(color: AppColors.cardBorder),
+          boxShadow: AppShadows.card,
         ),
         child: Row(
           children: [
@@ -1277,7 +1244,7 @@ class _NearbyPageState extends State<NearbyPage>
                       Expanded(
                         child: Text(
                           restaurant.name,
-                          style: AppFonts.bodyStyle(
+                          style: AppTypography.title.copyWith(
                             fontSize: 20,
                             fontWeight: FontWeight.w900,
                             color: Colors.black,
@@ -1304,8 +1271,7 @@ class _NearbyPageState extends State<NearbyPage>
                       const SizedBox(width: 6),
                       Text(
                         "${restaurant.rating.toStringAsFixed(1)} (${restaurant.reviewCount})",
-                        style: AppFonts.bodyStyle(
-                          fontSize: 14,
+                        style: AppTypography.body.copyWith(
                           fontWeight: FontWeight.w700,
                           color: Colors.black,
                         ),
@@ -1313,8 +1279,7 @@ class _NearbyPageState extends State<NearbyPage>
                       const SizedBox(width: 12),
                       Text(
                         "${dist.toStringAsFixed(2)} miles",
-                        style: AppFonts.bodyStyle(
-                          fontSize: 14,
+                        style: AppTypography.bodySmall.copyWith(
                           fontWeight: FontWeight.w600,
                           color: Colors.black54,
                         ),
@@ -1323,8 +1288,7 @@ class _NearbyPageState extends State<NearbyPage>
                       Expanded(
                         child: Text(
                           restaurant.cuisine,
-                          style: AppFonts.bodyStyle(
-                            fontSize: 14,
+                          style: AppTypography.bodySmall.copyWith(
                             fontWeight: FontWeight.w600,
                             color: Colors.black54,
                           ),
@@ -1350,8 +1314,7 @@ class _NearbyPageState extends State<NearbyPage>
                         ),
                         child: Text(
                           t,
-                          style: AppFonts.bodyStyle(
-                            fontSize: 14,
+                          style: AppTypography.bodySmall.copyWith(
                             fontWeight: FontWeight.w800,
                             color: Colors.white,
                           ),
@@ -1372,15 +1335,10 @@ class _NearbyPageState extends State<NearbyPage>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.95),
+        color: AppColors.surface.withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            blurRadius: 12,
-            color: Colors.black.withValues(alpha: 0.10),
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: AppColors.cardBorder),
+        boxShadow: AppShadows.card,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1393,8 +1351,7 @@ class _NearbyPageState extends State<NearbyPage>
           const SizedBox(width: 10),
           Text(
             "Loading nearby restaurants...",
-            style: AppFonts.bodyStyle(
-              fontSize: 13,
+            style: AppTypography.body.copyWith(
               fontWeight: FontWeight.w700,
               color: Colors.black,
             ),

@@ -1,8 +1,11 @@
-import 'package:discount_buddy/theme/app_colors.dart';
-
-import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:discount_buddy/theme/app_colors.dart';
+import 'package:discount_buddy/design/app_radius.dart';
+import 'package:discount_buddy/design/app_spacing.dart';
+import 'package:discount_buddy/design/app_typography.dart';
+import 'package:discount_buddy/components/layout.dart';
+import 'package:discount_buddy/components/buttons.dart';
 import '../../services/booking_service.dart';
 
 class UserBookingsView extends StatefulWidget {
@@ -71,25 +74,22 @@ class _UserBookingsViewState extends State<UserBookingsView> {
   @override
   Widget build(BuildContext context) {
     return _isLoading
-        ? const Center(child: CircularProgressIndicator())
+        ? const LoadingWidget(message: 'Loading your bookings...')
         : _bookings.isEmpty
-        ? Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.event_busy, size: 64, color: Colors.grey[300]),
-                const SizedBox(height: 16),
-                Text(
-                  'No bookings found',
-                  style: AppFonts.bodyStyle(color: AppColors.textSecondary),
-                ),
-              ],
-            ),
+        ? const EmptyStateWidget(
+            icon: Icons.event_busy,
+            title: 'No bookings found',
+            message: 'Your reservations will appear here once you book a table.',
           )
         : RefreshIndicator(
             onRefresh: _loadBookings,
             child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.lg,
+                AppSpacing.lg,
+                100,
+              ),
               itemCount: _bookings.length,
               itemBuilder: (context, index) {
                 final booking = _bookings[index];
@@ -125,96 +125,81 @@ class _UserBookingCard extends StatelessWidget {
       restaurantName = booking['restaurant']['name'];
     }
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      elevation: 0,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    restaurantName,
-                    style: AppFonts.bodyStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                _StatusBadge(status: status),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
-                const SizedBox(width: 8),
-                Text(
-                  date != null
-                      ? DateFormat('MMM d, yyyy HH:mm').format(date.toLocal())
-                      : dateStr ?? '',
-                  style: AppFonts.bodyStyle(color: Colors.grey[700]),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                const Icon(Icons.people, size: 16, color: Colors.grey),
-                const SizedBox(width: 8),
-                Text(
-                  '${booking['number_of_guests']} Guests',
-                  style: AppFonts.bodyStyle(color: Colors.grey[700]),
-                ),
-              ],
-            ),
-            if (isCancellable) ...[
-              const Divider(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (ctx) => AlertDialog(
-                        title: const Text('Cancel Booking?'),
-                        content: const Text(
-                          'Are you sure you want to cancel this reservation?',
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(ctx),
-                            child: const Text('No'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(ctx);
-                              onCancel();
-                            },
-                            style: TextButton.styleFrom(
-                              foregroundColor: Colors.red,
-                            ),
-                            child: const Text('Yes, Cancel'),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.red,
-                    side: const BorderSide(color: Colors.red),
-                  ),
-                  child: const Text('Cancel Booking'),
+    return AppCard(
+      margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  restaurantName,
+                  style: AppTypography.title.copyWith(fontSize: 18),
                 ),
               ),
+              _StatusBadge(status: status),
             ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              const Icon(Icons.calendar_today, size: 16, color: Colors.grey),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                date != null
+                    ? DateFormat('MMM d, yyyy HH:mm').format(date.toLocal())
+                    : dateStr ?? '',
+                style: AppTypography.bodySmall,
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Row(
+            children: [
+              const Icon(Icons.people, size: 16, color: Colors.grey),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                '${booking['number_of_guests']} guests',
+                style: AppTypography.bodySmall,
+              ),
+            ],
+          ),
+          if (isCancellable) ...[
+            const Divider(height: 24),
+            SecondaryButton(
+              label: 'Cancel booking',
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Cancel booking?'),
+                    content: const Text(
+                      'Are you sure you want to cancel this reservation?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text('No'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          onCancel();
+                        },
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.red,
+                        ),
+                        child: const Text('Yes, cancel'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -238,18 +223,18 @@ class _StatusBadge extends StatelessWidget {
         color = AppColors.discount;
     }
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: AppRadius.medium,
+        border: Border.all(color: color.withValues(alpha: 0.5)),
       ),
       child: Text(
         status.toUpperCase(),
-        style: AppFonts.bodyStyle(
-          color: color,
-          fontWeight: FontWeight.bold,
-          fontSize: 10,
-        ),
+        style: AppTypography.caption.copyWith(color: color),
       ),
     );
   }

@@ -1,6 +1,6 @@
-import 'package:discount_buddy/theme/app_colors.dart';
-
 import 'package:flutter/material.dart';
+import '../../design/app_colors.dart';
+import '../../design/app_radius.dart';
 import '../../theme/app_fonts.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/auth/auth_theme.dart';
@@ -83,11 +83,21 @@ class _RegisterPageState extends State<RegisterPage> {
     } else if (_currentStep == 1) {
       // Step 2: OTP
       isValid = _otpController.text.length == 4;
-    } else {
+    } else if (_currentStep == 2) {
       // Step 3: Password
-      isValid =
-          _passwordController.text.length >= 6 &&
-          _confirmPasswordController.text == _passwordController.text;
+      final password = _passwordController.text;
+      final confirmPassword = _confirmPasswordController.text;
+      
+      final hasUppercase = password.contains(RegExp(r'[A-Z]'));
+      final hasLowercase = password.contains(RegExp(r'[a-z]'));
+      final hasDigits = password.contains(RegExp(r'[0-9]'));
+      final hasMinLength = password.length >= 8;
+
+      isValid = hasMinLength &&
+          hasUppercase &&
+          hasLowercase &&
+          hasDigits &&
+          confirmPassword == password;
     }
 
     if (isValid != _isFormValid) {
@@ -99,29 +109,39 @@ class _RegisterPageState extends State<RegisterPage> {
 
   void _authListener() {
     if (!mounted) return;
-    if (_authProvider?.isAuthenticated ?? false) {
-      Navigator.of(context).pushReplacementNamed('/home');
-    } else if ((_authProvider?.isLoading ?? false) != _isLoading) {
-      setState(() {
-        _isLoading = _authProvider?.isLoading ?? false;
-      });
-    }
 
-    if (_authProvider?.errorMessage != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            _authProvider!.errorMessage!,
-            style: AuthTheme.bodyText,
+    // Safety check for navigation and snackbars which must be outside build/layout
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      if (_authProvider?.isAuthenticated ?? false) {
+        Navigator.of(context).pushReplacementNamed('/home');
+        return; // Exit after navigation
+      }
+
+      if (_authProvider?.errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _authProvider!.errorMessage!,
+              style: AuthTheme.bodyText,
+            ),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: AppRadius.medium,
+            ),
           ),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
-      _authProvider?.clearError();
+        );
+        _authProvider?.clearError();
+      }
+    });
+
+    final newIsLoading = _authProvider?.isLoading ?? false;
+    if (newIsLoading != _isLoading) {
+      setState(() {
+        _isLoading = newIsLoading;
+      });
     }
   }
 
@@ -141,7 +161,7 @@ class _RegisterPageState extends State<RegisterPage> {
     }
 
     if (currentText != sanitizedText) {
-      Future.delayed(Duration(milliseconds: 1000), () {
+      Future.delayed(Duration(milliseconds: 10), () {
         if (mounted && controller.text == currentText) {
           controller.value = controller.value.copyWith(
             text: sanitizedText,
@@ -224,16 +244,17 @@ class _RegisterPageState extends State<RegisterPage> {
     final scale = (MediaQuery.of(context).size.width / 390).clamp(0.7, 1.05);
 
     return PopScope(
-      canPop: false,
+      canPop: true,
       child: Scaffold(
         resizeToAvoidBottomInset: false,
-        backgroundColor: const Color(0xFFFDFDFF),
+        backgroundColor: AppColors.surface,
         body: GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
           child: Stack(
             fit: StackFit.expand,
             children: [
+
               Positioned.fill(
                 child: Container(
                   decoration: BoxDecoration(
@@ -241,9 +262,9 @@ class _RegisterPageState extends State<RegisterPage> {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        const Color(0xFFEDE7FF),
-                        const Color(0xFFFFF2F9),
-                        const Color(0xFFF0F7FF),
+                        AppColors.background,
+                        AppColors.surface,
+                        AppColors.background,
                       ],
                     ),
                   ),
@@ -260,8 +281,8 @@ class _RegisterPageState extends State<RegisterPage> {
                       shape: BoxShape.circle,
                       gradient: RadialGradient(
                         colors: [
-                          const Color(0xFFDCCBFF).withValues(alpha: 0.5),
-                          const Color(0xFFDCCBFF).withValues(alpha: 0.2),
+                          AppColors.primary.withValues(alpha: 0.35),
+                          AppColors.primary.withValues(alpha: 0.2),
                           Colors.transparent,
                         ],
                       ),
@@ -278,8 +299,8 @@ class _RegisterPageState extends State<RegisterPage> {
                       shape: BoxShape.circle,
                       gradient: RadialGradient(
                         colors: [
-                          const Color(0xFFFFD6E7).withValues(alpha: 0.4),
-                          const Color(0xFFFFD6E7).withValues(alpha: 0.16),
+                          AppColors.secondary.withValues(alpha: 0.25),
+                          AppColors.secondary.withValues(alpha: 0.12),
                           Colors.transparent,
                         ],
                       ),
@@ -353,34 +374,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Row(
-                              children: [
-                                if (_currentStep > 0)
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: IconButton(
-                                      icon: Icon(
-                                        Icons.arrow_back_ios_new_rounded,
-                                        color: AppColors.textPrimary,
-                                        size: 18,
-                                      ),
-                                      onPressed: () {
-                                        setState(() {
-                                          if (_currentStep > 0) {
-                                            _currentStep--;
-                                            _validateForm();
-                                          }
-                                        });
-                                      },
-                                    ),
-                                  )
-                                else
-                                  const SizedBox(height: 48),
-                              ],
-                            ),
+
                             const SizedBox(height: 8),
                             Center(
                               child: Container(
@@ -657,8 +651,17 @@ class _RegisterPageState extends State<RegisterPage> {
                                         if (value == null || value.isEmpty) {
                                           return 'Please enter a password';
                                         }
-                                        if (value.length < 6) {
-                                          return 'Password must be at least 6 characters';
+                                        if (value.length < 8) {
+                                          return 'Password must be at least 8 characters';
+                                        }
+                                        if (!value.contains(RegExp(r'[A-Z]'))) {
+                                          return 'Must contain at least one capital letter';
+                                        }
+                                        if (!value.contains(RegExp(r'[a-z]'))) {
+                                          return 'Must contain at least one small letter';
+                                        }
+                                        if (!value.contains(RegExp(r'[0-9]'))) {
+                                          return 'Must contain at least one number';
                                         }
                                         return null;
                                       },
@@ -823,7 +826,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                           Text(
                                             'Continue with Google',
                                             style: AppFonts.bodyStyle(
-                                              color: const Color(0xFF1D1930),
+                                              color: AppColors.textPrimary,
                                               fontWeight: FontWeight.w700,
                                               fontSize: 14,
                                             ),

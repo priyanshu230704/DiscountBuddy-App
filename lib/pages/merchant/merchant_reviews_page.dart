@@ -1,8 +1,11 @@
-import 'package:discount_buddy/theme/app_colors.dart';
-
-import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../services/merchant_service.dart';
+import '../../design/app_colors.dart';
+import '../../design/app_spacing.dart';
+import '../../design/app_typography.dart';
+import '../../components/layout.dart';
+import '../../components/app_app_bar.dart';
 import '../../widgets/skeleton_loader.dart';
 
 class MerchantReviewsPage extends StatefulWidget {
@@ -44,7 +47,10 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
       if (mounted) {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load reviews: ${e.toString()}')),
+          SnackBar(
+            content: Text('Failed to load reviews: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     } finally {
@@ -58,80 +64,70 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          'Reviews',
-          style: AppFonts.bodyStyle(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        backgroundColor: AppColors.white,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
+      appBar: AppAppBar(
+        titleText: 'Customer Reviews',
+        backgroundColor: AppColors.surface,
       ),
-      body: _isLoading
-          ? _buildLoadingState()
-          : _reviews.isEmpty
-          ? _buildEmptyState()
-          : RefreshIndicator(
-              onRefresh: _loadReviews,
-              color: AppColors.accent,
-              child: ListView.separated(
-                padding: const EdgeInsets.all(20),
-                itemCount: _reviews.length,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: 16),
-                itemBuilder: (context, index) {
-                  final review = _reviews[index];
-                  return _ReviewCard(review: review);
-                },
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (!_isLoading && _reviews.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.sm),
+              child: Text(
+                '${_reviews.length} Review${_reviews.length == 1 ? '' : 's'}',
+                style: AppTypography.title.copyWith(fontSize: 18),
               ),
             ),
+          Expanded(
+            child: _isLoading
+                ? _buildLoadingState()
+                : _reviews.isEmpty
+                ? _buildEmptyState()
+                : RefreshIndicator(
+                    onRefresh: _loadReviews,
+                    color: AppColors.merchantAmber,
+                    child: ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.xl,
+                        AppSpacing.sm,
+                        AppSpacing.xl,
+                        AppSpacing.xxxl,
+                      ),
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemCount: _reviews.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: AppSpacing.lg),
+                      itemBuilder: (context, index) {
+                        return _ReviewCard(review: _reviews[index]);
+                      },
+                    ),
+                  ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildLoadingState() {
     return ListView.builder(
-      padding: const EdgeInsets.all(20),
-      itemCount: 5,
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      itemCount: 4,
       itemBuilder: (context, index) => Padding(
-        padding: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.only(bottom: AppSpacing.lg),
         child: SkeletonLoader(
           height: 140,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(24),
         ),
       ),
     );
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.rate_review_rounded,
-            size: 64,
-            color: AppColors.textDisabled,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No reviews yet',
-            style: AppFonts.bodyStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Customer feedback will appear here',
-            style: AppFonts.bodyStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ],
-      ),
+    return const EmptyStateWidget(
+      icon: Icons.rate_review_rounded,
+      title: 'No reviews yet',
+      message: 'Customer feedback will appear here once you receive reviews.',
     );
   }
 }
@@ -143,81 +139,109 @@ class _ReviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = review['user_name'] ?? 'Anonymous';
+    final user = review['user_name']?.toString().isNotEmpty == true 
+        ? review['user_name'].toString() 
+        : 'Anonymous';
     final restaurant = review['restaurant_name'] ?? 'Restaurant';
-    final rating = (review['rating'] ?? 0);
-    final comment = review['comment'] ?? '';
-    final date = review['created_at'] ?? '';
+    final rating = (review['rating'] ?? 0) is num ? (review['rating'] as num).toInt() : 0;
+    final comment = review['comment']?.toString().trim() ?? '';
+    final dateStr = review['created_at'] ?? '';
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
+    String? formattedDate;
+    if (dateStr.isNotEmpty) {
+      final parsedDate = DateTime.tryParse(dateStr);
+      if (parsedDate != null) {
+        // Format to MMMM d, yyyy (e.g., October 15, 2023)
+        formattedDate = DateFormat('MMMM d, yyyy').format(parsedDate.toLocal());
+      }
+    }
+
+    final initial = user.substring(0, 1).toUpperCase();
+
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.merchantAmber.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
                 child: Text(
-                  user,
-                  style: AppFonts.bodyStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: AppColors.textPrimary,
+                  initial,
+                  style: AppTypography.title.copyWith(
+                    color: AppColors.merchantAmber,
+                    fontSize: 18,
                   ),
                 ),
               ),
-              Row(
-                children: List.generate(
-                  5,
-                  (index) => Icon(
-                    index < rating
-                        ? Icons.star_rounded
-                        : Icons.star_outline_rounded,
-                    size: 18,
-                    color: Colors.amber,
-                  ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user,
+                      style: AppTypography.title.copyWith(fontSize: 16),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      restaurant,
+                      style: AppTypography.subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.star_rounded, size: 20, color: Colors.amber.shade400),
+                  const SizedBox(width: 4),
+                  Text(
+                    rating.toString(),
+                    style: AppTypography.body.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            restaurant,
-            style: AppFonts.bodyStyle(
-              fontSize: 12,
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
           if (comment.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Text(
-              comment,
-              style: AppFonts.bodyStyle(
-                color: AppColors.textPrimary,
-                height: 1.5,
+            const SizedBox(height: AppSpacing.lg),
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.cardBorder),
+              ),
+              child: Text(
+                comment,
+                style: AppTypography.body.copyWith(
+                  color: AppColors.textPrimary,
+                  height: 1.4,
+                ),
               ),
             ),
           ],
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.md),
           Text(
-            date,
-            style: AppFonts.bodyStyle(
-              fontSize: 11,
-              color: AppColors.textDisabled,
-            ),
+            formattedDate ?? dateStr,
+            style: AppTypography.caption,
           ),
         ],
       ),

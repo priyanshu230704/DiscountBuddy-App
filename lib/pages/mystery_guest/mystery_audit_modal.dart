@@ -1,8 +1,9 @@
-import 'package:discount_buddy/theme/app_colors.dart';
-
 import 'dart:io';
-import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
+import '../../design/app_colors.dart';
+import '../../design/app_radius.dart';
+import '../../design/app_shadows.dart';
+import '../../design/app_typography.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../models/mystery_visit.dart';
 import '../../services/mystery_guest_service.dart';
@@ -74,7 +75,12 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
   }
 
   Future<void> _pickAndUploadEvidence() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.camera,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 85,
+    );
     if (image == null) return;
 
     setState(() => _isLoading = true);
@@ -147,8 +153,8 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.9,
       decoration: const BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: const EdgeInsets.all(20),
       child: Stack(
@@ -161,7 +167,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
                 children: [
                   Text(
                     'Mystery Guest Audit',
-                    style: AppFonts.bodyStyle(
+                    style: AppTypography.body.copyWith(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
@@ -183,7 +189,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
           ),
           if (_isLoading)
             Container(
-              color: Colors.white60,
+              color: AppColors.white.withValues(alpha: 0.6),
               child: const Center(child: CircularProgressIndicator()),
             ),
         ],
@@ -195,19 +201,19 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Icon(Icons.psychology, size: 80, color: Colors.blue),
+        const Icon(Icons.psychology, size: 80, color: AppColors.primary),
         const SizedBox(height: 24),
         Text(
           'Anonymous Audit',
-          style: AppFonts.bodyStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          style: AppTypography.body.copyWith(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 32),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
           child: Text(
             'Once you start the audit, your status will change to "In Progress". Please ensure you are at the location and ready to evaluate.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey),
+            style: AppTypography.bodySmall,
           ),
         ),
         const SizedBox(height: 40),
@@ -217,9 +223,9 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
           child: ElevatedButton(
             onPressed: _startVisit,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
+              backgroundColor: AppColors.primary,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: AppRadius.large,
               ),
             ),
             child: const Text(
@@ -227,7 +233,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
-                color: Colors.white,
+                color: AppColors.white,
               ),
             ),
           ),
@@ -306,11 +312,12 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: AppRadius.medium,
+                  border: Border.all(color: AppColors.cardBorder),
+                  boxShadow: AppShadows.card,
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: AppRadius.medium,
                   child: Image.network(e.fileUrl, fit: BoxFit.cover),
                 ),
               ),
@@ -321,14 +328,14 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(8),
+                  color: AppColors.surface,
+                  borderRadius: AppRadius.medium,
                   border: Border.all(
-                    color: Colors.grey.shade300,
-                    style: BorderStyle.none,
+                    color: AppColors.cardBorder,
                   ),
+                  boxShadow: AppShadows.card,
                 ),
-                child: const Icon(Icons.add_a_photo, color: Colors.grey),
+                child: const Icon(Icons.add_a_photo, color: AppColors.textDisabled),
               ),
             ),
           ],
@@ -339,16 +346,19 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
         _buildCommentField(_overallComment, 'Any other feedback?'),
 
         SwitchListTile(
-          title: const Text(
+          title: Text(
             'Flag for Risk?',
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+            style: AppTypography.body.copyWith(
+              fontWeight: FontWeight.bold,
+              color: AppColors.error,
+            ),
           ),
           subtitle: const Text(
             'Something major was wrong (e.g., safety, fraud)',
           ),
           value: _isRiskFlagged,
           onChanged: (val) => setState(() => _isRiskFlagged = val),
-          activeThumbColor: Colors.red,
+          activeThumbColor: AppColors.error,
         ),
 
         const SizedBox(height: 32),
@@ -358,9 +368,9 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
           child: ElevatedButton(
             onPressed: _submitReport,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryPurple,
+              backgroundColor: AppColors.primary,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: AppRadius.large,
               ),
             ),
             child: const Text(
@@ -368,7 +378,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
-                color: Colors.white,
+                color: AppColors.white,
               ),
             ),
           ),
@@ -383,7 +393,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
       padding: const EdgeInsets.only(top: 24, bottom: 8),
       child: Text(
         title,
-        style: AppFonts.bodyStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        style: AppTypography.body.copyWith(fontWeight: FontWeight.bold, fontSize: 16),
       ),
     );
   }
@@ -401,7 +411,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
           alignment: Alignment.center,
           child: Text(
             '$score/10',
-            style: AppFonts.bodyStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            style: AppTypography.body.copyWith(fontSize: 24, fontWeight: FontWeight.bold),
           ),
         ),
         IconButton(
@@ -420,18 +430,18 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
         maxLines: 2,
         decoration: InputDecoration(
           hintText: hint,
-          fillColor: Colors.grey.shade50,
+          fillColor: AppColors.background,
           filled: true,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.shade200),
+            borderRadius: AppRadius.large,
+            borderSide: BorderSide(color: AppColors.cardBorder),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Colors.grey.shade200),
+            borderRadius: AppRadius.large,
+            borderSide: BorderSide(color: AppColors.cardBorder),
           ),
         ),
-        style: AppFonts.bodyStyle(fontSize: 14),
+        style: AppTypography.body.copyWith(fontSize: 14),
       ),
     );
   }

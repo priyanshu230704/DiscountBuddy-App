@@ -1,12 +1,12 @@
-import 'package:discount_buddy/theme/app_colors.dart';
-
-import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../services/qr_scanner_service.dart';
 import '../../services/merchant_service.dart';
 import '../../models/deal_redemption.dart';
 import '../../widgets/generic_bottom_sheet.dart';
+import '../../theme/app_colors.dart';
+import '../../design/app_typography.dart';
+import '../../design/app_spacing.dart';
 
 /// QR Scanner Screen for merchants to scan and redeem customer deals
 class QRScannerPage extends StatefulWidget {
@@ -47,8 +47,6 @@ class _QRScannerPageState extends State<QRScannerPage> {
   Future<void> _handleQRCode(String qrData) async {
     if (_isProcessing) return;
 
-    setState(() => _isProcessing = true);
-
     // Pause scanner to prevent multiple scans
     await _controller.stop();
 
@@ -57,7 +55,6 @@ class _QRScannerPageState extends State<QRScannerPage> {
       if (mounted) {
         _showErrorDialog('Invalid QR code format', null);
       }
-      setState(() => _isProcessing = false);
       // Resume scanner after a delay
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) _controller.start();
@@ -65,40 +62,189 @@ class _QRScannerPageState extends State<QRScannerPage> {
       return;
     }
 
-    // Show loading
+    // Show details modal to collect price and people count
+    if (mounted) {
+      _showRedemptionDetailsModal(qrData: qrData);
+    }
+  }
+
+  void _showRedemptionDetailsModal({String? qrData, String? manualCode}) {
+    final priceController = TextEditingController();
+    final peopleController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.textDisabled.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Redemption Details',
+                  style: AppTypography.title.copyWith(fontSize: 20),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Enter bill details to complete redemption',
+                  style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Total Bill Amount',
+                  style: AppTypography.bodySmall.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: priceController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    hintText: '0.00',
+                    prefixIcon: const Icon(Icons.receipt_long_rounded),
+                    filled: true,
+                    fillColor: AppColors.background,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(color: AppColors.cardBorder),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) return 'Required';
+                    if (double.tryParse(value) == null) return 'Invalid number';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'Number of People',
+                  style: AppTypography.bodySmall.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: peopleController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    hintText: '1',
+                    prefixIcon: const Icon(Icons.people_alt_rounded),
+                    filled: true,
+                    fillColor: AppColors.background,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(color: AppColors.cardBorder),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) return 'Required';
+                    if (int.tryParse(value) == null) return 'Invalid number';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (formKey.currentState!.validate()) {
+                        final price = double.parse(priceController.text);
+                        final peopleCount = int.parse(peopleController.text);
+                        Navigator.of(context).pop();
+                        _processRedemption(
+                          qrData: qrData,
+                          manualCode: manualCode,
+                          price: price,
+                          peopleCount: peopleCount,
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.merchantIndigo,
+                      foregroundColor: AppColors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      'Redeem Deal',
+                      style: AppTypography.title.copyWith(color: AppColors.white),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _processRedemption({
+    String? qrData,
+    String? manualCode,
+    required double price,
+    required int peopleCount,
+  }) async {
+    setState(() => _isProcessing = true);
     _showLoadingDialog();
 
     try {
-      // Call redemption API
-      final response = await _merchantService.redeemDealByQR(qrData);
+      final response = qrData != null
+          ? await _merchantService.redeemDealByQR(qrData, price: price, peopleCount: peopleCount)
+          : await _merchantService.redeemDealByCode(manualCode!, price: price, peopleCount: peopleCount);
 
-      // Hide loading
       if (!mounted) return;
-      Navigator.of(context).pop();
+      Navigator.of(context).pop(); // Hide loading
 
-      // Check if redemption was successful
       final success = response['success'] ?? false;
       if (success) {
         final dealRedemption = DealRedemption.fromJson(response);
-        if (mounted) _showSuccessDialog(dealRedemption);
+        _showSuccessDialog(dealRedemption);
       } else {
-        final reason = _cleanErrorMessage(
-          response['reason'] ?? 'Redemption failed',
-        );
-        if (mounted) _showErrorDialog(reason, null);
+        final reason = _cleanErrorMessage(response['reason'] ?? 'Redemption failed');
+        _showErrorDialog(reason, null);
       }
     } catch (e) {
-      // Hide loading
       if (!mounted) return;
-      Navigator.of(context).pop();
-
-      // Extract and clean error message
-      String errorMessage = _cleanErrorMessage(e.toString());
-
-      if (mounted) _showErrorDialog(errorMessage, null);
+      Navigator.of(context).pop(); // Hide loading
+      _showErrorDialog(_cleanErrorMessage(e.toString()), null);
+    } finally {
+      setState(() => _isProcessing = false);
     }
-
-    setState(() => _isProcessing = false);
   }
 
   String _cleanErrorMessage(String message) {
@@ -127,18 +273,14 @@ class _QRScannerPageState extends State<QRScannerPage> {
                 height: 48,
                 width: 48,
                 child: CircularProgressIndicator(
-                  color: AppColors.accent,
-                  strokeWidth: 3,
+                  color: AppColors.merchantIndigo,
+                  strokeWidth: 4,
                 ),
               ),
               const SizedBox(height: 24),
               Text(
                 'Verifying deal...',
-                style: AppFonts.bodyStyle(
-                  fontSize: 16,
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
+                style: AppTypography.title.copyWith(fontSize: 16),
               ),
             ],
           ),
@@ -149,7 +291,11 @@ class _QRScannerPageState extends State<QRScannerPage> {
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+      SnackBar(
+        content: Text(message), 
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 
@@ -176,16 +322,17 @@ class _QRScannerPageState extends State<QRScannerPage> {
                   child: Icon(
                     Icons.check_circle_rounded,
                     color: AppColors.success,
-                    size: 52,
+                    size: 64,
                   ),
                 ),
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  margin: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: const EdgeInsets.all(AppSpacing.xl),
+                  margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                   decoration: BoxDecoration(
                     color: AppColors.background,
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.cardBorder),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,15 +340,11 @@ class _QRScannerPageState extends State<QRScannerPage> {
                     children: [
                       Text(
                         dealRedemption.deal.title,
-                        style: AppFonts.bodyStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
+                        style: AppTypography.title.copyWith(fontSize: 18),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
                       _buildInfoRow(
                         'Code',
                         dealRedemption.redemptionCode ?? 'N/A',
@@ -211,15 +354,15 @@ class _QRScannerPageState extends State<QRScannerPage> {
                         dealRedemption.deal.restaurantName,
                       ),
                       _buildInfoRow(
-                        'Redeemed',
+                        'Redeemed At',
                         _formatDateTime(dealRedemption.redeemedAt),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 24),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                   child: SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -228,24 +371,22 @@ class _QRScannerPageState extends State<QRScannerPage> {
                         Navigator.of(context).pop(); // Go back to dashboard
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.accent,
-                        foregroundColor: AppColors.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        backgroundColor: AppColors.merchantIndigo,
+                        foregroundColor: AppColors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                         ),
                       ),
                       child: Text(
                         'Done',
-                        style: AppFonts.bodyStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+                        style: AppTypography.title.copyWith(color: AppColors.white),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 16),
               ],
             ),
           ),
@@ -256,27 +397,25 @@ class _QRScannerPageState extends State<QRScannerPage> {
 
   Widget _buildInfoRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 90,
+            width: 100,
             child: Text(
               label,
-              style: AppFonts.bodyStyle(
+              style: AppTypography.bodySmall.copyWith(
                 color: AppColors.textSecondary,
-                fontSize: 13,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: AppFonts.bodyStyle(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w500,
-                fontSize: 13,
+              style: AppTypography.body.copyWith(
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
@@ -287,11 +426,11 @@ class _QRScannerPageState extends State<QRScannerPage> {
 
   void _showErrorDialog(String message, dynamic errorType) {
     IconData icon = Icons.error_outline_rounded;
-    Color color = Colors.red;
+    Color color = AppColors.error;
 
     if (message.contains('already been redeemed')) {
       icon = Icons.warning_amber_rounded;
-      color = AppColors.discount;
+      color = AppColors.merchantAmber;
     }
 
     showModalBottomSheet(
@@ -308,23 +447,22 @@ class _QRScannerPageState extends State<QRScannerPage> {
             children: [
               Padding(
                 padding: const EdgeInsets.only(top: 8, bottom: 16),
-                child: Icon(icon, color: color, size: 52),
+                child: Icon(icon, color: color, size: 60),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                 child: Text(
                   message,
                   textAlign: TextAlign.center,
-                  style: AppFonts.bodyStyle(
-                    fontSize: 15,
-                    color: AppColors.textPrimary,
+                  style: AppTypography.body.copyWith(
+                    fontSize: 16,
                     height: 1.4,
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
                 child: SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -338,26 +476,24 @@ class _QRScannerPageState extends State<QRScannerPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.background,
                       foregroundColor: AppColors.textPrimary,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                       elevation: 0,
-                      side: const BorderSide(
-                        color: AppColors.textDisabled,
+                      side: BorderSide(
+                        color: AppColors.cardBorder,
+                        width: 1.5,
                       ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(16),
                       ),
                     ),
                     child: Text(
                       'Try Again',
-                      style: AppFonts.bodyStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
+                      style: AppTypography.title.copyWith(fontSize: 16),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -378,9 +514,9 @@ class _QRScannerPageState extends State<QRScannerPage> {
         appBar: AppBar(
           title: Text(
             'Scan QR Code',
-            style: AppFonts.bodyStyle(fontWeight: FontWeight.bold),
+            style: AppTypography.headline.copyWith(fontSize: 20),
           ),
-          backgroundColor: AppColors.white,
+          backgroundColor: AppColors.surface,
           foregroundColor: AppColors.textPrimary,
           elevation: 0,
         ),
@@ -388,24 +524,33 @@ class _QRScannerPageState extends State<QRScannerPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.camera_alt, size: 64, color: Colors.grey),
-              const SizedBox(height: 16),
+              const Icon(Icons.camera_alt_rounded, size: 80, color: AppColors.textDisabled),
+              const SizedBox(height: 24),
               Text(
                 'Camera permission required',
-                style: AppFonts.bodyStyle(fontSize: 18),
+                style: AppTypography.title.copyWith(fontSize: 18),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 8),
+              Text(
+                'Please grant camera access to scan codes.',
+                style: AppTypography.body,
+              ),
+              const SizedBox(height: 32),
               ElevatedButton(
                 onPressed: _checkPermission,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.accent,
-                  foregroundColor: AppColors.primary,
+                  backgroundColor: AppColors.merchantIndigo,
+                  foregroundColor: AppColors.white,
                   padding: const EdgeInsets.symmetric(
                     horizontal: 32,
                     vertical: 16,
                   ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 0,
                 ),
-                child: const Text('Grant Permission'),
+                child: const Text('Grant Permission', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ],
           ),
@@ -418,14 +563,15 @@ class _QRScannerPageState extends State<QRScannerPage> {
       appBar: AppBar(
         title: Text(
           'Scan QR Code',
-          style: AppFonts.bodyStyle(fontWeight: FontWeight.bold),
+          style: AppTypography.headline.copyWith(color: Colors.white, fontSize: 20),
         ),
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
-            icon: const Icon(Icons.keyboard),
+            icon: const Icon(Icons.keyboard_outlined),
             onPressed: () => _showManualEntryDialog(),
             tooltip: 'Enter code manually',
           ),
@@ -449,16 +595,29 @@ class _QRScannerPageState extends State<QRScannerPage> {
           CustomPaint(painter: ScannerOverlayPainter(), child: Container()),
           // Instructions
           Positioned(
-            bottom: 100,
-            left: 0,
-            right: 0,
+            bottom: 40,
+            left: 20,
+            right: 20,
             child: Container(
-              padding: const EdgeInsets.all(16),
-              color: Colors.black54,
-              child: Text(
-                'Position the QR code within the frame',
-                textAlign: TextAlign.center,
-                style: AppFonts.bodyStyle(color: Colors.white, fontSize: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.qr_code_scanner_rounded, color: Colors.white, size: 24),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Position QR code within frame',
+                    style: AppTypography.body.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -473,26 +632,55 @@ class _QRScannerPageState extends State<QRScannerPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Text(
           'Enter Redemption Code',
-          style: AppFonts.bodyStyle(fontWeight: FontWeight.bold),
+          style: AppTypography.title,
         ),
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
           maxLength: 6,
-          decoration: const InputDecoration(
-            hintText: '6-digit code',
-            border: OutlineInputBorder(),
+          style: AppTypography.body.copyWith(fontSize: 18, letterSpacing: 2),
+          textAlign: TextAlign.center,
+          decoration: InputDecoration(
+            hintText: '000000',
+            hintStyle: AppTypography.body.copyWith(
+              color: AppColors.textDisabled, 
+              fontSize: 18, 
+              letterSpacing: 2
+            ),
+            filled: true,
+            fillColor: AppColors.background,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: AppColors.cardBorder),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: AppColors.cardBorder),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: AppColors.merchantIndigo, width: 2),
+            ),
           ),
         ),
+        actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(
+              'Cancel',
+              style: AppTypography.body.copyWith(
+                fontWeight: FontWeight.w600, 
+                color: AppColors.textSecondary
+              ),
+            ),
           ),
           ElevatedButton(
-            onPressed: () async {
+            onPressed: () {
               final code = controller.text.trim();
               if (code.length != 6) {
                 _showError('Code must be 6 digits');
@@ -500,41 +688,16 @@ class _QRScannerPageState extends State<QRScannerPage> {
               }
 
               Navigator.of(context).pop();
-              _showLoadingDialog();
-
-              try {
-                final response = await _merchantService.redeemDealByCode(code);
-
-                if (!context.mounted) return;
-                Navigator.of(context).pop();
-
-                final success = response['success'] ?? false;
-                if (success) {
-                  final dealRedemption = DealRedemption.fromJson(response);
-                  _showSuccessDialog(dealRedemption);
-                } else {
-                  final reason = response['reason'] ?? 'Redemption failed';
-                  _showErrorDialog(reason, null);
-                }
-              } catch (e) {
-                if (!context.mounted) return;
-                Navigator.of(context).pop();
-
-                String errorMessage = e.toString();
-                if (errorMessage.startsWith('Exception: Redemption failed: ')) {
-                  errorMessage = errorMessage.substring(
-                    'Exception: Redemption failed: '.length,
-                  );
-                }
-
-                _showErrorDialog(errorMessage, null);
-              }
+              _showRedemptionDetailsModal(manualCode: code);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.accent,
-              foregroundColor: AppColors.primary,
+              backgroundColor: AppColors.merchantIndigo,
+              foregroundColor: AppColors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            child: const Text('Redeem'),
+            child: const Text('Next', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -547,76 +710,73 @@ class ScannerOverlayPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.black54
+      ..color = Colors.black.withValues(alpha: 0.6)
       ..style = PaintingStyle.fill;
 
     final framePaint = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 3;
+      ..strokeWidth = 4
+      ..strokeCap = StrokeCap.round;
 
     final frameSize = size.width * 0.7;
     final left = (size.width - frameSize) / 2;
     final top = (size.height - frameSize) / 2;
-
+    
     // Draw semi-transparent overlay
     canvas.drawPath(
       Path()
         ..addRect(Rect.fromLTWH(0, 0, size.width, size.height))
-        ..addRect(Rect.fromLTWH(left, top, frameSize, frameSize))
+        ..addRRect(RRect.fromRectAndRadius(
+          Rect.fromLTWH(left, top, frameSize, frameSize), 
+          const Radius.circular(24)
+        ))
         ..fillType = PathFillType.evenOdd,
       paint,
     );
 
     // Draw frame corners
-    final cornerLength = 30.0;
+    final cornerLength = 40.0;
+    final radius = 24.0;
     final rect = Rect.fromLTWH(left, top, frameSize, frameSize);
 
     // Top-left
-    canvas.drawLine(
-      Offset(rect.left, rect.top),
-      Offset(rect.left + cornerLength, rect.top),
-      framePaint,
-    );
-    canvas.drawLine(
-      Offset(rect.left, rect.top),
-      Offset(rect.left, rect.top + cornerLength),
+    canvas.drawPath(
+      Path()
+        ..moveTo(rect.left, rect.top + cornerLength)
+        ..lineTo(rect.left, rect.top + radius)
+        ..quadraticBezierTo(rect.left, rect.top, rect.left + radius, rect.top)
+        ..lineTo(rect.left + cornerLength, rect.top),
       framePaint,
     );
 
     // Top-right
-    canvas.drawLine(
-      Offset(rect.right, rect.top),
-      Offset(rect.right - cornerLength, rect.top),
-      framePaint,
-    );
-    canvas.drawLine(
-      Offset(rect.right, rect.top),
-      Offset(rect.right, rect.top + cornerLength),
+    canvas.drawPath(
+      Path()
+        ..moveTo(rect.right - cornerLength, rect.top)
+        ..lineTo(rect.right - radius, rect.top)
+        ..quadraticBezierTo(rect.right, rect.top, rect.right, rect.top + radius)
+        ..lineTo(rect.right, rect.top + cornerLength),
       framePaint,
     );
 
     // Bottom-left
-    canvas.drawLine(
-      Offset(rect.left, rect.bottom),
-      Offset(rect.left + cornerLength, rect.bottom),
-      framePaint,
-    );
-    canvas.drawLine(
-      Offset(rect.left, rect.bottom),
-      Offset(rect.left, rect.bottom - cornerLength),
+    canvas.drawPath(
+      Path()
+        ..moveTo(rect.left, rect.bottom - cornerLength)
+        ..lineTo(rect.left, rect.bottom - radius)
+        ..quadraticBezierTo(rect.left, rect.bottom, rect.left + radius, rect.bottom)
+        ..lineTo(rect.left + cornerLength, rect.bottom),
       framePaint,
     );
 
     // Bottom-right
-    canvas.drawLine(
-      Offset(rect.right, rect.bottom),
-      Offset(rect.right - cornerLength, rect.bottom),
-      framePaint,
-    );
-    canvas.drawLine(
-      Offset(rect.right, rect.bottom),
-      Offset(rect.right, rect.bottom - cornerLength),
+    canvas.drawPath(
+      Path()
+        ..moveTo(rect.right - cornerLength, rect.bottom)
+        ..lineTo(rect.right - radius, rect.bottom)
+        ..quadraticBezierTo(rect.right, rect.bottom, rect.right, rect.bottom - radius)
+        ..lineTo(rect.right, rect.bottom - cornerLength),
       framePaint,
     );
   }

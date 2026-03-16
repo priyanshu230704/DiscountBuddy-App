@@ -1,8 +1,12 @@
-import 'package:discount_buddy/theme/app_colors.dart';
-
-import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
+import '../design/app_colors.dart';
+import '../design/app_spacing.dart';
+import '../design/app_typography.dart';
+import '../components/buttons.dart';
+import '../components/inputs.dart';
 import '../providers/auth_provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 /// Edit Profile Screen
 class EditProfilePage extends StatefulWidget {
@@ -17,6 +21,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final TextEditingController _userNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   bool _isLoading = false;
+  File? _image;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -45,6 +51,31 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return '?';
   }
 
+  Future<void> _pickImage() async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 75,
+      );
+      if (pickedFile != null) {
+        setState(() {
+          _image = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to pick image: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
   Future<void> _saveProfile() async {
     setState(() {
       _isLoading = true;
@@ -55,16 +86,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
         firstName: _userNameController.text.trim(),
         lastName: '',
         email: _emailController.text.trim(),
+        imageFile: _image,
       );
 
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'Profile updated successfully',
-              style: AppFonts.bodyStyle(),
-            ),
-            backgroundColor: AppColors.primaryPurple,
+            content: Text('Profile updated successfully', style: AppTypography.body),
+            backgroundColor: AppColors.primary,
           ),
         );
         Navigator.pop(context);
@@ -73,9 +102,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
           SnackBar(
             content: Text(
               _authProvider.errorMessage ?? 'Failed to update profile',
-              style: AppFonts.bodyStyle(),
+              style: AppTypography.body,
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -83,11 +112,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'Failed to update profile',
-              style: AppFonts.bodyStyle(),
-            ),
-            backgroundColor: Colors.red,
+            content: Text('Failed to update profile', style: AppTypography.body),
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -103,127 +129,118 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.surface,
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          'Edit profile',
-          style: AppFonts.bodyStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        backgroundColor: AppColors.white,
+        title: Text('Edit profile', style: AppTypography.title),
+        backgroundColor: AppColors.surface,
         elevation: 0,
+        surfaceTintColor: Colors.transparent,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
           child: Column(
             children: [
-              const SizedBox(height: 32),
-
-              // Profile Picture Section
-              Stack(
-                children: [
-                  // Large circular avatar
-                  Container(
-                    width: 120,
-                    height: 120,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primaryPurple,
-                      shape: BoxShape.circle,
+              SizedBox(height: AppSpacing.xxxl),
+              GestureDetector(
+                onTap: _pickImage,
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        gradient: AppColors.purpleGradient,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.2),
+                            blurRadius: 15,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: ClipOval(
+                        child: _image != null
+                            ? Image.file(
+                                _image!,
+                                width: 120,
+                                height: 120,
+                                fit: BoxFit.cover,
+                              )
+                            : (_authProvider.user?.profilePicture != null
+                                ? Image.network(
+                                    _authProvider.user!.profilePicture!,
+                                    width: 120,
+                                    height: 120,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) => Center(
+                                      child: Text(
+                                        _getInitials(),
+                                        style: AppTypography.headline.copyWith(
+                                          fontSize: 48,
+                                          color: AppColors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  )
+                                : Center(
+                                    child: Text(
+                                      _getInitials(),
+                                      style: AppTypography.headline.copyWith(
+                                        fontSize: 48,
+                                        color: AppColors.white,
+                                      ),
+                                    ),
+                                  )),
+                      ),
                     ),
-                    child: Center(
-                      child: Text(
-                        _getInitials(),
-                        style: AppFonts.bodyStyle(
-                          fontSize: 48,
-                          fontWeight: FontWeight.bold,
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: AppColors.textPrimary,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: AppColors.white, width: 3),
+                        ),
+                        child: const Icon(
+                          Icons.edit,
                           color: AppColors.white,
+                          size: 18,
                         ),
                       ),
                     ),
-                  ),
-                  // Edit icon overlay
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF343A40),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.white, width: 3),
-                      ),
-                      child: const Icon(
-                        Icons.edit,
-                        color: AppColors.white,
-                        size: 18,
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-              const SizedBox(height: 32),
-
-              // User Name Field
+              SizedBox(height: AppSpacing.xxxl),
               _buildTextField(
                 label: 'User name',
                 controller: _userNameController,
                 onChanged: (value) => setState(() {}),
               ),
-              const SizedBox(height: 16),
-
-              // Email Field
+              SizedBox(height: AppSpacing.lg),
               _buildTextField(
                 label: 'Email',
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 readOnly: true,
               ),
-              const SizedBox(height: 32),
-
-              // Save Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _saveProfile,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryPurple,
-                    foregroundColor: AppColors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              AppColors.white,
-                            ),
-                          ),
-                        )
-                      : Text(
-                          'Save',
-                          style: AppFonts.bodyStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                ),
+              SizedBox(height: AppSpacing.xxxl),
+              PrimaryButton(
+                label: 'Save',
+                onPressed: _saveProfile,
+                isLoading: _isLoading,
+                expand: true,
               ),
-              const SizedBox(height: 32),
+              SizedBox(height: AppSpacing.xxxl),
             ],
           ),
         ),
@@ -238,42 +255,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
     void Function(String)? onChanged,
     bool readOnly = false,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: AppFonts.bodyStyle(
-            fontSize: 12,
-            color: AppColors.textSecondary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            color: readOnly ? const Color(0xFFEEEEEE) : const Color(0xFFF5F5F5),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: TextField(
-            controller: controller,
-            keyboardType: keyboardType,
-            onChanged: onChanged,
-            readOnly: readOnly,
-            style: AppFonts.bodyStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: readOnly ? AppColors.textSecondary : AppColors.textPrimary,
-            ),
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 14,
-              ),
-            ),
-          ),
-        ),
-      ],
+    return AppTextField(
+      controller: controller,
+      label: label,
+      keyboardType: keyboardType,
+      onChanged: onChanged,
+      readOnly: readOnly,
     );
   }
 }

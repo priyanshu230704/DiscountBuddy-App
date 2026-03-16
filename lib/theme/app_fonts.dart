@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:google_fonts/google_fonts.dart';
+
 class AppFonts {
   // PolySans Families - Best for Titles, Buttons, and Accents
   static const String polySansNeutral = 'PolySans-Neutral';
@@ -12,17 +14,17 @@ class AppFonts {
   static const String polySansBulkyWide = 'PolySans-BulkyWide';
   static const String polySansSlimWide = 'PolySans-SlimWide';
 
-  // HubotSans Family - Most readable for Body, Inputs, and Details
+  // HubotSans Family (Legacy)
   static const String hubotSans = 'HubotSans';
   static const String hubotSansItalic = 'HubotSans-Italic';
 
-  // Semantically defined fonts for easy site-wide changes
-  static const String titleFont = polySansMedian;
-  static const String headingFont = polySansBulky;
-  static const String buttonFont = polySansMedian;
-  static const String bodyFont = hubotSans;
-  static const String inputFont = hubotSans;
-  static const String logoFont = polySansBulky;
+  // Semantically defined fonts for easy site-wide changes - Now using Poppins
+  static String? get titleFont => GoogleFonts.poppins().fontFamily;
+  static String? get headingFont => GoogleFonts.poppins().fontFamily;
+  static String? get buttonFont => GoogleFonts.poppins().fontFamily;
+  static String? get bodyFont => GoogleFonts.poppins().fontFamily;
+  static String? get inputFont => GoogleFonts.poppins().fontFamily;
+  static String? get logoFont => GoogleFonts.poppins().fontFamily;
 
   // Utility methods to get TextStyle quickly
   static TextStyle titleStyle({

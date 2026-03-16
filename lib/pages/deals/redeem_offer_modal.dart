@@ -1,7 +1,10 @@
-import 'package:discount_buddy/theme/app_colors.dart';
-
-import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
+import '../../design/app_colors.dart';
+import '../../design/app_radius.dart';
+import '../../design/app_shadows.dart';
+import '../../design/app_spacing.dart';
+import '../../design/app_typography.dart';
+import '../../components/buttons.dart';
 import '../../models/restaurant.dart';
 import '../../services/restaurant_service.dart';
 import '../../widgets/generic_bottom_sheet.dart';
@@ -25,10 +28,57 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
   @override
   void initState() {
     super.initState();
-    // Default to the first deal or the primary discount
     _selectedDeal = widget.restaurant.activeDeals.isNotEmpty
         ? widget.restaurant.activeDeals.first
         : widget.restaurant.discount;
+  }
+
+  Future<void> _confirmRedemption() async {
+    final dealId = _selectedDeal.id;
+    if (dealId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a valid offer')),
+      );
+      return;
+    }
+    setState(() => _isRedeeming = true);
+    try {
+      final result = await RestaurantService().claimDeal(dealId);
+      if (mounted) {
+        setState(() {
+          _isRedeeming = false;
+          _redemptionResult = result;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isRedeeming = false);
+        String errorMessage = e.toString();
+        if (errorMessage.contains('maximum uses') ||
+            errorMessage.contains(
+              'You have reached the maximum uses for this deal',
+            )) {
+          errorMessage = "You've used offer already";
+        } else {
+          errorMessage = errorMessage.replaceAll('Exception: ', '');
+        }
+        if (context.mounted) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Redemption Failed'),
+              content: Text(errorMessage),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -50,16 +100,11 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
             // Restaurant Name
             Text(
               widget.restaurant.name,
-              style: AppFonts.bodyStyle(
-                fontSize: 16,
-                color: AppColors.textSecondary,
-              ),
+              style: AppTypography.body.copyWith(color: AppColors.textSecondary),
             ),
-            const SizedBox(height: 24),
-
-            // Offers List
+            SizedBox(height: AppSpacing.xxl),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
               child: RadioGroup<Discount>(
                 groupValue: _selectedDeal,
                 onChanged: (Discount? value) {
@@ -74,60 +119,54 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                   children: [
                     Text(
                       'Select an offer:',
-                      style: AppFonts.bodyStyle(
-                        fontSize: 14,
+                      style: AppTypography.subtitle.copyWith(
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: AppSpacing.md),
                     ...deals.map((deal) {
                       final isSelected =
                           _selectedDeal.id == deal.id ||
                           (_selectedDeal.id == null && deals.length == 1);
                       return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
+                        margin: const EdgeInsets.only(bottom: AppSpacing.md),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? AppColors.primaryPurple.withValues(alpha: 0.05)
-                              : Colors.white,
-                          borderRadius: BorderRadius.circular(14),
+                              ? AppColors.primary.withValues(alpha: 0.05)
+                              : AppColors.surface,
+                          borderRadius: AppRadius.large,
                           border: Border.all(
                             color: isSelected
-                                ? AppColors.primaryPurple
-                                : AppColors.textDisabled.withValues(
-                                    alpha: 0.3,
-                                  ),
+                                ? AppColors.primary
+                                : AppColors.cardBorder,
                             width: isSelected ? 2 : 1,
                           ),
+                          boxShadow: isSelected ? [] : AppShadows.card,
                         ),
                         child: RadioListTile<Discount>(
                           value: deal,
                           toggleable: true,
-                          activeColor: AppColors.primaryPurple,
+                          activeColor: AppColors.primary,
                           contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
+                            horizontal: AppSpacing.lg,
+                            vertical: AppSpacing.sm,
                           ),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: AppRadius.medium,
                           ),
                           title: Text(
                             deal.displayText,
-                            style: AppFonts.bodyStyle(
-                              fontSize: 16,
+                            style: AppTypography.body.copyWith(
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimary,
                             ),
                           ),
                           subtitle: Padding(
-                            padding: const EdgeInsets.only(top: 4),
+                            padding: const EdgeInsets.only(top: AppSpacing.xs),
                             child: Text(
                               deal.description,
-                              style: AppFonts.bodyStyle(
-                                fontSize: 13,
-                                color: AppColors.textSecondary,
-                              ),
+                              style: AppTypography.bodySmall,
                             ),
                           ),
                         ),
@@ -138,31 +177,28 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
               ),
             ),
 
-            const SizedBox(height: 16),
-
-            // Warning Text
+            SizedBox(height: AppSpacing.lg),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
               child: Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
-                  color: Colors.amber.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.accent.withValues(alpha: 0.12),
+                  borderRadius: AppRadius.large,
                 ),
                 child: Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.info_outline,
-                      color: Colors.amber,
+                      color: AppColors.accent,
                       size: 20,
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: Text(
                         'Activated offers last for 15 mins. Show to staff when ordering.',
-                        style: AppFonts.bodyStyle(
-                          fontSize: 12,
-                          color: Colors.brown,
+                        style: AppTypography.caption.copyWith(
+                          color: AppColors.textPrimary,
                         ),
                       ),
                     ),
@@ -170,120 +206,17 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                 ),
               ),
             ),
-            const SizedBox(height: 32),
-
-            // Confirm Button
+            SizedBox(height: AppSpacing.xxxl),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _isRedeeming
-                      ? null
-                      : () async {
-                          final dealId = _selectedDeal.id;
-                          if (dealId == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Please select a valid offer'),
-                              ),
-                            );
-                            return;
-                          }
-
-                          setState(() {
-                            _isRedeeming = true;
-                          });
-
-                          try {
-                            final RestaurantService restaurantService =
-                                RestaurantService();
-                            final result = await restaurantService.claimDeal(
-                              dealId,
-                            );
-
-                            if (mounted) {
-                              setState(() {
-                                _isRedeeming = false;
-                                _redemptionResult = result;
-                              });
-                            }
-                          } catch (e) {
-                            if (mounted) {
-                              setState(() {
-                                _isRedeeming = false;
-                              });
-
-                              String errorMessage = e.toString();
-                              // Check specifically for the maximum uses error
-                              if (errorMessage.contains('maximum uses') ||
-                                  errorMessage.contains(
-                                    'You have reached the maximum uses for this deal',
-                                  )) {
-                                errorMessage = "You've used offer already";
-                              } else {
-                                // Clean up error message if needed (remove Exception: prefix)
-                                errorMessage = errorMessage.replaceAll(
-                                  'Exception: ',
-                                  '',
-                                );
-                              }
-
-                              /*
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(errorMessage)),
-                              );
-                              */
-
-                              // Show error in a dialog instead of snackbar to ensure it's visible over the modal
-                              if (context.mounted) {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: const Text('Redemption Failed'),
-                                    content: Text(errorMessage),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: const Text('OK'),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }
-                            }
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryPurple,
-                    foregroundColor: AppColors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: _isRedeeming
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              AppColors.white,
-                            ),
-                          ),
-                        )
-                      : Text(
-                          'Confirm Redemption',
-                          style: AppFonts.bodyStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                ),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
+              child: PrimaryButton(
+                label: 'Confirm Redemption',
+                onPressed: _isRedeeming ? null : _confirmRedemption,
+                isLoading: _isRedeeming,
+                expand: true,
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: AppSpacing.xxl),
           ],
         ),
       ),
@@ -322,8 +255,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
           const SizedBox(height: 24),
           Text(
             'Show this QR code to the staff',
-            style: AppFonts.bodyStyle(
-              fontSize: 16,
+            style: AppTypography.body.copyWith(
               color: AppColors.textSecondary,
             ),
             textAlign: TextAlign.center,
@@ -334,18 +266,10 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(
-                  color: AppColors.textDisabled.withValues(alpha: 0.2),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+                color: AppColors.surface,
+                borderRadius: AppRadius.xLarge,
+                border: Border.all(color: AppColors.cardBorder),
+                boxShadow: AppShadows.card,
               ),
               child: Image.network(
                 qrUrl,
@@ -378,8 +302,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
           const SizedBox(height: 24),
           Text(
             'Or provide this code:',
-            style: AppFonts.bodyStyle(
-              fontSize: 14,
+            style: AppTypography.bodySmall.copyWith(
               color: AppColors.textSecondary,
             ),
           ),
@@ -387,18 +310,15 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             decoration: BoxDecoration(
-              color: const Color(0xFFF5F5F5),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AppColors.textDisabled.withValues(alpha: 0.2),
-              ),
+              color: AppColors.surface,
+              borderRadius: AppRadius.large,
+              border: Border.all(color: AppColors.cardBorder),
+              boxShadow: AppShadows.card,
             ),
             child: Text(
               code.toString(),
-              style: AppFonts.bodyStyle(
+              style: AppTypography.headline.copyWith(
                 fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
                 letterSpacing: 4,
               ),
             ),
@@ -413,13 +333,12 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                 foregroundColor: AppColors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: AppRadius.large,
                 ),
               ),
               child: Text(
                 'Done',
-                style: AppFonts.bodyStyle(
-                  fontSize: 16,
+                style: AppTypography.body.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),

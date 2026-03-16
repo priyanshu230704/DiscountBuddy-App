@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'dart:io';
 import '../services/auth_service.dart';
 import '../models/api_user.dart';
 
@@ -38,23 +39,50 @@ class AuthProvider extends ChangeNotifier {
       final isLoggedIn = await _authService.isLoggedIn();
 
       if (isLoggedIn) {
-        final user = await _authService.getCurrentUser();
+        ApiUser? user;
+        try {
+          user = await _authService.getCurrentUser();
+        } catch (e) {
+          final errorStr = e.toString().toLowerCase();
+          if (errorStr.contains('401') || errorStr.contains('unauthorized')) {
+            debugPrint('DEBUG AuthProvider._initializeAuth: explicitly unauthorized.');
+          } else {
+            debugPrint('DEBUG AuthProvider._initializeAuth: Network or other error getting user: $e');
+          }
+        }
+        
+        // If getting user fails via network, try getting from secure storage first
+        if (user == null) {
+          debugPrint('DEBUG AuthProvider._initializeAuth: Current user via network failed, trying local storage...');
+          user = await _authService.getStoredUser();
+          
+          // If no local user, or we want to double check, try refreshing token
+          if (user == null) {
+            debugPrint('DEBUG AuthProvider._initializeAuth: No local user, trying refresh token...');
+            try {
+              final newToken = await _authService.refreshAccessToken();
+              if (newToken != null) {
+                user = await _authService.getCurrentUser();
+              }
+            } catch (e) {
+              debugPrint('DEBUG AuthProvider._initializeAuth: Error refreshing token: $e');
+            }
+          }
+        }
+
         if (user != null) {
           _user = user;
-          // Determine role from user profile or default to customer
-          _userRole =
-              user.profile?.role ?? (user.isMerchant ? 'merchant' : 'customer');
+          _userRole = user.profile?.role ?? (user.isMerchant ? 'merchant' : 'customer');
           _isAuthenticated = true;
           debugPrint(
-            'DEBUG AuthProvider._initializeAuth: user=${user.email}, profile.role=${user.profile?.role}, isMerchant=${user.isMerchant}, FINAL _userRole=$_userRole',
+            'DEBUG AuthProvider._initializeAuth: Logged in as user=${user.email}, _userRole=$_userRole',
           );
         } else {
-          // Token might be invalid, clear auth
           await _authService.logout();
           _isAuthenticated = false;
           _userRole = 'customer';
           debugPrint(
-            'DEBUG AuthProvider._initializeAuth: user is null, defaulting to customer',
+            'DEBUG AuthProvider._initializeAuth: login failed after fallback attempts, logging out',
           );
         }
       } else {
@@ -279,10 +307,24 @@ class AuthProvider extends ChangeNotifier {
       if (user != null) {
         _user = user;
         notifyListeners();
+      } else {
+        // If getting user from network failed but didn't throw an auth error,
+        // we might be offline. Let's see if we have them cached.
+        final cachedUser = await _authService.getStoredUser();
+        if (cachedUser != null) {
+          _user = cachedUser;
+          notifyListeners();
+        }
       }
     } catch (e) {
-      // If we can't get user, they might not be authenticated
-      await logout();
+      // Only logout if it's explicitly an unauthorized error, otherwise keep current session alive
+      final errorStr = e.toString().toLowerCase();
+      if (errorStr.contains('401') || errorStr.contains('unauthorized')) {
+        debugPrint('DEBUG AuthProvider.refreshUser: Unauthorized error, logging out... ($e)');
+        await logout();
+      } else {
+        debugPrint('DEBUG AuthProvider.refreshUser: Non-auth error while refreshing user, preserving session ($e)');
+      }
     }
   }
 
@@ -310,6 +352,7 @@ class AuthProvider extends ChangeNotifier {
     String? firstName,
     String? lastName,
     String? email,
+    File? imageFile,
   }) async {
     _isLoading = true;
     _errorMessage = null;
@@ -320,8 +363,49 @@ class AuthProvider extends ChangeNotifier {
         firstName: firstName,
         lastName: lastName,
         email: email,
+        imageFile: imageFile,
       );
       _user = updatedUser;
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+  /// Stage 1: Initialize account deletion (Request OTP)
+  Future<bool> deleteAccountInit() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _authService.initDeleteAccount();
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Stage 2: Delete current user account (Verify OTP and Delete)
+  Future<bool> deleteAccount({required String otp}) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _authService.deleteAccount(otp: otp);
+      _user = null;
+      _isAuthenticated = false;
+      _userRole = 'customer';
       _isLoading = false;
       notifyListeners();
       return true;

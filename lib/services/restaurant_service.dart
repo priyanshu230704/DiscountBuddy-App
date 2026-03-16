@@ -116,6 +116,11 @@ class RestaurantService {
     }
   }
 
+  /// Get deal uses for the current user
+  Future<List<DealRedemption>> getDealUses() async {
+    return getUserDealRedemptions();
+  }
+
   /// Get detail for a specific booking
   Future<Booking> getBookingDetail(int bookingId) async {
     try {
@@ -322,10 +327,19 @@ class RestaurantService {
     final latitude = double.tryParse(latStr) ?? 0.0;
     final longitude = double.tryParse(lngStr) ?? 0.0;
 
-    // Image URL
-    final imageUrl =
-        json['primary_image'] as String? ??
-        'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800';
+    // Menu images and gallery images
+    final imagesJson = json['images'] as List<dynamic>? ?? [];
+    final restaurantImages = imagesJson.map((e) => RestaurantImage.fromJson(e as Map<String, dynamic>)).toList();
+
+    // Image URL logic: find primary gallery image, fallback to first gallery image, then any image
+    String imageUrl = '';
+    final galleryImages = restaurantImages.where((img) => img.imageType == 'gallery').toList();
+    if (galleryImages.isNotEmpty) {
+      final primary = galleryImages.firstWhere((img) => img.isPrimary, orElse: () => galleryImages.first);
+      imageUrl = primary.imageUrl;
+    } else if (restaurantImages.isNotEmpty) {
+      imageUrl = restaurantImages.first.imageUrl;
+    }
 
     // Cuisine
     final cuisine = cuisineMap?[restaurantId] ?? 'Restaurant';
@@ -379,6 +393,8 @@ class RestaurantService {
       slug: slug,
       isFavourite: json['is_favourite'] as bool? ?? false,
       leaderboardScore: _parseDouble(json['leaderboard_score']) ?? 0.0,
+      menuType: json['menu_type'] as String? ?? 'structured',
+      restaurantImages: restaurantImages,
     );
   }
 
@@ -459,22 +475,33 @@ class RestaurantService {
     final latitude = double.tryParse(latStr) ?? 0.0;
     final longitude = double.tryParse(lngStr) ?? 0.0;
 
-    // Get primary image from images array
-    String imageUrl =
-        'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800';
-    final images = json['images'] as List<dynamic>? ?? [];
-    if (images.isNotEmpty) {
-      final primaryImage = images.firstWhere(
-        (img) => img is Map<String, dynamic> && (img['is_primary'] == true),
-        orElse: () => images.first,
+    // Parse images using RestaurantImage model for consistency
+    final imagesJson = json['images'] as List<dynamic>? ?? [];
+    final restaurantImages = imagesJson
+        .map((e) => RestaurantImage.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    // Image URL logic: find primary gallery image, fallback to first gallery image, then any image
+    String imageUrl = '';
+    final galleryImages =
+        restaurantImages.where((img) => img.imageType == 'gallery').toList();
+    if (galleryImages.isNotEmpty) {
+      final primary = galleryImages.firstWhere(
+        (img) => img.isPrimary,
+        orElse: () => galleryImages.first,
       );
-      if (primaryImage is Map<String, dynamic>) {
-        imageUrl = primaryImage['image_url'] as String? ?? imageUrl;
-      }
+      imageUrl = primary.imageUrl;
+    } else if (restaurantImages.isNotEmpty) {
+      imageUrl = restaurantImages.first.imageUrl;
+    }
+
+    // Fallback image if none found
+    if (imageUrl.isEmpty) {
+      imageUrl = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800';
     }
 
     // Get all image URLs
-    final imageUrls = images
+    final imageUrls = imagesJson
         .where((img) => img is Map<String, dynamic> && img['image_url'] != null)
         .map((img) => (img as Map<String, dynamic>)['image_url'] as String)
         .toList();

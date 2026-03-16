@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../design/app_colors.dart';
+import '../../design/app_spacing.dart';
+import '../../design/app_typography.dart';
 import '../../widgets/blurred_ellipse_background.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
@@ -6,13 +9,6 @@ import '../../services/voucher_service.dart';
 import '../../models/voucher.dart';
 import '../profile_page.dart';
 import '../auth/login_page.dart';
-
-// Local constants for more page
-class _MoreConstants {
-  static const double paddingSmall = 8.0;
-  static const double paddingMedium = 16.0;
-  static const double paddingLarge = 24.0;
-}
 
 /// More/Settings page
 class MorePage extends StatefulWidget {
@@ -72,7 +68,7 @@ class _MorePageState extends State<MorePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: AppColors.textPrimary,
       body: Stack(
         children: [
           // Blurred ellipse at the top center background
@@ -86,17 +82,13 @@ class _MorePageState extends State<MorePage> {
                 Container(
                   padding: EdgeInsets.only(
                     top: MediaQuery.of(context).padding.top,
-                    left: _MoreConstants.paddingMedium,
-                    right: _MoreConstants.paddingMedium,
-                    bottom: _MoreConstants.paddingMedium,
+                    left: AppSpacing.lg,
+                    right: AppSpacing.lg,
+                    bottom: AppSpacing.lg,
                   ),
-                  child: const Text(
+                  child: Text(
                     'More',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: AppTypography.title.copyWith(color: AppColors.white),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -106,12 +98,11 @@ class _MorePageState extends State<MorePage> {
                     children: [
                       // Profile Section
                       _buildProfileSection(),
-                      const SizedBox(height: _MoreConstants.paddingMedium),
-                      // My Vouchers Section (show for all authenticated users, but content varies)
+                      SizedBox(height: AppSpacing.lg),
                       if (AuthProvider().isAuthenticated)
                         _buildVouchersSection(),
                       if (AuthProvider().isAuthenticated)
-                        const SizedBox(height: _MoreConstants.paddingMedium),
+                        SizedBox(height: AppSpacing.lg),
                       // Account Section
                       _buildSection('Account', [
                         _buildListTile(Icons.person, 'Edit Profile', () {
@@ -130,7 +121,7 @@ class _MorePageState extends State<MorePage> {
                         _buildListTile(Icons.payment, 'Payment Methods', () {}),
                         _buildListTile(Icons.history, 'Visit History', () {}),
                       ]),
-                      const SizedBox(height: _MoreConstants.paddingMedium),
+                      const SizedBox(height: AppSpacing.lg),
                       // Preferences Section
                       _buildSection('Preferences', [
                         _buildListTile(
@@ -155,7 +146,7 @@ class _MorePageState extends State<MorePage> {
                               : 'Light Mode',
                         ),
                       ]),
-                      const SizedBox(height: _MoreConstants.paddingMedium),
+                      const SizedBox(height: AppSpacing.lg),
                       // Support Section
                       _buildSection('Support & Feedback', [
                         _buildSupportItem(
@@ -177,7 +168,7 @@ class _MorePageState extends State<MorePage> {
                           () {},
                         ),
                       ]),
-                      const SizedBox(height: _MoreConstants.paddingMedium),
+                      const SizedBox(height: AppSpacing.lg),
                       // About Section
                       _buildSection('About', [
                         _buildAboutItem(
@@ -199,11 +190,11 @@ class _MorePageState extends State<MorePage> {
                           () {},
                         ),
                       ]),
-                      const SizedBox(height: _MoreConstants.paddingMedium),
+                      const SizedBox(height: AppSpacing.lg),
                       // Logout
                       Padding(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: _MoreConstants.paddingMedium,
+                          horizontal: AppSpacing.lg,
                         ),
                         child: OutlinedButton(
                           onPressed: () async {
@@ -257,13 +248,13 @@ class _MorePageState extends State<MorePage> {
                             foregroundColor: Colors.red,
                             side: const BorderSide(color: Colors.red),
                             padding: const EdgeInsets.symmetric(
-                              vertical: _MoreConstants.paddingMedium,
+                              vertical: AppSpacing.lg,
                             ),
                           ),
                           child: const Text('Logout'),
                         ),
                       ),
-                      const SizedBox(height: _MoreConstants.paddingLarge),
+                      const SizedBox(height: AppSpacing.xxl),
                     ],
                   ),
                 ),
@@ -394,20 +385,16 @@ class _MorePageState extends State<MorePage> {
       children: [
         Padding(
           padding: const EdgeInsets.only(
-            left: _MoreConstants.paddingMedium,
-            right: _MoreConstants.paddingMedium,
+            left: AppSpacing.lg,
+            right: AppSpacing.lg,
             bottom: _MoreConstants.paddingSmall,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'My Vouchers',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: AppTypography.bodyLarge,
               ),
               if (!_isLoadingVouchers && _voucherCount > 0)
                 Text(
@@ -420,10 +407,10 @@ class _MorePageState extends State<MorePage> {
         if (!isMerchant)
           Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: _MoreConstants.paddingMedium,
+              horizontal: AppSpacing.lg,
             ),
             child: Container(
-              padding: const EdgeInsets.all(_MoreConstants.paddingLarge),
+              padding: const EdgeInsets.all(AppSpacing.xxl),
               decoration: BoxDecoration(
                 color: const Color(0xFF1A1B1F),
                 borderRadius: BorderRadius.circular(12),
@@ -439,16 +426,16 @@ class _MorePageState extends State<MorePage> {
           )
         else if (_isLoadingVouchers)
           const Padding(
-            padding: EdgeInsets.all(_MoreConstants.paddingMedium),
+            padding: EdgeInsets.all(AppSpacing.lg),
             child: Center(child: CircularProgressIndicator()),
           )
         else if (_vouchers.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: _MoreConstants.paddingMedium,
+              horizontal: AppSpacing.lg,
             ),
             child: Container(
-              padding: const EdgeInsets.all(_MoreConstants.paddingLarge),
+              padding: const EdgeInsets.all(AppSpacing.xxl),
               decoration: BoxDecoration(
                 color: const Color(0xFF1A1B1F),
                 borderRadius: BorderRadius.circular(12),
@@ -465,7 +452,7 @@ class _MorePageState extends State<MorePage> {
         else
           Padding(
             padding: const EdgeInsets.symmetric(
-              horizontal: _MoreConstants.paddingMedium,
+              horizontal: AppSpacing.lg,
             ),
             child: Column(
               children: _vouchers.take(5).map((voucher) {
@@ -577,8 +564,8 @@ class _MorePageState extends State<MorePage> {
     final initials = _getInitials(displayName);
 
     return Container(
-      padding: const EdgeInsets.all(_MoreConstants.paddingLarge),
-      color: const Color(0xFF1E1E1E),
+      padding: const EdgeInsets.all(AppSpacing.xxl),
+      color: AppColors.textPrimary.withValues(alpha: 0.9),
       child: Row(
         children: [
           CircleAvatar(
@@ -593,24 +580,20 @@ class _MorePageState extends State<MorePage> {
               ),
             ),
           ),
-          const SizedBox(width: _MoreConstants.paddingMedium),
+          const SizedBox(width: AppSpacing.lg),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   displayName,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+                  style: AppTypography.title.copyWith(color: AppColors.white),
                 ),
                 if (email.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Text(
                     email,
-                    style: TextStyle(fontSize: 14, color: Colors.grey[400]),
+                    style: AppTypography.bodySmall.copyWith(color: AppColors.white.withValues(alpha: 0.6)),
                   ),
                 ],
               ],
@@ -647,26 +630,25 @@ class _MorePageState extends State<MorePage> {
       children: [
         Padding(
           padding: const EdgeInsets.only(
-            left: _MoreConstants.paddingMedium,
-            right: _MoreConstants.paddingMedium,
+            left: AppSpacing.lg,
+            right: AppSpacing.lg,
             bottom: _MoreConstants.paddingSmall,
           ),
           child: Text(
             title,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
+            style: AppTypography.body.copyWith(
+              color: AppColors.white,
               fontWeight: FontWeight.bold,
             ),
           ),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(
-            horizontal: _MoreConstants.paddingMedium,
+            horizontal: AppSpacing.lg,
           ),
           child: Column(children: children),
         ),
-        const SizedBox(height: _MoreConstants.paddingMedium),
+        const SizedBox(height: AppSpacing.lg),
       ],
     );
   }
@@ -691,20 +673,19 @@ class _MorePageState extends State<MorePage> {
                 color: const Color(0xFF3E25F6).withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(icon, color: const Color(0xFF3E25F6), size: 18),
+              child: Icon(icon, color: AppColors.primary, size: 18),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
+                style: AppTypography.body.copyWith(
+                  color: AppColors.white,
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 14),
+            Icon(Icons.arrow_forward_ios, color: AppColors.white.withValues(alpha: 0.5), size: 14),
           ],
         ),
       ),
@@ -770,4 +751,8 @@ class _MorePageState extends State<MorePage> {
       ),
     );
   }
+}
+
+class _MoreConstants {
+  static const double paddingSmall = 8.0;
 }

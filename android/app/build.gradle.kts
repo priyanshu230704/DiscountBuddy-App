@@ -18,6 +18,7 @@ android {
     }
 
     signingConfigs {
+    if (keystorePropertiesFile.exists()) {
         create("release") {
             keyAlias = keystoreProperties["keyAlias"] as String
             keyPassword = keystoreProperties["keyPassword"] as String
@@ -25,6 +26,7 @@ android {
             storePassword = keystoreProperties["storePassword"] as String
         }
     }
+}
     namespace = "com.discountbuddy.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
@@ -50,10 +52,12 @@ android {
     }
 
     buildTypes {
-        release {
+    release {
+        if (keystorePropertiesFile.exists()) {
             signingConfig = signingConfigs.getByName("release")
         }
     }
+}
 }
 
 dependencies {

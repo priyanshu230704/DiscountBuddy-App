@@ -1,8 +1,8 @@
-import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
 
 import '../config/environment.dart';
-import 'package:discount_buddy/theme/app_colors.dart';
+import '../design/app_colors.dart';
+import '../design/app_typography.dart';
 import '../services/app_config_service.dart';
 import '../widgets/update_dialog.dart';
 
@@ -123,9 +123,13 @@ class _SplashScreenState extends State<SplashScreen>
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFFFF4FB), Color(0xFFFFF8EE), Color(0xFFF4F7FF)],
+            colors: [
+              AppColors.background,
+              AppColors.surface,
+              AppColors.background,
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -138,7 +142,7 @@ class _SplashScreenState extends State<SplashScreen>
                 left: -80,
                 child: _GlowCircle(
                   size: 220,
-                  color: AppColors.primaryPurple.withValues(alpha: 0.12),
+                  color: AppColors.primary.withValues(alpha: 0.12),
                 ),
               ),
               Positioned(
@@ -146,7 +150,7 @@ class _SplashScreenState extends State<SplashScreen>
                 right: -90,
                 child: _GlowCircle(
                   size: 260,
-                  color: AppColors.secondaryPink.withValues(alpha: 0.10),
+                  color: AppColors.secondary.withValues(alpha: 0.10),
                 ),
               ),
               Positioned(
@@ -154,7 +158,7 @@ class _SplashScreenState extends State<SplashScreen>
                 left: -60,
                 child: _GlowCircle(
                   size: 180,
-                  color: AppColors.primaryPurple.withValues(alpha: 0.08),
+                  color: AppColors.primary.withValues(alpha: 0.08),
                 ),
               ),
 
@@ -176,18 +180,18 @@ class _SplashScreenState extends State<SplashScreen>
                                 height: 140,
                                 padding: const EdgeInsets.all(18),
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: AppColors.surface,
                                   borderRadius: BorderRadius.circular(34),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: AppColors.primaryPurple.withValues(
+                                      color: AppColors.primary.withValues(
                                         alpha: 0.18,
                                       ),
                                       blurRadius: 30,
                                       offset: const Offset(0, 14),
                                     ),
                                     BoxShadow(
-                                      color: AppColors.secondaryPink.withValues(
+                                      color: AppColors.secondary.withValues(
                                         alpha: 0.16,
                                       ),
                                       blurRadius: 30,
@@ -195,7 +199,7 @@ class _SplashScreenState extends State<SplashScreen>
                                     ),
                                   ],
                                   border: Border.all(
-                                    color: Colors.black.withValues(alpha: 0.05),
+                                    color: AppColors.textPrimary.withValues(alpha: 0.06),
                                   ),
                                 ),
                                 child: Image.asset(
@@ -215,21 +219,12 @@ class _SplashScreenState extends State<SplashScreen>
                             children: [
                               Text(
                                 Environment.appName,
-                                style: AppFonts.bodyStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w900,
-                                  color: const Color(0xFF111827),
-                                  letterSpacing: 0.4,
-                                ),
+                                style: AppTypography.headline,
                               ),
                               const SizedBox(height: 8),
                               Text(
                                 "Your discount companion",
-                                style: AppFonts.bodyStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF6B7280),
-                                ),
+                                style: AppTypography.subtitle,
                               ),
                             ],
                           ),
@@ -245,14 +240,14 @@ class _SplashScreenState extends State<SplashScreen>
                               vertical: 10,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: AppColors.surface,
                               borderRadius: BorderRadius.circular(14),
                               border: Border.all(
-                                color: Colors.black.withValues(alpha: 0.05),
+                                color: AppColors.textPrimary.withValues(alpha: 0.06),
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.05),
+                                  color: AppColors.textPrimary.withValues(alpha: 0.06),
                                   blurRadius: 12,
                                   offset: const Offset(0, 4),
                                 ),
@@ -261,23 +256,21 @@ class _SplashScreenState extends State<SplashScreen>
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const SizedBox(
+                                SizedBox(
                                   width: 18,
                                   height: 18,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2.6,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      AppColors.primaryPurple,
+                                    valueColor: const AlwaysStoppedAnimation<Color>(
+                                      AppColors.primary,
                                     ),
                                   ),
                                 ),
                                 const SizedBox(width: 10),
                                 Text(
                                   "Loading deals...",
-                                  style: AppFonts.bodyStyle(
-                                    fontSize: 12,
+                                  style: AppTypography.bodySmall.copyWith(
                                     fontWeight: FontWeight.w700,
-                                    color: const Color(0xFF111827),
                                   ),
                                 ),
                               ],
@@ -298,11 +291,7 @@ class _SplashScreenState extends State<SplashScreen>
                   child: Center(
                     child: Text(
                       "Powered by Markitup Group Ltd.",
-                      style: AppFonts.bodyStyle(
-                        fontSize: 12,
-                        color: const Color(0xFF9CA3AF),
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: AppTypography.caption,
                     ),
                   ),
                 ),

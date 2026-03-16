@@ -258,7 +258,7 @@ class _AddDealPageState extends State<AddDealPage> {
                             children: [
                               _buildTypeChip('percentage', 'Percentage', Icons.percent_rounded),
                               const SizedBox(width: AppSpacing.sm),
-                              _buildTypeChip('fixed', 'Fixed Amount', Icons.attach_money_rounded),
+                              _buildTypeChip('fixed', 'Fixed Amount', Icons.currency_pound_rounded),
                               const SizedBox(width: AppSpacing.sm),
                               _buildTypeChip('two_for_one', '2-for-1', Icons.people_alt_rounded),
                             ],
@@ -270,7 +270,7 @@ class _AddDealPageState extends State<AddDealPage> {
                             controller: _discountController,
                             label: _dealType == 'percentage'
                                 ? 'Discount Percentage (%) *'
-                                : 'Discount Amount (\$)',
+                                : 'Discount Amount (£)',
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
                             validator: (v) => _dealType != 'two_for_one' && v!.isEmpty 
                                 ? 'Value required' 

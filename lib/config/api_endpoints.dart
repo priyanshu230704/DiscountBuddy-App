@@ -10,6 +10,7 @@ class ApiEndpoints {
   static const String currentUser = '/users/me';
   static const String passwordReset = '/users/password-reset';
   static const String deleteAccount = '/users/account-delete';
+  static const String deleteAccountInit = '/users/account-delete/init';
 
   // Restaurant Routes
   static const String restaurants = '/restaurants/restaurants';
@@ -57,7 +58,7 @@ class ApiEndpoints {
   static String merchantRestaurantDetail(int id) =>
       '/restaurants/restaurant/manage/$id';
   static const String merchantUpdateOccupancy = '/restaurants/restaurant/occupancy';
-  static const String merchantDashboard = '/merchant/dashboard';
+  static const String merchantDashboard = '/restaurants/dashboard';
 
   static const String merchantDeals = '/restaurants/deals';
   static String merchantDealDetail(int id) => '/restaurants/deals/$id';
@@ -79,9 +80,14 @@ class ApiEndpoints {
       '/restaurants/restaurant/bookings/$id';
   static const String merchantRedeemDeal = '/restaurants/deals/redeem';
 
+  static const String merchantRestaurantImages = '/restaurants/restaurant-images';
+  static String merchantRestaurantImageDetail(int id) =>
+      '/restaurants/restaurant-images/$id';
+
   // Common/Reference Routes
   static const String cities = '/restaurants/cities';
   static const String categories = '/restaurants/categories';
+  static const String facilityList = '/restaurants/facilities';
 
   // Wallet & Vouchers
   static const String userVouchers = '/vouchers/me';

@@ -165,7 +165,7 @@ class _LoginPageState extends State<LoginPage> {
     final isKeyboardOpen = bottomInset > 0;
 
     return PopScope(
-      canPop: false,
+      canPop: true,
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         body: Stack(
@@ -270,6 +270,9 @@ class _LoginPageState extends State<LoginPage> {
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
                                   SizedBox(height: (isKeyboardOpen ? 20 : 60) * scale),
+                                  
+
+                                SizedBox(height: 16 * scale),
                                 
                                 // Logo and Text Section
                                 Column(
@@ -557,47 +560,6 @@ class _LoginPageState extends State<LoginPage> {
                                 
                                  SizedBox(height: 40 * scale),
                                 
-                                if (!isKeyboardOpen) ...[
-                                  // Trending Deal Banner
-                                  Container(
-                                    margin: EdgeInsets.only(bottom: 12 * scale),
-                                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.8),
-                                      borderRadius: BorderRadius.circular(24 * scale),
-                                      border: Border.all(color: Colors.white),
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                             Text('🔥', style: TextStyle(fontSize: 13)),
-                                             SizedBox(width: 6),
-                                            Text(
-                                              'Trending Deal Today',
-                                              style: AppFonts.titleStyle(
-                                                color: AppColors.textPrimary,
-                                                fontSize: 13 * scale,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                         SizedBox(height: 2),
-                                        Text(
-                                          '50% off sushi near you',
-                                          style: AppFonts.bodyStyle(
-                                            color:  Color(0xFF2C2343),
-                                            fontSize: 15 * scale,
-                                            fontWeight: FontWeight.w800,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                                
                                   SizedBox(height: (isKeyboardOpen ? 30 : 60) * scale),
                                 ],
                               ),
@@ -610,6 +572,7 @@ class _LoginPageState extends State<LoginPage> {
                 );
               },
             ),
+
           ],
         ),
       ),

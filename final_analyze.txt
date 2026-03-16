@@ -1,9 +1,7 @@
 ﻿Analyzing DiscountBuddy-App...                                  
 
-  error - The getter 'reviews' isn't defined for the type 'Restaurant' - lib\pages\bookings\bookings_page.dart:330:33 - undefined_getter
 warning - Unused import: 'package:discount_buddy/design/app_shadows.dart' - lib\pages\bookings\user_bookings_page.dart:5:8 - unused_import
 warning - Unused import: '../../../design/app_shadows.dart' - lib\pages\events\events_page.dart:6:8 - unused_import
-   info - The member 'build' overrides an inherited member but isn't annotated with '@override' - lib\pages\home\home_page.dart:1126:10 - annotate_overrides
    info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\pages\merchant\add_restaurant_page.dart:995:33 - deprecated_member_use
    info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\pages\merchant\add_restaurant_page.dart:998:33 - deprecated_member_use
    info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\pages\merchant\add_restaurant_page.dart:1009:33 - deprecated_member_use
@@ -12,5 +10,4 @@ warning - Unused import: '../../../design/app_shadows.dart' - lib\pages\events\e
 warning - Unused import: '../services/auth_service.dart' - lib\pages\profile_page.dart:16:8 - unused_import
    info - 'Share' is deprecated and shouldn't be used. Use SharePlus instead - lib\pages\profile_page.dart:297:25 - deprecated_member_use
    info - 'share' is deprecated and shouldn't be used. Use SharePlus.instance.share() instead - lib\pages\profile_page.dart:297:31 - deprecated_member_use
-warning - The value of the local variable 'dist' isn't used - lib\pages\restaurant_details_page.dart:442:11 - unused_local_variable
 

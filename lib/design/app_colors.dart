@@ -64,6 +64,7 @@ class AppColors {
   static const Color secondary = secondaryPink;
   static const Color accent = primaryOrange;
   static const Color white = Colors.white;
+  static const Color cardBackground = surface;
 
   // Legacy compatibility aliases
   static const Gradient heroGradient = orangeGradient;

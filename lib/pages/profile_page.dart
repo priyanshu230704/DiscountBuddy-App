@@ -490,7 +490,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             const SizedBox(height: 12),
             Text(
-              'All your data, including favourites, bookings, and claimed deals, will be deleted forever.',
+              'A verification code will be sent to your email to confirm this action.',
               style: AppTypography.bodySmall,
             ),
           ],
@@ -509,10 +509,10 @@ class _ProfilePageState extends State<ProfilePage> {
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
-              _performDeleteAccount();
+              _initDeleteAccount();
             },
             child: Text(
-              'Delete Forever',
+              'Send Code',
               style: AppTypography.body.copyWith(
                 color: AppColors.error,
                 fontWeight: FontWeight.w800,
@@ -524,7 +524,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Future<void> _performDeleteAccount() async {
+  Future<void> _initDeleteAccount() async {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -534,7 +534,107 @@ class _ProfilePageState extends State<ProfilePage> {
     );
 
     try {
-      final success = await _authProvider.deleteAccount();
+      final success = await _authProvider.deleteAccountInit();
+      if (mounted) {
+        Navigator.pop(context); // Close loading
+        if (success) {
+          _showOtpVerificationDialog();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(_authProvider.errorMessage ?? 'Failed to send verification code')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Close loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
+  void _showOtpVerificationDialog() {
+    final otpController = TextEditingController();
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.xLarge),
+        title: Text(
+          'Verify Deletion',
+          style: AppTypography.title.copyWith(fontWeight: FontWeight.w800),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Enter the 4-digit code sent to your email to permanently delete your account.',
+              style: AppTypography.bodySmall,
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: otpController,
+              keyboardType: TextInputType.number,
+              maxLength: 4,
+              textAlign: TextAlign.center,
+              style: AppTypography.headline.copyWith(letterSpacing: 8),
+              decoration: InputDecoration(
+                hintText: '0000',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                counterText: '',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: AppTypography.body.copyWith(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              final otp = otpController.text.trim();
+              if (otp.length == 4) {
+                Navigator.pop(context);
+                _performDeleteAccount(otp);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter a 4-digit code')),
+                );
+              }
+            },
+            child: Text(
+              'Delete Account',
+              style: AppTypography.body.copyWith(
+                color: AppColors.error,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _performDeleteAccount(String otp) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    try {
+      final success = await _authProvider.deleteAccount(otp: otp);
       if (success && mounted) {
         Navigator.pop(context); // Close loading
         // Use rootNavigator: true to ensure we pop everything and go to login
@@ -547,6 +647,8 @@ class _ProfilePageState extends State<ProfilePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(_authProvider.errorMessage ?? 'Failed to delete account')),
         );
+        // Reshow OTP dialog if verification failed
+        _showOtpVerificationDialog();
       }
     } catch (e) {
       if (mounted) {

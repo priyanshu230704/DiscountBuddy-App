@@ -1,6 +1,6 @@
 ﻿Analyzing DiscountBuddy-App...                                  
 
-  error - The getter 'reviews' isn't defined for the type 'Restaurant' - lib\pages\bookings\bookings_page.dart:330:33 - undefined_getter
+warning - Two keys in a map literal shouldn't be equal - lib\models\restaurant.dart:299:7 - equal_keys_in_map
 warning - Unused import: 'package:discount_buddy/design/app_shadows.dart' - lib\pages\bookings\user_bookings_page.dart:5:8 - unused_import
 warning - Unused import: '../../../design/app_shadows.dart' - lib\pages\events\events_page.dart:6:8 - unused_import
    info - The member 'build' overrides an inherited member but isn't annotated with '@override' - lib\pages\home\home_page.dart:1126:10 - annotate_overrides
@@ -9,8 +9,27 @@ warning - Unused import: '../../../design/app_shadows.dart' - lib\pages\events\e
    info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\pages\merchant\add_restaurant_page.dart:1009:33 - deprecated_member_use
    info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\pages\merchant\add_restaurant_page.dart:1012:33 - deprecated_member_use
    info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\pages\merchant\merchant_dashboard_page.dart:652:30 - use_build_context_synchronously
+  error - The method 'getRestaurantDetails' isn't defined for the type 'MerchantService' - lib\pages\merchant\merchant_restaurants_page.dart:215:55 - undefined_method
+warning - Duplicate import - lib\pages\more\more_page.dart:3:8 - duplicate_import
 warning - Unused import: '../services/auth_service.dart' - lib\pages\profile_page.dart:16:8 - unused_import
    info - 'Share' is deprecated and shouldn't be used. Use SharePlus instead - lib\pages\profile_page.dart:297:25 - deprecated_member_use
    info - 'share' is deprecated and shouldn't be used. Use SharePlus.instance.share() instead - lib\pages\profile_page.dart:297:31 - deprecated_member_use
 warning - The value of the local variable 'dist' isn't used - lib\pages\restaurant_details_page.dart:442:11 - unused_local_variable
 
+flutter : 15 issues 
+found. (ran in 15.0s)
+At line:1 char:1
++ flutter analyze > 
+analyze_output.txt 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (15 issues fou   
+ nd. (ran in 15.0s)    
+:String) [], Remot    
+eException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 

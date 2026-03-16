@@ -31,6 +31,88 @@ class OpeningSlot {
   }
 }
 
+/// Facility model
+class Facility {
+  final int id;
+  final String name;
+  final String slug;
+  final String icon;
+  final bool isActive;
+
+  Facility({
+    required this.id,
+    required this.name,
+    required this.slug,
+    this.icon = '',
+    this.isActive = true,
+  });
+
+  factory Facility.fromJson(Map<String, dynamic> json) {
+    return Facility(
+      id: json['id'] as int? ?? 0,
+      name: json['name'] as String? ?? '',
+      slug: json['slug'] as String? ?? '',
+      icon: json['icon'] as String? ?? '',
+      isActive: json['is_active'] as bool? ?? true,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'slug': slug,
+      'icon': icon,
+      'is_active': isActive,
+    };
+  }
+}
+
+/// Restaurant Image model
+class RestaurantImage {
+  final int id;
+  final String image;
+  final String imageUrl;
+  final String altText;
+  final String imageType; // gallery, menu
+  final bool isPrimary;
+  final int order;
+
+  RestaurantImage({
+    required this.id,
+    required this.image,
+    required this.imageUrl,
+    this.altText = '',
+    this.imageType = 'gallery',
+    this.isPrimary = false,
+    this.order = 0,
+  });
+
+  factory RestaurantImage.fromJson(Map<String, dynamic> json) {
+    return RestaurantImage(
+      id: json['id'] as int? ?? 0,
+      image: json['image'] as String? ?? json['image_url'] as String? ?? '',
+      imageUrl: json['image_url'] as String? ?? json['image'] as String? ?? '',
+      altText: json['alt_text'] as String? ?? '',
+      imageType: json['image_type'] as String? ?? 'gallery',
+      isPrimary: json['is_primary'] as bool? ?? false,
+      order: json['order'] as int? ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'image': image,
+      'image_url': imageUrl,
+      'alt_text': altText,
+      'image_type': imageType,
+      'is_primary': isPrimary,
+      'order': order,
+    };
+  }
+}
+
 /// Helper to safely parse a value to double
 double? _parseDouble(dynamic value) {
   if (value == null) return null;
@@ -75,8 +157,12 @@ class Restaurant {
   final String? postcode;
   final String? email;
   final bool isFavourite;
+  final bool hasUserReviewed;
   final List<OpeningSlot> openingSlots;
   final List<Discount> activeDeals;
+  final List<Facility> facilities;
+  final String menuType; // structured, image
+  final List<RestaurantImage> restaurantImages;
 
   Restaurant({
     required this.id,
@@ -104,9 +190,13 @@ class Restaurant {
     this.postcode,
     this.email,
     this.isFavourite = false,
+    this.hasUserReviewed = false,
     this.openingSlots = const [],
     this.activeDeals = const [],
+    this.facilities = const [],
     this.leaderboardScore = 0.0,
+    this.menuType = 'structured',
+    this.restaurantImages = const [],
   });
 
   factory Restaurant.fromJson(Map<String, dynamic> json) {
@@ -152,6 +242,7 @@ class Restaurant {
               .toList() ??
           [],
       isFavourite: json['is_favourite'] as bool? ?? false,
+      hasUserReviewed: json['has_user_reviewed'] as bool? ?? false,
       openingSlots:
           (json['opening_slots'] as List<dynamic>?)
               ?.map((e) => OpeningSlot.fromJson(e as Map<String, dynamic>))
@@ -162,8 +253,19 @@ class Restaurant {
               ?.map((e) => Discount.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
+      facilities:
+          (json['facilities'] as List<dynamic>?)
+               ?.map((e) => Facility.fromJson(e as Map<String, dynamic>))
+               .toList() ??
+          [],
       slug: json['slug'] as String?,
       leaderboardScore: _parseDouble(json['leaderboard_score']) ?? 0.0,
+      menuType: json['menu_type'] as String? ?? 'structured',
+      restaurantImages:
+          (json['images'] as List<dynamic>?)
+              ?.map((e) => RestaurantImage.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 
@@ -183,13 +285,17 @@ class Restaurant {
       'distance': distance,
       if (distanceMiles != null) 'distance_miles': distanceMiles,
       'discount': discount.toJson(),
-      'images': images,
       'phoneNumber': phoneNumber,
       'website': website,
       'openingHours': openingHours,
       'requiresBooking': requiresBooking,
       'restrictions': restrictions,
+      'isFavourite': isFavourite,
+      'hasUserReviewed': hasUserReviewed,
       'leaderboard_score': leaderboardScore,
+      'facilities': facilities.map((e) => e.toJson()).toList(),
+      'menu_type': menuType,
+      'images': restaurantImages.map((e) => e.toJson()).toList(),
       if (slug != null) 'slug': slug,
     };
   }

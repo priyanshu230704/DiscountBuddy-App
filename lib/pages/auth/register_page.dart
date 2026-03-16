@@ -83,6 +83,7 @@ class _RegisterPageState extends State<RegisterPage> {
     } else if (_currentStep == 1) {
       // Step 2: OTP
       isValid = _otpController.text.length == 4;
+    } else if (_currentStep == 2) {
       // Step 3: Password
       final password = _passwordController.text;
       final confirmPassword = _confirmPasswordController.text;
@@ -160,7 +161,7 @@ class _RegisterPageState extends State<RegisterPage> {
     }
 
     if (currentText != sanitizedText) {
-      Future.delayed(Duration(milliseconds: 1000), () {
+      Future.delayed(Duration(milliseconds: 10), () {
         if (mounted && controller.text == currentText) {
           controller.value = controller.value.copyWith(
             text: sanitizedText,
@@ -243,7 +244,7 @@ class _RegisterPageState extends State<RegisterPage> {
     final scale = (MediaQuery.of(context).size.width / 390).clamp(0.7, 1.05);
 
     return PopScope(
-      canPop: false,
+      canPop: true,
       child: Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: AppColors.surface,
@@ -253,6 +254,7 @@ class _RegisterPageState extends State<RegisterPage> {
           child: Stack(
             fit: StackFit.expand,
             children: [
+
               Positioned.fill(
                 child: Container(
                   decoration: BoxDecoration(
@@ -372,34 +374,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Row(
-                              children: [
-                                if (_currentStep > 0)
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: IconButton(
-                                      icon: Icon(
-                                        Icons.arrow_back_ios_new_rounded,
-                                        color: AppColors.textPrimary,
-                                        size: 18,
-                                      ),
-                                      onPressed: () {
-                                        setState(() {
-                                          if (_currentStep > 0) {
-                                            _currentStep--;
-                                            _validateForm();
-                                          }
-                                        });
-                                      },
-                                    ),
-                                  )
-                                else
-                                  const SizedBox(height: 48),
-                              ],
-                            ),
+
                             const SizedBox(height: 8),
                             Center(
                               child: Container(

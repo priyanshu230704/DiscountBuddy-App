@@ -275,6 +275,51 @@ class ApiService {
     }
   }
 
+  /// POST request with multipart/form-data (for file uploads)
+  Future<Map<String, dynamic>> postMultipart(
+    String endpoint, {
+    Map<String, String>? fields,
+    Map<String, http.MultipartFile>? files,
+    ApiType type = ApiType.user,
+  }) async {
+    try {
+      final normalizedEndpoint = _normalizeEndpoint(endpoint);
+      final baseUrl = _getBaseUrl(type);
+      final uri = Uri.parse('$baseUrl$normalizedEndpoint');
+
+      if (Environment.enableLogging) {
+        debugPrint('POST MULTIPART: $uri');
+        debugPrint('Fields: $fields');
+        debugPrint('Files: ${files?.keys}');
+      }
+
+      final request = http.MultipartRequest('POST', uri);
+      request.headers.addAll(headers);
+
+      // Update Content-Type for multipart
+      request.headers['Content-Type'] = 'multipart/form-data';
+
+      if (fields != null) {
+        request.fields.addAll(fields);
+      }
+
+      if (files != null) {
+        files.forEach((key, value) {
+          request.files.add(value);
+        });
+      }
+
+      final streamedResponse =
+          await _client.send(request).timeout(Environment.apiTimeout);
+
+      final response = await http.Response.fromStream(streamedResponse);
+
+      return _handleResponse(response);
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   /// PATCH request with multipart/form-data (for file uploads)
   Future<Map<String, dynamic>> patchMultipart(
     String endpoint, {
@@ -324,6 +369,7 @@ class ApiService {
   /// DELETE request
   Future<Map<String, dynamic>> delete(
     String endpoint, {
+    Map<String, dynamic>? body,
     ApiType type = ApiType.user,
   }) async {
     try {
@@ -333,11 +379,15 @@ class ApiService {
 
       if (Environment.enableLogging) {
         debugPrint('DELETE: $uri');
+        if (body != null) debugPrint('Body: $body');
       }
 
       final request = http.Request('DELETE', uri)
         ..headers.addAll(headers)
         ..followRedirects = false;
+      if (body != null) {
+        request.body = jsonEncode(body);
+      }
 
       final streamedResponse = await _client
           .send(request)

@@ -48,7 +48,7 @@ class AuthService {
     } catch (e) {
       if (e is ApiException) {
         // Extract error messages from API response
-        String errorMessage = 'Registration failed';
+        String errorMessage = e.data != null ? 'Registration failed' : e.message;
         if (e.data != null) {
           final data = e.data as Map<String, dynamic>;
           if (data.containsKey('detail')) {
@@ -91,7 +91,7 @@ class AuthService {
       );
     } catch (e) {
       if (e is ApiException) {
-        String errorMessage = 'OTP Request failed';
+        String errorMessage = e.data != null ? 'OTP Request failed' : e.message;
         if (e.data != null) {
           final data = e.data as Map<String, dynamic>;
           if (data.containsKey('detail')) {
@@ -128,11 +128,23 @@ class AuthService {
       );
     } catch (e) {
       if (e is ApiException) {
-        String errorMessage = 'OTP verification failed';
+        String errorMessage = e.data != null ? 'OTP verification failed' : e.message;
         if (e.data != null) {
           final data = e.data as Map<String, dynamic>;
           if (data.containsKey('detail')) {
             errorMessage = data['detail'].toString();
+          } else {
+            final errors = <String>[];
+            data.forEach((key, value) {
+              if (value is List) {
+                errors.addAll(value.map((e) => e.toString()));
+              } else {
+                errors.add(value.toString());
+              }
+            });
+            if (errors.isNotEmpty) {
+              errorMessage = errors.join(', ');
+            }
           }
         }
         throw ApiException(
@@ -161,7 +173,7 @@ class AuthService {
       return RegisterResponse.fromJson(response);
     } catch (e) {
       if (e is ApiException) {
-        String errorMessage = 'Registration failed';
+        String errorMessage = e.data != null ? 'Registration failed' : e.message;
         if (e.data != null) {
           final data = e.data as Map<String, dynamic>;
           if (data.containsKey('detail')) {
@@ -221,7 +233,7 @@ class AuthService {
       return loginResponse;
     } catch (e) {
       if (e is ApiException) {
-        String errorMessage = 'Login failed';
+        String errorMessage = e.data != null ? 'Login failed' : e.message;
         if (e.data != null) {
           final data = e.data as Map<String, dynamic>;
           if (data.containsKey('detail')) {
@@ -316,10 +328,25 @@ class AuthService {
     await _googleSignIn.signOut();
   }
 
-  /// Delete user account
-  Future<void> deleteAccount() async {
+  /// Initialize account deletion (Stage 1: Request OTP)
+  Future<void> initDeleteAccount() async {
     try {
-      await _apiService.delete(ApiEndpoints.deleteAccount);
+      await _apiService.post(ApiEndpoints.deleteAccountInit, body: {});
+    } catch (e) {
+      if (e is ApiException) {
+        throw ApiException(e.message, statusCode: e.statusCode, data: e.data);
+      }
+      rethrow;
+    }
+  }
+
+  /// Delete user account (Stage 2: Verify OTP and Delete)
+  Future<void> deleteAccount({required String otp}) async {
+    try {
+      await _apiService.delete(
+        ApiEndpoints.deleteAccount,
+        body: {'otp': otp},
+      );
       await logout();
     } catch (e) {
       if (e is ApiException) {

@@ -62,6 +62,8 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
   @override
   void initState() {
     super.initState();
+    _authProvider.addListener(_onAuthStateChanged);
+    
     // Check multiple sources for mystery_guest role to be safe
     final roleFromProvider = _authProvider.userRole;
     final roleFromProfile = _authProvider.user?.profile?.role;
@@ -80,8 +82,20 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
 
   @override
   void dispose() {
+    _authProvider.removeListener(_onAuthStateChanged);
     // Mapbox map doesn't need manual dispose for the controller here
     super.dispose();
+  }
+
+  void _onAuthStateChanged() {
+    if (!mounted) return;
+    if (!_authProvider.isAuthenticated) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+        }
+      });
+    }
   }
 
   Future<Uint8List> _createDropPinMarkerBytes({required int size}) async {
@@ -439,7 +453,8 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     final restaurant = _restaurantDetail!.restaurant;
     final reviews = _restaurantDetail!.reviews;
     final menuCategories = _restaurantDetail!.menuCategories;
-    final dist = restaurant.distanceMiles ?? _kmToMiles(restaurant.distance);
+    // Distance calculation is handled, but dist variable itself is not used currently
+    // final dist = restaurant.distanceMiles ?? _kmToMiles(restaurant.distance);
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -479,18 +494,23 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    CachedNetworkImage(
-                      imageUrl: restaurant.imageUrl,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        color: AppColors.textDisabled,
-                        child: const Center(child: CircularProgressIndicator()),
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        color: AppColors.textDisabled,
-                        child: const Icon(Icons.restaurant, size: 64),
-                      ),
-                    ),
+                    restaurant.imageUrl.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: restaurant.imageUrl,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              color: AppColors.textDisabled,
+                              child: const Center(child: CircularProgressIndicator()),
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              color: AppColors.textDisabled,
+                              child: const Icon(Icons.restaurant, size: 64),
+                            ),
+                          )
+                        : Container(
+                            color: AppColors.textDisabled,
+                            child: const Icon(Icons.restaurant, size: 64),
+                          ),
                     // White gradient fade at bottom
                     Positioned(
                       bottom: 0,
@@ -598,7 +618,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
-                              '${restaurant.address.split(',').first} (${dist.toStringAsFixed(2)} miles)',
+                              '${restaurant.address.split(',').first} (${restaurant.distanceMiles?.toStringAsFixed(2) ?? _kmToMiles(restaurant.distance).toStringAsFixed(2)} miles)',
                               style: AppFonts.bodyStyle(
                                 fontSize: 14,
                                 color: AppColors.textPrimary,
@@ -648,7 +668,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             color: Colors.transparent,
                             child: InkWell(
                               onTap: () {
-                                _showMenuPopup(context, menuCategories);
+                                _showMenuPopup(context, restaurant, menuCategories);
                               },
                               borderRadius: BorderRadius.circular(14),
                               child: Row(
@@ -948,6 +968,60 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
           ),
 
           const SliverToBoxAdapter(child: SizedBox(height: 17)),
+          
+          // Facilities Section
+          if (restaurant.facilities.isNotEmpty)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Facilities 🛠️',
+                      style: AppFonts.bodyStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: restaurant.facilities.map((fac) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: AppColors.cardBorder),
+                            boxShadow: AppShadows.card,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (fac.icon.isNotEmpty) ...[
+                                Text(fac.icon, style: const TextStyle(fontSize: 14)),
+                                const SizedBox(width: 6),
+                              ],
+                              Text(
+                                fac.name,
+                                style: AppFonts.bodyStyle(
+                                  fontSize: 13,
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           // Opening Hours Section
           if (restaurant.openingSlots.isNotEmpty)
             SliverToBoxAdapter(
@@ -979,20 +1053,21 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                           color: AppColors.textPrimary,
                         ),
                       ),
-                      TextButton.icon(
-                        onPressed: _showAddReviewDialog,
-                        icon: const Icon(Icons.edit, size: 16),
-                        label: const Text('Write a review'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: AppColors.primary,
+                      if (!restaurant.hasUserReviewed)
+                        TextButton.icon(
+                          onPressed: _showAddReviewDialog,
+                          icon: const Icon(Icons.edit, size: 16),
+                          label: const Text('Write a review'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.primary,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   // Overall Rating
                   InkWell(
-                    onTap: _showAddReviewDialog,
+                    onTap: restaurant.hasUserReviewed ? null : _showAddReviewDialog,
                     borderRadius: BorderRadius.circular(8),
                     child: Padding(
                       padding: const EdgeInsets.all(4.0),
@@ -1381,12 +1456,12 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
   }
 
   // Show menu popup
-  void _showMenuPopup(BuildContext context, List<MenuCategory> menuCategories) {
+  void _showMenuPopup(BuildContext context, Restaurant restaurant, List<MenuCategory> menuCategories) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => MenuPopup(menuCategories: menuCategories),
+      builder: (context) => MenuPopup(restaurant: restaurant, menuCategories: menuCategories),
     );
   }
 }
@@ -1593,12 +1668,16 @@ class _OfferCard extends StatelessWidget {
 
 /// Menu Popup Widget - Bottom Sheet
 class MenuPopup extends StatelessWidget {
+  final Restaurant restaurant;
   final List<MenuCategory> menuCategories;
 
-  const MenuPopup({super.key, required this.menuCategories});
+  const MenuPopup({super.key, required this.restaurant, required this.menuCategories});
 
   @override
   Widget build(BuildContext context) {
+    final bool isImageMenu = restaurant.menuType == 'image';
+    final menuImages = restaurant.restaurantImages.where((img) => img.imageType == 'menu').toList();
+
     return DraggableScrollableSheet(
       initialChildSize: 0.9,
       minChildSize: 0.5,
@@ -1607,65 +1686,113 @@ class MenuPopup extends StatelessWidget {
         return GenericBottomSheet(
           title: 'Menu',
           expandChild: true,
-          child: menuCategories.isEmpty
-              ? Center(
-                  child: Text(
-                    'No menu available',
-                    style: AppFonts.bodyStyle(
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                )
-              : ListView.builder(
-                  controller: scrollController,
-                  padding: const EdgeInsets.all(16),
-                  itemCount: menuCategories.length,
-                  itemBuilder: (context, categoryIndex) {
-                    final category = menuCategories[categoryIndex];
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Category Header
-                        Padding(
-                          padding: EdgeInsets.only(
-                            bottom: 12,
-                            top: categoryIndex > 0 ? 24 : 0,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                category.name,
-                                style: AppFonts.bodyStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                              if (category.description.isNotEmpty) ...[
-                                const SizedBox(height: 4),
-                                Text(
-                                  category.description,
-                                  style: AppFonts.bodyStyle(
-                                    fontSize: 14,
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                        // Menu Items
-                        ...category.items.map(
-                          (item) => _MenuItemCard(item: item),
-                        ),
-                      ],
-                    );
-                  },
-                ),
+          child: _buildMenuContent(context, scrollController, isImageMenu, menuImages),
         );
       },
+    );
+  }
+
+  Widget _buildMenuContent(BuildContext context, ScrollController scrollController, bool isImageMenu, List<RestaurantImage> menuImages) {
+    if (isImageMenu) {
+      if (menuImages.isEmpty) {
+        return _buildEmptyState();
+      }
+      return ListView.builder(
+        controller: scrollController,
+        padding: const EdgeInsets.all(16),
+        itemCount: menuImages.length,
+        itemBuilder: (context, index) {
+          return Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                menuImages[index].imageUrl,
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Container(
+                    height: 300,
+                    color: AppColors.cardBackground,
+                    child: const Center(child: CircularProgressIndicator()),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    height: 200,
+                    color: AppColors.cardBackground,
+                    child: const Center(child: Icon(Icons.broken_image, color: AppColors.textSecondary)),
+                  );
+                },
+              ),
+            ),
+          );
+        },
+      );
+    }
+
+    if (menuCategories.isEmpty) {
+      return _buildEmptyState();
+    }
+
+    return ListView.builder(
+      controller: scrollController,
+      padding: const EdgeInsets.all(16),
+      itemCount: menuCategories.length,
+      itemBuilder: (context, categoryIndex) {
+        final category = menuCategories[categoryIndex];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Category Header
+            Padding(
+              padding: EdgeInsets.only(
+                bottom: 12,
+                top: categoryIndex > 0 ? 24 : 0,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    category.name,
+                    style: AppFonts.bodyStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  if (category.description.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      category.description,
+                      style: AppFonts.bodyStyle(
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            // Menu Items
+            ...category.items.map(
+              (item) => _MenuItemCard(item: item),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Text(
+        'No menu available',
+        style: AppFonts.bodyStyle(
+          fontSize: 14,
+          color: AppColors.textSecondary,
+        ),
+      ),
     );
   }
 }

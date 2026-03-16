@@ -6,6 +6,10 @@ import '../../components/inputs.dart';
 import '../../components/buttons.dart';
 import '../../components/app_app_bar.dart';
 import '../../services/merchant_service.dart';
+import '../../services/location_service.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import '../../models/restaurant.dart' as model;
 import 'merchant_menu_page.dart';
 
 /// Add/Edit Restaurant Page for Merchants
@@ -20,6 +24,7 @@ class AddRestaurantPage extends StatefulWidget {
 
 class _AddRestaurantPageState extends State<AddRestaurantPage> {
   final MerchantService _merchantService = MerchantService();
+  final LocationService _locationService = LocationService();
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _slugController = TextEditingController();
@@ -40,7 +45,12 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
   final _cityFocusNode = FocusNode();
   List<Map<String, dynamic>> _filteredCities = [];
   List<int> _selectedCategoryIds = [];
+  List<Map<String, dynamic>> _facilities = [];
+  List<int> _selectedFacilityIds = [];
   int _priceRange = 2;
+  String _menuType = 'structured'; // Default to structured
+  List<model.RestaurantImage> _restaurantImages = [];
+  final ImagePicker _picker = ImagePicker();
   bool _isLoading = false;
   bool _isLoadingData = true;
   final LayerLink _cityLayerLink = LayerLink();
@@ -55,6 +65,42 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
     'saturday': '',
     'sunday': '',
   };
+
+  Future<void> _fetchCurrentLocation() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final position = await _locationService.getCurrentLocation();
+      setState(() {
+        _latitudeController.text = position.latitude.toString();
+        _longitudeController.text = position.longitude.toString();
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Location updated successfully'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to get location: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -222,12 +268,14 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
       final results = await Future.wait([
         _merchantService.getCities(),
         _merchantService.getCategories(),
+        _merchantService.getFacilities(),
       ]);
 
       if (mounted) {
         setState(() {
           _cities = results[0];
           _categories = results[1];
+          _facilities = results[2];
           _filteredCities = _cities;
           _isLoadingData = false;
         });
@@ -260,6 +308,13 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
     _emailController.text = restaurant['email'] as String? ?? '';
     _websiteController.text = restaurant['website'] as String? ?? '';
     _priceRange = restaurant['price_range'] as int? ?? 2;
+    _menuType = restaurant['menu_type'] as String? ?? 'structured';
+
+    // Load images
+    if (restaurant['images'] != null) {
+      final imagesData = restaurant['images'] as List;
+      _restaurantImages = imagesData.map((img) => model.RestaurantImage.fromJson(img)).toList();
+    }
 
     // Load city
     if (restaurant['city'] != null) {
@@ -275,6 +330,15 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
       _selectedCategoryIds = categories.map((c) {
         if (c is Map) return c['id'] as int;
         return c as int;
+      }).toList();
+    }
+
+    // Load facilities
+    if (restaurant['facilities'] != null) {
+      final facilities = restaurant['facilities'] as List;
+      _selectedFacilityIds = facilities.map((f) {
+        if (f is Map) return f['id'] as int;
+        return f as int;
       }).toList();
     }
 
@@ -329,13 +393,15 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
         'city_id': _selectedCityId,
         'address': _addressController.text.trim(),
         'postcode': _postcodeController.text.trim(),
-        'latitude': _latitudeController.text.trim(),
-        'longitude': _longitudeController.text.trim(),
+        'latitude': double.tryParse(_latitudeController.text.trim())?.toStringAsFixed(6),
+        'longitude': double.tryParse(_longitudeController.text.trim())?.toStringAsFixed(6),
         'phone': _phoneController.text.trim(),
         'email': _emailController.text.trim(),
         'website': _websiteController.text.trim(),
         'categories': _selectedCategoryIds,
+        'facilities': _selectedFacilityIds,
         'price_range': _priceRange,
+        'menu_type': _menuType,
         if (openingHours.isNotEmpty) 'opening_hours': openingHours,
       };
 
@@ -388,6 +454,166 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to save restaurant: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _pickAndUploadImage(String type) async {
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 85,
+    );
+    if (image == null) return;
+
+    if (widget.restaurant == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please save the restaurant first before uploading images.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final restaurantId = widget.restaurant!['id'];
+      final id = restaurantId is int ? restaurantId : int.parse(restaurantId.toString());
+
+      await _merchantService.uploadRestaurantImage(
+        restaurantId: id,
+        imagePath: image.path,
+        imageType: type,
+        isPrimary: type == 'gallery' &&
+            _restaurantImages
+                .where((img) => img.imageType == 'gallery')
+                .isEmpty,
+      );
+
+      // Reload restaurant data to get updated images list
+      final updatedRestaurant = await _merchantService.getRestaurantDetail(id);
+      if (mounted) {
+        setState(() {
+          if (updatedRestaurant['images'] != null) {
+            final imagesData = updatedRestaurant['images'] as List;
+            _restaurantImages = imagesData
+                .map((img) => model.RestaurantImage.fromJson(img))
+                .toList();
+          }
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Image uploaded successfully'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to upload image: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _deleteImage(int imageId) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _merchantService.deleteRestaurantImage(imageId);
+      if (mounted) {
+        setState(() {
+          _restaurantImages.removeWhere((img) => img.id == imageId);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Image deleted successfully'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete image: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _setPrimaryImage(int imageId) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _merchantService.setPrimaryImage(imageId);
+      if (mounted) {
+        setState(() {
+          _restaurantImages = _restaurantImages.map((img) {
+            if (img.imageType == 'gallery') {
+              return model.RestaurantImage(
+                id: img.id,
+                image: img.image,
+                imageUrl: img.imageUrl,
+                altText: img.altText,
+                imageType: img.imageType,
+                isPrimary: img.id == imageId,
+                order: img.order,
+              );
+            }
+            return img;
+          }).toList();
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Primary image updated successfully'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update primary image: ${e.toString()}'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -591,6 +817,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                               child: AppTextField(
                                 controller: _latitudeController,
                                 label: 'Latitude',
+                                readOnly: true,
                                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                               ),
                             ),
@@ -599,10 +826,25 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                               child: AppTextField(
                                 controller: _longitudeController,
                                 label: 'Longitude',
+                                readOnly: true,
                                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                               ),
                             ),
                           ],
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: _isLoading ? null : _fetchCurrentLocation,
+                            icon: const Icon(Icons.my_location),
+                            label: const Text('Update Restaurant Location'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.merchantIndigo,
+                              side: const BorderSide(color: AppColors.merchantIndigo),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -686,6 +928,100 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                               },
                             );
                           }).toList(),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: AppSpacing.xl),
+                    _buildSectionHeader('Facilities', Icons.featured_play_list_rounded),
+                    const SizedBox(height: AppSpacing.md),
+                    _buildFormSection(
+                      children: [
+                        Text(
+                          'Select the amenities and facilities available at your restaurant.',
+                          style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: _facilities.map((facility) {
+                            final facilityId = facility['id'] as int;
+                            final isSelected = _selectedFacilityIds.contains(facilityId);
+                            return FilterChip(
+                              label: Text(facility['name'] as String),
+                              selected: isSelected,
+                              showCheckmark: false,
+                              selectedColor: AppColors.merchantIndigo,
+                              backgroundColor: AppColors.background,
+                              labelStyle: AppTypography.body.copyWith(
+                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                color: isSelected ? AppColors.white : AppColors.textPrimary,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                side: BorderSide(
+                                  color: isSelected
+                                      ? AppColors.merchantIndigo
+                                      : AppColors.cardBorder,
+                                ),
+                              ),
+                              onSelected: (selected) {
+                                setState(() {
+                                  if (selected) {
+                                    _selectedFacilityIds.add(facilityId);
+                                  } else {
+                                    _selectedFacilityIds.remove(facilityId);
+                                  }
+                                });
+                              },
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: AppSpacing.xl),
+                    _buildSectionHeader('Menu Type', Icons.restaurant_menu_rounded),
+                    const SizedBox(height: AppSpacing.md),
+                    _buildFormSection(
+                      children: [
+                        Text(
+                          'Choose how you want to display your menu to users.',
+                          style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: RadioListTile<String>(
+                                title: Text('Structured', style: AppTypography.bodySmall),
+                                value: 'structured',
+                                groupValue: _menuType,
+                                activeColor: AppColors.merchantIndigo,
+                                contentPadding: EdgeInsets.zero,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _menuType = value!;
+                                  });
+                                },
+                              ),
+                            ),
+                            Expanded(
+                              child: RadioListTile<String>(
+                                title: Text('Images', style: AppTypography.bodySmall),
+                                value: 'image',
+                                groupValue: _menuType,
+                                activeColor: AppColors.merchantIndigo,
+                                contentPadding: EdgeInsets.zero,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _menuType = value!;
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -814,6 +1150,61 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                         );
                       }).toList(),
                     ),
+                    const SizedBox(height: AppSpacing.xl),
+                    _buildSectionHeader('Restaurant Gallery', Icons.image_rounded),
+                    const SizedBox(height: AppSpacing.md),
+                    _buildFormSection(
+                      children: [
+                        Text(
+                          'Upload photos of your restaurant, ambiance, and popular dishes.',
+                          style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        _buildImageGrid('gallery'),
+                        const SizedBox(height: AppSpacing.md),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () => _pickAndUploadImage('gallery'),
+                            icon: const Icon(Icons.add_a_photo_rounded),
+                            label: const Text('Add Gallery Image'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.merchantIndigo,
+                              side: const BorderSide(color: AppColors.merchantIndigo),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    if (_menuType == 'image') ...[
+                      const SizedBox(height: AppSpacing.xl),
+                      _buildSectionHeader('Menu Images', Icons.menu_book_rounded),
+                      const SizedBox(height: AppSpacing.md),
+                      _buildFormSection(
+                        children: [
+                          Text(
+                            'Upload clear photos of your physical menu.',
+                            style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          _buildImageGrid('menu'),
+                          const SizedBox(height: AppSpacing.md),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: () => _pickAndUploadImage('menu'),
+                              icon: const Icon(Icons.add_photo_alternate_rounded),
+                              label: const Text('Add Menu Image'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.merchantIndigo,
+                                side: const BorderSide(color: AppColors.merchantIndigo),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
 
                     const SizedBox(height: AppSpacing.xxxl),
                     PrimaryButton(
@@ -901,6 +1292,125 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildImageGrid(String type) {
+    final images = _restaurantImages.where((img) => img.imageType == type).toList();
+
+    if (images.isEmpty) {
+      return Container(
+        height: 100,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: AppColors.background,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.cardBorder, style: BorderStyle.solid),
+        ),
+        child: Center(
+          child: Text(
+            'No images uploaded yet',
+            style: AppTypography.bodySmall.copyWith(color: AppColors.textDisabled),
+          ),
+        ),
+      );
+    }
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 1,
+      ),
+      itemCount: images.length,
+      itemBuilder: (context, index) {
+        final image = images[index];
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: CachedNetworkImage(
+                  imageUrl: image.imageUrl,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Container(
+                    color: AppColors.cardBorder,
+                    child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                  ),
+                  errorWidget: (context, url, error) => Container(
+                    color: AppColors.cardBorder,
+                    child: const Icon(Icons.error_outline),
+                  ),
+                ),
+              ),
+            ),
+            if (type == 'gallery' && image.isPrimary)
+              Positioned(
+                top: 4,
+                left: 4,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.merchantIndigo,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'Primary',
+                    style: AppTypography.caption.copyWith(color: AppColors.white, fontSize: 8),
+                  ),
+                ),
+              ),
+            Positioned(
+              top: 0,
+              right: 0,
+              child: PopupMenuButton<String>(
+                icon: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: const BoxDecoration(
+                    color: Colors.black54,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.more_vert, size: 14, color: Colors.white),
+                ),
+                padding: EdgeInsets.zero,
+                onSelected: (value) {
+                  if (value == 'delete') {
+                    _deleteImage(image.id);
+                  } else if (value == 'primary') {
+                    _setPrimaryImage(image.id);
+                  }
+                },
+                itemBuilder: (context) => [
+                  if (type == 'gallery' && !image.isPrimary)
+                    const PopupMenuItem(
+                      value: 'primary',
+                      child: Row(
+                        children: [
+                          Icon(Icons.star_rounded, size: 18, color: Colors.amber),
+                          SizedBox(width: 8),
+                          Text('Set as Primary'),
+                        ],
+                      ),
+                    ),
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.error),
+                        SizedBox(width: 8),
+                        Text('Delete'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

@@ -696,7 +696,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       child: Padding(
         padding: const EdgeInsets.only(top: 0, bottom: 6),
         child: SizedBox(
-          height: 170,
+          height: 200,
           child: const _GradientBanner(
             title: "Get the Best Restaurant Deals",
             subtitle: "",
@@ -1123,15 +1123,12 @@ class _FeedTile extends StatelessWidget {
     this.userLon,
   });
 
+  @override
   Widget build(BuildContext context) {
     const double imageHeight = 90; // Compressed from 118
     final tags = offerTags(restaurant);
     final dist = restaurant.distanceMiles ?? kmToMiles(restaurant.distance);
-    final String discountText = tags.isNotEmpty ? tags.first : "30% OFF";
-    final String numeric =
-        discountText.replaceAll(RegExp(r'[^0-9]'), '').isEmpty
-        ? '30'
-        : discountText.replaceAll(RegExp(r'[^0-9]'), '');
+    final String? discountText = tags.isNotEmpty ? tags.first : null;
 
     return GestureDetector(
       onTap: () {
@@ -1163,34 +1160,45 @@ class _FeedTile extends StatelessWidget {
               height: imageHeight,
               child: Stack(
                 children: [
-                  CachedNetworkImage(
-                    imageUrl: restaurant.imageUrl,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
-                    fadeInDuration: Duration.zero,
-                    fadeOutDuration: Duration.zero,
-                    filterQuality: FilterQuality.low,
-                    maxWidthDiskCache: 900,
-                    maxHeightDiskCache: 600,
-                    placeholder: (context, url) => Container(
-                      color: Colors.black.withValues(alpha: 0.03),
-                      child: const Center(
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Color(0xFF8B5CF6),
+                  restaurant.imageUrl.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: restaurant.imageUrl,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
+                          fadeInDuration: Duration.zero,
+                          fadeOutDuration: Duration.zero,
+                          filterQuality: FilterQuality.low,
+                          maxWidthDiskCache: 900,
+                          maxHeightDiskCache: 600,
+                          placeholder: (context, url) => Container(
+                            color: Colors.black.withValues(alpha: 0.03),
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Color(0xFF8B5CF6),
+                              ),
+                            ),
+                          ),
+                          errorWidget: (context, url, error) => Container(
+                            color: const Color(0xFFF3F4F6),
+                            child: const Icon(
+                              Icons.restaurant,
+                              color: Color(0xFFD1D5DB),
+                              size: 40,
+                            ),
+                          ),
+                        )
+                      : Container(
+                          width: double.infinity,
+                          height: double.infinity,
+                          color: const Color(0xFFF3F4F6),
+                          child: const Icon(
+                            Icons.restaurant,
+                            color: Color(0xFFD1D5DB),
+                            size: 40,
+                          ),
                         ),
-                      ),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      color: const Color(0xFFF3F4F6),
-                      child: const Icon(
-                        Icons.restaurant,
-                        color: Color(0xFFD1D5DB),
-                        size: 40,
-                      ),
-                    ),
-                  ),
                   Positioned.fill(
                     child: Container(
                       decoration: BoxDecoration(
@@ -1205,49 +1213,50 @@ class _FeedTile extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 10,
-                      ),
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Color(0xFFF97316), Color(0xFFFB923C)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+                  if (discountText != null)
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
                         ),
-                        borderRadius: BorderRadius.only(
-                          bottomRight: Radius.circular(20),
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Color(0xFFF97316), Color(0xFFFB923C)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.only(
+                            bottomRight: Radius.circular(20),
+                          ),
                         ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            discountText,
-                            style: AppTypography.title.copyWith(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                              letterSpacing: -0.2,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              discountText,
+                              style: AppTypography.title.copyWith(
+                                fontSize: 17,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                                letterSpacing: -0.2,
+                              ),
                             ),
-                          ),
-                          Text(
-                            "Limited Time",
-                            style: AppTypography.body.copyWith(
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white.withValues(alpha: 0.95),
+                            Text(
+                              "Limited Time",
+                              style: AppTypography.body.copyWith(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white.withValues(alpha: 0.95),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -1355,19 +1364,7 @@ class _FeedTile extends StatelessWidget {
                     height: 14,
                     child: Row(
                       children: [
-                        Expanded(
-                          child: Text(
-                            "Use code BUDDY$numeric to get ${discountText.toLowerCase()}",
-                            style: AppTypography.body.copyWith(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500,
-                              color: const Color(0xFF4B5563),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
+
                         const Icon(
                           Icons.location_on,
                           color: Color(0xFF8B5CF6),

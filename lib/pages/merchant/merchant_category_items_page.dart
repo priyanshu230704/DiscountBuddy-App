@@ -444,7 +444,7 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     Text(
-                      '\$${item['price']}',
+                      '£${item['price']}',
                       style: AppTypography.title.copyWith(
                         color: isAvailable ? AppColors.merchantIndigo : AppColors.textDisabled,
                         fontSize: 18,

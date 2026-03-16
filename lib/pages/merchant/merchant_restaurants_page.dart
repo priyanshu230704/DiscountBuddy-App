@@ -212,7 +212,7 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
       );
     } else {
       try {
-        final fullRestaurant = await _merchantService.getRestaurantDetails(id);
+        final fullRestaurant = await _merchantService.getRestaurantDetail(id);
         if (mounted) {
           Navigator.push(
             context,

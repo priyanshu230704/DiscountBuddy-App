@@ -75,7 +75,12 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
   }
 
   Future<void> _pickAndUploadEvidence() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.camera,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 85,
+    );
     if (image == null) return;
 
     setState(() => _isLoading = true);

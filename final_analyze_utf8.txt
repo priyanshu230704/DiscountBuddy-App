@@ -1,0 +1,27 @@
+﻿Analyzing 4 items...                                            
+
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\pages\merchant\add_restaurant_page.dart:995:33 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\pages\merchant\add_restaurant_page.dart:998:33 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\pages\merchant\add_restaurant_page.dart:1009:33 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\pages\merchant\add_restaurant_page.dart:1012:33 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\pages\merchant\merchant_dashboard_page.dart:652:30 - use_build_context_synchronously
+  error - The method 'getRestaurantDetails' isn't defined for the type 'MerchantService' - lib\pages\merchant\merchant_restaurants_page.dart:215:55 - undefined_method
+
+flutter : 6 issues found. 
+(ran in 4.5s)
+At line:1 char:1
++ flutter analyze 
+lib/pages/merchant/ 
+lib/models/ lib/services/ 
+lib/des ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+    + CategoryInfo         
+     : NotSpecified: (6 i  
+  ssues found. (ran in 4   
+ .5s):String) [], Remot    
+eException
+    + FullyQualifiedErrorI 
+   d : NativeCommandError
+ 

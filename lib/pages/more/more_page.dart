@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../design/app_colors.dart';
-import '../../design/app_colors.dart';
 import '../../design/app_spacing.dart';
 import '../../design/app_typography.dart';
 import '../../widgets/blurred_ellipse_background.dart';

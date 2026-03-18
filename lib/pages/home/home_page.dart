@@ -693,9 +693,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Widget _buildBanners() {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.only(top: 0, bottom: 6),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         child: SizedBox(
-          height: 200,
+          height: 100,
           child: const _GradientBanner(
             title: "Get the Best Restaurant Deals",
             subtitle: "",
@@ -975,11 +975,11 @@ class _GradientBanner extends StatelessWidget {
 
           // Content
           Padding(
-            padding: const EdgeInsets.all(22),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
                 Expanded(
-                  flex: 55,
+                  flex: 60,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -987,42 +987,30 @@ class _GradientBanner extends StatelessWidget {
                       Text(
                         title,
                         style: AppTypography.title.copyWith(
-                          fontSize: 22,
+                          fontSize: 16,
                           height: 1.1,
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
-                          letterSpacing: -0.5,
+                          letterSpacing: -0.4,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.visible,
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 6),
                       Text(
-                        subtitle,
+                        "Savor the Savings, Every Day",
                         style: AppTypography.body.copyWith(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w500,
-                          height: 1.3,
-                          color: Colors.white.withValues(alpha: 0.9),
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 18),
-                      Text(
-                        "Savor the Savings, Every Single Day",
-                        style: AppTypography.body.copyWith(
-                          fontSize: 13,
+                          fontSize: 11,
                           fontWeight: FontWeight.w700,
                           fontStyle: FontStyle.italic,
                           color: Colors.white,
-                          letterSpacing: 0.2,
+                          letterSpacing: 0.1,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const Expanded(flex: 45, child: SizedBox()),
+                const Expanded(flex: 40, child: SizedBox()),
               ],
             ),
           ),
@@ -1030,20 +1018,20 @@ class _GradientBanner extends StatelessWidget {
           // Food Image on right
           Positioned(
             right: 0,
-            top: 20,
-            bottom: 20,
+            top: 10,
+            bottom: 10,
             child: ClipRRect(
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(80),
-                bottomLeft: Radius.circular(80),
+                topLeft: Radius.circular(50),
+                bottomLeft: Radius.circular(50),
               ),
               child: Image.network(
-                "https://images.unsplash.com/photo-1473093226795-af9932fe5856?q=80&w=400&auto=format&fit=crop", // High-quality pasta image
-                width: 160,
+                "https://images.unsplash.com/photo-1473093226795-af9932fe5856?q=80&w=400&auto=format&fit=crop",
+                width: 120,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => Image.asset(
                   "assets/png/banner-sm.png",
-                  width: 160,
+                  width: 120,
                   fit: BoxFit.cover,
                 ),
               ),
@@ -1052,18 +1040,18 @@ class _GradientBanner extends StatelessWidget {
 
           // "Live Deals" Badge
           Positioned(
-            bottom: 14,
-            right: 16,
+            bottom: 8,
+            right: 12,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
                   ),
                 ],
               ),
@@ -1073,16 +1061,16 @@ class _GradientBanner extends StatelessWidget {
                   const Icon(
                     Icons.flash_on,
                     color: Color(0xFFF97316),
-                    size: 13,
+                    size: 11,
                   ),
-                  const SizedBox(width: 5),
+                  const SizedBox(width: 4),
                   Text(
                     "LIVE DEALS",
                     style: AppTypography.title.copyWith(
-                      fontSize: 11,
+                      fontSize: 9,
                       fontWeight: FontWeight.w900,
                       color: const Color(0xFFF97316),
-                      letterSpacing: 0.5,
+                      letterSpacing: 0.4,
                     ),
                   ),
                 ],

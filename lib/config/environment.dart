@@ -8,7 +8,7 @@ class Environment {
   static const String production = 'production';
 
   // Current environment - change this based on your build configuration
-  static const String currentEnvironment = production;
+  static const String currentEnvironment = development;
 
   // API Base URLs
   static String get baseUrl {
@@ -16,10 +16,10 @@ class Environment {
       case production:
         return 'http://16.171.196.144';
       case staging:
-        return 'http://192.168.29.221:8000';
+        return 'http://192.168.1.5:8000';
       case development:
       default:
-        return 'http://192.168.29.221:8000';
+        return 'http://192.168.1.5:8000';
     }
   }
 

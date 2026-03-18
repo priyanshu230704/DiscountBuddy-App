@@ -1,4 +1,5 @@
-import '../services/api_service.dart';
+import 'package:flutter/foundation.dart';
+import 'package:discount_buddy/services/api_service.dart';
 import '../services/auth_service.dart';
 import '../config/api_endpoints.dart';
 import 'package:http/http.dart' as http;
@@ -25,12 +26,18 @@ class MerchantService {
   }
 
   /// Get merchant aggregate dashboard statistics
-  Future<Map<String, dynamic>> getMerchantDashboardStats() async {
+  Future<Map<String, dynamic>> getMerchantDashboardStats({int? restaurantId}) async {
     try {
       await _ensureAuthenticated();
 
+      final queryParams = <String, String>{};
+      if (restaurantId != null) {
+        queryParams['restaurant_id'] = restaurantId.toString();
+      }
+
       final response = await _apiService.get(
         ApiEndpoints.merchantDashboard,
+        queryParameters: queryParams,
         type: ApiType.merchant,
       );
       
@@ -186,6 +193,21 @@ class MerchantService {
     }
   }
 
+  /// Toggle deal status
+  Future<Map<String, dynamic>> toggleDealStatus(int dealId) async {
+    try {
+      await _ensureAuthenticated();
+      final response = await _apiService.post(
+        ApiEndpoints.toggleDealStatus(dealId),
+        body: {},
+        type: ApiType.merchant,
+      );
+      return response;
+    } catch (e) {
+      throw Exception('Failed to toggle deal status: ${e.toString()}');
+    }
+  }
+
   /// Get deal details
   Future<Map<String, dynamic>> getDealDetails(int dealId) async {
     try {
@@ -289,12 +311,44 @@ class MerchantService {
     }
   }
 
-  /// Get menu category details
-  Future<Map<String, dynamic>> getMenuCategoryDetails(int id) async {
+  /// List menu items for a category
+  Future<List<Map<String, dynamic>>> getMenuItems({
+    int? categoryId,
+    int? restaurantId,
+  }) async {
     try {
       await _ensureAuthenticated();
+      final queryParams = <String, String>{};
+      if (categoryId != null) queryParams['category'] = categoryId.toString();
+      if (restaurantId != null) queryParams['restaurant'] = restaurantId.toString();
+
+      final response = await _apiService.get(
+        ApiEndpoints.merchantMenuItems,
+        queryParameters: queryParams,
+        type: ApiType.merchant,
+      );
+
+      if (response['results'] != null && response['results'] is List) {
+        return (response['results'] as List).cast<Map<String, dynamic>>();
+      }
+      return [];
+    } catch (e) {
+      throw Exception('Failed to load menu items: ${e.toString()}');
+    }
+  }
+
+  /// Get menu category details
+  Future<Map<String, dynamic>> getMenuCategoryDetails(int id, {int? restaurantId}) async {
+    try {
+      await _ensureAuthenticated();
+      final queryParams = <String, String>{};
+      if (restaurantId != null) {
+        queryParams['restaurant'] = restaurantId.toString();
+      }
+
       return await _apiService.get(
         ApiEndpoints.merchantMenuDetail(id),
+        queryParameters: queryParams,
         type: ApiType.merchant,
       );
     } catch (e) {
@@ -412,7 +466,7 @@ class MerchantService {
       );
 
       if (response['results'] != null && response['results'] is List) {
-        return (response['results'] as List).cast<Map<String, dynamic>>();
+        return (response['results'] as List).map((e) => e as Map<String, dynamic>).toList();
       }
       return [];
     } catch (e) {
@@ -436,6 +490,38 @@ class MerchantService {
     }
   }
 
+  /// Get redemption history for a merchant
+  Future<List<Map<String, dynamic>>> getMerchantRedemptionHistory({
+    int? restaurantId,
+    int? limit,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+      final queryParams = <String, String>{};
+      if (restaurantId != null) {
+        queryParams['restaurant_id'] = restaurantId.toString();
+      }
+      if (limit != null) {
+        queryParams['limit'] = limit.toString();
+      }
+
+      final response = await _apiService.get(
+        ApiEndpoints.merchantRedemptionHistory,
+        queryParameters: queryParams,
+        type: ApiType.merchant,
+      );
+
+      if (response['results'] != null && response['results'] is List) {
+        return (response['results'] as List).map((e) => e as Map<String, dynamic>).toList();
+      } else if (response is List) {
+        return (response as List).map((e) => e as Map<String, dynamic>).toList();
+      }
+      return [];
+    } catch (e) {
+      throw Exception('Failed to load redemption history: ${e.toString()}');
+    }
+  }
+
   /// --- Merchant Insights (Reviews & Bookings) ---
 
   /// View all reviews for user's restaurants
@@ -446,7 +532,7 @@ class MerchantService {
       await _ensureAuthenticated();
       final queryParams = <String, String>{};
       if (restaurantId != null) {
-        queryParams['restaurant'] = restaurantId.toString();
+        queryParams['restaurant_id'] = restaurantId.toString();
       }
 
       final response = await _apiService.get(
@@ -456,7 +542,7 @@ class MerchantService {
       );
 
       if (response['results'] != null && response['results'] is List) {
-        return (response['results'] as List).cast<Map<String, dynamic>>();
+        return (response['results'] as List).map((e) => e as Map<String, dynamic>).toList();
       }
       return [];
     } catch (e) {
@@ -473,7 +559,7 @@ class MerchantService {
       await _ensureAuthenticated();
       final queryParams = <String, String>{};
       if (restaurantId != null) {
-        queryParams['restaurant'] = restaurantId.toString();
+        queryParams['restaurant_id'] = restaurantId.toString();
       }
       if (status != null) queryParams['status'] = status;
 
@@ -484,7 +570,7 @@ class MerchantService {
       );
 
       if (response['results'] != null && response['results'] is List) {
-        return (response['results'] as List).cast<Map<String, dynamic>>();
+        return (response['results'] as List).map((e) => e as Map<String, dynamic>).toList();
       }
       return [];
     } catch (e) {
@@ -515,16 +601,22 @@ class MerchantService {
     String qrData, {
     required double price,
     required int peopleCount,
+    int? restaurantId,
   }) async {
     try {
       await _ensureAuthenticated();
+      final body = {
+        'qr_data': qrData,
+        'price': price,
+        'people_count': peopleCount,
+      };
+      if (restaurantId != null) {
+        body['restaurant_id'] = restaurantId;
+      }
+
       final response = await _apiService.post(
         ApiEndpoints.merchantRedeemDeal,
-        body: {
-          'qr_data': qrData,
-          'price': price,
-          'people_count': peopleCount,
-        },
+        body: body,
         type: ApiType.merchant,
       );
       return response;
@@ -541,16 +633,22 @@ class MerchantService {
     String redemptionCode, {
     required double price,
     required int peopleCount,
+    int? restaurantId,
   }) async {
     try {
       await _ensureAuthenticated();
+      final body = {
+        'redemption_code': redemptionCode,
+        'price': price,
+        'people_count': peopleCount,
+      };
+      if (restaurantId != null) {
+        body['restaurant_id'] = restaurantId;
+      }
+
       final response = await _apiService.post(
         ApiEndpoints.merchantRedeemDeal,
-        body: {
-          'redemption_code': redemptionCode,
-          'price': price,
-          'people_count': peopleCount,
-        },
+        body: body,
         type: ApiType.merchant,
       );
       return response;

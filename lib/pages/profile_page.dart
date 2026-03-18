@@ -13,7 +13,7 @@ import 'help_support_page.dart';
 import 'privacy_policy_page.dart';
 import 'saved_restaurants_page.dart';
 import 'my_deals_page.dart';
-import '../services/auth_service.dart';
+import 'savings_history_page.dart';
 import 'package:share_plus/share_plus.dart';
 
 /// Profile Screen - NeoTaste style
@@ -101,9 +101,13 @@ class _ProfilePageState extends State<ProfilePage> {
     final displayName = user?.username ?? 'chavdaa';
     final initials = _getInitials(displayName);
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: AppColors.backgroundGradient,
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
         bottom: false,
         child: SingleChildScrollView(
           child: Column(
@@ -121,7 +125,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
               ),
-              SizedBox(height: AppSpacing.xxxl),
+              const SizedBox(height: AppSpacing.xxxl),
 
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
@@ -168,12 +172,12 @@ class _ProfilePageState extends State<ProfilePage> {
                           children: [
                             Text(
                               displayName,
-                            style: AppTypography.title.copyWith(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.textPrimary,
-                              letterSpacing: -0.4,
-                            ),
+                              style: AppTypography.title.copyWith(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.textPrimary,
+                                letterSpacing: -0.4,
+                              ),
                             ),
                             const SizedBox(height: 4),
                             Text(
@@ -200,15 +204,11 @@ class _ProfilePageState extends State<ProfilePage> {
 
               // Stats Grid
               if (!_authProvider.isMerchant) ...[
-                SizedBox(
-                  height: 135,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
-                    physics: const BouncingScrollPhysics(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
+                  child: Row(
                     children: [
-                      SizedBox(
-                        width: 120,
+                      Expanded(
                         child: _StatCard(
                           icon: Icons.emoji_events,
                           value: _stats?.userLevel ?? 'Bronze',
@@ -216,19 +216,27 @@ class _ProfilePageState extends State<ProfilePage> {
                           iconColor: AppColors.primary,
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      SizedBox(
-                        width: 120,
-                        child: _StatCard(
-                          icon: Icons.account_balance_wallet_rounded,
-                          value: '£${_stats?.moneySaved.toStringAsFixed(0) ?? '5'}',
-                          label: 'Saved',
-                          iconColor: AppColors.primary,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const SavingsHistoryPage(),
+                              ),
+                            );
+                          },
+                          child: _StatCard(
+                            icon: Icons.account_balance_wallet_rounded,
+                            value: '£${_stats?.moneySaved.toStringAsFixed(0) ?? '5'}',
+                            label: 'Saved',
+                            iconColor: AppColors.primary,
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      SizedBox(
-                        width: 120,
+                      const SizedBox(width: 12),
+                      Expanded(
                         child: GestureDetector(
                           onTap: () {
                             Navigator.push(
@@ -246,122 +254,93 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      SizedBox(
-                        width: 120,
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const MyDealsPage(),
-                              ),
-                            );
-                          },
-                          child: _StatCard(
-                            icon: Icons.local_offer,
-                            value: _stats?.dealsClaimed.toString() ?? '2',
-                            label: 'Deals',
-                            iconColor: AppColors.primary,
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 32),
+              ],
 
-                // Invite Banner
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Container(
-                    height: 190, // Increased from 165 to fix overflow
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      borderRadius: AppRadius.xLarge,
-                      image: const DecorationImage(
-                        image: AssetImage("assets/png/invite_full_bg.png"),
-                        fit: BoxFit.cover,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.secondary.withValues(alpha: 0.35),
-                          blurRadius: 25,
-                          offset: const Offset(0, 12),
-                        ),
-                      ],
+              // Invite Banner
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Container(
+                  height: 190,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: AppRadius.xLarge,
+                    image: const DecorationImage(
+                      image: AssetImage("assets/png/invite_full_bg.png"),
+                      fit: BoxFit.cover,
                     ),
-                    child: InkWell(
-                      onTap: () {
-                        const message = 'Hey! Check out Discount Buddy and save money at your favorite local restaurants! 🍕🍔\n\nDownload the app here: https://discountbuddy.app/invite';
-                        Share.share(message);
-                      },
-                      borderRadius: AppRadius.xLarge,
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(AppSpacing.xxl + 4, AppSpacing.xxl, AppSpacing.xxl, AppSpacing.xxl),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              flex: 6,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    'Earn €10 for every\nfriend you invite!',
-                                    style: AppTypography.title.copyWith(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.w800,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.secondary.withValues(alpha: 0.35),
+                        blurRadius: 25,
+                        offset: const Offset(0, 12),
+                      ),
+                    ],
+                  ),
+                  child: InkWell(
+                    onTap: () {
+                      const message = 'Hey! Check out Discount Buddy and save money at your favorite local restaurants! 🍕🍔\n\nDownload the app here: https://discountbuddy.app/invite';
+                      Share.share(message);
+                    },
+                    borderRadius: AppRadius.xLarge,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(AppSpacing.xxl + 4, AppSpacing.xxl, AppSpacing.xxl, AppSpacing.xxl),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            flex: 6,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Earn €10 for every\nfriend you invite!',
+                                  style: AppTypography.title.copyWith(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                    height: 1.15,
+                                    letterSpacing: -0.2,
+                                    shadows: [
+                                      Shadow(
+                                        color: Colors.black.withValues(alpha: 0.2),
+                                        offset: const Offset(0, 2),
+                                        blurRadius: 4,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 18),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(24),
+                                    border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
+                                  ),
+                                  child: Text(
+                                    'Invite friends',
+                                    style: AppTypography.body.copyWith(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
                                       color: Colors.white,
-                                      height: 1.15,
-                                      letterSpacing: -0.2,
-                                      shadows: [
-                                        Shadow(
-                                          color: Colors.black.withValues(
-                                            alpha: 0.2,
-                                          ),
-                                          offset: const Offset(0, 2),
-                                          blurRadius: 4,
-                                        ),
-                                      ],
                                     ),
                                   ),
-                                  const SizedBox(height: 18),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 24,
-                                      vertical: 10,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.2),
-                                      borderRadius: BorderRadius.circular(24),
-                                      border: Border.all(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.4,
-                                        ),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      'Invite friends',
-                                      style: AppTypography.body.copyWith(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                            const Spacer(flex: 4),
-                          ],
-                        ),
+                          ),
+                          const Spacer(flex: 4),
+                        ],
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 32),
-              ],
+              ),
+              const SizedBox(height: 32),
 
               // Menu Options
               Padding(
@@ -418,6 +397,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

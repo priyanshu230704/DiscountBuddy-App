@@ -9,6 +9,10 @@ class DealRedemption {
   final String? qrCodeUrl;
   final bool isRedeemed;
   final DateTime? redeemedAt;
+  final double? price;
+  final int? peopleCount;
+  final double? discountAmountSaved;
+  final double? finalBillAmount;
   final DateTime createdAt;
 
   DealRedemption({
@@ -22,6 +26,10 @@ class DealRedemption {
     this.qrCodeUrl,
     required this.isRedeemed,
     this.redeemedAt,
+    this.price,
+    this.peopleCount,
+    this.discountAmountSaved,
+    this.finalBillAmount,
     required this.createdAt,
   });
 
@@ -39,6 +47,10 @@ class DealRedemption {
       redeemedAt: json['redeemed_at'] != null
           ? DateTime.tryParse(json['redeemed_at'])
           : null,
+      price: _parseDouble(json['price']),
+      peopleCount: json['people_count'] as int?,
+      discountAmountSaved: _parseDouble(json['discount_amount_saved']),
+      finalBillAmount: _parseDouble(json['final_bill_amount']),
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
     );
   }

@@ -1,0 +1,27 @@
+﻿
+  error - The name 'LoadingWidget' is defined in the libraries 'package:discount_buddy/components/layout.dart' and 'package:discount_buddy/widgets/loading_widget.dart' - lib\pages\my_deals_page.dart:67:19 - ambiguous_import
+warning - Unused import: '../services/auth_service.dart' - lib\pages\profile_page.dart:16:8 - unused_import
+   info - 'Share' is deprecated and shouldn't be used. Use SharePlus instead - lib\pages\profile_page.dart:282:23 - deprecated_member_use
+   info - 'share' is deprecated and shouldn't be used. Use SharePlus.instance.share() instead - lib\pages\profile_page.dart:282:29 - deprecated_member_use
+
+flutter : 4 issues 
+found. (ran in 5.7s)
+At line:1 char:1
++ flutter analyze 
+--machine lib/pages/pro
+file_page.dart 
+lib/pages/my_de ...
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (4 issues foun   
+ d. (ran in 5.7s):S    
+tring) [], RemoteE    
+xception
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 

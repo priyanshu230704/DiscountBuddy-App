@@ -131,9 +131,6 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
   void _hideOverlay() {
     _cityOverlayEntry?.remove();
     _cityOverlayEntry = null;
-    if (mounted) {
-      setState(() {});
-    }
   }
 
   OverlayEntry _createOverlayEntry() {

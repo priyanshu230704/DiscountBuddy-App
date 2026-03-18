@@ -1,0 +1,33 @@
+﻿Analyzing DiscountBuddy-App...                                  
+
+warning - Unused import: 'package:discount_buddy/design/app_shadows.dart' - lib\pages\bookings\user_bookings_page.dart:5:8 - unused_import
+warning - Unused import: '../../../design/app_shadows.dart' - lib\pages\events\events_page.dart:6:8 - unused_import
+warning - Unused import: '../../widgets/occupancy_tag.dart' - lib\pages\home\home_page.dart:21:8 - unused_import
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\pages\merchant\add_restaurant_page.dart:997:33 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\pages\merchant\add_restaurant_page.dart:1000:33 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\pages\merchant\add_restaurant_page.dart:1011:33 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\pages\merchant\add_restaurant_page.dart:1014:33 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\pages\merchant\merchant_bookings_page.dart:234:46 - deprecated_member_use
+warning - Unused import: '../../widgets/skeleton_loader.dart' - lib\pages\merchant\merchant_dashboard_page.dart:13:8 - unused_import
+warning - Unused import: '../../components/layout.dart' - lib\pages\merchant\merchant_dashboard_page.dart:14:8 - unused_import
+warning - The value of the field '_redemptionHistory' isn't used - lib\pages\merchant\merchant_dashboard_page.dart:33:30 - unused_field
+warning - The declaration '_formatDateTime' isn't referenced - lib\pages\merchant\merchant_dashboard_page.dart:331:10 - unused_element
+warning - The declaration '_getStatusBadge' isn't referenced - lib\pages\merchant\merchant_dashboard_page.dart:335:10 - unused_element
+warning - The declaration '_showSettingsDialog' isn't referenced - lib\pages\merchant\merchant_dashboard_page.dart:622:8 - unused_element
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\pages\merchant\merchant_dashboard_page.dart:687:30 - use_build_context_synchronously
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\pages\merchant\merchant_dashboard_page.dart:788:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\pages\merchant\merchant_deals_page.dart:258:46 - deprecated_member_use
+   info - 'activeColor' is deprecated and shouldn't be used. Use activeThumbColor or activeTrackColor instead. This feature was deprecated after v3.31.0-2.0.pre - lib\pages\merchant\merchant_deals_page.dart:396:17 - deprecated_member_use
+warning - Unused import: 'merchant_category_items_page.dart' - lib\pages\merchant\merchant_menu_page.dart:10:8 - unused_import
+warning - Duplicate import - lib\pages\merchant\merchant_menu_page.dart:14:8 - duplicate_import
+warning - The declaration '_CategoryCard' isn't referenced - lib\pages\merchant\merchant_menu_page.dart:1064:7 - unused_element
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\pages\merchant\merchant_redemption_history_page.dart:148:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\pages\merchant\merchant_reviews_page.dart:199:46 - deprecated_member_use
+warning - The value of the field '_isLoadingRestaurants' isn't used - lib\pages\merchant\qr_scanner_page.dart:29:8 - unused_field
+warning - Unused import: '../design/app_shadows.dart' - lib\pages\my_deals_page.dart:8:8 - unused_import
+warning - Unused import: 'my_deals_page.dart' - lib\pages\profile_page.dart:15:8 - unused_import
+   info - 'Share' is deprecated and shouldn't be used. Use SharePlus instead - lib\pages\profile_page.dart:282:23 - deprecated_member_use
+   info - 'share' is deprecated and shouldn't be used. Use SharePlus.instance.share() instead - lib\pages\profile_page.dart:282:29 - deprecated_member_use
+warning - Unused import: 'package:flutter/foundation.dart' - lib\services\merchant_service.dart:1:8 - unused_import
+warning - The value of the local variable 'cuisine' isn't used - lib\services\restaurant_service.dart:377:11 - unused_local_variable
+

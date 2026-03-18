@@ -10,7 +10,9 @@ import '../../components/app_app_bar.dart';
 import '../../components/layout.dart';
 import '../../components/buttons.dart';
 import '../../models/deal_redemption.dart';
+import '../../models/user_interactions.dart';
 import '../../services/restaurant_service.dart';
+
 import '../../models/restaurant.dart';
 import '../restaurant_details_page.dart';
 
@@ -29,9 +31,11 @@ class _BookingsPageState extends State<BookingsPage>
   // keeping it commented if needed, or just remove if we use it elsewhere
   // final dist = restaurant.distanceMiles ?? _kmToMiles(restaurant.distance);
   List<DealRedemption> _redemptions = [];
+  List<Booking> _bookings = [];
   bool _isLoading = true;
   late TabController _tabController;
   List<Restaurant> _trendingRestaurants = [];
+
 
   @override
   void initState() {
@@ -53,19 +57,22 @@ class _BookingsPageState extends State<BookingsPage>
     });
 
     try {
-      // Load redemptions and trending restaurants in parallel
+      // Load redemptions, bookings and trending restaurants in parallel
       final results = await Future.wait([
         _restaurantService.getUserDealRedemptions(),
         _restaurantService.getRestaurants(),
+        _restaurantService.getUserBookings(),
       ]);
 
       if (mounted) {
         setState(() {
           _redemptions = results[0] as List<DealRedemption>;
           _trendingRestaurants = results[1] as List<Restaurant>;
+          _bookings = results[2] as List<Booking>;
           _isLoading = false;
         });
       }
+
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -95,58 +102,73 @@ class _BookingsPageState extends State<BookingsPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppAppBar(titleText: 'My activity', centerTitle: false),
-      body: Column(
-        children: [
-          TabBar(
-            controller: _tabController,
-            isScrollable: true,
-            tabAlignment: TabAlignment.start,
-            padding: const EdgeInsets.only(top: 2),
-            labelPadding: const EdgeInsets.symmetric(horizontal: 10),
-            labelColor: AppColors.primary,
-            unselectedLabelColor: AppColors.textSecondary,
-            indicatorColor: AppColors.primary,
-            indicatorWeight: 3,
-            dividerColor: Colors.transparent, // Fix: Remove Material 3 underline in TabBar
-            labelStyle: AppTypography.bodySmall.copyWith(
-              fontWeight: FontWeight.w700,
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: AppColors.backgroundGradient,
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppAppBar(
+          titleText: 'My activity', 
+          centerTitle: false,
+          backgroundColor: const Color(0xFFF3E8FF), // Opaque to hide content underneath
+        ),
+        body: Column(
+          children: [
+            TabBar(
+              controller: _tabController,
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
+              padding: const EdgeInsets.only(top: 2),
+              labelPadding: const EdgeInsets.symmetric(horizontal: 10),
+              labelColor: AppColors.primary,
+              unselectedLabelColor: AppColors.textSecondary,
+              indicatorColor: AppColors.primary,
+              indicatorWeight: 3,
+              dividerColor: Colors.transparent, // Fix: Remove Material 3 underline in TabBar
+              labelStyle: AppTypography.bodySmall.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+              tabs: const [
+                Tab(text: 'Reservations'),
+                Tab(text: 'Active coupons'),
+                Tab(text: 'Claimed coupons'),
+              ],
             ),
-            tabs: const [
-              Tab(text: 'Reservations'),
-              Tab(text: 'Active coupons'),
-              Tab(text: 'Claimed coupons'),
-            ],
-          ),
-          // const Divider(height: 1), // Fix: Removed unwanted black line below TabBar
-          Expanded(
-            child: _isLoading
-                ? const LoadingWidget(message: 'Loading your activity...')
-                : TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _ReservationEmptyTab(
-                        trendingItems: _trendingRestaurants,
-                        onExplorePressed: () {
-                          Navigator.pushReplacementNamed(context, '/home');
-                        },
-                      ),
-                      _RedemptionList(
-                        redemptions: _getRedemptionsByTab(1),
-                        onRefresh: _loadData,
-                        emptyMessage: 'No active coupons',
-                      ),
-                      _RedemptionList(
-                        redemptions: _getRedemptionsByTab(2),
-                        onRefresh: _loadData,
-                        emptyMessage: 'No claimed coupons',
-                      ),
-                    ],
-                  ),
-          ),
-        ],
+            // const Divider(height: 1), // Fix: Removed unwanted black line below TabBar
+            Expanded(
+              child: _isLoading
+                  ? const LoadingWidget(message: 'Loading your activity...')
+                  : TabBarView(
+                      controller: _tabController,
+                      children: [
+                        _bookings.isEmpty
+                            ? _ReservationEmptyTab(
+                                trendingItems: _trendingRestaurants,
+                                onExplorePressed: () {
+                                  Navigator.pushReplacementNamed(context, '/home');
+                                },
+                              )
+                            : _BookingList(
+                                bookings: _bookings,
+                                onRefresh: _loadData,
+                              ),
+
+                        _RedemptionList(
+                          redemptions: _getRedemptionsByTab(1),
+                          onRefresh: _loadData,
+                          emptyMessage: 'No active coupons',
+                        ),
+                        _RedemptionList(
+                          redemptions: _getRedemptionsByTab(2),
+                          onRefresh: _loadData,
+                          emptyMessage: 'No claimed coupons',
+                        ),
+                      ],
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -649,6 +671,39 @@ class _RedemptionDetailModal extends StatelessWidget {
                           value: '£${redemption.deal.discountAmount}',
                         ),
 
+                      if (redemption.restaurantConfirmed && redemption.finalBillAmount != null) ...[
+                        const SizedBox(height: AppSpacing.lg),
+                        const Divider(),
+                        const SizedBox(height: AppSpacing.lg),
+                        _DetailRow(
+                          icon: Icons.receipt_long,
+                          label: 'Total Bill',
+                          value: '£${redemption.price?.toStringAsFixed(2) ?? '0.00'}',
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        _DetailRow(
+                          icon: Icons.savings,
+                          label: 'Total Saved',
+                          value: '£${redemption.discountAmountSaved?.toStringAsFixed(2) ?? '0.00'}',
+                          valueColor: AppColors.success,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        _DetailRow(
+                          icon: Icons.payments,
+                          label: 'Final Amount Paid',
+                          value: '£${redemption.finalBillAmount?.toStringAsFixed(2) ?? '0.00'}',
+                          isBold: true,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        _DetailRow(
+                          icon: Icons.people,
+                          label: 'Number of People',
+                          value: '${redemption.peopleCount ?? 1}',
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        const Divider(),
+                      ],
+
                       const SizedBox(height: AppSpacing.lg),
                       _DetailRow(
                         icon: Icons.calendar_today,
@@ -700,12 +755,26 @@ class _DetailRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
+  final bool isBold;
+  final Color? valueColor;
 
   const _DetailRow({
     required this.icon,
     required this.label,
     required this.value,
+    this.isBold = false,
+    this.valueColor,
   });
+
+  Widget _buildValue(String text) {
+    return Text(
+      text,
+      style: AppTypography.body.copyWith(
+        fontWeight: isBold ? FontWeight.w800 : FontWeight.w600,
+        color: valueColor ?? AppColors.textPrimary,
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -720,12 +789,12 @@ class _DetailRow extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: AppTypography.caption,
+                style: AppTypography.caption.copyWith(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-              Text(
-                value,
-                style: AppTypography.body,
-              ),
+              _buildValue(value),
             ],
           ),
         ),
@@ -764,6 +833,148 @@ class _StatusBadge extends StatelessWidget {
         style: AppTypography.caption.copyWith(
           color: color,
           fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}
+class _BookingList extends StatelessWidget {
+  final List<Booking> bookings;
+  final Future<void> Function() onRefresh;
+
+  const _BookingList({
+    required this.bookings,
+    required this.onRefresh,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Sort by date descending
+    final sortedBookings = List<Booking>.from(bookings)
+      ..sort((a, b) => b.bookingDate.compareTo(a.bookingDate));
+
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      child: ListView.builder(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.lg,
+          AppSpacing.lg,
+          100,
+        ),
+        itemCount: sortedBookings.length,
+        itemBuilder: (context, index) {
+          return _BookingCard(booking: sortedBookings[index]);
+        },
+      ),
+    );
+  }
+}
+
+class _BookingCard extends StatelessWidget {
+  final Booking booking;
+  const _BookingCard({required this.booking});
+
+  @override
+  Widget build(BuildContext context) {
+    final dateStr = DateFormat('EEE, MMM d, yyyy').format(booking.bookingDate);
+    final timeStr = DateFormat('HH:mm').format(booking.bookingDate);
+
+    return AppCard(
+      margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      booking.restaurantName,
+                      style: AppTypography.title.copyWith(fontSize: 16),
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      booking.restaurantCityName ?? '',
+                      style: AppTypography.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+              _BookingStatusBadge(status: booking.status),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          const Divider(),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              const Icon(Icons.calendar_today, size: 16, color: AppColors.textSecondary),
+              const SizedBox(width: AppSpacing.sm),
+              Text('$dateStr at $timeStr', style: AppTypography.bodySmall),
+              const Spacer(),
+              const Icon(Icons.people, size: 16, color: AppColors.textSecondary),
+              const SizedBox(width: AppSpacing.sm),
+              Text('${booking.numberOfGuests} guests', style: AppTypography.bodySmall),
+            ],
+          ),
+          if (booking.specialRequests.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              'Requests: ${booking.specialRequests}',
+              style: AppTypography.bodySmall.copyWith(fontStyle: FontStyle.italic),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _BookingStatusBadge extends StatelessWidget {
+  final BookingStatus status;
+  const _BookingStatusBadge({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    Color color;
+    String label;
+
+    switch (status) {
+      case BookingStatus.confirmed:
+        color = AppColors.success;
+        label = 'Confirmed';
+        break;
+      case BookingStatus.pending:
+        color = AppColors.discount;
+        label = 'Pending';
+        break;
+      case BookingStatus.cancelled:
+        color = AppColors.error;
+        label = 'Cancelled';
+        break;
+      case BookingStatus.completed:
+        color = AppColors.primary;
+        label = 'Visited';
+        break;
+    }
+
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Text(
+        label,
+        style: AppTypography.caption.copyWith(
+          color: color,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );

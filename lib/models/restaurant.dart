@@ -200,6 +200,11 @@ class Restaurant {
   });
 
   factory Restaurant.fromJson(Map<String, dynamic> json) {
+    final List<Discount> activeDeals = (json['active_deals'] as List<dynamic>?)
+            ?.map((e) => Discount.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        <Discount>[];
+
     return Restaurant(
       id: json['id']?.toString() ?? '',
       name: json['name'] as String? ?? '',
@@ -220,9 +225,10 @@ class Restaurant {
           0,
       distance: _parseDouble(json['distance']) ?? 0.0,
       distanceMiles: _parseDouble(json['distance_miles']),
+      activeDeals: activeDeals,
       discount: json['discount'] != null
           ? Discount.fromJson(json['discount'] as Map<String, dynamic>)
-          : Discount(type: 'none', description: ''),
+          : (activeDeals.isNotEmpty ? activeDeals.first : Discount(type: 'none', description: '')),
       images:
           (json['images'] as List<dynamic>?)
               ?.map((e) => e.toString())
@@ -246,11 +252,6 @@ class Restaurant {
       openingSlots:
           (json['opening_slots'] as List<dynamic>?)
               ?.map((e) => OpeningSlot.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
-      activeDeals:
-          (json['active_deals'] as List<dynamic>?)
-              ?.map((e) => Discount.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
       facilities:
@@ -311,6 +312,9 @@ class Discount {
   final List<String> validDays;
   final String? validTime;
   final int? id;
+  final String termsAndConditions;
+  final int maxPerUser;
+  final double? minimumSpendAmount;
 
   Discount({
     required this.type,
@@ -321,6 +325,9 @@ class Discount {
     this.validDays = const [],
     this.validTime,
     this.id,
+    this.termsAndConditions = '',
+    this.maxPerUser = 1,
+    this.minimumSpendAmount,
   });
 
   String get displayText {
@@ -351,6 +358,10 @@ class Discount {
         _parseDouble(json['discount_amount']);
     final title = json['title'] as String?;
     final description = json['description'] as String? ?? '';
+    final minimumSpendAmount = 
+        _parseDouble(json['minimumSpendAmount']) ??
+        _parseDouble(json['minimum_spend_amount']) ??
+        _parseDouble(json['minimum_spend']);
 
     return Discount(
       type: type,
@@ -365,6 +376,9 @@ class Discount {
           [],
       validTime: json['validTime'] as String?,
       id: json['id'] as int?,
+      termsAndConditions: json['terms_and_conditions'] as String? ?? '',
+      maxPerUser: json['max_per_user'] as int? ?? 1,
+      minimumSpendAmount: minimumSpendAmount,
     );
   }
 
@@ -377,6 +391,7 @@ class Discount {
       'title': title,
       'validDays': validDays,
       'validTime': validTime,
+      'minimumSpendAmount': minimumSpendAmount,
     };
   }
 }

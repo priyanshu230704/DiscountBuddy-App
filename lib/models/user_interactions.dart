@@ -40,7 +40,9 @@ class Booking {
   final int restaurantId;
   final String restaurantName;
   final String restaurantSlug;
+  final String? restaurantCityName;
   final DateTime bookingDate;
+
   final int numberOfGuests;
   final BookingStatus status;
   final String specialRequests;
@@ -54,7 +56,9 @@ class Booking {
     required this.restaurantId,
     required this.restaurantName,
     required this.restaurantSlug,
+    this.restaurantCityName,
     required this.bookingDate,
+
     required this.numberOfGuests,
     required this.status,
     required this.specialRequests,
@@ -70,7 +74,9 @@ class Booking {
       restaurantId: json['restaurant'] as int? ?? 0,
       restaurantName: json['restaurant_name'] as String? ?? '',
       restaurantSlug: json['restaurant_slug'] as String? ?? '',
+      restaurantCityName: json['restaurant_city_name'] as String?,
       bookingDate: DateTime.parse(json['booking_date'] as String),
+
       numberOfGuests: json['number_of_guests'] as int? ?? 1,
       status: _parseBookingStatus(json['status'] as String? ?? 'pending'),
       specialRequests: json['special_requests'] as String? ?? '',

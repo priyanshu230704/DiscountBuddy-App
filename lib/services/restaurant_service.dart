@@ -87,10 +87,8 @@ class RestaurantService {
         queryParameters: queryParams,
       );
 
-      // Handle the wrapped list response
-      final List<dynamic> bookingsJson = response.containsKey('results')
-          ? response['results'] as List<dynamic>
-          : response['data'] as List<dynamic>? ?? [];
+      // Robustly extract the list regardless of key: 'results', 'data', or direct list
+      final List<dynamic> bookingsJson = _extractList(response);
 
       return bookingsJson
           .map((json) => Booking.fromJson(json as Map<String, dynamic>))
@@ -105,8 +103,8 @@ class RestaurantService {
     try {
       final response = await _apiService.get(ApiEndpoints.dealUses);
 
-      final List<dynamic> results =
-          (response['results'] ?? response['data'] ?? []) as List<dynamic>;
+      // Robustly extract the list regardless of key
+      final List<dynamic> results = _extractList(response);
 
       return results
           .map((json) => DealRedemption.fromJson(json as Map<String, dynamic>))
@@ -114,6 +112,24 @@ class RestaurantService {
     } catch (e) {
       throw Exception('Failed to load deal redemptions: ${e.toString()}');
     }
+  }
+
+  /// Helper: extract a list from a DRF response which may be:
+  /// - paginated: {count, results: [...], next, previous}
+  /// - wrapped:   {data: [...]}
+  /// - or the ApiService already wrapped a plain list as {data: [...]}
+  List<dynamic> _extractList(Map<String, dynamic> response) {
+    if (response.containsKey('results') && response['results'] is List) {
+      return response['results'] as List<dynamic>;
+    }
+    if (response.containsKey('data') && response['data'] is List) {
+      return response['data'] as List<dynamic>;
+    }
+    // Fallback: try every value that is a list
+    for (final value in response.values) {
+      if (value is List) return value;
+    }
+    return [];
   }
 
   /// Get deal uses for the current user
@@ -327,19 +343,51 @@ class RestaurantService {
     final latitude = double.tryParse(latStr) ?? 0.0;
     final longitude = double.tryParse(lngStr) ?? 0.0;
 
-    // Menu images and gallery images
-    final imagesJson = json['images'] as List<dynamic>? ?? [];
-    final restaurantImages = imagesJson.map((e) => RestaurantImage.fromJson(e as Map<String, dynamic>)).toList();
+    // ----- Image URL resolution -----
+    // The list endpoint returns `primary_image` (a single absolute URL string).
+    // The detail endpoint returns `images` (an array of image objects).
+    // Check primary_image first, then fall back to images array.
+    String imageUrl = json['primary_image'] as String? ?? '';
 
-    // Image URL logic: find primary gallery image, fallback to first gallery image, then any image
-    String imageUrl = '';
-    final galleryImages = restaurantImages.where((img) => img.imageType == 'gallery').toList();
-    if (galleryImages.isNotEmpty) {
-      final primary = galleryImages.firstWhere((img) => img.isPrimary, orElse: () => galleryImages.first);
-      imageUrl = primary.imageUrl;
-    } else if (restaurantImages.isNotEmpty) {
-      imageUrl = restaurantImages.first.imageUrl;
+    if (imageUrl.isEmpty) {
+      // Fallback: parse images array (detail endpoint)
+      final imagesJson = json['images'] as List<dynamic>? ?? [];
+      final restaurantImages = imagesJson
+          .map((e) => RestaurantImage.fromJson(e as Map<String, dynamic>))
+          .toList();
+
+      if (restaurantImages.isNotEmpty) {
+        final galleryImages =
+            restaurantImages.where((img) => img.imageType == 'gallery').toList();
+        final coverImages =
+            restaurantImages.where((img) => img.imageType == 'cover').toList();
+
+        RestaurantImage? bestImage;
+        if (galleryImages.isNotEmpty) {
+          bestImage = galleryImages.firstWhere(
+            (img) => img.isPrimary,
+            orElse: () => galleryImages.first,
+          );
+        } else if (coverImages.isNotEmpty) {
+          bestImage = coverImages.firstWhere(
+            (img) => img.isPrimary,
+            orElse: () => coverImages.first,
+          );
+        } else {
+          bestImage = restaurantImages.firstWhere(
+            (img) => img.isPrimary,
+            orElse: () => restaurantImages.first,
+          );
+        }
+        imageUrl = bestImage.imageUrl.isNotEmpty ? bestImage.imageUrl : bestImage.image;
+      }
     }
+
+    // Also keep restaurantImages for detail usage
+    final imagesJson = json['images'] as List<dynamic>? ?? [];
+    final restaurantImages = imagesJson
+        .map((e) => RestaurantImage.fromJson(e as Map<String, dynamic>))
+        .toList();
 
     // Cuisine
     final cuisine = cuisineMap?[restaurantId] ?? 'Restaurant';
@@ -349,7 +397,7 @@ class RestaurantService {
     final averageRating =
         _parseDouble(json['average_rating']) ??
         _parseDouble(json['rating']) ??
-        4.0;
+        0.0;
     final reviewsCount =
         _parseInt(json['review_count']) ??
         _parseInt(json['reviews_count']) ??
@@ -358,9 +406,9 @@ class RestaurantService {
     // Discount from active_deals - default to none if not present
     Discount discount = Discount(type: 'none', description: '');
 
-    final activeDeals = json['active_deals'] as List<dynamic>? ?? [];
-    if (activeDeals.isNotEmpty) {
-      final firstDeal = activeDeals.first as Map<String, dynamic>;
+    final dealsJson = json['active_deals'] as List<dynamic>? ?? [];
+    if (dealsJson.isNotEmpty) {
+      final firstDeal = dealsJson.first as Map<String, dynamic>;
       final dealType = firstDeal['deal_type'] as String? ?? 'percentage';
       final discountPercentage = _parseDouble(firstDeal['discount_percentage']);
       final discountAmount = _parseDouble(firstDeal['discount_amount']);
@@ -372,18 +420,25 @@ class RestaurantService {
         description: firstDeal['description'] as String? ?? 'Special offer',
         title: firstDeal['title'] as String?,
         id: firstDeal['id'] as int?,
+        termsAndConditions: firstDeal['terms_and_conditions'] as String? ?? '',
+        maxPerUser: firstDeal['max_per_user'] as int? ?? 1,
       );
     }
+
+    // Active Deals
+    final List<Discount> activeDeals = dealsJson
+        .map((e) => Discount.fromJson(e as Map<String, dynamic>))
+        .toList();
 
     return Restaurant(
       id: restaurantId.toString(),
       name: json['name'] as String? ?? 'Unknown Restaurant',
-      description: 'Restaurant in $cityName',
+      description: json['description'] as String? ?? 'Restaurant in $cityName',
       imageUrl: imageUrl,
       address: address,
       latitude: latitude,
       longitude: longitude,
-      cuisine: cuisine,
+      cuisine: cityName.isNotEmpty ? cityName : (cuisineMap?[restaurantId] ?? 'Restaurant'),
       occupancy: json['occupancy'] as String?,
       rating: averageRating.toDouble(),
       reviewCount: reviewsCount,
@@ -395,7 +450,9 @@ class RestaurantService {
       leaderboardScore: _parseDouble(json['leaderboard_score']) ?? 0.0,
       menuType: json['menu_type'] as String? ?? 'structured',
       restaurantImages: restaurantImages,
+      activeDeals: activeDeals,
     );
+
   }
 
   /// Get restaurant details by slug
@@ -495,9 +552,9 @@ class RestaurantService {
       imageUrl = restaurantImages.first.imageUrl;
     }
 
-    // Fallback image if none found
+    // Fallback image if none found - using empty string to let UI handle it
     if (imageUrl.isEmpty) {
-      imageUrl = 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800';
+      imageUrl = '';
     }
 
     // Get all image URLs
@@ -518,7 +575,7 @@ class RestaurantService {
     final averageRating =
         _parseDouble(json['average_rating']) ??
         _parseDouble(json['rating']) ??
-        4.0;
+        0.0;
     final reviewsCount =
         _parseInt(json['review_count']) ??
         _parseInt(json['reviews_count']) ??
@@ -597,6 +654,8 @@ class RestaurantService {
           [],
       activeDeals: activeDeals,
       leaderboardScore: _parseDouble(json['leaderboard_score']) ?? 0.0,
+      menuType: json['menu_type'] as String? ?? 'structured',
+      restaurantImages: restaurantImages,
     );
   }
 

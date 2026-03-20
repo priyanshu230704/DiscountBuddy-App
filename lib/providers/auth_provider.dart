@@ -18,12 +18,14 @@ class AuthProvider extends ChangeNotifier {
   bool _isAuthenticated = false;
   String? _errorMessage;
   String _userRole = 'customer'; // 'customer' or 'merchant'
+  bool _isGuestMode = false;
 
   ApiUser? get user => _user;
   bool get isLoading => _isLoading;
   bool get isAuthenticated => _isAuthenticated;
   String? get errorMessage => _errorMessage;
   String get userRole => _userRole;
+  bool get isGuestMode => _isGuestMode;
   bool get isMerchant => _userRole == 'merchant';
   bool get isCustomer =>
       _userRole == 'customer' || _userRole == 'mystery_guest';
@@ -218,6 +220,7 @@ class AuthProvider extends ChangeNotifier {
         'DEBUG AuthProvider.login: loginResponse.role="${loginResponse.role}", _userRole="$_userRole", isMysteryGuest=$isMysteryGuest',
       );
       _isAuthenticated = true;
+      _isGuestMode = false;
       _isLoading = false;
       notifyListeners();
 
@@ -319,6 +322,7 @@ class AuthProvider extends ChangeNotifier {
       await _authService.logout();
       _user = null;
       _isAuthenticated = false;
+      _isGuestMode = false;
       _userRole = 'customer';
       _errorMessage = null;
     } catch (e) {
@@ -332,6 +336,15 @@ class AuthProvider extends ChangeNotifier {
   /// Clear error message
   void clearError() {
     _errorMessage = null;
+    notifyListeners();
+  }
+
+  /// Skip login and enter guest mode
+  void skipLogin() {
+    _isGuestMode = true;
+    _isAuthenticated = false;
+    _user = null;
+    _userRole = 'customer';
     notifyListeners();
   }
 

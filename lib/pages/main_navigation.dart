@@ -8,6 +8,7 @@ import 'bookings/bookings_page.dart';
 import 'profile_page.dart';
 import 'merchant/merchant_restaurants_page.dart';
 import 'merchant/merchant_dashboard_page.dart';
+import '../widgets/login_required_sheet.dart';
 
 /// Main navigation with new floating bottom navigation bar
 class MainNavigation extends StatefulWidget {
@@ -46,7 +47,7 @@ class _MainNavigationState extends State<MainNavigation> {
 
   void _onAuthStateChanged() {
     if (!mounted) return;
-    if (!_authProvider.isAuthenticated) {
+    if (!_authProvider.isAuthenticated && !_authProvider.isGuestMode) {
       // User logged out or session expired, forcibly return to login
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -140,6 +141,19 @@ class _MainNavigationState extends State<MainNavigation> {
           unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
           currentIndex: _currentIndex,
           onTap: (index) {
+            if (_authProvider.isGuestMode && (index == 2 || index == 3)) {
+              LoginRequiredSheet.show(
+                context,
+                isClosable: false,
+                onBackToHome: () {
+                  Navigator.pop(context); // Close the sheet if needed
+                  setState(() {
+                    _currentIndex = 0; // Return to Home
+                  });
+                },
+              );
+              return;
+            }
             setState(() {
               _currentIndex = index;
             });

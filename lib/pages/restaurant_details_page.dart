@@ -25,6 +25,7 @@ import '../services/mystery_guest_service.dart';
 import '../providers/auth_provider.dart';
 import 'mystery_guest/mystery_audit_modal.dart';
 import '../widgets/occupancy_tag.dart';
+import '../widgets/login_required_sheet.dart';
 
 /// Restaurant details page - NeoTaste style
 class RestaurantDetailsPage extends StatefulWidget {
@@ -89,7 +90,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
 
   void _onAuthStateChanged() {
     if (!mounted) return;
-    if (!_authProvider.isAuthenticated) {
+    if (!_authProvider.isAuthenticated && !_authProvider.isGuestMode) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
@@ -337,6 +338,10 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
 
   // Toggle favorite status
   Future<void> _toggleFavorite() async {
+    if (_authProvider.isGuestMode) {
+      LoginRequiredSheet.show(context);
+      return;
+    }
     if (_restaurantDetail == null) return;
 
     final slug =
@@ -372,6 +377,10 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
 
   // Show add review dialog
   void _showAddReviewDialog() {
+    if (_authProvider.isGuestMode) {
+      LoginRequiredSheet.show(context);
+      return;
+    }
     if (_restaurantDetail == null) return;
 
     showDialog(
@@ -1440,6 +1449,10 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
               Expanded(
                 child: OutlinedButton(
                   onPressed: () {
+                    if (_authProvider.isGuestMode) {
+                      LoginRequiredSheet.show(context);
+                      return;
+                    }
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -1472,6 +1485,10 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
               Expanded(
                 child: ElevatedButton(
                   onPressed: () {
+                    if (_authProvider.isGuestMode) {
+                      LoginRequiredSheet.show(context);
+                      return;
+                    }
                     if (restaurant.requiresBooking) {
                       showModalBottomSheet(
                         context: context,

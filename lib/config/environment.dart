@@ -8,7 +8,7 @@ class Environment {
   static const String production = 'production';
 
   // Current environment - change this based on your build configuration
-  static const String currentEnvironment = development;
+  static const String currentEnvironment = production;
 
   // API Base URLs
   static String get baseUrl {

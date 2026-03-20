@@ -80,6 +80,8 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>We use your data to provide personalized offers and improve your experience. Your permission helps us support local restaurants and provide better discounts.</string>
 	<key>io.flutter.embedded_views_preview</key>
 	<true/>
 </dict>

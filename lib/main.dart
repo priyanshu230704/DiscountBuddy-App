@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -29,11 +31,31 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // You can process the notification here if needed
 }
 
+// Request ATT Permission first for iOS
+Future<void> _requestATTPermissionFirst() async {
+  if (!Platform.isIOS) return;
+
+  try {
+    final status = await AppTrackingTransparency.trackingAuthorizationStatus;
+
+    if (status == TrackingStatus.notDetermined) {
+      // 800ms delay to ensure the app is ready for the dialog
+      await Future.delayed(const Duration(milliseconds: 800));
+      await AppTrackingTransparency.requestTrackingAuthorization();
+    }
+  } catch (e) {
+    debugPrint('Error requesting ATT permission: $e');
+  }
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // 1. Request ATT Permission (iOS only) before other initializations
+  await _requestATTPermissionFirst();
+
   // Load environment variables from .env file
-  await dotenv.load(fileName: ".env");  
+  await dotenv.load(fileName: ".env");
 
   // Initialize Firebase
   try {

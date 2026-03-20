@@ -27,6 +27,13 @@ class FirebaseMessagingService {
       provisional: false,
     );
 
+    // Handle foreground notifications (iOS)
+    await _messaging.setForegroundNotificationPresentationOptions(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       debugPrint('✅ User granted notification permission');
       await _getFCMToken();
@@ -45,13 +52,20 @@ class FirebaseMessagingService {
   /// Get FCM token and register with backend
   Future<void> _getFCMToken() async {
     try {
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
+        final apnsToken = await _messaging.getAPNSToken();
+        debugPrint('🍎 APNS Token: $apnsToken');
+      }
+      
       _fcmToken = await _messaging.getToken();
       if (_fcmToken != null) {
+        debugPrint('==============================================');
         debugPrint('📱 FCM Token: $_fcmToken');
+        debugPrint('==============================================');
         await _registerTokenWithBackend(_fcmToken!);
       }
     } catch (e) {
-      debugPrint('❌ Error getting FCM token: $e');
+      debugPrint('❌ Error getting tokens: $e');
     }
   }
 

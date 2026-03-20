@@ -52,15 +52,21 @@
 	<key>MapboxAccessToken</key>
 	<string>MAPBOX_TOKEN</string>
 	<key>NSCameraUsageDescription</key>
-	<string>We need camera access to scan QR codes for deal redemption</string>
+	<string>We use your camera to scan QR codes so you can quickly access offers and product details.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>This app needs access to location when open and in the background to show your current location on the map.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>This app needs access to location when in the background to show your current location on the map.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>This app needs access to location when open to show your current location on the map.</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>We use your data to provide personalized offers and improve your experience. Your permission helps us support local restaurants and provide better discounts.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -80,8 +86,6 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>NSUserTrackingUsageDescription</key>
-	<string>We use your data to provide personalized offers and improve your experience. Your permission helps us support local restaurants and provide better discounts.</string>
 	<key>io.flutter.embedded_views_preview</key>
 	<true/>
 </dict>

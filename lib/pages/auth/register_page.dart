@@ -802,22 +802,29 @@ class _RegisterPageState extends State<RegisterPage> {
                                       ],
                                     ),
                                      const SizedBox(height: 16),
-                                     Row(
-                                       mainAxisAlignment: MainAxisAlignment.center,
-                                       children: [
-                                         _buildSocialIcon(
-                                           icon: 'assets/svg/google.svg',
-                                           onPressed: _isLoading ? null : _handleGoogleLogin,
-                                         ),
-                                         if (!kIsWeb && Platform.isIOS) ...[
-                                           const SizedBox(width: 20),
+                                     if (!kIsWeb && Platform.isAndroid)
+                                       _buildFullSocialButton(
+                                         icon: 'assets/svg/google.svg',
+                                         label: 'Continue with Google',
+                                         onPressed: _isLoading ? null : _handleGoogleLogin,
+                                       )
+                                     else
+                                       Row(
+                                         mainAxisAlignment: MainAxisAlignment.center,
+                                         children: [
                                            _buildSocialIcon(
-                                             icon: 'assets/svg/apple.svg',
-                                             onPressed: _isLoading ? null : _handleAppleLogin,
+                                             icon: 'assets/svg/google.svg',
+                                             onPressed: _isLoading ? null : _handleGoogleLogin,
                                            ),
+                                           if (!kIsWeb && Platform.isIOS) ...[
+                                             const SizedBox(width: 20),
+                                             _buildSocialIcon(
+                                               icon: 'assets/svg/apple.svg',
+                                               onPressed: _isLoading ? null : _handleAppleLogin,
+                                             ),
+                                           ],
                                          ],
-                                       ],
-                                     ),
+                                       ),
                                    ],
                                   const SizedBox(height: 8),
                                   Row(
@@ -930,6 +937,48 @@ class _RegisterPageState extends State<RegisterPage> {
             width: 22,
             height: 22,
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFullSocialButton({
+    required String icon,
+    required String label,
+    required VoidCallback? onPressed,
+  }) {
+    return Container(
+      width: double.infinity,
+      height: 54,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.textDisabled.withValues(alpha: 0.1),
+          width: 1.5,
+        ),
+      ),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SvgPicture.asset(
+              icon,
+              width: 22,
+              height: 22,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: AppFonts.bodyStyle(
+                color: AppColors.textPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
       ),
     );

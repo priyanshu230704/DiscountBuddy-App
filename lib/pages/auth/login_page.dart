@@ -507,24 +507,32 @@ class _LoginPageState extends State<LoginPage> {
                                             ],
                                           ),
                                           SizedBox(height: (isKeyboardOpen ? 18 : 24) * scale),
-                                           Row(
-                                             mainAxisAlignment: MainAxisAlignment.center,
-                                             children: [
-                                               _buildSocialIcon(
-                                                 icon: 'assets/svg/google.svg',
-                                                 onPressed: _isLoading ? null : _handleGoogleLogin,
-                                                 scale: scale,
-                                               ),
-                                               if (!kIsWeb && Platform.isIOS) ...[
-                                                 SizedBox(width: 24 * scale),
-                                                 _buildSocialIcon(
-                                                   icon: 'assets/svg/apple.svg',
-                                                   onPressed: _isLoading ? null : _handleAppleLogin,
-                                                   scale: scale,
-                                                 ),
-                                               ],
-                                             ],
-                                           ),
+                                          if (!kIsWeb && Platform.isAndroid)
+                                            _buildFullSocialButton(
+                                              icon: 'assets/svg/google.svg',
+                                              label: 'Continue with Google',
+                                              onPressed: _isLoading ? null : _handleGoogleLogin,
+                                              scale: scale,
+                                            )
+                                          else
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                _buildSocialIcon(
+                                                  icon: 'assets/svg/google.svg',
+                                                  onPressed: _isLoading ? null : _handleGoogleLogin,
+                                                  scale: scale,
+                                                ),
+                                                if (!kIsWeb && Platform.isIOS) ...[
+                                                  SizedBox(width: 24 * scale),
+                                                  _buildSocialIcon(
+                                                    icon: 'assets/svg/apple.svg',
+                                                    onPressed: _isLoading ? null : _handleAppleLogin,
+                                                    scale: scale,
+                                                  ),
+                                                ],
+                                              ],
+                                            ),
                                            SizedBox(height: 18 * scale),
                                           // NEW HERE? CREATE ACCOUNT
                                           Row(
@@ -576,6 +584,26 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ),
+
+                      // Skip Button (Relocated to be on top)
+                      Positioned(
+                        top: 50,
+                        right: 16,
+                        child: TextButton(
+                          onPressed: () {
+                            _authProvider?.skipLogin();
+                            Navigator.pushReplacementNamed(context, '/home');
+                          },
+                          child: Text(
+                            'Skip',
+                            style: AppFonts.bodyStyle(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16 * scale,
+                            ),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 );
@@ -613,6 +641,49 @@ class _LoginPageState extends State<LoginPage> {
             width: 24 * scale,
             height: 24 * scale,
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFullSocialButton({
+    required String icon,
+    required String label,
+    required VoidCallback? onPressed,
+    required double scale,
+  }) {
+    return Container(
+      width: double.infinity,
+      height: 56 * scale,
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16 * scale),
+        border: Border.all(
+          color: AppColors.textDisabled.withValues(alpha: 0.1),
+          width: 1.5,
+        ),
+      ),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(16 * scale),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SvgPicture.asset(
+              icon,
+              width: 24 * scale,
+              height: 24 * scale,
+            ),
+            SizedBox(width: 12 * scale),
+            Text(
+              label,
+              style: AppFonts.bodyStyle(
+                color: AppColors.textPrimary,
+                fontSize: 16 * scale,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
       ),
     );

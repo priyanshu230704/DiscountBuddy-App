@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../services/qr_scanner_service.dart';
 import '../../services/merchant_service.dart';
 import '../../models/deal_redemption.dart';
@@ -30,7 +31,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
   @override
   void initState() {
     super.initState();
-    _checkPermission();
+    _checkPermission(isInitialCheck: true);
     _fetchRestaurants();
   }
 
@@ -61,14 +62,69 @@ class _QRScannerPageState extends State<QRScannerPage> {
     }
   }
 
-  Future<void> _checkPermission() async {
-    final hasPermission = await QRScannerService.hasCameraPermission();
-    if (!hasPermission) {
-      final granted = await QRScannerService.requestCameraPermission();
-      setState(() => _hasPermission = granted);
-    } else {
-      setState(() => _hasPermission = true);
+  Future<void> _checkPermission({bool isInitialCheck = false}) async {
+    // Only request permission if it's not already granted
+    final status = await Permission.camera.status;
+    
+    if (status.isGranted) {
+      if (mounted) setState(() => _hasPermission = true);
+      return;
     }
+
+    // Direct request as specified in guideline
+    final result = await Permission.camera.request();
+    
+    if (mounted) {
+      if (result.isGranted) {
+        setState(() => _hasPermission = true);
+      } else if (result.isPermanentlyDenied) {
+        _showPermissionSettingsDialog();
+      } else if (result.isDenied && !isInitialCheck) {
+        // On iOS, if result is denied after a request was made, it often means 
+        // the user clicked "Don't Allow" or has already said no before.
+        // We show the settings dialog to help them.
+        _showPermissionSettingsDialog();
+      }
+    }
+  }
+
+  void _showPermissionSettingsDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          'Camera Access Required',
+          style: AppTypography.title.copyWith(fontSize: 18),
+        ),
+        content: Text(
+          'Camera access is required to scan QR codes so you can quickly access offers and product details. Please enable it in your device settings to continue.',
+          style: AppTypography.body,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: AppTypography.body.copyWith(color: AppColors.textSecondary),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              openAppSettings();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.merchantIndigo,
+              foregroundColor: AppColors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Open Settings'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -592,7 +648,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
               ),
               const SizedBox(height: 32),
               ElevatedButton(
-                onPressed: _checkPermission,
+                onPressed: () => _checkPermission(isInitialCheck: false),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.merchantIndigo,
                   foregroundColor: AppColors.white,

@@ -93,10 +93,14 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        slivers: [
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: AppColors.backgroundGradient,
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: CustomScrollView(
+          slivers: [
           // Search App Bar
           SliverAppBar(
             expandedHeight: 100,
@@ -238,7 +242,8 @@ class _SearchPageState extends State<SearchPage> {
                 }, childCount: _filteredRestaurants.length),
               ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -62,6 +62,7 @@ class ApiEndpoints {
 
   static const String merchantDeals = '/restaurants/deals';
   static String merchantDealDetail(int id) => '/restaurants/deals/$id';
+  static String toggleDealStatus(int id) => '/restaurants/deals/$id/toggle_status';
 
   static const String merchantMenu = '/restaurants/restaurant/menu';
   static String merchantMenuDetail(int id) =>
@@ -79,6 +80,7 @@ class ApiEndpoints {
   static String merchantBookingDetail(int id) =>
       '/restaurants/restaurant/bookings/$id';
   static const String merchantRedeemDeal = '/restaurants/deals/redeem';
+  static const String merchantRedemptionHistory = '/restaurants/deals/redemption-history';
 
   static const String merchantRestaurantImages = '/restaurants/restaurant-images';
   static String merchantRestaurantImageDetail(int id) =>

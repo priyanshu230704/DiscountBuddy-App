@@ -589,6 +589,65 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         ),
                     ],
                   ),
+                  if (restaurant.description.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      restaurant.description,
+                      style: AppFonts.bodyStyle(
+                        fontSize: 15,
+                        height: 1.5,
+                        color: AppColors.textPrimary.withValues(alpha: 0.8),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  // Contact quick info
+                  if (restaurant.phoneNumber.isNotEmpty || (restaurant.email != null && restaurant.email!.isNotEmpty))
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.background,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.cardBorder),
+                      ),
+                      child: Row(
+                        children: [
+                          if (restaurant.phoneNumber.isNotEmpty)
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.phone_outlined, size: 16, color: AppColors.primary),
+                                  const SizedBox(width: 8),
+                                  Flexible(
+                                    child: Text(
+                                      restaurant.phoneNumber,
+                                      style: AppFonts.bodyStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          if (restaurant.email != null && restaurant.email!.isNotEmpty)
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.email_outlined, size: 16, color: AppColors.primary),
+                                  const SizedBox(width: 8),
+                                  Flexible(
+                                    child: Text(
+                                      restaurant.email!,
+                                      style: AppFonts.bodyStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: 16),
                   const SizedBox(height: 12),
                   // Details Rows
                   Column(

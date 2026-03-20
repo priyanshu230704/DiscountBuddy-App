@@ -430,25 +430,30 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           setState(() => _isSearching = false);
         }
       },
-      child: Scaffold(
-        backgroundColor: AppColors.background,
-        body: RefreshIndicator(
-          onRefresh: _loadRestaurants,
-          color: AppColors.discount,
-          child: CustomScrollView(
-            physics: const BouncingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics(),
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: AppColors.backgroundGradient,
+        ),
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: RefreshIndicator(
+            onRefresh: _loadRestaurants,
+            color: AppColors.discount,
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
+              cacheExtent: 1200,
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+              slivers: [
+                _buildHeader(),
+                if (!_isSearching) _buildBanners(),
+                if (!_isSearching) _buildFilterTabs(),
+                if (!_isSearching) _buildSectionTitle(),
+                _buildRestaurantFeed(list),
+                const SliverToBoxAdapter(child: SizedBox(height: 32)),
+              ],
             ),
-            cacheExtent: 1200,
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            slivers: [
-              _buildHeader(),
-              if (!_isSearching) _buildBanners(),
-              if (!_isSearching) _buildFilterTabs(),
-              if (!_isSearching) _buildSectionTitle(),
-              _buildRestaurantFeed(list),
-              const SliverToBoxAdapter(child: SizedBox(height: 32)),
-            ],
           ),
         ),
       ),
@@ -463,7 +468,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       floating: false,
       snap: false,
       elevation: 0,
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF3E8FF), // Opaque to hide content scrolling underneath
       automaticallyImplyLeading: false,
       toolbarHeight: 60,
       collapsedHeight: _isSearching ? 112 + topPadding : 30 + topPadding,
@@ -471,14 +476,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       stretch: false,
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFFF3E8FF), Colors.white], // Soft purple to white
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              stops: [0.0, 1.0],
-            ),
-          ),
+          color: const Color(0xFFF3E8FF),
           child: SafeArea(
             bottom: false,
             child: Padding(
@@ -681,9 +679,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Widget _buildBanners() {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.only(top: 0, bottom: 6),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         child: SizedBox(
-          height: 200,
+          height: 100,
           child: const _GradientBanner(
             title: "Get the Best Restaurant Deals",
             subtitle: "",
@@ -963,11 +961,11 @@ class _GradientBanner extends StatelessWidget {
 
           // Content
           Padding(
-            padding: const EdgeInsets.all(22),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             child: Row(
               children: [
                 Expanded(
-                  flex: 55,
+                  flex: 60,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -975,54 +973,30 @@ class _GradientBanner extends StatelessWidget {
                       Text(
                         title,
                         style: AppTypography.title.copyWith(
-                          fontSize: 22,
+                          fontSize: 16,
                           height: 1.1,
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
-                          letterSpacing: -0.5,
+                          letterSpacing: -0.4,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.visible,
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 6),
                       Text(
-                        subtitle,
+                        "Savor the Savings, Every Day",
                         style: AppTypography.body.copyWith(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w500,
-                          height: 1.3,
-                          color: Colors.white.withValues(alpha: 0.9),
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 18),
-                      // Explore Now Button
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.25),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.35),
-                          ),
-                        ),
-                        child: Text(
-                          "Explore Now",
-                          style: AppTypography.body.copyWith(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          fontStyle: FontStyle.italic,
+                          color: Colors.white,
+                          letterSpacing: 0.1,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const Expanded(flex: 45, child: SizedBox()),
+                const Expanded(flex: 40, child: SizedBox()),
               ],
             ),
           ),
@@ -1030,20 +1004,20 @@ class _GradientBanner extends StatelessWidget {
           // Food Image on right
           Positioned(
             right: 0,
-            top: 20,
-            bottom: 20,
+            top: 10,
+            bottom: 10,
             child: ClipRRect(
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(80),
-                bottomLeft: Radius.circular(80),
+                topLeft: Radius.circular(50),
+                bottomLeft: Radius.circular(50),
               ),
               child: Image.network(
-                "https://images.unsplash.com/photo-1473093226795-af9932fe5856?q=80&w=400&auto=format&fit=crop", // High-quality pasta image
-                width: 160,
+                "https://images.unsplash.com/photo-1473093226795-af9932fe5856?q=80&w=400&auto=format&fit=crop",
+                width: 120,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => Image.asset(
                   "assets/png/banner-sm.png",
-                  width: 160,
+                  width: 120,
                   fit: BoxFit.cover,
                 ),
               ),
@@ -1052,18 +1026,18 @@ class _GradientBanner extends StatelessWidget {
 
           // "Live Deals" Badge
           Positioned(
-            bottom: 14,
-            right: 16,
+            bottom: 8,
+            right: 12,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
                   ),
                 ],
               ),
@@ -1073,16 +1047,16 @@ class _GradientBanner extends StatelessWidget {
                   const Icon(
                     Icons.flash_on,
                     color: Color(0xFFF97316),
-                    size: 13,
+                    size: 11,
                   ),
-                  const SizedBox(width: 5),
+                  const SizedBox(width: 4),
                   Text(
                     "LIVE DEALS",
                     style: AppTypography.title.copyWith(
-                      fontSize: 11,
+                      fontSize: 9,
                       fontWeight: FontWeight.w900,
                       color: const Color(0xFFF97316),
-                      letterSpacing: 0.5,
+                      letterSpacing: 0.4,
                     ),
                   ),
                 ],
@@ -1110,12 +1084,34 @@ class _FeedTile extends StatelessWidget {
     this.userLon,
   });
 
+  Color _occupancyColor(String? occupancy) {
+    switch (occupancy) {
+      case 'very_busy':
+        return const Color(0xFFEF4444);
+      case 'moderately_busy':
+        return const Color(0xFFF59E0B);
+      default:
+        return const Color(0xFF10B981);
+    }
+  }
+
+  String _occupancyLabel(String? occupancy) {
+    switch (occupancy) {
+      case 'very_busy':
+        return 'Very Busy';
+      case 'moderately_busy':
+        return 'Moderate';
+      default:
+        return 'Available';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    const double imageHeight = 90; // Compressed from 118
-    final tags = offerTags(restaurant);
     final dist = restaurant.distanceMiles ?? kmToMiles(restaurant.distance);
-    final String? discountText = tags.isNotEmpty ? tags.first : null;
+    final hasImage = restaurant.imageUrl.isNotEmpty;
+    final hasOccupancy = restaurant.occupancy != null;
+    final deals = restaurant.activeDeals.where((d) => d.type != 'none').toList();
 
     return GestureDetector(
       onTap: () {
@@ -1134,32 +1130,35 @@ class _FeedTile extends StatelessWidget {
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: AppRadius.xLarge,
-          border: Border.all(color: AppColors.cardBorder),
-          boxShadow: AppShadows.card,
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 18,
+              offset: const Offset(0, 5),
+            ),
+          ],
+          border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
         ),
         clipBehavior: Clip.hardEdge,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(
-              height: imageHeight,
-              child: Stack(
-                children: [
-                  restaurant.imageUrl.isNotEmpty
+            // --- Top: Full-width Image with Deal Badge ---
+            Stack(
+              children: [
+                // Full-width image
+                SizedBox(
+                  width: double.infinity,
+                  height: 125,
+                  child: hasImage
                       ? CachedNetworkImage(
                           imageUrl: restaurant.imageUrl,
                           fit: BoxFit.cover,
-                          width: double.infinity,
-                          height: double.infinity,
-                          fadeInDuration: Duration.zero,
-                          fadeOutDuration: Duration.zero,
-                          filterQuality: FilterQuality.low,
-                          maxWidthDiskCache: 900,
-                          maxHeightDiskCache: 600,
+                          fadeInDuration: const Duration(milliseconds: 200),
                           placeholder: (context, url) => Container(
-                            color: Colors.black.withValues(alpha: 0.03),
+                            color: const Color(0xFFF3F4F6),
                             child: const Center(
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
@@ -1170,212 +1169,401 @@ class _FeedTile extends StatelessWidget {
                           errorWidget: (context, url, error) => Container(
                             color: const Color(0xFFF3F4F6),
                             child: const Icon(
-                              Icons.restaurant,
+                              Icons.restaurant_rounded,
                               color: Color(0xFFD1D5DB),
                               size: 40,
                             ),
                           ),
                         )
                       : Container(
-                          width: double.infinity,
-                          height: double.infinity,
                           color: const Color(0xFFF3F4F6),
                           child: const Icon(
-                            Icons.restaurant,
+                            Icons.restaurant_rounded,
                             color: Color(0xFFD1D5DB),
                             size: 40,
                           ),
                         ),
-                  Positioned.fill(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.black.withValues(alpha: 0.1),
-                            Colors.transparent,
-                          ],
-                        ),
+                ),
+
+                // Bottom gradient scrim for readability
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: 60,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [
+                          Colors.black.withValues(alpha: 0.45),
+                          Colors.transparent,
+                        ],
                       ),
                     ),
                   ),
-                  if (discountText != null)
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
+                ),
+
+                // Deal badge on top-left
+                if (deals.isNotEmpty)
+                  Positioned(
+                    top: 10,
+                    left: 10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFF97316), Color(0xFFEF4444)],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
                         ),
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Color(0xFFF97316), Color(0xFFFB923C)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFF97316).withValues(alpha: 0.4),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
                           ),
-                          borderRadius: BorderRadius.only(
-                            bottomRight: Radius.circular(20),
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              discountText,
-                              style: AppTypography.title.copyWith(
-                                fontSize: 17,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.white,
-                                letterSpacing: -0.2,
-                              ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.local_offer_rounded,
+                              color: Colors.white, size: 11),
+                          const SizedBox(width: 4),
+                          Text(
+                            deals.first.displayText,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              letterSpacing: 0.2,
                             ),
-                            Text(
-                              "Limited Time",
-                              style: AppTypography.body.copyWith(
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white.withValues(alpha: 0.95),
+                          ),
+                          if (deals.length > 1) ...[
+                            const SizedBox(width: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 5, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.25),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                '+${deals.length - 1}',
+                                style: const TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                ),
                               ),
                             ),
                           ],
-                        ),
+                        ],
                       ),
                     ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    height: 24,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            restaurant.name,
-                            style: AppTypography.title.copyWith(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              color: const Color(0xFF1B1436),
-                              letterSpacing: -0.5,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                  ),
+
+                // Occupancy badge on top-right
+                if (hasOccupancy)
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.65), // Dark background for contrast
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.15),
                         ),
-                        const SizedBox(width: 8),
-                        Container(
-                          height: 24,
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          alignment: Alignment.center,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 5,
+                            height: 5,
+                            decoration: BoxDecoration(
+                              color: _occupancyColor(restaurant.occupancy),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            _occupancyLabel(restaurant.occupancy),
+                            style: TextStyle(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                              color: _occupancyColor(restaurant.occupancy),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+
+            // --- Bottom: Details ---
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Name row
+                        Text(
+                          restaurant.name,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF111827),
+                            letterSpacing: -0.3,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 5),
+
+                        // Rating row
+                        Row(
+                          children: [
+                            if (restaurant.rating > 0) ...[
+                              const Icon(Icons.star_rounded,
+                                  color: Color(0xFFFBBF24), size: 14),
+                              const SizedBox(width: 2),
+                              Text(
+                                restaurant.rating.toStringAsFixed(1),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF374151),
+                                ),
+                              ),
+                              Text(
+                                ' (${restaurant.reviewCount})',
+                                style: const TextStyle(
+                                    fontSize: 10, color: Color(0xFF9CA3AF)),
+                              ),
+                            ] else
+                              const Text(
+                                'New',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF8B5CF6),
+                                ),
+                              ),
+                          ],
+                        ),
+
+                        // Cuisine/City
+                        if (restaurant.cuisine.isNotEmpty &&
+                            restaurant.cuisine != 'Restaurant') ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(Icons.restaurant_menu_rounded,
+                                  color: Color(0xFFB0B8C5), size: 11),
+                              const SizedBox(width: 3),
+                              Text(
+                                restaurant.cuisine,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: Color(0xFF9CA3AF),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+
+                  // Right Side: Distance and Reserve Button
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.location_on_rounded,
+                              color: Color(0xFF8B5CF6), size: 12),
+                          const SizedBox(width: 3),
+                          Text(
+                            '${dist.toStringAsFixed(1)} mi',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF6B7280),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: () {
+                          final slug = restaurant.slug ?? restaurant.id;
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => RestaurantDetailsPage(
+                                slug: slug,
+                                latitude: userLat,
+                                longitude: userLon,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                           decoration: BoxDecoration(
-                            gradient: AppColors.purpleGradient,
-                            borderRadius: BorderRadius.circular(16),
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFEC4899), Color(0xFF8B5CF6)],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ),
+                            borderRadius: BorderRadius.circular(10),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.2),
-                                blurRadius: 8,
+                                color: const Color(0xFFEC4899).withValues(alpha: 0.35),
+                                blurRadius: 6,
                                 offset: const Offset(0, 3),
                               ),
                             ],
                           ),
-                          child: Text(
-                            "Reserve a Table",
-                            style: AppTypography.body.copyWith(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  SizedBox(
-                    height: 14,
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.star,
-                          color: Color(0xFFFBBF24),
-                          size: 12,
-                        ),
-                        const SizedBox(width: 3),
-                        Text(
-                          restaurant.rating.toStringAsFixed(1),
-                          style: AppTypography.body.copyWith(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w800,
-                            color: const Color(0xFF1B1436),
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Row(
-                          children: List.generate(
-                            3,
-                            (index) => const Padding(
-                              padding: EdgeInsets.only(right: 1),
-                              child: Icon(
-                                Icons.star,
-                                color: Color(0xFFFCD34D),
-                                size: 10,
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.calendar_month_rounded,
+                                  color: Colors.white, size: 12),
+                              SizedBox(width: 4),
+                              Text(
+                                'Reserve',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                  letterSpacing: 0.2,
+                                ),
                               ),
-                            ),
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            "${restaurant.reviewCount} reviews",
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppTypography.body.copyWith(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w400,
-                              color: const Color(0xFF6B7280),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  SizedBox(
-                    height: 14,
-                    child: Row(
-                      children: [
-
-                        const Icon(
-                          Icons.location_on,
-                          color: Color(0xFF8B5CF6),
-                          size: 12,
-                        ),
-                        const SizedBox(width: 3),
-                        Text(
-                          "${dist.toStringAsFixed(1)} miles away",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTypography.body.copyWith(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF4B5563),
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _DealCarousel extends StatefulWidget {
+  final List<Discount> deals;
+  const _DealCarousel({required this.deals});
+
+  @override
+  _DealCarouselState createState() => _DealCarouselState();
+}
+
+class _DealCarouselState extends State<_DealCarousel> {
+  late PageController _pageController;
+  int _currentPage = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+    if (widget.deals.length > 1) {
+      _startTimer();
+    }
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (_pageController.hasClients) {
+        _currentPage++;
+        if (_currentPage >= widget.deals.length) {
+          _currentPage = 0;
+          _pageController.jumpToPage(0);
+        } else {
+          _pageController.animateToPage(
+            _currentPage,
+            duration: const Duration(milliseconds: 600),
+            curve: Curves.easeInOut,
+          );
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.deals.isEmpty) return const SizedBox.shrink();
+    if (widget.deals.length == 1) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [_buildDealBadge(widget.deals[0])],
+      );
+    }
+
+    return SizedBox(
+      height: 22,
+      child: PageView.builder(
+        controller: _pageController,
+        itemCount: widget.deals.length,
+        itemBuilder: (context, index) {
+          return Align(
+            alignment: Alignment.centerLeft,
+            child: _buildDealBadge(widget.deals[index]),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildDealBadge(Discount deal) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFF97316), Color(0xFFEF4444)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        deal.displayText,
+        style: const TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w800,
+          color: Colors.white,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }

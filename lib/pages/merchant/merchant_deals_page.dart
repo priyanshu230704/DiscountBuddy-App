@@ -10,7 +10,8 @@ import 'add_deal_page.dart';
 
 /// Merchant Deals Management Page
 class MerchantDealsPage extends StatefulWidget {
-  const MerchantDealsPage({super.key});
+  final int? restaurantId;
+  const MerchantDealsPage({super.key, this.restaurantId});
 
   @override
   State<MerchantDealsPage> createState() => _MerchantDealsPageState();
@@ -19,15 +20,37 @@ class MerchantDealsPage extends StatefulWidget {
 class _MerchantDealsPageState extends State<MerchantDealsPage> {
   final MerchantService _merchantService = MerchantService();
   List<Map<String, dynamic>> _deals = [];
+  List<Map<String, dynamic>> _restaurants = [];
+  int? _selectedRestaurantId;
   bool _isLoading = true;
   bool _isFetching = false;
+  bool _isLoadingRestaurants = true;
 
   @override
   void initState() {
     super.initState();
+    _selectedRestaurantId = widget.restaurantId;
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadRestaurants();
       _loadDeals();
     });
+  }
+
+  Future<void> _loadRestaurants() async {
+    try {
+      setState(() => _isLoadingRestaurants = true);
+      final restaurants = await _merchantService.getMerchantRestaurants();
+      if (mounted) {
+        setState(() {
+          _restaurants = restaurants;
+          _isLoadingRestaurants = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingRestaurants = false);
+      }
+    }
   }
 
   Future<void> _loadDeals() async {
@@ -39,7 +62,9 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
         _isFetching = true;
       });
 
-      final deals = await _merchantService.getMerchantDeals();
+      final deals = await _merchantService.getMerchantDeals(
+        restaurantId: _selectedRestaurantId,
+      );
       if (mounted) {
         setState(() {
           _deals = deals;
@@ -59,6 +84,31 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
     } finally {
       if (mounted) {
         _isFetching = false;
+      }
+    }
+  }
+
+  Future<void> _toggleDealStatus(int dealId) async {
+    try {
+      final response = await _merchantService.toggleDealStatus(dealId);
+      if (mounted && response['success'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(response['detail'] ?? 'Status updated'),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: AppColors.success,
+          ),
+        );
+        _loadDeals();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update status: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
       }
     }
   }
@@ -85,11 +135,12 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          _buildRestaurantFilter(),
           if (!_isLoading && _deals.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.sm),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.sm, AppSpacing.xl, AppSpacing.sm),
               child: Text(
-                '${_deals.length} Active Deal${_deals.length == 1 ? '' : 's'}',
+                '${_deals.where((d) => d['is_active'] == true).length} Active Deal${_deals.where((d) => d['is_active'] == true).length == 1 ? '' : 's'}',
                 style: AppTypography.title.copyWith(fontSize: 18),
               ),
             ),
@@ -122,6 +173,9 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
                                 builder: (context) => AddDealPage(deal: _deals[index]),
                               ),
                             ).then((_) => _loadDeals());
+                          },
+                          onToggle: (isActive) {
+                            _toggleDealStatus(_deals[index]['id']);
                           },
                         );
                       },
@@ -161,13 +215,77 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
       },
     );
   }
+
+  Widget _buildRestaurantFilter() {
+    if (_isLoadingRestaurants && _restaurants.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      height: 60,
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+        scrollDirection: Axis.horizontal,
+        itemCount: _restaurants.length + 1,
+        separatorBuilder: (context, index) => const SizedBox(width: AppSpacing.sm),
+        itemBuilder: (context, index) {
+          final isAll = index == 0;
+          final restaurant = isAll ? null : _restaurants[index - 1];
+          final id = isAll ? null : restaurant!['id'];
+          final name = isAll ? 'All Restaurants' : restaurant!['name'];
+          final isSelected = _selectedRestaurantId == id;
+
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedRestaurantId = id;
+              });
+              _loadDeals();
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: isSelected ? AppColors.primary : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isSelected ? AppColors.primary : AppColors.divider,
+                  width: 1.5,
+                ),
+                boxShadow: isSelected ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  )
+                ] : null,
+              ),
+              child: Text(
+                name,
+                style: AppTypography.bodySmall.copyWith(
+                  color: isSelected ? Colors.white : AppColors.textPrimary,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
 }
 
 class _DealCard extends StatelessWidget {
   final Map<String, dynamic> deal;
   final VoidCallback onTap;
+  final Function(bool) onToggle;
 
-  const _DealCard({required this.deal, required this.onTap});
+  const _DealCard({
+    required this.deal,
+    required this.onTap,
+    required this.onToggle,
+  });
 
   String _getDealTypeText(String? dealType) {
     switch (dealType) {
@@ -272,7 +390,11 @@ class _DealCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
-              _StatusBadge(isActive: isActive),
+              Switch.adaptive(
+                value: isActive,
+                onChanged: onToggle,
+                activeThumbColor: AppColors.success,
+              ),
             ],
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -345,50 +467,6 @@ class _InfoTag extends StatelessWidget {
             label,
             style: AppTypography.bodySmall.copyWith(
               fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatusBadge extends StatelessWidget {
-  final bool isActive;
-  const _StatusBadge({required this.isActive});
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isActive ? AppColors.success : AppColors.error;
-    final bg = isActive ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 4,
-      ),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: color,
-            ),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            isActive ? 'Active' : 'Inactive',
-            style: AppTypography.caption.copyWith(
-              color: color,
-              fontWeight: FontWeight.bold,
-              fontSize: 11,
             ),
           ),
         ],

@@ -40,6 +40,14 @@ class AppColors {
     end: Alignment.bottomRight,
   );
 
+  // Soft background gradient
+  static const Gradient backgroundGradient = LinearGradient(
+    colors: [Color(0xFFF3E8FF), Color(0xFFF7F8FC)], // Soft purple to background
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    stops: [0.0, 1.0],
+  );
+
   // Merchant gradient (deep purple to compliment customer's soft purple)
   static const Gradient merchantGradient = LinearGradient(
     colors: [Color(0xFF7C3AED), Color(0xFF6D28D9)],
@@ -51,6 +59,7 @@ class AppColors {
   static const Color background = Color(0xFFF7F8FC);
   static const Color surface = Color(0xFFFFFFFF);
   static const Color cardBorder = Color(0xFFF1F3F5);
+  static const Color divider = Color(0xFFE5E7EB);
   static const Color shimmer = Color(0xFFE5E7EB);
 
   // Text - Matching customer side

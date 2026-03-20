@@ -87,9 +87,9 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
       return _buildSuccessView();
     }
 
-    final deals = widget.restaurant.activeDeals.isNotEmpty
-        ? widget.restaurant.activeDeals
-        : [widget.restaurant.discount];
+    final deals = widget.restaurant.activeDeals
+        .where((d) => d.type != 'none')
+        .toList();
 
     return GenericBottomSheet(
       title: 'Redeem Offer',
@@ -102,121 +102,199 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
               widget.restaurant.name,
               style: AppTypography.body.copyWith(color: AppColors.textSecondary),
             ),
-            SizedBox(height: AppSpacing.xxl),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
-              child: RadioGroup<Discount>(
-                groupValue: _selectedDeal,
-                onChanged: (Discount? value) {
-                  if (value != null) {
-                    setState(() {
-                      _selectedDeal = value;
-                    });
-                  }
-                },
+            const SizedBox(height: AppSpacing.xxl),
+
+            if (deals.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxxl),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Icon(Icons.local_offer_outlined,
+                        size: 48, color: AppColors.textDisabled),
+                    const SizedBox(height: AppSpacing.md),
                     Text(
-                      'Select an offer:',
+                      'No active offers available',
                       style: AppTypography.subtitle.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textPrimary,
+                        color: AppColors.textSecondary,
                       ),
                     ),
-                    SizedBox(height: AppSpacing.md),
-                    ...deals.map((deal) {
-                      final isSelected =
-                          _selectedDeal.id == deal.id ||
-                          (_selectedDeal.id == null && deals.length == 1);
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: AppSpacing.md),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? AppColors.primary.withValues(alpha: 0.05)
-                              : AppColors.surface,
-                          borderRadius: AppRadius.large,
-                          border: Border.all(
-                            color: isSelected
-                                ? AppColors.primary
-                                : AppColors.cardBorder,
-                            width: isSelected ? 2 : 1,
-                          ),
-                          boxShadow: isSelected ? [] : AppShadows.card,
-                        ),
-                        child: RadioListTile<Discount>(
-                          value: deal,
-                          toggleable: true,
-                          activeColor: AppColors.primary,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.lg,
-                            vertical: AppSpacing.sm,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: AppRadius.medium,
-                          ),
-                          title: Text(
-                            deal.displayText,
-                            style: AppTypography.body.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          subtitle: Padding(
-                            padding: const EdgeInsets.only(top: AppSpacing.xs),
-                            child: Text(
-                              deal.description,
-                              style: AppTypography.bodySmall,
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
                   ],
                 ),
-              ),
-            ),
-
-            SizedBox(height: AppSpacing.lg),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
-              child: Container(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: AppColors.accent.withValues(alpha: 0.12),
-                  borderRadius: AppRadius.large,
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: AppColors.accent,
-                      size: 20,
-                    ),
-                    SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: Text(
-                        'Activated offers last for 15 mins. Show to staff when ordering.',
-                        style: AppTypography.caption.copyWith(
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
+                child: RadioGroup<Discount>(
+                  groupValue: _selectedDeal,
+                  onChanged: (Discount? value) {
+                    if (value != null) {
+                      setState(() {
+                        _selectedDeal = value;
+                      });
+                    }
+                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Select an offer:',
+                        style: AppTypography.subtitle.copyWith(
+                          fontWeight: FontWeight.w600,
                           color: AppColors.textPrimary,
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: AppSpacing.md),
+                      ...deals.map((deal) {
+                        final isSelected = _selectedDeal.id == deal.id;
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? AppColors.primary.withValues(alpha: 0.05)
+                                : AppColors.surface,
+                            borderRadius: AppRadius.large,
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : AppColors.cardBorder,
+                              width: isSelected ? 2 : 1,
+                            ),
+                            boxShadow: isSelected ? [] : AppShadows.card,
+                          ),
+                          child: Column(
+                            children: [
+                              RadioListTile<Discount>(
+                                value: deal,
+                                toggleable: true,
+                                activeColor: AppColors.primary,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.lg,
+                                  vertical: AppSpacing.sm,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: AppRadius.medium,
+                                ),
+                                title: Text(
+                                  deal.displayText,
+                                  style: AppTypography.body.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                                subtitle: Padding(
+                                  padding:
+                                      const EdgeInsets.only(top: AppSpacing.xs),
+                                  child: Text(
+                                    deal.description,
+                                    style: AppTypography.bodySmall,
+                                  ),
+                                ),
+                              ),
+                              if (isSelected &&
+                                  (deal.termsAndConditions.isNotEmpty ||
+                                      deal.maxPerUser > 0 ||
+                                      deal.percentage != null ||
+                                      deal.fixedAmount != null ||
+                                      deal.minimumSpendAmount != null))
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                      AppSpacing.xl, 0, AppSpacing.xl, AppSpacing.md),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Divider(),
+                                      const SizedBox(height: AppSpacing.xs),
+                                      if (deal.percentage != null && deal.percentage! > 0)
+                                        Text(
+                                          '• Discount: ${deal.percentage!.toInt()}% off',
+                                          style: AppTypography.caption,
+                                        )
+                                      else if (deal.fixedAmount != null && deal.fixedAmount! > 0)
+                                        Text(
+                                          '• Discount: £${deal.fixedAmount!.toStringAsFixed(2)} off',
+                                          style: AppTypography.caption,
+                                        ),
+                                      if (deal.minimumSpendAmount != null && deal.minimumSpendAmount! > 0)
+                                        Text(
+                                          '• Minimum spend: £${deal.minimumSpendAmount!.toStringAsFixed(2)}',
+                                          style: AppTypography.caption,
+                                        ),
+                                      if (deal.maxPerUser > 0)
+                                        Text(
+                                          '• Max uses per user: ${deal.maxPerUser}',
+                                          style: AppTypography.caption,
+                                        ),
+                                      if (deal.termsAndConditions.isNotEmpty)
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              top: AppSpacing.xs),
+                                          child: Text(
+                                            '• ${deal.termsAndConditions}',
+                                            style: AppTypography.caption,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: AppSpacing.xxxl),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
-              child: PrimaryButton(
-                label: 'Confirm Redemption',
-                onPressed: _isRedeeming ? null : _confirmRedemption,
-                isLoading: _isRedeeming,
-                expand: true,
+
+            const SizedBox(height: AppSpacing.lg),
+            if (deals.isNotEmpty) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
+                child: Container(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: AppColors.accent.withValues(alpha: 0.12),
+                    borderRadius: AppRadius.large,
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.info_outline,
+                        color: AppColors.accent,
+                        size: 20,
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: Text(
+                          'Activated offers last for 15 mins. Show to staff when ordering.',
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-            SizedBox(height: AppSpacing.xxl),
+              const SizedBox(height: AppSpacing.xxxl),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
+                child: PrimaryButton(
+                  label: 'Confirm Redemption',
+                  onPressed: _isRedeeming ? null : _confirmRedemption,
+                  isLoading: _isRedeeming,
+                  expand: true,
+                ),
+              ),
+            ] else
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.xxl),
+                child: SecondaryButton(
+                  label: 'Close',
+                  onPressed: () => Navigator.pop(context),
+                  expand: true,
+                ),
+              ),
+            const SizedBox(height: AppSpacing.xxl),
           ],
         ),
       ),
@@ -340,6 +418,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                 'Done',
                 style: AppTypography.body.copyWith(
                   fontWeight: FontWeight.bold,
+                  color: AppColors.white,
                 ),
               ),
             ),

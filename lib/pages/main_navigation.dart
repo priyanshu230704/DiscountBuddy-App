@@ -6,7 +6,7 @@ import 'home/home_page.dart';
 import 'nearby/nearby_page.dart';
 import 'bookings/bookings_page.dart';
 import 'profile_page.dart';
-import 'merchant/merchant_deals_page.dart';
+import 'merchant/merchant_restaurants_page.dart';
 import 'merchant/merchant_dashboard_page.dart';
 
 /// Main navigation with new floating bottom navigation bar
@@ -68,9 +68,12 @@ class _MainNavigationState extends State<MainNavigation> {
           page = const MerchantDashboardPage();
           break;
         case 1:
-          page = const MerchantDealsPage();
+          page = const MerchantRestaurantsPage();
           break;
         case 2:
+          page = const MerchantRestaurantsPage(selectMenuMode: true);
+          break;
+        case 3:
           page = const ProfilePage();
           break;
         default:
@@ -109,7 +112,7 @@ class _MainNavigationState extends State<MainNavigation> {
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
-        children: List.generate(isMerchant ? 3 : 4, (index) {
+        children: List.generate(4, (index) {
           if (index == _currentIndex || _pageCache.containsKey(index)) {
             return _getPage(index);
           }
@@ -149,9 +152,14 @@ class _MainNavigationState extends State<MainNavigation> {
                   label: 'Dashboard',
                 ),
                 BottomNavigationBarItem(
-                  icon: Icon(Icons.local_offer_outlined),
-                  activeIcon: Icon(Icons.local_offer),
-                  label: 'Deals',
+                  icon: Icon(Icons.storefront_outlined),
+                  activeIcon: Icon(Icons.storefront),
+                  label: 'Restaurants',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.restaurant_menu_outlined),
+                  activeIcon: Icon(Icons.restaurant_menu),
+                  label: 'Menu',
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.person_outline),

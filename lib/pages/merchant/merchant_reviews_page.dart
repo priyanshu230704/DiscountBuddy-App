@@ -9,7 +9,8 @@ import '../../components/app_app_bar.dart';
 import '../../widgets/skeleton_loader.dart';
 
 class MerchantReviewsPage extends StatefulWidget {
-  const MerchantReviewsPage({super.key});
+  final int? restaurantId;
+  const MerchantReviewsPage({super.key, this.restaurantId});
 
   @override
   State<MerchantReviewsPage> createState() => _MerchantReviewsPageState();
@@ -18,13 +19,35 @@ class MerchantReviewsPage extends StatefulWidget {
 class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
   final MerchantService _merchantService = MerchantService();
   List<Map<String, dynamic>> _reviews = [];
+  List<Map<String, dynamic>> _restaurants = [];
+  int? _selectedRestaurantId;
   bool _isLoading = true;
   bool _isFetching = false;
+  bool _isLoadingRestaurants = true;
 
   @override
   void initState() {
     super.initState();
+    _selectedRestaurantId = widget.restaurantId;
+    _loadRestaurants();
     _loadReviews();
+  }
+
+  Future<void> _loadRestaurants() async {
+    try {
+      setState(() => _isLoadingRestaurants = true);
+      final restaurants = await _merchantService.getMerchantRestaurants();
+      if (mounted) {
+        setState(() {
+          _restaurants = restaurants;
+          _isLoadingRestaurants = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingRestaurants = false);
+      }
+    }
   }
 
   Future<void> _loadReviews() async {
@@ -36,7 +59,9 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
         _isFetching = true;
       });
 
-      final reviews = await _merchantService.getMerchantReviews();
+      final reviews = await _merchantService.getMerchantReviews(
+        restaurantId: _selectedRestaurantId,
+      );
       if (mounted) {
         setState(() {
           _reviews = reviews;
@@ -71,9 +96,10 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          _buildRestaurantFilter(),
           if (!_isLoading && _reviews.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.sm),
+              padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.sm, AppSpacing.xl, AppSpacing.sm),
               child: Text(
                 '${_reviews.length} Review${_reviews.length == 1 ? '' : 's'}',
                 style: AppTypography.title.copyWith(fontSize: 18),
@@ -128,6 +154,65 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
       icon: Icons.rate_review_rounded,
       title: 'No reviews yet',
       message: 'Customer feedback will appear here once you receive reviews.',
+    );
+  }
+
+  Widget _buildRestaurantFilter() {
+    if (_isLoadingRestaurants && _restaurants.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      height: 60,
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+        scrollDirection: Axis.horizontal,
+        itemCount: _restaurants.length + 1,
+        separatorBuilder: (context, index) => const SizedBox(width: AppSpacing.sm),
+        itemBuilder: (context, index) {
+          final isAll = index == 0;
+          final restaurant = isAll ? null : _restaurants[index - 1];
+          final id = isAll ? null : restaurant!['id'];
+          final name = isAll ? 'All Restaurants' : restaurant!['name'];
+          final isSelected = _selectedRestaurantId == id;
+
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedRestaurantId = id;
+              });
+              _loadReviews();
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: isSelected ? AppColors.primary : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isSelected ? AppColors.primary : AppColors.divider,
+                  width: 1.5,
+                ),
+                boxShadow: isSelected ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  )
+                ] : null,
+              ),
+              child: Text(
+                name,
+                style: AppTypography.bodySmall.copyWith(
+                  color: isSelected ? Colors.white : AppColors.textPrimary,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }

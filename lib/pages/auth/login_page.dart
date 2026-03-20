@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'register_page.dart';
@@ -513,12 +515,14 @@ class _LoginPageState extends State<LoginPage> {
                                                  onPressed: _isLoading ? null : _handleGoogleLogin,
                                                  scale: scale,
                                                ),
-                                               SizedBox(width: 24 * scale),
-                                               _buildSocialIcon(
-                                                 icon: 'assets/svg/apple.svg',
-                                                 onPressed: _isLoading ? null : _handleAppleLogin,
-                                                 scale: scale,
-                                               ),
+                                               if (!kIsWeb && Platform.isIOS) ...[
+                                                 SizedBox(width: 24 * scale),
+                                                 _buildSocialIcon(
+                                                   icon: 'assets/svg/apple.svg',
+                                                   onPressed: _isLoading ? null : _handleAppleLogin,
+                                                   scale: scale,
+                                                 ),
+                                               ],
                                              ],
                                            ),
                                            SizedBox(height: 18 * scale),

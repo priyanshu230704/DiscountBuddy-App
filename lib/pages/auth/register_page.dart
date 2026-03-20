@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../design/app_colors.dart';
@@ -807,11 +809,13 @@ class _RegisterPageState extends State<RegisterPage> {
                                            icon: 'assets/svg/google.svg',
                                            onPressed: _isLoading ? null : _handleGoogleLogin,
                                          ),
-                                         const SizedBox(width: 20),
-                                         _buildSocialIcon(
-                                           icon: 'assets/svg/apple.svg',
-                                           onPressed: _isLoading ? null : _handleAppleLogin,
-                                         ),
+                                         if (!kIsWeb && Platform.isIOS) ...[
+                                           const SizedBox(width: 20),
+                                           _buildSocialIcon(
+                                             icon: 'assets/svg/apple.svg',
+                                             onPressed: _isLoading ? null : _handleAppleLogin,
+                                           ),
+                                         ],
                                        ],
                                      ),
                                    ],

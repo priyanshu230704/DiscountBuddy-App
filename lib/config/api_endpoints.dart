@@ -6,7 +6,8 @@ class ApiEndpoints {
   static const String registerComplete = '/users/register/complete';
   static const String login = '/users/token';
   static const String refreshToken = '/users/token/refresh';
-  static const String googleLogin = '/users/google';
+  // Unified social login endpoint
+  static const String oauthLogin = '/users/oauth';
   static const String currentUser = '/users/me';
   static const String passwordReset = '/users/password-reset';
   static const String deleteAccount = '/users/account-delete';

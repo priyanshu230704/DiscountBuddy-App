@@ -8,6 +8,7 @@ import '../config/api_endpoints.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 /// Authentication service for handling user authentication
 class AuthService {
@@ -262,19 +263,25 @@ class AuthService {
         _isGoogleSignInInitialized = true;
       }
 
-      final GoogleSignInAccount googleUser = await _googleSignIn.authenticate(
-        scopeHint: ['email', 'profile'],
-      );
+      final GoogleSignInAccount? googleUser = await _googleSignIn.authenticate();
 
-      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+      if (googleUser == null) {
+        throw ApiException('Google login cancelled');
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
       final idToken = googleAuth.idToken;
       if (idToken == null || idToken.isEmpty) {
         throw ApiException('Failed to get Google ID token');
       }
 
       final response = await _apiService.post(
-        ApiEndpoints.googleLogin,
-        body: {'id_token': idToken},
+        ApiEndpoints.oauthLogin,
+        body: {
+          'provider': 'google',
+          'token': idToken,
+        },
       );
 
       final loginResponse = LoginResponse.fromJson(response);
@@ -303,13 +310,69 @@ class AuthService {
       _apiService.setAuthToken(loginResponse.accessToken);
       debugPrint('DEBUG: googleLogin -> SUCCESS');
       return loginResponse;
-    } on GoogleSignInException catch (e) {
-      if (e.code == GoogleSignInExceptionCode.canceled) {
-        throw ApiException('Google login cancelled');
-      }
-      throw ApiException('Google Sign In failed: ${e.description ?? e.code.name}');
     } catch (e) {
       debugPrint("Google Sign-In Error: $e");
+      rethrow;
+    }
+  }
+
+  /// Login with Apple
+  Future<LoginResponse> loginWithApple() async {
+    debugPrint('DEBUG: appleLogin -> START');
+    try {
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+
+      final String identityToken = credential.identityToken ?? '';
+
+      if (identityToken.isEmpty) {
+        throw ApiException('Failed to get Apple identity token');
+      }
+
+      final response = await _apiService.post(
+        ApiEndpoints.oauthLogin,
+        body: {
+          'provider': 'apple',
+          'token': identityToken,
+        },
+      );
+
+      final loginResponse = LoginResponse.fromJson(response);
+
+      if (loginResponse.accessToken.isNotEmpty) {
+        await _storage.write(
+          key: _accessTokenKey,
+          value: loginResponse.accessToken,
+        );
+      }
+
+      if (loginResponse.refreshToken.isNotEmpty) {
+        await _storage.write(
+          key: _refreshTokenKey,
+          value: loginResponse.refreshToken,
+        );
+      }
+
+      if (loginResponse.user != null) {
+        await _storage.write(
+          key: _userKey,
+          value: jsonEncode(loginResponse.user!.toJson()),
+        );
+      }
+
+      _apiService.setAuthToken(loginResponse.accessToken);
+      debugPrint('DEBUG: appleLogin -> SUCCESS');
+      return loginResponse;
+    } catch (e) {
+      if (e is SignInWithAppleAuthorizationException &&
+          e.code == AuthorizationErrorCode.canceled) {
+        throw ApiException('Apple login cancelled');
+      }
+      debugPrint("Apple Sign-In Error: $e");
       rethrow;
     }
   }

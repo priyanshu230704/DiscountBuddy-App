@@ -275,6 +275,41 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Login with Apple
+  Future<bool> loginWithApple() async {
+    debugPrint('DEBUG: AuthProvider.loginWithApple -> Triggered');
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final loginResponse = await _authService.loginWithApple();
+
+      _user = loginResponse.user;
+      _userRole = loginResponse.role;
+      _isAuthenticated = true;
+      _isLoading = false;
+      debugPrint(
+        'DEBUG: AuthProvider.loginWithApple -> Success: authenticated as ${_user?.email}',
+      );
+      notifyListeners();
+
+      // Refresh user data to get full profile (including email)
+      await refreshUser();
+
+      return true;
+    } catch (e) {
+      final message = e.toString().replaceAll('Exception: ', '');
+      debugPrint('DEBUG: AuthProvider.loginWithApple -> Catching error: $message');
+
+      _errorMessage = message.contains('Apple login cancelled') ? null : message;
+      _isAuthenticated = false;
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   /// Logout user
   Future<void> logout() async {
     _isLoading = true;

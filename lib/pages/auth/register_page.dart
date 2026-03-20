@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../design/app_colors.dart';
 import '../../design/app_radius.dart';
 import '../../theme/app_fonts.dart';
@@ -234,6 +235,12 @@ class _RegisterPageState extends State<RegisterPage> {
   Future<void> _handleGoogleLogin() async {
     if (_authProvider != null) {
       await _authProvider!.loginWithGoogle();
+    }
+  }
+
+  Future<void> _handleAppleLogin() async {
+    if (_authProvider != null) {
+      await _authProvider!.loginWithApple();
     }
   }
 
@@ -792,49 +799,22 @@ class _RegisterPageState extends State<RegisterPage> {
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 16),
-                                    OutlinedButton(
-                                      onPressed: _isLoading
-                                          ? null
-                                          : _handleGoogleLogin,
-                                      style: OutlinedButton.styleFrom(
-                                        minimumSize: const Size(
-                                          double.infinity,
-                                          54,
-                                        ),
-                                        side: BorderSide(
-                                          color: AppColors.textDisabled
-                                              .withValues(alpha: 0.28),
-                                        ),
-                                        backgroundColor: Colors.white,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            16,
-                                          ),
-                                        ),
-                                        elevation: 0,
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Image.network(
-                                            'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1200px-Google_%22G%22_logo.svg.png',
-                                            height: 18,
-                                          ),
-                                          const SizedBox(width: 10),
-                                          Text(
-                                            'Continue with Google',
-                                            style: AppFonts.bodyStyle(
-                                              color: AppColors.textPrimary,
-                                              fontWeight: FontWeight.w700,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
+                                     const SizedBox(height: 16),
+                                     Row(
+                                       mainAxisAlignment: MainAxisAlignment.center,
+                                       children: [
+                                         _buildSocialIcon(
+                                           icon: 'assets/svg/google.svg',
+                                           onPressed: _isLoading ? null : _handleGoogleLogin,
+                                         ),
+                                         const SizedBox(width: 20),
+                                         _buildSocialIcon(
+                                           icon: 'assets/svg/apple.svg',
+                                           onPressed: _isLoading ? null : _handleAppleLogin,
+                                         ),
+                                       ],
+                                     ),
+                                   ],
                                   const SizedBox(height: 8),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
@@ -916,6 +896,35 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSocialIcon({
+    required String icon,
+    required VoidCallback? onPressed,
+  }) {
+    return Container(
+      width: 54,
+      height: 54,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.textDisabled.withValues(alpha: 0.1),
+          width: 1.5,
+        ),
+      ),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(16),
+        child: Center(
+          child: SvgPicture.asset(
+            icon,
+            width: 22,
+            height: 22,
           ),
         ),
       ),

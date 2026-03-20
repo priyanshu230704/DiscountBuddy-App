@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../theme/app_fonts.dart';
-import '../../design/app_colors.dart';
-import '../../providers/auth_provider.dart';
-import '../../widgets/auth/auth_theme.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'register_page.dart';
+import '../../providers/auth_provider.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_fonts.dart';
+import '../../widgets/auth/auth_theme.dart';
 
 /// Login Screen - DiscountBuddy Redesign
 class LoginPage extends StatefulWidget {
@@ -118,6 +119,24 @@ class _LoginPageState extends State<LoginPage> {
           SnackBar(
             content: Text(
               'Google sign-in was canceled. Please choose an account to continue.',
+              style: AuthTheme.bodyText,
+            ),
+            backgroundColor: AppColors.accent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleAppleLogin() async {
+    if (_authProvider != null) {
+      final success = await _authProvider!.loginWithApple();
+      if (!success && mounted && _authProvider!.errorMessage == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Apple sign-in was canceled.',
               style: AuthTheme.bodyText,
             ),
             backgroundColor: AppColors.accent,
@@ -486,37 +505,23 @@ class _LoginPageState extends State<LoginPage> {
                                             ],
                                           ),
                                           SizedBox(height: (isKeyboardOpen ? 18 : 24) * scale),
-                                          OutlinedButton(
-                                            onPressed: _isLoading ? null : _handleGoogleLogin,
-                                            style: OutlinedButton.styleFrom(
-                                              minimumSize: Size(double.infinity, (isKeyboardOpen ? 48 : 56) * scale),
-                                              side: BorderSide(color: AppColors.textDisabled.withValues(alpha: 0.2)),
-                                              backgroundColor: AppColors.white,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(16 * scale),
-                                              ),
-                                              elevation: 0,
-                                            ),
-                                            child: Row(
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              children: [
-                                                Image.network(
-                                                  'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1200px-Google_%22G%22_logo.svg.png',
-                                                  height: 18 * scale,
-                                                ),
-                                                 SizedBox(width: 10),
-                                                Text(
-                                                  'Continue with Google',
-                                                  style: AppFonts.bodyStyle(
-                                                    color: AppColors.textPrimary,
-                                                    fontWeight: FontWeight.w700,
-                                                    fontSize: 14 * scale,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          SizedBox(height: 18 * scale),
+                                           Row(
+                                             mainAxisAlignment: MainAxisAlignment.center,
+                                             children: [
+                                               _buildSocialIcon(
+                                                 icon: 'assets/svg/google.svg',
+                                                 onPressed: _isLoading ? null : _handleGoogleLogin,
+                                                 scale: scale,
+                                               ),
+                                               SizedBox(width: 24 * scale),
+                                               _buildSocialIcon(
+                                                 icon: 'assets/svg/apple.svg',
+                                                 onPressed: _isLoading ? null : _handleAppleLogin,
+                                                 scale: scale,
+                                               ),
+                                             ],
+                                           ),
+                                           SizedBox(height: 18 * scale),
                                           // NEW HERE? CREATE ACCOUNT
                                           Row(
                                             mainAxisAlignment: MainAxisAlignment.center,
@@ -574,6 +579,36 @@ class _LoginPageState extends State<LoginPage> {
             ),
 
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSocialIcon({
+    required String icon,
+    required VoidCallback? onPressed,
+    required double scale,
+  }) {
+    return Container(
+      width: 60 * scale,
+      height: 60 * scale,
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16 * scale),
+        border: Border.all(
+          color: AppColors.textDisabled.withValues(alpha: 0.1),
+          width: 1.5,
+        ),
+      ),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(16 * scale),
+        child: Center(
+          child: SvgPicture.asset(
+            icon,
+            width: 24 * scale,
+            height: 24 * scale,
+          ),
         ),
       ),
     );

@@ -62,8 +62,8 @@ class AuthProvider extends ChangeNotifier {
           if (user == null) {
             debugPrint('DEBUG AuthProvider._initializeAuth: No local user, trying refresh token...');
             try {
-              final newToken = await _authService.refreshAccessToken();
-              if (newToken != null) {
+              final success = await _authService.refreshAccessToken();
+              if (success) {
                 user = await _authService.getCurrentUser();
               }
             } catch (e) {

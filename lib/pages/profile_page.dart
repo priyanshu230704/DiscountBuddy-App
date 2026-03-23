@@ -97,7 +97,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     final user = _authProvider.user;
-    final displayName = user?.username ?? 'chavdaa';
+    final displayName = user?.username ?? 'User';
     final initials = _getInitials(displayName);
 
     return Container(

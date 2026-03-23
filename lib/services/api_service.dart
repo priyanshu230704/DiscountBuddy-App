@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'dart:convert';
+import 'dart:async';
 import 'package:http/http.dart' as http;
 import '../config/environment.dart';
 
@@ -35,6 +36,16 @@ class ApiService {
   };
 
   String? _authToken;
+
+  /// Callback for handling 401 Unauthorized errors (token refresh)
+  Future<bool> Function()? onUnauthorized;
+
+  /// Flag to prevent multiple concurrent refresh calls
+  bool _isRefreshing = false;
+
+  /// Queue for requests waiting for token refresh
+  final List<Completer<bool>> _refreshWaiters = [];
+
 
   /// Add authorization token to headers
   void setAuthToken(String token) {
@@ -150,25 +161,15 @@ class ApiService {
 
   /// Internal method to perform the actual GET request
   Future<Map<String, dynamic>> _performGet(Uri uri) async {
-    try {
-      if (Environment.enableLogging) {
-        debugPrint('GET: $uri');
-      }
-
+    return _sendRequest(() async {
       final request = http.Request('GET', uri)
         ..headers.addAll(headers)
         ..followRedirects = false;
 
-      final streamedResponse = await _client
-          .send(request)
-          .timeout(Environment.apiTimeout);
-
-      final response = await http.Response.fromStream(streamedResponse);
-
-      return _handleResponse(response);
-    } catch (e) {
-      throw _handleError(e);
-    }
+      final streamedResponse =
+          await _client.send(request).timeout(Environment.apiTimeout);
+      return http.Response.fromStream(streamedResponse);
+    });
   }
 
   /// POST request
@@ -177,32 +178,21 @@ class ApiService {
     Map<String, dynamic>? body,
     ApiType type = ApiType.user,
   }) async {
-    try {
-      final normalizedEndpoint = _normalizeEndpoint(endpoint);
-      final baseUrl = _getBaseUrl(type);
-      final uri = Uri.parse('$baseUrl$normalizedEndpoint');
+    final normalizedEndpoint = _normalizeEndpoint(endpoint);
+    final baseUrl = _getBaseUrl(type);
+    final uri = Uri.parse('$baseUrl$normalizedEndpoint');
 
-      if (Environment.enableLogging) {
-        debugPrint('POST: $uri');
-        debugPrint('Body: $body');
-      }
-
+    return _sendRequest(() async {
       final request = http.Request('POST', uri);
       request.headers.addAll(headers);
       if (body != null) {
         request.body = jsonEncode(body);
       }
 
-      final streamedResponse = await _client
-          .send(request)
-          .timeout(Environment.apiTimeout);
-
-      final response = await http.Response.fromStream(streamedResponse);
-
-      return _handleResponse(response);
-    } catch (e) {
-      throw _handleError(e);
-    }
+      final streamedResponse =
+          await _client.send(request).timeout(Environment.apiTimeout);
+      return http.Response.fromStream(streamedResponse);
+    });
   }
 
   /// PUT request
@@ -211,16 +201,11 @@ class ApiService {
     Map<String, dynamic>? body,
     ApiType type = ApiType.user,
   }) async {
-    try {
-      final normalizedEndpoint = _normalizeEndpoint(endpoint);
-      final baseUrl = _getBaseUrl(type);
-      final uri = Uri.parse('$baseUrl$normalizedEndpoint');
+    final normalizedEndpoint = _normalizeEndpoint(endpoint);
+    final baseUrl = _getBaseUrl(type);
+    final uri = Uri.parse('$baseUrl$normalizedEndpoint');
 
-      if (Environment.enableLogging) {
-        debugPrint('PUT: $uri');
-        debugPrint('Body: $body');
-      }
-
+    return _sendRequest(() async {
       final request = http.Request('PUT', uri)
         ..headers.addAll(headers)
         ..followRedirects = false;
@@ -228,16 +213,10 @@ class ApiService {
         request.body = jsonEncode(body);
       }
 
-      final streamedResponse = await _client
-          .send(request)
-          .timeout(Environment.apiTimeout);
-
-      final response = await http.Response.fromStream(streamedResponse);
-
-      return _handleResponse(response);
-    } catch (e) {
-      throw _handleError(e);
-    }
+      final streamedResponse =
+          await _client.send(request).timeout(Environment.apiTimeout);
+      return http.Response.fromStream(streamedResponse);
+    });
   }
 
   /// PATCH request
@@ -246,16 +225,11 @@ class ApiService {
     Map<String, dynamic>? body,
     ApiType type = ApiType.user,
   }) async {
-    try {
-      final normalizedEndpoint = _normalizeEndpoint(endpoint);
-      final baseUrl = _getBaseUrl(type);
-      final uri = Uri.parse('$baseUrl$normalizedEndpoint');
+    final normalizedEndpoint = _normalizeEndpoint(endpoint);
+    final baseUrl = _getBaseUrl(type);
+    final uri = Uri.parse('$baseUrl$normalizedEndpoint');
 
-      if (Environment.enableLogging) {
-        debugPrint('PATCH: $uri');
-        debugPrint('Body: $body');
-      }
-
+    return _sendRequest(() async {
       final request = http.Request('PATCH', uri)
         ..headers.addAll(headers)
         ..followRedirects = false;
@@ -263,16 +237,10 @@ class ApiService {
         request.body = jsonEncode(body);
       }
 
-      final streamedResponse = await _client
-          .send(request)
-          .timeout(Environment.apiTimeout);
-
-      final response = await http.Response.fromStream(streamedResponse);
-
-      return _handleResponse(response);
-    } catch (e) {
-      throw _handleError(e);
-    }
+      final streamedResponse =
+          await _client.send(request).timeout(Environment.apiTimeout);
+      return http.Response.fromStream(streamedResponse);
+    });
   }
 
   /// POST request with multipart/form-data (for file uploads)
@@ -282,17 +250,11 @@ class ApiService {
     Map<String, http.MultipartFile>? files,
     ApiType type = ApiType.user,
   }) async {
-    try {
-      final normalizedEndpoint = _normalizeEndpoint(endpoint);
-      final baseUrl = _getBaseUrl(type);
-      final uri = Uri.parse('$baseUrl$normalizedEndpoint');
+    final normalizedEndpoint = _normalizeEndpoint(endpoint);
+    final baseUrl = _getBaseUrl(type);
+    final uri = Uri.parse('$baseUrl$normalizedEndpoint');
 
-      if (Environment.enableLogging) {
-        debugPrint('POST MULTIPART: $uri');
-        debugPrint('Fields: $fields');
-        debugPrint('Files: ${files?.keys}');
-      }
-
+    return _sendRequest(() async {
       final request = http.MultipartRequest('POST', uri);
       request.headers.addAll(headers);
 
@@ -311,13 +273,8 @@ class ApiService {
 
       final streamedResponse =
           await _client.send(request).timeout(Environment.apiTimeout);
-
-      final response = await http.Response.fromStream(streamedResponse);
-
-      return _handleResponse(response);
-    } catch (e) {
-      throw _handleError(e);
-    }
+      return http.Response.fromStream(streamedResponse);
+    });
   }
 
   /// PATCH request with multipart/form-data (for file uploads)
@@ -327,20 +284,14 @@ class ApiService {
     Map<String, http.MultipartFile>? files,
     ApiType type = ApiType.user,
   }) async {
-    try {
-      final normalizedEndpoint = _normalizeEndpoint(endpoint);
-      final baseUrl = _getBaseUrl(type);
-      final uri = Uri.parse('$baseUrl$normalizedEndpoint');
+    final normalizedEndpoint = _normalizeEndpoint(endpoint);
+    final baseUrl = _getBaseUrl(type);
+    final uri = Uri.parse('$baseUrl$normalizedEndpoint');
 
-      if (Environment.enableLogging) {
-        debugPrint('PATCH MULTIPART: $uri');
-        debugPrint('Fields: $fields');
-        debugPrint('Files: ${files?.keys}');
-      }
-
+    return _sendRequest(() async {
       final request = http.MultipartRequest('PATCH', uri);
       request.headers.addAll(headers);
-      
+
       // Update Content-Type for multipart
       request.headers['Content-Type'] = 'multipart/form-data';
 
@@ -354,16 +305,10 @@ class ApiService {
         });
       }
 
-      final streamedResponse = await _client
-          .send(request)
-          .timeout(Environment.apiTimeout);
-
-      final response = await http.Response.fromStream(streamedResponse);
-
-      return _handleResponse(response);
-    } catch (e) {
-      throw _handleError(e);
-    }
+      final streamedResponse =
+          await _client.send(request).timeout(Environment.apiTimeout);
+      return http.Response.fromStream(streamedResponse);
+    });
   }
 
   /// DELETE request
@@ -372,16 +317,11 @@ class ApiService {
     Map<String, dynamic>? body,
     ApiType type = ApiType.user,
   }) async {
-    try {
-      final normalizedEndpoint = _normalizeEndpoint(endpoint);
-      final baseUrl = _getBaseUrl(type);
-      final uri = Uri.parse('$baseUrl$normalizedEndpoint');
+    final normalizedEndpoint = _normalizeEndpoint(endpoint);
+    final baseUrl = _getBaseUrl(type);
+    final uri = Uri.parse('$baseUrl$normalizedEndpoint');
 
-      if (Environment.enableLogging) {
-        debugPrint('DELETE: $uri');
-        if (body != null) debugPrint('Body: $body');
-      }
-
+    return _sendRequest(() async {
       final request = http.Request('DELETE', uri)
         ..headers.addAll(headers)
         ..followRedirects = false;
@@ -389,17 +329,79 @@ class ApiService {
         request.body = jsonEncode(body);
       }
 
-      final streamedResponse = await _client
-          .send(request)
-          .timeout(Environment.apiTimeout);
+      final streamedResponse =
+          await _client.send(request).timeout(Environment.apiTimeout);
+      return http.Response.fromStream(streamedResponse);
+    });
+  }
 
-      final response = await http.Response.fromStream(streamedResponse);
+  /// Generic request sender with error handling and token refresh logic
+  Future<Map<String, dynamic>> _sendRequest(
+    Future<http.Response> Function() requestSender,
+  ) async {
+    try {
+      final response = await requestSender();
+
+      // Check for 401 Unauthorized errors to trigger token refresh
+      if (response.statusCode == 401 &&
+          onUnauthorized != null &&
+          _authToken != null) {
+        if (Environment.enableLogging) {
+          debugPrint('401 Unauthorized detected. Triggering token refresh...');
+        }
+
+        bool refreshSuccess = false;
+
+        if (_isRefreshing) {
+          // Wait for the current refresh to finish
+          if (Environment.enableLogging) {
+            debugPrint('Already refreshing, waiting...');
+          }
+          final completer = Completer<bool>();
+          _refreshWaiters.add(completer);
+          refreshSuccess = await completer.future;
+        } else {
+          // Start refreshing
+          _isRefreshing = true;
+          try {
+            refreshSuccess = await onUnauthorized!();
+            if (Environment.enableLogging) {
+              debugPrint('Token refresh successful: $refreshSuccess');
+            }
+          } catch (e) {
+            if (Environment.enableLogging) {
+              debugPrint('Token refresh failed with exception: $e');
+            }
+            refreshSuccess = false;
+          } finally {
+            _isRefreshing = false;
+            // Notify all waiting requests
+            for (var waiter in _refreshWaiters) {
+              waiter.complete(refreshSuccess);
+            }
+            _refreshWaiters.clear();
+          }
+        }
+
+        if (refreshSuccess) {
+          // Retry the request after successful refresh
+          if (Environment.enableLogging) {
+            debugPrint('Retrying request after token refresh...');
+          }
+          final retryResponse = await requestSender();
+          return _handleResponse(retryResponse);
+        } else {
+          // If refresh failed, handle the original 401 error
+          return _handleResponse(response);
+        }
+      }
 
       return _handleResponse(response);
     } catch (e) {
       throw _handleError(e);
     }
   }
+
 
   /// Handle HTTP response
   Map<String, dynamic> _handleResponse(http.Response response) {

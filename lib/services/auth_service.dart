@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import '../services/api_service.dart';
 import '../models/api_user.dart';
 import '../config/api_endpoints.dart';
+import '../config/environment.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:google_sign_in/google_sign_in.dart';
@@ -14,7 +15,10 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 class AuthService {
   static final AuthService _instance = AuthService._internal();
   factory AuthService() => _instance;
-  AuthService._internal();
+  AuthService._internal() {
+    _apiService.onUnauthorized = refreshAccessToken;
+  }
+
 
   final ApiService _apiService = ApiService();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
@@ -379,17 +383,32 @@ class AuthService {
 
   /// Logout user
   Future<void> logout() async {
-    // Remove tokens from storage
-    await _storage.delete(key: _accessTokenKey);
-    await _storage.delete(key: _refreshTokenKey);
-    await _storage.delete(key: _userKey);
+    try {
+      final refreshToken = await getRefreshToken();
+      if (refreshToken != null && refreshToken.isNotEmpty) {
+        // Attempt to blacklist the refresh token on the server
+        await _apiService.post(
+          ApiEndpoints.logout,
+          body: {'refresh': refreshToken},
+        );
+      }
+    } catch (e) {
+      // Server logout failed, just log it and proceed with local cleanup
+      if (Environment.enableLogging) {
+        debugPrint('Server logout failed, cleaning up local state... Error: $e');
+      }
+    } finally {
+      // Wipe all secure storage
+      await _storage.deleteAll();
 
-    // Remove auth token from API service
-    _apiService.removeAuthToken();
+      // Remove auth token from API service
+      _apiService.removeAuthToken();
 
-    // Sign out from Google
-    await _googleSignIn.signOut();
+      // Sign out from Google
+      await _googleSignIn.signOut();
+    }
   }
+
 
   /// Initialize account deletion (Stage 1: Request OTP)
   Future<void> initDeleteAccount() async {
@@ -460,11 +479,11 @@ class AuthService {
   }
 
   /// Refresh access token
-  Future<String?> refreshAccessToken() async {
+  Future<bool> refreshAccessToken() async {
     try {
       final refreshToken = await getRefreshToken();
       if (refreshToken == null || refreshToken.isEmpty) {
-        return null;
+        return false;
       }
 
       final response = await _apiService.post(
@@ -476,13 +495,18 @@ class AuthService {
       await _storage.write(key: _accessTokenKey, value: newAccessToken);
       _apiService.setAuthToken(newAccessToken);
 
-      return newAccessToken;
+      return true;
     } catch (e) {
-      // If refresh fails, logout user
+      if (Environment.enableLogging) {
+        debugPrint('Refresh access token failed: $e');
+      }
+      // If refresh fails, it could be the 7-day limit or other issue
+      // Logout user to clean up local state
       await logout();
-      return null;
+      return false;
     }
   }
+
 
   /// Get current user from API
   Future<ApiUser?> getCurrentUser() async {

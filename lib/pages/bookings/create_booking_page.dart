@@ -212,7 +212,7 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
                 TextFormField(
                   controller: _nameController,
                   decoration: const InputDecoration(
-                    labelText: 'Contact name (optional)',
+                    labelText: 'Contact name',
                     prefixIcon: Icon(Icons.person_outline),
                   ),
                 ),
@@ -221,7 +221,7 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
                   decoration: const InputDecoration(
-                    labelText: 'Phone number (optional)',
+                    labelText: 'Phone number',
                     prefixIcon: Icon(Icons.phone_outlined),
                   ),
                 ),
@@ -232,7 +232,7 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
                   controller: _requestController,
                   maxLines: 3,
                   decoration: const InputDecoration(
-                    labelText: 'Special requests (optional)',
+                    labelText: 'Special requests',
                     prefixIcon: Icon(Icons.message_outlined),
                     alignLabelWithHint: true,
                   ),

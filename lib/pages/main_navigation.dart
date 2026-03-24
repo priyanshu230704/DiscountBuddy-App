@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:discount_buddy/theme/app_colors.dart';
 import '../providers/auth_provider.dart';
@@ -31,12 +32,20 @@ class _MainNavigationState extends State<MainNavigation> {
   late int _currentIndex;
   final AuthProvider _authProvider = AuthProvider();
   final Map<int, Widget> _pageCache = {};
+  DateTime? _lastPressedAt;
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
     _authProvider.addListener(_onAuthStateChanged);
+    
+    // Check initial state in case we were built while already logged out
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _onAuthStateChanged();
+      }
+    });
   }
 
   @override
@@ -51,7 +60,7 @@ class _MainNavigationState extends State<MainNavigation> {
       // User logged out or session expired, forcibly return to login
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+          Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil('/login', (route) => false);
         }
       });
     }
@@ -110,8 +119,37 @@ class _MainNavigationState extends State<MainNavigation> {
   Widget build(BuildContext context) {
     final isMerchant = _authProvider.isMerchant;
 
-    return Scaffold(
-      body: IndexedStack(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+
+        if (_currentIndex != 0) {
+          setState(() {
+            _currentIndex = 0;
+          });
+          return;
+        }
+
+        final now = DateTime.now();
+        if (_lastPressedAt == null ||
+            now.difference(_lastPressedAt!) > const Duration(seconds: 2)) {
+          _lastPressedAt = now;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Press back again to exit'),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+          return;
+        }
+
+        SystemNavigator.pop();
+      },
+      child: Scaffold(
+        body: IndexedStack(
         index: _currentIndex,
         children: List.generate(4, (index) {
           if (index == _currentIndex || _pageCache.containsKey(index)) {
@@ -205,6 +243,6 @@ class _MainNavigationState extends State<MainNavigation> {
               ],
         ),
       ),
-    );
+    ));
   }
 }

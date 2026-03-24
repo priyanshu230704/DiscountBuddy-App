@@ -320,14 +320,15 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       await _authService.logout();
+    } catch (e) {
+      debugPrint('DEBUG AuthProvider.logout: Error during server logout: $e');
+      // Silently proceed with local logout even if server-side fails
+    } finally {
       _user = null;
       _isAuthenticated = false;
       _isGuestMode = false;
       _userRole = 'customer';
       _errorMessage = null;
-    } catch (e) {
-      _errorMessage = 'Failed to logout';
-    } finally {
       _isLoading = false;
       notifyListeners();
     }

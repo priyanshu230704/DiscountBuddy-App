@@ -1,14 +1,16 @@
-import '../../design/app_typography.dart';
-import '../../widgets/app_scaffold.dart';
-import '../../widgets/app_gradient_button.dart';
-import '../../components/layout.dart';
-import '../../components/app_app_bar.dart';
-import '../../widgets/skeleton_loader.dart';
+import 'package:flutter/material.dart';
+import 'package:discount_buddy/design/app_design.dart';
+import 'package:discount_buddy/widgets/app_scaffold.dart';
+import 'package:discount_buddy/widgets/app_gradient_button.dart';
+import 'package:discount_buddy/components/layout.dart' show AppCard;
+import 'package:discount_buddy/widgets/empty_state_widget.dart';
+import 'package:discount_buddy/widgets/skeleton_loader.dart';
+import 'package:discount_buddy/components/app_app_bar.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import '../../services/merchant_service.dart';
+import '../../models/restaurant.dart' as model;
 
 import 'package:image_picker/image_picker.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import '../../models/restaurant.dart' as model;
-import '../../components/buttons.dart';
 
 class MerchantMenuPage extends StatefulWidget {
   final int restaurantId;
@@ -599,6 +601,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
               backgroundColor: AppColors.merchantIndigo,
               icon: const Icon(Icons.add_rounded, color: Colors.white),
               label: const Text('Add Item', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
     );
   }
 
@@ -636,9 +639,9 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
             ),
             const SizedBox(height: AppSpacing.xl),
             AppGradientButton(
-              text: 'Upload Menu Photo',
               onPressed: _pickAndUploadMenuPhoto,
               width: 200,
+              child: const Text('Upload Menu Photo'),
             ),
           ],
         ),

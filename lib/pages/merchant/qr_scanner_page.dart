@@ -5,9 +5,7 @@ import '../../services/qr_scanner_service.dart';
 import '../../services/merchant_service.dart';
 import '../../models/deal_redemption.dart';
 import '../../widgets/generic_bottom_sheet.dart';
-import 'package:discount_buddy/design/app_colors.dart';
-import '../../design/app_typography.dart';
-import '../../design/app_spacing.dart';
+import 'package:discount_buddy/design/app_design.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/app_gradient_button.dart';
 import '../../components/app_app_bar.dart';
@@ -645,9 +643,9 @@ class _QRScannerPageState extends State<QRScannerPage> {
               ),
               const SizedBox(height: 32),
               AppGradientButton(
-                text: 'Grant Permission',
                 onPressed: () => _checkPermission(isInitialCheck: false),
                 width: 200,
+                child: const Text('Grant Permission'),
               ),
             ],
           ),

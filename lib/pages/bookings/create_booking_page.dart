@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:discount_buddy/design/app_colors.dart';
-import 'package:discount_buddy/design/app_spacing.dart';
-import 'package:discount_buddy/design/app_typography.dart';
+import 'package:discount_buddy/design/app_design.dart';
 import 'package:discount_buddy/components/app_app_bar.dart';
-import 'package:discount_buddy/components/buttons.dart';
 import 'package:discount_buddy/components/layout.dart';
 import '../../services/booking_service.dart';
 import '../../widgets/app_scaffold.dart';
@@ -242,9 +239,9 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
 
                 // Submit Button
                 AppGradientButton(
-                  text: 'Confirm booking',
-                  isLoading: _isLoading,
                   onPressed: _isLoading ? null : _submitBooking,
+                  isLoading: _isLoading,
+                  child: const Text('Confirm booking'),
                 ),
               ],
             ),

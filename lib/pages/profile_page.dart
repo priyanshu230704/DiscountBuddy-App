@@ -1,4 +1,5 @@
-import '../design/app_typography.dart';
+import 'package:flutter/material.dart';
+import 'package:discount_buddy/design/app_design.dart';
 import '../widgets/app_scaffold.dart';
 import '../widgets/app_gradient_button.dart';
 import '../providers/auth_provider.dart';
@@ -391,7 +392,6 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               const SizedBox(height: 120),
             ],
-          ),
           ),
         ),
       ),

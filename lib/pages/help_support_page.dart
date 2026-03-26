@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import '../design/app_colors.dart';
-import '../design/app_radius.dart';
-import '../design/app_spacing.dart';
-import '../design/app_typography.dart';
-import '../design/app_shadows.dart';
+import 'package:discount_buddy/design/app_design.dart';
+import '../widgets/app_scaffold.dart';
+import '../components/app_app_bar.dart';
 class HelpSupportPage extends StatelessWidget {
   const HelpSupportPage({super.key});
 

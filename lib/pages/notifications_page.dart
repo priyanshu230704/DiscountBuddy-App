@@ -1,8 +1,6 @@
-import 'package:discount_buddy/design/app_colors.dart';
-import '../../design/app_radius.dart';
-import '../../design/app_shadows.dart';
-import '../../design/app_spacing.dart';
-import '../../design/app_typography.dart';
+import 'package:flutter/material.dart';
+import 'package:discount_buddy/design/app_design.dart';
+import 'package:intl/intl.dart';
 import '../../components/layout.dart';
 import '../../models/notification.dart';
 import '../../services/notification_service.dart';

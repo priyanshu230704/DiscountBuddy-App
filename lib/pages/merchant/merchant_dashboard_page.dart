@@ -1,11 +1,12 @@
-import 'package:discount_buddy/design/app_typography.dart';
+import 'package:flutter/material.dart';
+import 'package:discount_buddy/design/app_design.dart';
 import 'package:discount_buddy/widgets/app_scaffold.dart';
 import 'package:discount_buddy/widgets/app_gradient_button.dart';
-import 'merchant_deals_page.dart';
-import 'merchant_bookings_page.dart';
 import 'merchant_reviews_page.dart';
 import 'merchant_redemption_history_page.dart';
 import 'merchant_analytics_page.dart';
+import 'merchant_deals_page.dart';
+import 'merchant_bookings_page.dart';
 import 'qr_scanner_page.dart';
 import '../../services/merchant_service.dart';
 

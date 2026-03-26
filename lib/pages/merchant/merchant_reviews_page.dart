@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../services/merchant_service.dart';
-import '../../design/app_colors.dart';
-import '../../design/app_spacing.dart';
-import '../../design/app_typography.dart';
+import 'package:discount_buddy/design/app_design.dart';
 import '../../components/layout.dart';
 import '../../components/app_app_bar.dart';
 import '../../widgets/skeleton_loader.dart';
+import '../../widgets/app_scaffold.dart';
+import '../../widgets/empty_state_widget.dart';
 
 class MerchantReviewsPage extends StatefulWidget {
   final int? restaurantId;

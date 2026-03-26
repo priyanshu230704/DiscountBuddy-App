@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
-import 'package:discount_buddy/design/app_colors.dart';
-import '../../design/app_radius.dart';
-import '../../design/app_shadows.dart';
-import '../../design/app_spacing.dart';
-import '../../design/app_typography.dart';
+import 'package:discount_buddy/design/app_design.dart';
 import '../../components/app_app_bar.dart';
 import '../../components/layout.dart';
 import '../../components/buttons.dart';
@@ -14,7 +10,8 @@ import '../../models/user_interactions.dart';
 import '../../services/restaurant_service.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/app_gradient_button.dart';
-
+import '../../widgets/loading_widget.dart';
+import '../../widgets/empty_state_widget.dart';
 import '../../models/restaurant.dart';
 import '../restaurant_details_page.dart';
 
@@ -171,7 +168,9 @@ class _BookingsPageState extends State<BookingsPage>
                         ),
                       ],
                     ),
-            ),
+                  ),
+                ],
+              ),
     );
   }
 }
@@ -215,9 +214,9 @@ class _ReservationEmptyTab extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 AppGradientButton(
-                  text: 'Explore restaurants',
                   onPressed: onExplorePressed,
                   width: 200,
+                  child: const Text('Explore restaurants'),
                 ),
               ],
             ),

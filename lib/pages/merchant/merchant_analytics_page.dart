@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:discount_buddy/design/app_typography.dart';
+import 'package:discount_buddy/design/app_design.dart';
 import 'package:discount_buddy/widgets/app_scaffold.dart';
 import 'package:discount_buddy/widgets/app_gradient_button.dart';
 import '../../services/merchant_service.dart';
@@ -110,7 +110,6 @@ class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
             ),
           ],
         ),
-      ),
     );
   }
 

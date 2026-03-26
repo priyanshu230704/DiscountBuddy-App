@@ -1,6 +1,5 @@
-import 'package:discount_buddy/design/app_colors.dart';
-import '../../design/app_spacing.dart';
-import '../../design/app_typography.dart';
+import 'package:flutter/material.dart';
+import 'package:discount_buddy/design/app_design.dart';
 import '../../services/merchant_service.dart';
 import '../../components/layout.dart';
 import '../../widgets/skeleton_loader.dart';

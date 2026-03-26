@@ -1,6 +1,5 @@
-import 'package:discount_buddy/design/app_colors.dart';
-import '../design/app_spacing.dart';
-import '../design/app_typography.dart';
+import 'package:flutter/material.dart';
+import 'package:discount_buddy/design/app_design.dart';
 import '../services/restaurant_service.dart';
 import '../models/restaurant.dart';
 import '../widgets/restaurant_card.dart';
@@ -92,7 +91,7 @@ class _SavedRestaurantsPageState extends State<SavedRestaurantsPage> {
                       );
                     },
                   ),
-                ),
+            ),
     );
   }
 }

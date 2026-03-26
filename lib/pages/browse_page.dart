@@ -1,7 +1,7 @@
-import 'package:discount_buddy/design/app_colors.dart';
-import '../design/app_radius.dart';
-import '../design/app_spacing.dart';
-import '../design/app_shadows.dart';
+import 'package:flutter/material.dart';
+import 'package:discount_buddy/design/app_design.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../theme/app_fonts.dart';
 import '../models/restaurant.dart';
 import '../services/restaurant_service.dart';
@@ -188,7 +188,7 @@ class _BrowsePageState extends State<BrowsePage> {
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onPressed: _toggleView,
+                  onTap: _toggleView,
                   borderRadius: BorderRadius.circular(28),
                   child: Icon(
                     _isMapView ? Icons.list : Icons.map,
@@ -199,6 +199,7 @@ class _BrowsePageState extends State<BrowsePage> {
             ),
           ),
         ],
+      ),
     );
   }
 

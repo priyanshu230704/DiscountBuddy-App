@@ -1,5 +1,3 @@
-import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Environment configuration for the DiscountBuddy app
@@ -10,24 +8,10 @@ class Environment {
   static const String production = 'production';
 
   // Current environment - change this based on your build configuration
-  static const String currentEnvironment = development;
+  static const String currentEnvironment = production;
 
-  // Dev: 10.0.2.2 = localhost from Android emulator, 127.0.0.1 for others
-  // Prod: use your LAN IP or real server hostname
-  static String get baseUrl {
-    if (dotenv.env.containsKey('API_BASE_URL')) {
-      return dotenv.env['API_BASE_URL']!;
-    }
-    
-    if (currentEnvironment == development) {
-      if (kIsWeb || Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
-        return 'http://127.0.0.1:8000';
-      }
-      return 'http://10.0.2.2:8000';
-    }
-    
-    return 'http://192.168.29.221:8000';
-  }
+  // API Base URLs
+  static String get baseUrl => dotenv.env['API_BASE_URL'] ?? 'http://192.168.29.221:8000';
 
   // API Timeout
   static const Duration apiTimeout = Duration(seconds: 30);

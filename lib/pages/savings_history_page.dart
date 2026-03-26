@@ -1,7 +1,7 @@
-import 'package:discount_buddy/design/app_colors.dart';
-import '../design/app_spacing.dart';
-import '../design/app_typography.dart';
-import '../components/layout.dart';
+import 'package:flutter/material.dart';
+import 'package:discount_buddy/design/app_design.dart';
+import 'package:intl/intl.dart';
+import 'package:discount_buddy/components/layout.dart' hide LoadingWidget;
 import '../components/buttons.dart';
 import '../models/deal_redemption.dart';
 import '../services/restaurant_service.dart';
@@ -76,6 +76,8 @@ class _SavingsHistoryPageState extends State<SavingsHistoryPage> {
                     itemBuilder: (context, index) {
                       return _SavingsCard(redemption: _redemptions[index]);
                     },
+                  ),
+                ),
     );
   }
 }

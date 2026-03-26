@@ -1,17 +1,15 @@
-import 'package:discount_buddy/design/app_colors.dart';
-import '../../design/app_spacing.dart';
-import '../../design/app_typography.dart';
-import '../../components/inputs.dart';
-import '../../components/buttons.dart';
+import 'package:flutter/material.dart';
+import 'package:discount_buddy/design/app_design.dart';
+import '../../widgets/app_scaffold.dart';
+import '../../widgets/app_gradient_button.dart';
 import '../../components/app_app_bar.dart';
+import '../../components/inputs.dart';
 import '../../services/merchant_service.dart';
 import '../../services/location_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../models/restaurant.dart' as model;
 import 'merchant_menu_page.dart';
-import '../../widgets/app_scaffold.dart';
-import '../../widgets/app_gradient_button.dart';
 
 /// Add/Edit Restaurant Page for Merchants
 class AddRestaurantPage extends StatefulWidget {
@@ -1201,14 +1199,15 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
 
                     const SizedBox(height: AppSpacing.xxxl),
                     AppGradientButton(
-                      text: widget.restaurant != null ? 'Save Changes' : 'Create Restaurant',
-                      isLoading: _isLoading,
                       onPressed: _isLoading ? null : _saveRestaurant,
+                      isLoading: _isLoading,
+                      child: Text(widget.restaurant != null ? 'Save Changes' : 'Create Restaurant'),
                     ),
                     const SizedBox(height: 100), // Bottom padding
                   ],
                 ),
               ),
+            ),
     );
   }
 

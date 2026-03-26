@@ -1,12 +1,11 @@
-import 'package:discount_buddy/design/app_colors.dart';
-import '../design/app_spacing.dart';
-import '../design/app_typography.dart';
-import '../design/app_radius.dart';
+import 'package:flutter/material.dart';
+import 'package:discount_buddy/design/app_design.dart';
+import 'package:intl/intl.dart';
 import '../services/restaurant_service.dart';
 import '../widgets/app_scaffold.dart';
 import '../components/app_app_bar.dart';
 import '../widgets/loading_widget.dart';
-import '../components/layout.dart';
+import 'package:discount_buddy/components/layout.dart' hide LoadingWidget;
 
 class MyDealsPage extends StatefulWidget {
   const MyDealsPage({super.key});

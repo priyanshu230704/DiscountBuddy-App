@@ -4,7 +4,6 @@ import '../design/app_radius.dart';
 import '../design/app_shadows.dart';
 import '../design/app_colors.dart';
 import '../design/app_typography.dart';
-import 'buttons.dart';
 
 class AppCard extends StatelessWidget {
   final Widget child;
@@ -199,93 +198,6 @@ class StatCard extends StatelessWidget {
               color: AppColors.textSecondary,
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class EmptyStateWidget extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String message;
-  final String? primaryActionLabel;
-  final VoidCallback? onPrimaryAction;
-
-  const EmptyStateWidget({
-    super.key,
-    required this.icon,
-    required this.title,
-    required this.message,
-    this.primaryActionLabel,
-    this.onPrimaryAction,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xxxl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.06),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, size: 48, color: AppColors.primary.withValues(alpha: 0.5)),
-            ),
-            const SizedBox(height: AppSpacing.xxl),
-            Text(
-              title,
-              style: AppTypography.title,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              message,
-              style: AppTypography.subtitle,
-              textAlign: TextAlign.center,
-            ),
-            if (primaryActionLabel != null && onPrimaryAction != null) ...[
-              const SizedBox(height: AppSpacing.xxl),
-              PrimaryButton(
-                label: primaryActionLabel!,
-                onPressed: onPrimaryAction,
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class LoadingWidget extends StatelessWidget {
-  final String? message;
-
-  const LoadingWidget({super.key, this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(
-            width: 32,
-            height: 32,
-            child: CircularProgressIndicator(
-              strokeWidth: 2.4,
-              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-            ),
-          ),
-          if (message != null) ...[
-            const SizedBox(height: AppSpacing.md),
-            Text(message!, style: AppTypography.subtitle),
-          ],
         ],
       ),
     );

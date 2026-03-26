@@ -1,13 +1,11 @@
-import 'package:discount_buddy/design/app_colors.dart';
-import '../../design/app_spacing.dart';
-import '../../design/app_typography.dart';
-import '../../components/inputs.dart';
-import '../../components/buttons.dart';
-import '../../components/app_app_bar.dart';
-import '../../services/merchant_service.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter/material.dart';
+import 'package:discount_buddy/design/app_design.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/app_gradient_button.dart';
+import '../../components/app_app_bar.dart';
+import '../../components/inputs.dart';
+import '../../services/merchant_service.dart';
+import 'package:intl/intl.dart';
 
 /// Add/Edit Deal Page for Merchants
 class AddDealPage extends StatefulWidget {
@@ -355,14 +353,15 @@ class _AddDealPageState extends State<AddDealPage> {
 
                     const SizedBox(height: AppSpacing.xxxl),
                     AppGradientButton(
-                      text: widget.deal != null ? 'Save Changes' : 'Create Deal',
-                      isLoading: _isSaving,
                       onPressed: _isSaving ? null : _saveDeal,
+                      isLoading: _isSaving,
+                      child: Text(widget.deal != null ? 'Save Changes' : 'Create Deal'),
                     ),
                     const SizedBox(height: 100), // Bottom padding
                   ],
                 ),
               ),
+            ),
     );
   }
 

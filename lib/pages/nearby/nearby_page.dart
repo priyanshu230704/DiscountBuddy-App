@@ -2,24 +2,21 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-import '../../design/app_typography.dart';
+import 'package:discount_buddy/design/app_design.dart';
 import '../../models/restaurant.dart';
 import '../../models/city.dart';
 import '../../services/restaurant_service.dart';
 import '../../services/location_service.dart';
 import '../../services/city_service.dart';
-import '../../design/app_colors.dart';
-import '../../design/app_radius.dart';
-import '../../design/app_shadows.dart';
 import '../restaurant_details_page.dart';
 import '../../widgets/city_selector_modal.dart';
 import '../../widgets/filter_modal.dart';
 import '../../widgets/generic_bottom_sheet.dart';
 import '../../widgets/occupancy_tag.dart';
+import '../../widgets/app_scaffold.dart';
 
 class NearbyPage extends StatefulWidget {
   final double? initialLatitude;

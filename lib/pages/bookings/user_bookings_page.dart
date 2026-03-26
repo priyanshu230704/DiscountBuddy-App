@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:discount_buddy/theme/app_colors.dart';
-import 'package:discount_buddy/design/app_radius.dart';
-import 'package:discount_buddy/design/app_spacing.dart';
-import 'package:discount_buddy/design/app_typography.dart';
-import 'package:discount_buddy/components/layout.dart';
-import 'package:discount_buddy/components/buttons.dart';
+import 'package:discount_buddy/design/app_design.dart';
+import '../../widgets/loading_widget.dart';
+import '../../widgets/empty_state_widget.dart';
+import '../../widgets/app_scaffold.dart';
 import '../../services/booking_service.dart';
+import '../../components/layout.dart';
+import '../../components/buttons.dart';
 
 class UserBookingsView extends StatefulWidget {
   const UserBookingsView({super.key});

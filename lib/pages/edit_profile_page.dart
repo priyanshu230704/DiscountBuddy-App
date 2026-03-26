@@ -1,14 +1,12 @@
-import 'package:discount_buddy/design/app_colors.dart';
-import '../design/app_spacing.dart';
-import '../design/app_typography.dart';
-import '../components/buttons.dart';
+import 'package:flutter/material.dart';
+import 'package:discount_buddy/design/app_design.dart';
+import '../widgets/app_scaffold.dart';
+import '../widgets/app_gradient_button.dart';
+import '../components/app_app_bar.dart';
 import '../components/inputs.dart';
 import '../providers/auth_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import '../widgets/app_scaffold.dart';
-import '../widgets/app_gradient_button.dart';
-import '../components/app_app_bar.dart';
 
 /// Edit Profile Screen
 class EditProfilePage extends StatefulWidget {
@@ -230,14 +228,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
               ),
               SizedBox(height: AppSpacing.xxxl),
               AppGradientButton(
-                text: 'Save',
                 onPressed: _saveProfile,
                 isLoading: _isLoading,
+                child: const Text('Save'),
               ),
               SizedBox(height: AppSpacing.xxxl),
             ],
           ),
         ),
+      ),
     );
   }
 

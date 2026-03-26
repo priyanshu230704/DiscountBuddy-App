@@ -2,6 +2,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'notification_service.dart';
 import 'auth_service.dart';
+import '../utils/navigator_key.dart';
+import 'package:flutter/material.dart';
 
 /// Service to handle Firebase Cloud Messaging
 class FirebaseMessagingService {
@@ -47,6 +49,31 @@ class FirebaseMessagingService {
 
     // Listen for token refresh
     _messaging.onTokenRefresh.listen(_onTokenRefresh);
+
+    // 📩 Handle notification tapped when app is in BACKGROUND
+    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpen);
+
+    // 📩 Handle notification if app is launched FROM TERMINATED STATE
+    RemoteMessage? initialMessage = await _messaging.getInitialMessage();
+    if (initialMessage != null) {
+      _handleMessageOpen(initialMessage);
+    }
+  }
+
+  /// Handle navigation when a notification is tapped
+  void _handleMessageOpen(RemoteMessage message) {
+    debugPrint('📩 Notification Tapped: ${message.data}');
+    
+    final type = message.data['type'] ?? '';
+    _navigateToCorrectScreen(type, message.data);
+  }
+
+  /// Navigates to the appropriate screen based on notification type
+  void _navigateToCorrectScreen(String type, Map<String, dynamic> data) {
+    final context = navigatorKey.currentContext;
+    if (context == null) return;
+
+    NotificationService.handleNotificationNavigation(context, type, data);
   }
 
   /// Get FCM token and register with backend

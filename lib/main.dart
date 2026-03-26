@@ -16,6 +16,7 @@ import 'services/firebase_messaging_service.dart'; // Import the service
 import 'firebase_options.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'utils/navigator_key.dart';
 
 // Background message handler - must be top-level function
 @pragma('vm:entry-point')
@@ -136,6 +137,7 @@ class _DiscountBuddyAppState extends State<DiscountBuddyApp> {
       listenable: _themeProvider,
       builder: (context, child) {
         return MaterialApp(
+          navigatorKey: navigatorKey,
           title: Environment.appName,
           debugShowCheckedModeBanner: Environment.enableDebugMode,
           theme: _themeProvider.lightTheme,

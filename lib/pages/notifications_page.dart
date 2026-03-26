@@ -239,7 +239,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
         return _NotificationTile(
           notification: notification,
           onTap: () {
-            Navigator.pushReplacementNamed(context, '/home');
+            NotificationService.handleNotificationNavigation(
+              context,
+              notification.notificationType,
+              notification.payload,
+            );
           },
           formatTime: _formatTime,
           notificationService: _notificationService,

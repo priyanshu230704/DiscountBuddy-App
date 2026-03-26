@@ -1112,12 +1112,11 @@ class _FeedTile extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        final slug = restaurant.slug ?? restaurant.id;
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => RestaurantDetailsPage(
-              slug: slug,
+              slug: restaurant.id,
               latitude: userLat,
               longitude: userLon,
             ),

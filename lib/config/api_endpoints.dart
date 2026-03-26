@@ -49,10 +49,9 @@ class ApiEndpoints {
 
   static String restaurantById(String id) => '/restaurants/$id';
 
-  static String restaurantDetail(String slug) {
-    // Logic from the original service to clean the slug
-    final cleanSlug = slug.trim().replaceAll(RegExp(r'/+$'), '');
-    return '/restaurants/restaurant-detail/$cleanSlug';
+  static String restaurantDetail(String id) {
+    // Pass ID instead of slug as per user request
+    return '/restaurants/restaurants/$id';
   }
 
   // Merchant Routes

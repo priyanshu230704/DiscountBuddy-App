@@ -1,6 +1,13 @@
+import 'package:flutter/material.dart';
 import '../models/notification.dart';
 import 'api_service.dart';
 import '../config/api_endpoints.dart';
+import '../pages/merchant/merchant_bookings_page.dart';
+import '../pages/merchant/merchant_reviews_page.dart';
+import '../pages/merchant/merchant_redemption_history_page.dart';
+import '../pages/merchant/merchant_analytics_page.dart';
+import '../pages/restaurant_details_page.dart';
+import '../pages/main_navigation.dart';
 
 /// Service for managing notifications and device tokens
 class NotificationService {
@@ -165,6 +172,14 @@ class NotificationService {
         return '✅';
       case NotificationType.system:
         return '📢';
+      case NotificationType.newBooking:
+        return '📅';
+      case NotificationType.newReview:
+        return '✍️';
+      case NotificationType.milestoneEarnings:
+        return '🏆';
+      case NotificationType.merchantDealRedeemed:
+        return '🎉';
       default:
         return '🔔';
     }
@@ -181,8 +196,93 @@ class NotificationService {
         return '#7C3AED'; // Purple
       case NotificationType.system:
         return '#3B82F6'; // Blue
+      case NotificationType.newBooking:
+        return '#F59E0B'; // Amber/Gold
+      case NotificationType.newReview:
+        return '#EC4899'; // Pink
+      case NotificationType.milestoneEarnings:
+        return '#FACC15'; // Yellow/Milestone
+      case NotificationType.merchantDealRedeemed:
+        return '#8B5CF6'; // Purple
       default:
         return '#6B7280'; // Gray
+    }
+  }
+  // ==================== Navigation Handling ====================
+
+  /// Navigates to the appropriate screen based on notification type
+  static void handleNotificationNavigation(
+    BuildContext context,
+    String type,
+    Map<String, dynamic>? data,
+  ) {
+    switch (type) {
+      // Merchant specific notifications
+      case NotificationType.newBooking:
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const MerchantBookingsPage(),
+          ),
+        );
+        break;
+
+      case NotificationType.newReview:
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const MerchantReviewsPage(),
+          ),
+        );
+        break;
+
+      case NotificationType.milestoneEarnings:
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const MerchantAnalyticsPage(),
+          ),
+        );
+        break;
+
+      case NotificationType.merchantDealRedeemed:
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const MerchantRedemptionHistoryPage(),
+          ),
+        );
+        break;
+
+      // Customer specific notifications
+      case NotificationType.favDeal:
+        final id = data?['restaurant_id'] ?? '';
+        if (id.toString().isNotEmpty) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => RestaurantDetailsPage(slug: id.toString()),
+            ),
+          );
+        }
+        break;
+
+      case NotificationType.dealRedeemed:
+      case NotificationType.bookingConfirmed:
+        // Redirect to activity/bookings tab (index 2 in MainNavigation)
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const MainNavigation(initialIndex: 2),
+          ),
+          (route) => false,
+        );
+        break;
+
+      default:
+        // Default to home or just stay on page
+        debugPrint('⚠️ Unknown notification type for navigation: $type');
+        Navigator.pushReplacementNamed(context, '/home');
     }
   }
 }

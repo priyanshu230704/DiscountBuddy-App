@@ -70,8 +70,8 @@ class Booking {
 
   factory Booking.fromJson(Map<String, dynamic> json) {
     return Booking(
-      id: json['id'] as int? ?? 0,
-      restaurantId: json['restaurant'] as int? ?? 0,
+      id: json['booking_id'] as int? ?? json['id'] as int? ?? 0,
+      restaurantId: json['restaurant_id'] as int? ?? json['restaurant'] as int? ?? 0,
       restaurantName: json['restaurant_name'] as String? ?? '',
       restaurantSlug: json['restaurant_slug'] as String? ?? '',
       restaurantCityName: json['restaurant_city_name'] as String?,

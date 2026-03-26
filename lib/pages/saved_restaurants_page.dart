@@ -83,7 +83,7 @@ class _SavedRestaurantsPageState extends State<SavedRestaurantsPage> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => RestaurantDetailsPage(
-                                slug: restaurant.slug ?? restaurant.id,
+                                slug: restaurant.id,
                               ),
                             ),
                           );

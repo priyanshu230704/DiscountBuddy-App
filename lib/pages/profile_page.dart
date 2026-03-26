@@ -101,9 +101,8 @@ class _ProfilePageState extends State<ProfilePage> {
     return AppScaffold(
         body: SafeArea(
         bottom: false,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(AppSpacing.xxl, AppSpacing.xxl, AppSpacing.xxl, 0),
@@ -252,93 +251,6 @@ class _ProfilePageState extends State<ProfilePage> {
                 const SizedBox(height: 32),
               ],
 
-              // Invite Banner
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Container(
-                  height: 190,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    borderRadius: AppRadius.xLarge,
-                    image: const DecorationImage(
-                      image: AssetImage("assets/png/invite_full_bg.png"),
-                      fit: BoxFit.cover,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.secondary.withValues(alpha: 0.35),
-                        blurRadius: 25,
-                        offset: const Offset(0, 12),
-                      ),
-                    ],
-                  ),
-                  child: InkWell(
-                    onTap: () {
-                      const message = 'Hey! Check out Discount Buddy and save money at your favorite local restaurants! 🍕🍔\n\nDownload the app here: https://discountbuddy.app/invite';
-                      SharePlus.instance.share(
-                        ShareParams(text: message),
-                      );
-                    },
-                    borderRadius: AppRadius.xLarge,
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(AppSpacing.xxl + 4, AppSpacing.xxl, AppSpacing.xxl, AppSpacing.xxl),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            flex: 6,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Invite your friends\nto Discount Buddy!',
-                                  style: AppTypography.title.copyWith(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                    height: 1.15,
-                                    letterSpacing: -0.2,
-                                    shadows: [
-                                      Shadow(
-                                        color: Colors.black.withValues(alpha: 0.2),
-                                        offset: const Offset(0, 2),
-                                        blurRadius: 4,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 18),
-                                AppGradientButton(
-                                  onPressed: () {
-                                    const message = 'Hey! Check out Discount Buddy and save money at your favorite local restaurants! 🍕🍔\n\nDownload the app here: https://discountbuddy.app/invite';
-                                    SharePlus.instance.share(
-                                      ShareParams(text: message),
-                                    );
-                                  },
-                                  height: 40,
-                                  width: 140,
-                                  borderRadius: BorderRadius.circular(24),
-                                  child: Text(
-                                    'Invite friends',
-                                    style: AppTypography.body.copyWith(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Spacer(flex: 4),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-
               // Menu Options
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -390,11 +302,23 @@ class _ProfilePageState extends State<ProfilePage> {
                   ],
                 ),
               ),
-              const SizedBox(height: 120),
+              const Spacer(),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.xl),
+                  child: Text(
+                    'powered by Markitup Group Ltd.',
+                    style: AppTypography.body.copyWith(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textDisabled,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
-      ),
     );
   }
 

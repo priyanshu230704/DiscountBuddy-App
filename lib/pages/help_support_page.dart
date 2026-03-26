@@ -35,6 +35,10 @@ class HelpSupportPage extends StatelessWidget {
               'How do I update my profile?',
               'Go to the Profile tab and click on "Edit profile" to update your name and other details.',
             ),
+            _buildFAQItem(
+              'How to join as restaurant partner?',
+              'To become a restaurant partner, please contact us at contact@discountbuddy.com with your restaurant details, and our team will guide you through the process.',
+            ),
             SizedBox(height: AppSpacing.xxxl),
           ],
         ),

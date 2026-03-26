@@ -141,4 +141,10 @@ class NotificationType {
   static const String favDeal = 'FAV_DEAL';
   static const String dealRedeemed = 'DEAL_REDEEMED';
   static const String system = 'SYSTEM';
+
+  // Merchant specific types
+  static const String newBooking = 'NEW_BOOKING';
+  static const String newReview = 'NEW_REVIEW';
+  static const String milestoneEarnings = 'MILESTONE_EARNINGS';
+  static const String merchantDealRedeemed = 'MERCHANT_DEAL_REDEEMED';
 }

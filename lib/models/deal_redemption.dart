@@ -13,6 +13,7 @@ class DealRedemption {
   final int? peopleCount;
   final double? discountAmountSaved;
   final double? finalBillAmount;
+  final int restaurantId;
   final DateTime createdAt;
 
   DealRedemption({
@@ -30,12 +31,13 @@ class DealRedemption {
     this.peopleCount,
     this.discountAmountSaved,
     this.finalBillAmount,
+    required this.restaurantId,
     required this.createdAt,
   });
 
   factory DealRedemption.fromJson(Map<String, dynamic> json) {
     return DealRedemption(
-      id: json['id'] as int? ?? 0,
+      id: _parseInt(json['id']) ?? 0,
       deal: RedeemedDeal.fromJson(json['deal'] as Map<String, dynamic>),
       usedAt: DateTime.tryParse(json['used_at'] ?? '') ?? DateTime.now(),
       restaurantConfirmed: json['restaurant_confirmed'] as bool? ?? false,
@@ -48,9 +50,12 @@ class DealRedemption {
           ? DateTime.tryParse(json['redeemed_at'])
           : null,
       price: _parseDouble(json['price']),
-      peopleCount: json['people_count'] as int?,
+      peopleCount: _parseInt(json['people_count']),
       discountAmountSaved: _parseDouble(json['discount_amount_saved']),
       finalBillAmount: _parseDouble(json['final_bill_amount']),
+      restaurantId: _parseInt(json['restaurant_id']) ??
+          _parseInt(json['restaurant']) ??
+          0,
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
     );
   }
@@ -62,6 +67,7 @@ class RedeemedDeal {
   final String description;
   final String dealType;
   final String restaurantName;
+  final int restaurantId;
   final String restaurantSlug;
   final String cityName;
   final double? discountPercentage;
@@ -80,6 +86,7 @@ class RedeemedDeal {
     required this.description,
     required this.dealType,
     required this.restaurantName,
+    required this.restaurantId,
     required this.restaurantSlug,
     required this.cityName,
     this.discountPercentage,
@@ -95,12 +102,15 @@ class RedeemedDeal {
 
   factory RedeemedDeal.fromJson(Map<String, dynamic> json) {
     return RedeemedDeal(
-      id: json['id'] as int? ?? 0,
+      id: _parseInt(json['id']) ?? 0,
       title: json['title'] as String? ?? 'Deal',
       description: json['description'] as String? ?? '',
       dealType: json['deal_type'] as String? ?? 'percentage',
       restaurantName:
           json['restaurant_name'] as String? ?? 'Unknown Restaurant',
+      restaurantId: _parseInt(json['restaurant_id']) ??
+          _parseInt(json['restaurant']) ??
+          0,
       restaurantSlug: json['restaurant_slug'] as String? ?? '',
       cityName: json['city_name'] as String? ?? '',
       discountPercentage: _parseDouble(json['discount_percentage']),
@@ -122,10 +132,17 @@ class RedeemedDeal {
   }
 }
 
-/// Helper to safely parse a value to double
+/// Helpers to safely parse values
 double? _parseDouble(dynamic value) {
   if (value == null) return null;
   if (value is num) return value.toDouble();
   if (value is String) return double.tryParse(value);
+  return null;
+}
+
+int? _parseInt(dynamic value) {
+  if (value == null) return null;
+  if (value is num) return value.toInt();
+  if (value is String) return int.tryParse(value);
   return null;
 }

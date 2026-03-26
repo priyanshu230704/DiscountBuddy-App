@@ -361,7 +361,7 @@ class _NearbyPageState extends State<NearbyPage>
 
   void _openRestaurant(Restaurant restaurant) {
     if (_center == null) return;
-    final slug = restaurant.slug ?? restaurant.id;
+    final slug = restaurant.id;
     final lat = _center!.coordinates.lat.toDouble();
     final lon = _center!.coordinates.lng.toDouble();
 

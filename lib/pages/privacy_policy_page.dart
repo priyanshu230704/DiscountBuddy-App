@@ -38,7 +38,7 @@ class PrivacyPolicyPage extends StatelessWidget {
             ),
             _buildSection(
               '5. Contact Us',
-              'If you have any questions about this privacy policy or our privacy practices, please contact us at:\n\nEmail: privacy@discountbuddy.com\nAddress: 123 Innovation Drive, Tech City, TC 90210',
+              'If you have any questions about this privacy policy or our privacy practices, please contact us at:\n\nEmail: contact@discountbuddy.com\nAddress: United Kingdom',
             ),
             SizedBox(height: AppSpacing.xxxl),
           ],

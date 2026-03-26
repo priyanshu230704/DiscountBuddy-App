@@ -266,7 +266,7 @@ class _TrendingCard extends StatelessWidget {
             context,
             MaterialPageRoute(
               builder: (context) => RestaurantDetailsPage(
-                slug: item.slug ?? item.id,
+                slug: item.id,
               ),
             ),
           );
@@ -738,7 +738,7 @@ class _RedemptionDetailModal extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) => RestaurantDetailsPage(
-                        slug: redemption.deal.restaurantSlug,
+                        slug: redemption.restaurantId.toString(),
                       ),
                     ),
                   );

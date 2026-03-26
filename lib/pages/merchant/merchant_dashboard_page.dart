@@ -9,6 +9,10 @@ import 'merchant_deals_page.dart';
 import 'merchant_bookings_page.dart';
 import 'qr_scanner_page.dart';
 import '../../services/merchant_service.dart';
+import '../../services/notification_service.dart';
+import '../notifications_page.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'dart:async';
 
 /// Merchant Dashboard Page - Central hub for restaurant owners
 class MerchantDashboardPage extends StatefulWidget {
@@ -29,6 +33,9 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
   int? _primaryRestaurantId;
   String? _currentOccupancy;
   String? _currentAddress;
+  int _notificationCount = 0;
+  StreamSubscription<RemoteMessage>? _notificationSubscription;
+  final NotificationService _notificationService = NotificationService();
   
   // Multi-restaurant support
 
@@ -41,9 +48,34 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
   @override
   void initState() {
     super.initState();
+    _loadNotificationCount();
+    
+    _notificationSubscription = FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      if (mounted) {
+        setState(() {
+          _notificationCount++;
+        });
+      }
+    });
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchDashboardData();
     });
+  }
+
+  @override
+  void dispose() {
+    _notificationSubscription?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _loadNotificationCount() async {
+    try {
+      final count = await _notificationService.getUnreadCount();
+      if (mounted) setState(() => _notificationCount = count);
+    } catch (_) {
+      if (mounted) setState(() => _notificationCount = 0);
+    }
   }
 
   Future<void> _fetchDashboardData() async {
@@ -474,7 +506,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                     Text(
                       "Merchant Central",
                       style: AppTypography.title.copyWith(
-                        fontSize: 20,
+                        fontSize: 18,
                         fontWeight: FontWeight.w900,
                         color: AppColors.textDarkest,
                         letterSpacing: -0.5,
@@ -492,9 +524,9 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          "Live Status Dashboard",
+                          "Live Dashboard",
                           style: AppTypography.caption.copyWith(
-                            fontSize: 12,
+                            fontSize: 11,
                             color: AppColors.textSecondary.withValues(alpha: 0.8),
                             fontWeight: FontWeight.w600,
                           ),
@@ -504,6 +536,63 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                   ],
                 ),
               ),
+              // Notification Icon
+              GestureDetector(
+                onTap: () async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const NotificationsPage(),
+                    ),
+                  );
+                  _loadNotificationCount();
+                },
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(9),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                        border: Border.all(
+                          color: Colors.black.withValues(alpha: 0.04),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.04),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.notifications_none,
+                        size: 21,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    if (_notificationCount > 0)
+                      Positioned(
+                        top: 2,
+                        right: 2,
+                        child: Container(
+                          width: 9,
+                          height: 9,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEF4444),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.white,
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
               // Scanner Button - Refined Design
               Material(
                 color: Colors.transparent,
@@ -516,24 +605,24 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                         ),
                       ),
                     ).then((_) => _fetchDashboardData()),
-                    width: 100,
-                    height: 44,
-                    borderRadius: BorderRadius.circular(14),
+                    width: 82,
+                    height: 40,
+                    borderRadius: BorderRadius.circular(12),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         const Icon(
                           Icons.qr_code_scanner_rounded,
                           color: Colors.white,
-                          size: 20,
+                          size: 18,
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 6),
                         Text(
                           'Scan',
                           style: AppTypography.body.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w800,
-                            fontSize: 14,
+                            fontSize: 13,
                           ),
                         ),
                       ],

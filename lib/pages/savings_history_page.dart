@@ -1,6 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import '../theme/app_colors.dart';
+import 'package:discount_buddy/design/app_colors.dart';
 import '../design/app_spacing.dart';
 import '../design/app_typography.dart';
 import '../components/layout.dart';
@@ -8,6 +6,10 @@ import '../components/buttons.dart';
 import '../models/deal_redemption.dart';
 import '../services/restaurant_service.dart';
 import 'restaurant_details_page.dart';
+import '../widgets/app_scaffold.dart';
+import '../components/app_app_bar.dart';
+import '../widgets/loading_widget.dart';
+import '../widgets/empty_state_widget.dart';
 
 class SavingsHistoryPage extends StatefulWidget {
   const SavingsHistoryPage({super.key});
@@ -53,17 +55,10 @@ class _SavingsHistoryPageState extends State<SavingsHistoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          'Savings History',
-          style: AppTypography.headline.copyWith(fontSize: 20),
-        ),
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.textPrimary,
-        elevation: 0,
-        centerTitle: false,
+    return AppScaffold(
+      appBar: AppAppBar(
+        titleText: 'Savings History',
+        backgroundColor: Colors.transparent,
       ),
       body: _isLoading
           ? const Center(child: LoadingWidget(message: 'Loading your savings...'))
@@ -81,8 +76,6 @@ class _SavingsHistoryPageState extends State<SavingsHistoryPage> {
                     itemBuilder: (context, index) {
                       return _SavingsCard(redemption: _redemptions[index]);
                     },
-                  ),
-                ),
     );
   }
 }

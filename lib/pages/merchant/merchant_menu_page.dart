@@ -1,8 +1,6 @@
-import 'package:flutter/material.dart';
-import '../../services/merchant_service.dart';
-import '../../design/app_colors.dart';
-import '../../design/app_spacing.dart';
 import '../../design/app_typography.dart';
+import '../../widgets/app_scaffold.dart';
+import '../../widgets/app_gradient_button.dart';
 import '../../components/layout.dart';
 import '../../components/app_app_bar.dart';
 import '../../widgets/skeleton_loader.dart';
@@ -579,11 +577,10 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return AppScaffold(
       appBar: AppAppBar(
         titleText: widget.restaurantName,
-        backgroundColor: AppColors.surface,
+        backgroundColor: Colors.transparent,
       ),
       body: _isLoading
           ? _buildLoadingState()
@@ -602,7 +599,6 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
               backgroundColor: AppColors.merchantIndigo,
               icon: const Icon(Icons.add_rounded, color: Colors.white),
               label: const Text('Add Item', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            ),
     );
   }
 
@@ -639,10 +635,10 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
               ),
             ),
             const SizedBox(height: AppSpacing.xl),
-            PrimaryButton(
-              label: 'Upload Menu Photo',
+            AppGradientButton(
+              text: 'Upload Menu Photo',
               onPressed: _pickAndUploadMenuPhoto,
-              expand: false,
+              width: 200,
             ),
           ],
         ),
@@ -725,7 +721,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
   Widget _buildCategorySelector() {
     return Container(
       height: 60,
-      color: AppColors.surface,
+      color: Colors.transparent,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),

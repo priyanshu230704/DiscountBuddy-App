@@ -12,6 +12,7 @@ class GenericBottomSheet extends StatelessWidget {
   final bool expandChild;
   final VoidCallback? onClose;
   final Widget? headerAction;
+  final Color backgroundColor;
 
   const GenericBottomSheet({
     super.key,
@@ -23,14 +24,15 @@ class GenericBottomSheet extends StatelessWidget {
     this.expandChild = false,
     this.onClose,
     this.headerAction,
+    this.backgroundColor = AppColors.white,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
       ),
       child: SafeArea(
         child: Column(

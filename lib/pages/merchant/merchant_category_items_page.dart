@@ -1,11 +1,7 @@
-import 'package:flutter/material.dart';
-import '../../services/merchant_service.dart';
-import '../../design/app_colors.dart';
-import '../../design/app_spacing.dart';
-import '../../design/app_typography.dart';
-import '../../components/layout.dart';
-import '../../components/app_app_bar.dart';
-import '../../widgets/skeleton_loader.dart';
+import 'package:discount_buddy/design/app_typography.dart';
+import 'package:discount_buddy/widgets/app_scaffold.dart';
+import 'package:discount_buddy/widgets/app_gradient_button.dart';
+import 'package:discount_buddy/components/layout.dart';
 
 class MerchantCategoryItemsPage extends StatefulWidget {
   final int categoryId;
@@ -317,11 +313,10 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return AppScaffold(
       appBar: AppAppBar(
         titleText: widget.categoryName,
-        backgroundColor: AppColors.surface,
+        backgroundColor: Colors.transparent,
         actions: [
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert_rounded, color: AppColors.textPrimary),
@@ -347,32 +342,21 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
           ),
         ],
       ),
-      floatingActionButton: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(28),
-          gradient: const LinearGradient(
-            colors: [AppColors.merchantIndigo, AppColors.merchantBlue],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.merchantIndigo.withValues(alpha: 0.3),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+      floatingActionButton: AppGradientButton(
+        onPressed: () => _addOrUpdateItem(),
+        width: 140,
+        height: 56,
+        borderRadius: BorderRadius.circular(28),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.add, color: Colors.white),
+            const SizedBox(width: 8),
+            Text(
+              'Add Item', 
+              style: AppTypography.body.copyWith(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ],
-        ),
-        child: FloatingActionButton.extended(
-          onPressed: () => _addOrUpdateItem(),
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          highlightElevation: 0,
-          icon: const Icon(Icons.add, color: Colors.white),
-          label: const Text(
-            'Add Item', 
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-          ),
         ),
       ),
       body: _isLoading

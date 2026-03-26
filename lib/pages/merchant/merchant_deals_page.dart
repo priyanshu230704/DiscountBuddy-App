@@ -1,8 +1,6 @@
-import 'package:flutter/material.dart';
-import '../../services/merchant_service.dart';
-import '../../design/app_colors.dart';
-import '../../design/app_spacing.dart';
 import '../../design/app_typography.dart';
+import '../../widgets/app_scaffold.dart';
+import '../../widgets/app_gradient_button.dart';
 import '../../components/layout.dart';
 import '../../components/app_app_bar.dart';
 import '../../widgets/skeleton_loader.dart';
@@ -115,11 +113,10 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return AppScaffold(
       appBar: AppAppBar(
         titleText: 'Active Deals',
-        backgroundColor: AppColors.surface,
+        backgroundColor: Colors.transparent,
         actions: [
           IconButton(
             icon: const Icon(Icons.add_circle_outline_rounded, color: AppColors.primaryOrange),
@@ -247,7 +244,8 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
               duration: const Duration(milliseconds: 300),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primary : Colors.white,
+                gradient: isSelected ? AppColors.purpleGradient : null,
+                color: isSelected ? null : Colors.white.withValues(alpha: 0.8),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: isSelected ? AppColors.primary : AppColors.divider,

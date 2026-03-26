@@ -1,9 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:discount_buddy/design/app_colors.dart';
 import '../design/app_radius.dart';
 import '../design/app_spacing.dart';
-import '../design/app_colors.dart';
 import '../design/app_shadows.dart';
 import '../theme/app_fonts.dart';
 import '../models/restaurant.dart';
@@ -14,6 +11,8 @@ import '../widgets/blurred_ellipse_background.dart';
 import '../widgets/common_search_bar.dart';
 import '../widgets/border_gradient.dart';
 import 'restaurant_details_page.dart';
+import '../widgets/app_scaffold.dart';
+import '../components/app_app_bar.dart';
 
 /// Browse page with list and map view toggle
 class BrowsePage extends StatefulWidget {
@@ -119,9 +118,8 @@ class _BrowsePageState extends State<BrowsePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Stack(
+    return AppScaffold(
+        body: Stack(
         children: [
           // Blurred ellipse at the top center background
           const BlurredEllipseBackground(),
@@ -176,31 +174,31 @@ class _BrowsePageState extends State<BrowsePage> {
               ],
             ),
           ),
-          // Floating Action Button (Map/List Toggle)
-          if (!_isMapView)
-            Positioned(
-              right: AppSpacing.lg,
-              bottom: 100,
-              child: FloatingActionButton(
-                onPressed: _toggleView,
-                backgroundColor: const Color(
-                  0xFF2563EB,
-                ), // Green like Tastecard
-                child: const Icon(Icons.map, color: Colors.white),
+          Positioned(
+            right: AppSpacing.lg,
+            bottom: 100,
+            child: Container(
+              width: 56,
+              height: 56,
+              decoration: BoxDecoration(
+                gradient: AppColors.purpleGradient,
+                shape: BoxShape.circle,
+                boxShadow: AppShadows.card,
               ),
-            )
-          else
-            Positioned(
-              right: AppSpacing.lg,
-              bottom: 100,
-              child: FloatingActionButton(
-                onPressed: _toggleView,
-                backgroundColor: const Color(0xFF2563EB),
-                child: const Icon(Icons.list, color: Colors.white),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onPressed: _toggleView,
+                  borderRadius: BorderRadius.circular(28),
+                  child: Icon(
+                    _isMapView ? Icons.list : Icons.map,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ),
+          ),
         ],
-      ),
     );
   }
 

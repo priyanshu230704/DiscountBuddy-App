@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:discount_buddy/theme/app_colors.dart';
+import 'package:discount_buddy/design/app_colors.dart';
 import 'package:discount_buddy/design/app_spacing.dart';
 import 'package:discount_buddy/design/app_typography.dart';
 import 'package:discount_buddy/components/app_app_bar.dart';
 import 'package:discount_buddy/components/buttons.dart';
 import 'package:discount_buddy/components/layout.dart';
 import '../../services/booking_service.dart';
+import '../../widgets/app_scaffold.dart';
+import '../../widgets/app_gradient_button.dart';
 
 class CreateBookingPage extends StatefulWidget {
   final int restaurantId;
@@ -151,9 +153,8 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppAppBar(titleText: 'Book table'),
+    return AppScaffold(
+      appBar: AppAppBar(titleText: 'Book table', backgroundColor: Colors.transparent),
       body: SafeArea(
         child: Form(
           key: _formKey,
@@ -240,8 +241,8 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
                 const SizedBox(height: AppSpacing.xxxl),
 
                 // Submit Button
-                PrimaryButton(
-                  label: 'Confirm booking',
+                AppGradientButton(
+                  text: 'Confirm booking',
                   isLoading: _isLoading,
                   onPressed: _isLoading ? null : _submitBooking,
                 ),

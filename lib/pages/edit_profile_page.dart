@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import '../design/app_colors.dart';
+import 'package:discount_buddy/design/app_colors.dart';
 import '../design/app_spacing.dart';
 import '../design/app_typography.dart';
 import '../components/buttons.dart';
@@ -7,6 +6,9 @@ import '../components/inputs.dart';
 import '../providers/auth_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import '../widgets/app_scaffold.dart';
+import '../widgets/app_gradient_button.dart';
+import '../components/app_app_bar.dart';
 
 /// Edit Profile Screen
 class EditProfilePage extends StatefulWidget {
@@ -128,17 +130,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surface,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text('Edit profile', style: AppTypography.title),
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
+    return AppScaffold(
+      appBar: AppAppBar(
+        titleText: 'Edit profile',
+        backgroundColor: Colors.transparent,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -234,17 +229,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 readOnly: true,
               ),
               SizedBox(height: AppSpacing.xxxl),
-              PrimaryButton(
-                label: 'Save',
+              AppGradientButton(
+                text: 'Save',
                 onPressed: _saveProfile,
                 isLoading: _isLoading,
-                expand: true,
               ),
               SizedBox(height: AppSpacing.xxxl),
             ],
           ),
         ),
-      ),
     );
   }
 

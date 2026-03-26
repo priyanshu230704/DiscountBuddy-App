@@ -1,8 +1,6 @@
-import 'package:flutter/material.dart';
-import '../../services/merchant_service.dart';
-import '../../design/app_colors.dart';
-import '../../design/app_spacing.dart';
 import '../../design/app_typography.dart';
+import '../../widgets/app_scaffold.dart';
+import '../../widgets/app_gradient_button.dart';
 import '../../components/layout.dart';
 import '../../components/app_app_bar.dart';
 import '../../widgets/skeleton_loader.dart';
@@ -119,11 +117,10 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return AppScaffold(
       appBar: AppAppBar(
         titleText: 'Bookings',
-        backgroundColor: AppColors.surface,
+        backgroundColor: Colors.transparent,
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -223,7 +220,8 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
               duration: const Duration(milliseconds: 300),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primary : Colors.white,
+                gradient: isSelected ? AppColors.purpleGradient : null,
+                color: isSelected ? null : Colors.white.withValues(alpha: 0.8),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: isSelected ? AppColors.primary : AppColors.divider,
@@ -529,7 +527,7 @@ class _InfoChip extends StatelessWidget {
         vertical: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: Colors.white.withValues(alpha: 0.8),
         border: Border.all(color: AppColors.cardBorder),
         borderRadius: BorderRadius.circular(12),
       ),

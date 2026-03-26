@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import '../../theme/app_colors.dart';
+import 'package:discount_buddy/design/app_colors.dart';
 import '../../design/app_spacing.dart';
 import '../../design/app_typography.dart';
 import '../../components/inputs.dart';
@@ -11,6 +10,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../models/restaurant.dart' as model;
 import 'merchant_menu_page.dart';
+import '../../widgets/app_scaffold.dart';
+import '../../widgets/app_gradient_button.dart';
 
 /// Add/Edit Restaurant Page for Merchants
 class AddRestaurantPage extends StatefulWidget {
@@ -626,11 +627,10 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return AppScaffold(
       appBar: AppAppBar(
         titleText: widget.restaurant != null ? 'Edit Restaurant' : 'Add Restaurant',
-        backgroundColor: AppColors.surface,
+        backgroundColor: Colors.transparent,
         actions: widget.restaurant != null
             ? [
                 IconButton(
@@ -1200,8 +1200,8 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                     ],
 
                     const SizedBox(height: AppSpacing.xxxl),
-                    PrimaryButton(
-                      label: widget.restaurant != null ? 'Save Changes' : 'Create Restaurant',
+                    AppGradientButton(
+                      text: widget.restaurant != null ? 'Save Changes' : 'Create Restaurant',
                       isLoading: _isLoading,
                       onPressed: _isLoading ? null : _saveRestaurant,
                     ),
@@ -1209,7 +1209,6 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                   ],
                 ),
               ),
-            ),
     );
   }
 

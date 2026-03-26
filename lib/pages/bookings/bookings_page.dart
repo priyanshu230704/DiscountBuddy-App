@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
-import '../../theme/app_colors.dart';
+import 'package:discount_buddy/design/app_colors.dart';
 import '../../design/app_radius.dart';
 import '../../design/app_shadows.dart';
 import '../../design/app_spacing.dart';
@@ -12,6 +12,8 @@ import '../../components/buttons.dart';
 import '../../models/deal_redemption.dart';
 import '../../models/user_interactions.dart';
 import '../../services/restaurant_service.dart';
+import '../../widgets/app_scaffold.dart';
+import '../../widgets/app_gradient_button.dart';
 
 import '../../models/restaurant.dart';
 import '../restaurant_details_page.dart';
@@ -102,16 +104,11 @@ class _BookingsPageState extends State<BookingsPage>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: AppColors.backgroundGradient,
-      ),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
+    return AppScaffold(
         appBar: AppAppBar(
           titleText: 'My activity', 
           centerTitle: false,
-          backgroundColor: const Color(0xFFF3E8FF), // Opaque to hide content underneath
+          backgroundColor: Colors.transparent,
         ),
         body: Column(
           children: [
@@ -143,11 +140,19 @@ class _BookingsPageState extends State<BookingsPage>
                       controller: _tabController,
                       children: [
                         _bookings.isEmpty
-                            ? _ReservationEmptyTab(
-                                trendingItems: _trendingRestaurants,
-                                onExplorePressed: () {
-                                  Navigator.pushReplacementNamed(context, '/home');
-                                },
+                            ? RefreshIndicator(
+                                onRefresh: _loadData,
+                                child: SingleChildScrollView(
+                                  physics: const AlwaysScrollableScrollPhysics(),
+                                  child: SizedBox(
+                                    height: MediaQuery.of(context).size.height * 0.7,
+                                    child: const EmptyStateWidget(
+                                      icon: Icons.event_busy,
+                                      title: 'No reservations yet',
+                                      message: 'Pull to refresh or explore restaurants to get started.',
+                                    ),
+                                  ),
+                                ),
                               )
                             : _BookingList(
                                 bookings: _bookings,
@@ -167,9 +172,6 @@ class _BookingsPageState extends State<BookingsPage>
                       ],
                     ),
             ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -212,9 +214,10 @@ class _ReservationEmptyTab extends StatelessWidget {
                   style: AppTypography.subtitle,
                 ),
                 const SizedBox(height: AppSpacing.xl),
-                PrimaryButton(
-                  label: 'Explore restaurants',
+                AppGradientButton(
+                  text: 'Explore restaurants',
                   onPressed: onExplorePressed,
+                  width: 200,
                 ),
               ],
             ),

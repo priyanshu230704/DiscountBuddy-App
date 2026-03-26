@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import '../design/app_colors.dart';
+import 'package:discount_buddy/design/app_colors.dart';
 import '../design/app_radius.dart';
 import '../design/app_shadows.dart';
 import '../design/app_spacing.dart';
@@ -9,6 +8,9 @@ import '../services/restaurant_service.dart';
 import '../components/layout.dart';
 import '../widgets/restaurant_card.dart';
 import 'restaurant_details_page.dart';
+import '../widgets/app_scaffold.dart';
+import '../widgets/loading_widget.dart';
+import '../widgets/empty_state_widget.dart';
 
 /// Search/Discover page for finding restaurants
 class SearchPage extends StatefulWidget {
@@ -93,30 +95,23 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: AppColors.backgroundGradient,
-      ),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
+    return AppScaffold(
+      backgroundColor: Colors.transparent,
         body: CustomScrollView(
           slivers: [
           // Search App Bar
           SliverAppBar(
-            expandedHeight: 100,
+            expandedHeight: 120,
             floating: true,
             pinned: true,
-            backgroundColor: AppColors.primary,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
             flexibleSpace: FlexibleSpaceBar(
               title: Text(
                 'Discover',
-                style: AppTypography.title.copyWith(color: AppColors.white),
+                style: AppTypography.title.copyWith(color: AppColors.textPrimary),
               ),
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: AppColors.purpleGradient,
-                ),
-              ),
+              centerTitle: false,
             ),
           ),
           // Search Bar
@@ -244,7 +239,6 @@ class _SearchPageState extends State<SearchPage> {
             ),
           ],
         ),
-      ),
     );
   }
 }

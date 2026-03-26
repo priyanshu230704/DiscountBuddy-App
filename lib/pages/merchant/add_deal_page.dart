@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import '../../theme/app_colors.dart';
+import 'package:discount_buddy/design/app_colors.dart';
 import '../../design/app_spacing.dart';
 import '../../design/app_typography.dart';
 import '../../components/inputs.dart';
@@ -7,6 +6,8 @@ import '../../components/buttons.dart';
 import '../../components/app_app_bar.dart';
 import '../../services/merchant_service.dart';
 import 'package:intl/intl.dart';
+import '../../widgets/app_scaffold.dart';
+import '../../widgets/app_gradient_button.dart';
 
 /// Add/Edit Deal Page for Merchants
 class AddDealPage extends StatefulWidget {
@@ -190,11 +191,10 @@ class _AddDealPageState extends State<AddDealPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return AppScaffold(
       appBar: AppAppBar(
         titleText: widget.deal != null ? 'Edit Deal' : 'Create Deal',
-        backgroundColor: AppColors.surface,
+        backgroundColor: Colors.transparent,
       ),
       body: _isLoading
           ? const Center(
@@ -354,8 +354,8 @@ class _AddDealPageState extends State<AddDealPage> {
                     ),
 
                     const SizedBox(height: AppSpacing.xxxl),
-                    PrimaryButton(
-                      label: widget.deal != null ? 'Save Changes' : 'Create Deal',
+                    AppGradientButton(
+                      text: widget.deal != null ? 'Save Changes' : 'Create Deal',
                       isLoading: _isSaving,
                       onPressed: _isSaving ? null : _saveDeal,
                     ),
@@ -363,7 +363,6 @@ class _AddDealPageState extends State<AddDealPage> {
                   ],
                 ),
               ),
-            ),
     );
   }
 

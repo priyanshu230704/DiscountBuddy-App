@@ -139,7 +139,12 @@ class _FilterModalState extends State<FilterModal> {
 
     return Container(
       constraints: BoxConstraints(maxHeight: maxHeight),
+      decoration: const BoxDecoration(
+        gradient: AppColors.backgroundGradient,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+      ),
       child: GenericBottomSheet(
+        backgroundColor: Colors.transparent,
         title: 'Filter',
         showCloseButton: false, // We use headerAction for Reset
         headerAction: TextButton(
@@ -170,21 +175,28 @@ class _FilterModalState extends State<FilterModal> {
             child: SizedBox(
               width: double.infinity,
               height: 56,
-              child: ElevatedButton(
-                onPressed: _applyFilters,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryPurple,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text(
-                  'Apply',
-                  style: AppFonts.bodyStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                child: ElevatedButton(
+                  onPressed: _applyFilters,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    foregroundColor: Colors.white,
+                    shadowColor: Colors.transparent,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    'Apply',
+                    style: AppFonts.bodyStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),

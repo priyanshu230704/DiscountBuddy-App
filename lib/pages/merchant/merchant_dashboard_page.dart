@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:discount_buddy/design/app_colors.dart';
-import 'package:discount_buddy/design/app_spacing.dart';
 import 'package:discount_buddy/design/app_typography.dart';
+import 'package:discount_buddy/widgets/app_scaffold.dart';
+import 'package:discount_buddy/widgets/app_gradient_button.dart';
 import 'merchant_deals_page.dart';
 import 'merchant_bookings_page.dart';
 import 'merchant_reviews_page.dart';
 import 'merchant_redemption_history_page.dart';
+import 'merchant_analytics_page.dart';
 import 'qr_scanner_page.dart';
 import '../../services/merchant_service.dart';
 
@@ -114,8 +114,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FE),
+    return AppScaffold(
       body: RefreshIndicator(
         onRefresh: _fetchDashboardData,
         color: AppColors.primary,
@@ -278,6 +277,74 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
               ),
             ],
           ),
+          const SizedBox(height: AppSpacing.md),
+          // Analytics CTA
+          GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => MerchantAnalyticsPage(
+                  restaurantId: _selectedRestaurantId,
+                  restaurantName: _selectedRestaurantName,
+                ),
+              ),
+            ),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl, vertical: AppSpacing.lg),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF4F46E5), Color(0xFF7C3AED)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF4F46E5).withValues(alpha: 0.35),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Icon(Icons.analytics_rounded, color: Colors.white, size: 24),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'View Full Analytics',
+                          style: AppTypography.body.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 15,
+                          ),
+                        ),
+                        Text(
+                          'Funnel, revenue, heatmap, insights & more',
+                          style: AppTypography.caption.copyWith(
+                            color: Colors.white.withValues(alpha: 0.75),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 16),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -353,14 +420,14 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
       pinned: true,
       floating: false,
       elevation: 0,
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.transparent,
       automaticallyImplyLeading: false,
       expandedHeight: 72,
       collapsedHeight: 64,
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Colors.transparent,
             border: Border(
               bottom: BorderSide(
                 color: AppColors.cardBorder.withValues(alpha: 0.5),
@@ -439,29 +506,18 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
               // Scanner Button - Refined Design
               Material(
                 color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(16),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => QRScannerPage(
-                        initialRestaurantId: _selectedRestaurantId,
-                      ),
-                    ),
-                  ).then((_) => _fetchDashboardData()),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    decoration: BoxDecoration(
-                      gradient: AppColors.merchantGradient,
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF7C3AED).withValues(alpha: 0.3),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
+                  child: AppGradientButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => QRScannerPage(
+                          initialRestaurantId: _selectedRestaurantId,
                         ),
-                      ],
-                    ),
+                      ),
+                    ).then((_) => _fetchDashboardData()),
+                    width: 100,
+                    height: 44,
+                    borderRadius: BorderRadius.circular(14),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -482,7 +538,6 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                       ],
                     ),
                   ),
-                ),
               ),
             ],
           ),
@@ -592,7 +647,8 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
         duration: const Duration(milliseconds: 300),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Colors.white,
+          gradient: isSelected ? AppColors.purpleGradient : null,
+          color: isSelected ? null : Colors.white.withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected ? AppColors.primary : AppColors.divider,

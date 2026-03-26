@@ -1,11 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import '../components/layout.dart';
-import '../design/app_colors.dart';
+import 'package:discount_buddy/design/app_colors.dart';
 import '../design/app_spacing.dart';
 import '../design/app_typography.dart';
 import '../design/app_radius.dart';
 import '../services/restaurant_service.dart';
+import '../widgets/app_scaffold.dart';
+import '../components/app_app_bar.dart';
+import '../widgets/loading_widget.dart';
+import '../components/layout.dart';
 
 class MyDealsPage extends StatefulWidget {
   const MyDealsPage({super.key});
@@ -47,19 +48,10 @@ class _MyDealsPageState extends State<MyDealsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'My Deals',
-          style: AppTypography.title.copyWith(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
+    return AppScaffold(
+      appBar: AppAppBar(
+        titleText: 'My Deals',
+        backgroundColor: Colors.transparent,
       ),
       body: _isLoading
           ? const LoadingWidget(message: 'Loading your deals...')

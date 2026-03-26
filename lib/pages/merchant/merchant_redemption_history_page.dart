@@ -1,10 +1,12 @@
-import 'package:flutter/material.dart';
-import '../../design/app_colors.dart';
+import 'package:discount_buddy/design/app_colors.dart';
 import '../../design/app_spacing.dart';
 import '../../design/app_typography.dart';
 import '../../services/merchant_service.dart';
 import '../../components/layout.dart';
 import '../../widgets/skeleton_loader.dart';
+import '../../widgets/app_scaffold.dart';
+import '../../components/app_app_bar.dart';
+import '../../widgets/empty_state_widget.dart';
 
 class MerchantRedemptionHistoryPage extends StatefulWidget {
   final int? restaurantId;
@@ -77,14 +79,10 @@ class _MerchantRedemptionHistoryPageState extends State<MerchantRedemptionHistor
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Redemption History'),
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.textDarkest,
-        elevation: 0,
-        centerTitle: true,
+    return AppScaffold(
+      appBar: AppAppBar(
+        titleText: 'Redemption History',
+        backgroundColor: Colors.transparent,
       ),
       body: Column(
         children: [

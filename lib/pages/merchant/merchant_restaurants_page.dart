@@ -1,8 +1,6 @@
-import 'package:flutter/material.dart';
-import '../../services/merchant_service.dart';
-import '../../design/app_colors.dart';
-import '../../design/app_spacing.dart';
 import '../../design/app_typography.dart';
+import '../../widgets/app_scaffold.dart';
+import '../../widgets/app_gradient_button.dart';
 import '../../components/layout.dart';
 import '../../components/app_app_bar.dart';
 import 'add_restaurant_page.dart';
@@ -83,11 +81,10 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return AppScaffold(
       appBar: AppAppBar(
         titleText: widget.selectMenuMode ? 'Select Restaurant' : 'Restaurants',
-        backgroundColor: AppColors.surface,
+        backgroundColor: Colors.transparent,
         actions: widget.selectMenuMode
             ? null
             : [
@@ -111,7 +108,7 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            color: AppColors.surface,
+            color: Colors.transparent,
             padding: const EdgeInsets.fromLTRB(
                 AppSpacing.xl, AppSpacing.sm, AppSpacing.xl, AppSpacing.lg),
             child: Container(

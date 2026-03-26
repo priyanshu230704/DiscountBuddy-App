@@ -67,10 +67,7 @@ class _NearbyPageState extends State<NearbyPage>
 
   final Map<String, String> _annotationIdToRestaurantId = {};
 
-  Uint8List? _pinNormalBytes;
-  Uint8List? _pinSelectedBytes;
-  Uint8List? _pinPopBytes;
-  ui.Image? _appLogoImage;
+  final Map<String, Uint8List> _markerCache = {};
 
   PointAnnotation? _userDotAnnotation;
 
@@ -81,9 +78,9 @@ class _NearbyPageState extends State<NearbyPage>
   bool _isUserMovingMap = false;
   bool _isMapReady = false;
 
-  static const int _pinNormalSize = 140;
-  static const int _pinSelectedSize = 170;
-  static const int _pinPopSize = 240;
+  static const int _pinNormalSize = 250;
+  static const int _pinSelectedSize = 310;
+  static const int _pinPopSize = 380;
 
   static const double _pinNormalIconSize = 1.25;
   static const double _pinSelectedIconSize = 1.35;
@@ -200,7 +197,7 @@ class _NearbyPageState extends State<NearbyPage>
               );
 
               setState(() {
-                _cityName = matchedCity.name;
+                _cityName = cityName;
                 _selectedCityId = matchedCity.id;
               });
 
@@ -426,12 +423,39 @@ class _NearbyPageState extends State<NearbyPage>
   Future<Uint8List> _createDropPinMarkerBytes({
     required int size,
     required bool selected,
+    required String dealText,
   }) async {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
 
     final double s = size.toDouble();
-    final Offset topCenter = Offset(s / 2, s * 0.38);
+    final Offset centerPoint = Offset(s / 2, s / 2); // The exact map point
+
+    final TextSpan span = TextSpan(
+      text: dealText,
+      style: AppTypography.title.copyWith(
+        fontSize: selected ? s * 0.12 : s * 0.10,
+        fontWeight: FontWeight.w900,
+        color: Colors.white,
+      ),
+    );
+    final TextPainter tp = TextPainter(
+      text: span,
+      textAlign: TextAlign.center,
+      textDirection: TextDirection.ltr,
+    );
+    tp.layout();
+
+    final double paddingHorizontal = s * 0.08;
+    final double paddingVertical = s * 0.05;
+    final double pillWidth = tp.width + paddingHorizontal * 2;
+    final double pillHeight = tp.height + paddingVertical * 2;
+
+    final double topRadius = s * 0.14; 
+    
+    // Tip rigidly centered so `IconAnchor.center` precisely sits on coordinate
+    final Offset tip = centerPoint;
+    final Offset topCenter = Offset(centerPoint.dx, centerPoint.dy - topRadius * 2.20);
 
     // Drop shadow
     final shadowPaint = Paint()
@@ -440,16 +464,14 @@ class _NearbyPageState extends State<NearbyPage>
 
     canvas.drawOval(
       Rect.fromCenter(
-        center: Offset(topCenter.dx, topCenter.dy + s * 0.55),
-        width: s * 0.45,
-        height: s * 0.15,
+        center: Offset(tip.dx, tip.dy),
+        width: s * 0.25,
+        height: s * 0.08,
       ),
       shadowPaint,
     );
 
-    final double topRadius = s * 0.28;
     final path = Path();
-
     path.addOval(Rect.fromCircle(center: topCenter, radius: topRadius));
 
     final Offset p1 = Offset(
@@ -460,7 +482,6 @@ class _NearbyPageState extends State<NearbyPage>
       topCenter.dx + topRadius * 0.75,
       topCenter.dy + topRadius * 0.55,
     );
-    final Offset tip = Offset(topCenter.dx, topCenter.dy + topRadius * 2.20);
 
     path.moveTo(p1.dx, p1.dy);
     path.quadraticBezierTo(
@@ -477,44 +498,68 @@ class _NearbyPageState extends State<NearbyPage>
     );
     path.close();
 
-    // Pin Body (Blue for selected, White for unselected)
     final fillPaint = Paint()
       ..color = selected ? AppColors.primaryPurple : Colors.white;
     canvas.drawPath(path, fillPaint);
 
-    // Subtle stroke border
     final borderPaint = Paint()
       ..color = selected ? Colors.white : Colors.black.withValues(alpha: 0.1)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = s * 0.025;
+      ..strokeWidth = s * 0.015;
     canvas.drawPath(path, borderPaint);
 
-    // Draw the white inner circle
+    // EXACTLY AS IN IMAGE: Solid inner dot
     final innerCirclePaint = Paint()
-      ..color = selected ? Colors.white : const Color(0xFFF8F9FC);
-    canvas.drawCircle(topCenter, topRadius * 0.95, innerCirclePaint);
+      ..color = selected ? Colors.white : AppColors.primaryPurple;
+    canvas.drawCircle(topCenter, topRadius * 0.4, innerCirclePaint);
 
-    // Draw the actual db_logo.png app logo inside the pin
-    if (_appLogoImage != null) {
-      final double logoSize = topRadius * 1.55;
-      final Rect destRect = Rect.fromCenter(
-        center: topCenter,
-        width: logoSize,
-        height: logoSize,
-      );
-      final Rect srcRect = Rect.fromLTWH(
-        0,
-        0,
-        _appLogoImage!.width.toDouble(),
-        _appLogoImage!.height.toDouble(),
-      );
-      canvas.drawImageRect(
-        _appLogoImage!,
-        srcRect,
-        destRect,
-        Paint()..filterQuality = FilterQuality.high,
-      );
-    }
+    final Rect pillRect = Rect.fromCenter(
+      center: Offset(topCenter.dx, topCenter.dy - topRadius - pillHeight / 2 - s * 0.02),
+      width: pillWidth,
+      height: pillHeight,
+    );
+
+    final Gradient pillGradient = const LinearGradient(
+      colors: [
+        Color(0xFF8B5CF6),
+        Color(0xFFC026D3),
+      ],
+      begin: Alignment.centerLeft,
+      end: Alignment.centerRight,
+    );
+
+    final Paint pillPaint = Paint()
+      ..shader = pillGradient.createShader(pillRect);
+
+    final pillShadowPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.2)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(pillRect.translate(0, 4), Radius.circular(pillHeight / 2)),
+      pillShadowPaint,
+    );
+
+    final fillPointerPath = Path();
+    fillPointerPath.moveTo(topCenter.dx - s * 0.04, pillRect.bottom - 1);
+    fillPointerPath.lineTo(topCenter.dx + s * 0.04, pillRect.bottom - 1);
+    fillPointerPath.lineTo(topCenter.dx, pillRect.bottom + s * 0.04);
+    fillPointerPath.close();
+    
+    final Paint pointerPaint = Paint()..shader = pillGradient.createShader(pillRect);
+    canvas.drawPath(fillPointerPath, pointerPaint);
+    
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(pillRect, Radius.circular(pillHeight / 2)),
+      pillPaint,
+    );
+
+    tp.paint(
+      canvas,
+      Offset(
+        pillRect.left + paddingHorizontal,
+        pillRect.top + paddingVertical,
+      ),
+    );
 
     final picture = recorder.endRecording();
     final img = await picture.toImage(size, size);
@@ -523,31 +568,25 @@ class _NearbyPageState extends State<NearbyPage>
     return pngBytes!.buffer.asUint8List();
   }
 
-  Future<void> _ensureMarkerBytes() async {
-    if (_appLogoImage == null) {
-      final ByteData data = await rootBundle.load('assets/png/db_logo.png');
-      final ui.Codec codec = await ui.instantiateImageCodec(
-        data.buffer.asUint8List(),
-      );
-      final ui.FrameInfo fi = await codec.getNextFrame();
-      _appLogoImage = fi.image;
+  Future<Uint8List> _getMarkerBytes(String dealText, bool selected, bool popping) async {
+    final cacheKey = '${dealText}_${selected}_$popping';
+    if (_markerCache.containsKey(cacheKey)) {
+      return _markerCache[cacheKey]!;
     }
-
-    _pinNormalBytes ??= await _createDropPinMarkerBytes(
-      size: _pinNormalSize,
-      selected: false,
+    
+    final int size = popping ? _pinPopSize : (selected ? _pinSelectedSize : _pinNormalSize);
+    
+    final bytes = await _createDropPinMarkerBytes(
+      size: size,
+      selected: selected,
+      dealText: dealText,
     );
-
-    _pinSelectedBytes ??= await _createDropPinMarkerBytes(
-      size: _pinSelectedSize,
-      selected: true,
-    );
-
-    _pinPopBytes ??= await _createDropPinMarkerBytes(
-      size: _pinPopSize,
-      selected: true,
-    );
+    
+    _markerCache[cacheKey] = bytes;
+    return bytes;
   }
+
+  Future<void> _ensureMarkerBytes() async {}
 
   Future<Uint8List> _createUserDotBytes() async {
     final recorder = ui.PictureRecorder();
@@ -611,11 +650,13 @@ class _NearbyPageState extends State<NearbyPage>
       if (_restaurantPins.containsKey(r.id)) continue;
 
       final bool isSelected = r.id == _selectedRestaurantId;
+      final dealText = r.discount.displayText;
+      final imageBytes = await _getMarkerBytes(dealText, isSelected, false);
 
       final ann = await _pointManager!.create(
         PointAnnotationOptions(
           geometry: Point(coordinates: Position(r.longitude, r.latitude)),
-          image: isSelected ? _pinSelectedBytes! : _pinNormalBytes!,
+          image: imageBytes,
           iconSize: isSelected ? _pinSelectedIconSize : _pinNormalIconSize,
           symbolSortKey: isSelected ? _selectedSortKey : _normalSortKey,
         ),
@@ -636,8 +677,9 @@ class _NearbyPageState extends State<NearbyPage>
       if (ann == null) continue;
 
       final bool isSelected = r.id == _selectedRestaurantId;
+      final dealText = r.discount.displayText;
 
-      ann.image = isSelected ? _pinSelectedBytes! : _pinNormalBytes!;
+      ann.image = await _getMarkerBytes(dealText, isSelected, false);
       ann.iconSize = isSelected ? _pinSelectedIconSize : _pinNormalIconSize;
       ann.symbolSortKey = isSelected ? _selectedSortKey : _normalSortKey;
 
@@ -652,25 +694,28 @@ class _NearbyPageState extends State<NearbyPage>
     final ann = _restaurantPins[id];
     if (ann == null) return;
 
+    final r = _filteredRestaurants.firstWhere((res) => res.id == id, orElse: () => _filteredRestaurants.first);
+    final dealText = r.discount.displayText;
+
     _isMarkerAnimating = true;
 
-    ann.image = _pinPopBytes!;
+    ann.image = await _getMarkerBytes(dealText, true, true);
     ann.iconSize = 1.55;
     ann.symbolSortKey = _selectedSortKey;
     await _pointManager!.update(ann);
     await Future.delayed(const Duration(milliseconds: 120));
 
-    ann.image = _pinSelectedBytes!;
+    ann.image = await _getMarkerBytes(dealText, true, false);
     ann.iconSize = _pinSelectedIconSize;
     await _pointManager!.update(ann);
     await Future.delayed(const Duration(milliseconds: 90));
 
-    ann.image = _pinPopBytes!;
+    ann.image = await _getMarkerBytes(dealText, true, true);
     ann.iconSize = 1.55;
     await _pointManager!.update(ann);
     await Future.delayed(const Duration(milliseconds: 85));
 
-    ann.image = _pinSelectedBytes!;
+    ann.image = await _getMarkerBytes(dealText, true, false);
     ann.iconSize = _pinSelectedIconSize;
     await _pointManager!.update(ann);
 
@@ -830,18 +875,22 @@ class _NearbyPageState extends State<NearbyPage>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: _center == null
+    return AppScaffold(
+        body: _center == null
           ? const Center(
               child: CircularProgressIndicator(color: Color(0xFF2F80ED)),
             )
           : Stack(
               children: [
-                MapWidget(
-                  key: const ValueKey("mapWidget"),
-                  cameraOptions: CameraOptions(center: _center!, zoom: _zoom),
-                  styleUri: MapboxStyles.LIGHT,
+                ColorFiltered(
+                  colorFilter: ColorFilter.mode(
+                    AppColors.primaryPurple.withValues(alpha: 0.12),
+                    BlendMode.srcATop,
+                  ),
+                  child: MapWidget(
+                    key: const ValueKey("mapWidget"),
+                    cameraOptions: CameraOptions(center: _center!, zoom: _zoom),
+                    styleUri: MapboxStyles.LIGHT,
                   onMapCreated: (mapboxMap) async {
                     _mapboxMap = mapboxMap;
 
@@ -922,6 +971,7 @@ class _NearbyPageState extends State<NearbyPage>
                     _center = cam.center;
                   },
                 ),
+                ),
 
                 if (!_isMapReady)
                   Container(
@@ -969,7 +1019,7 @@ class _NearbyPageState extends State<NearbyPage>
                     child: _loadingPill(),
                   ),
               ],
-            ),
+          ),
     );
   }
 
@@ -1077,8 +1127,15 @@ class _NearbyPageState extends State<NearbyPage>
                   child: TextField(
                     controller: _searchController,
                     focusNode: _searchFocusNode,
+                    textAlignVertical: TextAlignVertical.center,
                     decoration: const InputDecoration(
+                      isDense: true,
+                      contentPadding: EdgeInsets.zero,
                       border: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      errorBorder: InputBorder.none,
+                      disabledBorder: InputBorder.none,
                       hintText: "Search restaurants...",
                     ),
                     style: AppTypography.body.copyWith(
@@ -1144,9 +1201,8 @@ class _NearbyPageState extends State<NearbyPage>
     return Container(
       height: 40,
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        gradient: AppColors.primaryGradient,
         borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: AppColors.cardBorder),
         boxShadow: AppShadows.card,
       ),
       child: Material(
@@ -1157,13 +1213,13 @@ class _NearbyPageState extends State<NearbyPage>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 18, color: Colors.black),
+              Icon(icon, size: 18, color: Colors.white),
               const SizedBox(width: 8),
               Text(
                 label,
                 style: AppTypography.button.copyWith(
                   fontSize: 13,
-                  color: Colors.black,
+                  color: Colors.white,
                 ),
               ),
             ],
@@ -1177,10 +1233,9 @@ class _NearbyPageState extends State<NearbyPage>
     return Container(
       width: 40,
       height: 40,
-      decoration: BoxDecoration(
-        color: AppColors.surface,
+      decoration: const BoxDecoration(
+        gradient: AppColors.primaryGradient,
         shape: BoxShape.circle,
-        border: Border.all(color: AppColors.cardBorder),
         boxShadow: AppShadows.card,
       ),
       child: Material(
@@ -1188,7 +1243,7 @@ class _NearbyPageState extends State<NearbyPage>
         child: InkWell(
           onTap: _centerMapOnLocation,
           borderRadius: BorderRadius.circular(60),
-          child: const Icon(Icons.navigation, size: 20, color: Colors.black),
+          child: const Icon(Icons.navigation, size: 20, color: Colors.white),
         ),
       ),
     );

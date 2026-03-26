@@ -1,6 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import '../../design/app_colors.dart';
+import 'package:discount_buddy/design/app_colors.dart';
 import '../../design/app_radius.dart';
 import '../../design/app_shadows.dart';
 import '../../design/app_spacing.dart';
@@ -8,6 +6,9 @@ import '../../design/app_typography.dart';
 import '../../components/layout.dart';
 import '../../models/notification.dart';
 import '../../services/notification_service.dart';
+import '../widgets/app_scaffold.dart';
+import '../components/app_app_bar.dart';
+import '../widgets/empty_state_widget.dart';
 
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
@@ -179,16 +180,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text('Notifications', style: AppTypography.title),
+    return AppScaffold(
+      appBar: AppAppBar(
+        titleText: 'Notifications',
+        backgroundColor: Colors.transparent,
         actions: [
           if (_unreadCount > 0)
             TextButton(
@@ -197,7 +192,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 'Mark all read',
                 style: AppTypography.bodySmall.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: AppColors.accent,
+                  color: AppColors.primary,
                 ),
               ),
             ),
@@ -245,7 +240,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
         final notification = _notifications[index];
         return _NotificationTile(
           notification: notification,
-          onTap: () {},
+          onTap: () {
+            Navigator.pushReplacementNamed(context, '/home');
+          },
           formatTime: _formatTime,
           notificationService: _notificationService,
         );

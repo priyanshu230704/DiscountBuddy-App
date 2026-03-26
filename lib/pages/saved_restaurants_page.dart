@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import '../design/app_colors.dart';
+import 'package:discount_buddy/design/app_colors.dart';
 import '../design/app_spacing.dart';
 import '../design/app_typography.dart';
 import '../services/restaurant_service.dart';
@@ -7,6 +6,8 @@ import '../models/restaurant.dart';
 import '../widgets/restaurant_card.dart';
 import '../widgets/loading_widget.dart';
 import 'restaurant_details_page.dart';
+import '../widgets/app_scaffold.dart';
+import '../components/app_app_bar.dart';
 
 class SavedRestaurantsPage extends StatefulWidget {
   const SavedRestaurantsPage({super.key});
@@ -48,19 +49,10 @@ class _SavedRestaurantsPageState extends State<SavedRestaurantsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'Saved Restaurants',
-          style: AppTypography.title.copyWith(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
+    return AppScaffold(
+      appBar: AppAppBar(
+        titleText: 'Saved Restaurants',
+        backgroundColor: Colors.transparent,
       ),
       body: _isLoading
           ? const LoadingWidget(message: 'Loading favorites...')

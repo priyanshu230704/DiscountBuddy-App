@@ -13,11 +13,9 @@ import '../../providers/auth_provider.dart';
 import '../restaurant_details_page.dart';
 import '../notifications_page.dart';
 import '../../widgets/city_selector_modal.dart';
-import '../../design/app_colors.dart';
-import '../../design/app_radius.dart';
-import '../../design/app_shadows.dart';
-import '../../design/app_spacing.dart';
 import '../../design/app_typography.dart';
+import '../../widgets/app_scaffold.dart';
+import '../../widgets/app_gradient_button.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -430,30 +428,24 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           setState(() => _isSearching = false);
         }
       },
-      child: Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.backgroundGradient,
-        ),
-        child: Scaffold(
-          backgroundColor: Colors.transparent,
-          body: RefreshIndicator(
-            onRefresh: _loadRestaurants,
-            color: AppColors.discount,
-            child: CustomScrollView(
-              physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
-              ),
-              cacheExtent: 1200,
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-              slivers: [
-                _buildHeader(),
-                if (!_isSearching) _buildBanners(),
-                if (!_isSearching) _buildFilterTabs(),
-                if (!_isSearching) _buildSectionTitle(),
-                _buildRestaurantFeed(list),
-                const SliverToBoxAdapter(child: SizedBox(height: 32)),
-              ],
+      child: AppScaffold(
+        body: RefreshIndicator(
+          onRefresh: _loadRestaurants,
+          color: AppColors.discount,
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
             ),
+            cacheExtent: 1200,
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            slivers: [
+              _buildHeader(),
+              if (!_isSearching) _buildBanners(),
+              if (!_isSearching) _buildFilterTabs(),
+              if (!_isSearching) _buildSectionTitle(),
+              _buildRestaurantFeed(list),
+              const SliverToBoxAdapter(child: SizedBox(height: 32)),
+            ],
           ),
         ),
       ),
@@ -507,29 +499,33 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              "Discount",
-                              style: AppTypography.title.copyWith(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w800,
-                                height: 1.0,
-                                color: const Color(0xFF1B1436),
-                                letterSpacing: -0.4,
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                "Discount",
+                                style: AppTypography.title.copyWith(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w800,
+                                  height: 1.0,
+                                  color: const Color(0xFF1B1436),
+                                  letterSpacing: -0.4,
+                                ),
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
-                            Text(
-                              "Buddy",
-                              style: AppTypography.title.copyWith(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w800,
-                                height: 1.0,
-                                color: const Color(0xFF8B5CF6),
-                                letterSpacing: -0.4,
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                "Buddy",
+                                style: AppTypography.title.copyWith(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w800,
+                                  height: 1.0,
+                                  color: const Color(0xFF8B5CF6),
+                                  letterSpacing: -0.4,
+                                ),
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
@@ -1410,8 +1406,8 @@ class _FeedTile extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 8),
-                      GestureDetector(
-                        onTap: () {
+                      AppGradientButton(
+                        onPressed: () {
                           final slug = restaurant.slug ?? restaurant.id;
                           Navigator.push(
                             context,
@@ -1424,40 +1420,24 @@ class _FeedTile extends StatelessWidget {
                             ),
                           );
                         },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFFEC4899), Color(0xFF8B5CF6)],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
+                        height: 32,
+                        borderRadius: BorderRadius.circular(10),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.calendar_month_rounded,
+                                color: Colors.white, size: 12),
+                            SizedBox(width: 4),
+                            Text(
+                              'Reserve',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                                letterSpacing: 0.2,
+                              ),
                             ),
-                            borderRadius: BorderRadius.circular(10),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFFEC4899).withValues(alpha: 0.35),
-                                blurRadius: 6,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.calendar_month_rounded,
-                                  color: Colors.white, size: 12),
-                              SizedBox(width: 4),
-                              Text(
-                                'Reserve',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: Colors.white,
-                                  letterSpacing: 0.2,
-                                ),
-                              ),
-                            ],
-                          ),
+                          ],
                         ),
                       ),
                     ],

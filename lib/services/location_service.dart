@@ -60,8 +60,9 @@ class LocationService {
       if (placemarks.isNotEmpty) {
         final placemark = placemarks.first;
 
-        // Try to get city, then locality, then subAdministrativeArea, then administrativeArea
+        // Try to get subLocality, then locality, then subAdministrativeArea, then administrativeArea
         String? cityName =
+            placemark.subLocality ??
             placemark.locality ??
             placemark.subAdministrativeArea ??
             placemark.administrativeArea;

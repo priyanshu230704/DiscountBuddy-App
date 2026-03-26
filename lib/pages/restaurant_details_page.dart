@@ -12,6 +12,8 @@ import '../models/review.dart';
 import '../models/menu_item.dart';
 import '../services/restaurant_service.dart';
 import 'package:discount_buddy/design/app_colors.dart';
+import 'package:discount_buddy/widgets/app_scaffold.dart';
+import 'package:discount_buddy/widgets/app_gradient_button.dart';
 import 'package:discount_buddy/design/app_radius.dart';
 import 'package:discount_buddy/design/app_shadows.dart';
 import 'package:intl/intl.dart';
@@ -420,16 +422,14 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return Scaffold(
-        backgroundColor: AppColors.surface,
-        body: const Center(child: CircularProgressIndicator()),
+      return const AppScaffold(
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
     if (_errorMessage != null || _restaurantDetail == null) {
-      return Scaffold(
-        backgroundColor: AppColors.surface,
-        appBar: AppBar(title: const Text('Restaurant Details')),
+      return AppScaffold(
+        appBar: AppBar(title: const Text('Restaurant Details'), backgroundColor: Colors.transparent),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -449,8 +449,9 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-              ElevatedButton(
+              AppGradientButton(
                 onPressed: _loadRestaurant,
+                width: 120,
                 child: const Text('Retry'),
               ),
             ],
@@ -465,8 +466,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     // Distance calculation is handled, but dist variable itself is not used currently
     // final dist = restaurant.distanceMiles ?? _kmToMiles(restaurant.distance);
 
-    return Scaffold(
-      backgroundColor: AppColors.surface,
+    return AppScaffold(
 
       body: CustomScrollView(
         cacheExtent:
@@ -476,7 +476,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
           SliverAppBar(
             expandedHeight: 300,
             pinned: false,
-            backgroundColor: AppColors.surface,
+            backgroundColor: Colors.transparent,
             leading: Container(
               margin: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -545,7 +545,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
           // Restaurant Info Section
           SliverToBoxAdapter(
             child: Container(
-              color: AppColors.surface,
+              color: Colors.transparent,
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -724,41 +724,30 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     children: [
                       // Menu Button
                       Expanded(
-                        child: Container(
+                        child: AppGradientButton(
+                          onPressed: () {
+                            _showMenuPopup(context, restaurant, menuCategories);
+                          },
                           height: 48,
-                          decoration: BoxDecoration(
-                            color: AppColors.surface,
-                            borderRadius: AppRadius.xLarge,
-                            border: Border.all(color: AppColors.cardBorder),
-                            boxShadow: AppShadows.card,
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: () {
-                                _showMenuPopup(context, restaurant, menuCategories);
-                              },
-                              borderRadius: BorderRadius.circular(14),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(
-                                    Icons.menu,
-                                    color: AppColors.textPrimary,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Menu',
-                                    style: AppFonts.titleStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.textPrimary,
-                                    ),
-                                  ),
-                                ],
+                          borderRadius: AppRadius.xLarge,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.menu,
+                                color: Colors.white,
+                                size: 20,
                               ),
-                            ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Menu',
+                                style: AppFonts.titleStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -1433,7 +1422,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: Colors.transparent,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.1),
@@ -1447,7 +1436,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
             children: [
               // Book Table Button
               Expanded(
-                child: OutlinedButton(
+                child: AppGradientButton(
                   onPressed: () {
                     if (_authProvider.isGuestMode) {
                       LoginRequiredSheet.show(context);
@@ -1463,19 +1452,13 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                       ),
                     );
                   },
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    side: BorderSide(color: AppColors.primary, width: 1.5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+                  height: 52,
                   child: Text(
                     'Book Table',
                     style: AppFonts.bodyStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -1483,7 +1466,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
               const SizedBox(width: 12),
               // Redeem Offer Button
               Expanded(
-                child: ElevatedButton(
+                child: AppGradientButton(
                   onPressed: () {
                     if (_authProvider.isGuestMode) {
                       LoginRequiredSheet.show(context);
@@ -1507,19 +1490,13 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                       );
                     }
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryPurple,
-                    foregroundColor: AppColors.surface,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
+                  height: 52,
                   child: Text(
                     'Redeem Offer',
                     style: AppFonts.bodyStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
                 ),

@@ -1,9 +1,6 @@
-import 'package:flutter/material.dart';
-import '../design/app_colors.dart';
-import '../design/app_radius.dart';
-import '../design/app_shadows.dart';
-import '../design/app_spacing.dart';
 import '../design/app_typography.dart';
+import '../widgets/app_scaffold.dart';
+import '../widgets/app_gradient_button.dart';
 import '../providers/auth_provider.dart';
 import '../services/wallet_service.dart';
 import '../services/restaurant_service.dart';
@@ -100,12 +97,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final displayName = user?.username ?? 'User';
     final initials = _getInitials(displayName);
 
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: AppColors.backgroundGradient,
-      ),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
+    return AppScaffold(
         body: SafeArea(
         bottom: false,
         child: SingleChildScrollView(
@@ -298,7 +290,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  'Earn €10 for every\nfriend you invite!',
+                                  'Invite your friends\nto Discount Buddy!',
                                   style: AppTypography.title.copyWith(
                                     fontSize: 20,
                                     fontWeight: FontWeight.w800,
@@ -315,13 +307,16 @@ class _ProfilePageState extends State<ProfilePage> {
                                   ),
                                 ),
                                 const SizedBox(height: 18),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(24),
-                                    border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
-                                  ),
+                                AppGradientButton(
+                                  onPressed: () {
+                                    const message = 'Hey! Check out Discount Buddy and save money at your favorite local restaurants! 🍕🍔\n\nDownload the app here: https://discountbuddy.app/invite';
+                                    SharePlus.instance.share(
+                                      ShareParams(text: message),
+                                    );
+                                  },
+                                  height: 40,
+                                  width: 140,
+                                  borderRadius: BorderRadius.circular(24),
                                   child: Text(
                                     'Invite friends',
                                     style: AppTypography.body.copyWith(
@@ -397,8 +392,8 @@ class _ProfilePageState extends State<ProfilePage> {
               const SizedBox(height: 120),
             ],
           ),
+          ),
         ),
-      ),
       ),
     );
   }

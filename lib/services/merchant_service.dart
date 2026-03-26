@@ -833,4 +833,28 @@ class MerchantService {
       throw Exception('Failed to set primary image: ${e.toString()}');
     }
   }
+
+  /// Get full analytics data for the merchant dashboard
+  Future<Map<String, dynamic>> getMerchantAnalytics({
+    int? restaurantId,
+    int period = 30,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+      final queryParams = <String, String>{};
+      queryParams['period'] = period.toString();
+      if (restaurantId != null) {
+        queryParams['restaurant_id'] = restaurantId.toString();
+      }
+      final response = await _apiService.get(
+        ApiEndpoints.merchantAnalytics,
+        queryParameters: queryParams,
+        type: ApiType.merchant,
+      );
+      return response;
+    } catch (e) {
+      throw Exception('Failed to load analytics: ${e.toString()}');
+    }
+  }
 }
+

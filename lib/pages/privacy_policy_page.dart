@@ -1,24 +1,18 @@
-import 'package:flutter/material.dart';
-import '../design/app_colors.dart';
+import 'package:discount_buddy/design/app_colors.dart';
 import '../design/app_spacing.dart';
 import '../design/app_typography.dart';
+import '../widgets/app_scaffold.dart';
+import '../components/app_app_bar.dart';
 
 class PrivacyPolicyPage extends StatelessWidget {
   const PrivacyPolicyPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.surface,
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text('Privacy Policy', style: AppTypography.title),
-        backgroundColor: AppColors.surface,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
+    return AppScaffold(
+      appBar: AppAppBar(
+        titleText: 'Privacy Policy',
+        backgroundColor: Colors.transparent,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.xl),

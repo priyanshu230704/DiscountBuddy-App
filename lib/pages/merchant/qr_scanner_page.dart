@@ -5,9 +5,12 @@ import '../../services/qr_scanner_service.dart';
 import '../../services/merchant_service.dart';
 import '../../models/deal_redemption.dart';
 import '../../widgets/generic_bottom_sheet.dart';
-import '../../theme/app_colors.dart';
+import 'package:discount_buddy/design/app_colors.dart';
 import '../../design/app_typography.dart';
 import '../../design/app_spacing.dart';
+import '../../widgets/app_scaffold.dart';
+import '../../widgets/app_gradient_button.dart';
+import '../../components/app_app_bar.dart';
 
 /// QR Scanner Screen for merchants to scan and redeem customer deals
 class QRScannerPage extends StatefulWidget {
@@ -620,16 +623,10 @@ class _QRScannerPageState extends State<QRScannerPage> {
   @override
   Widget build(BuildContext context) {
     if (!_hasPermission) {
-      return Scaffold(
-        backgroundColor: AppColors.background,
-        appBar: AppBar(
-          title: Text(
-            'Scan QR Code',
-            style: AppTypography.headline.copyWith(fontSize: 20),
-          ),
-          backgroundColor: AppColors.surface,
-          foregroundColor: AppColors.textPrimary,
-          elevation: 0,
+      return AppScaffold(
+        appBar: AppAppBar(
+          titleText: 'Scan QR Code',
+          backgroundColor: Colors.transparent,
         ),
         body: Center(
           child: Column(
@@ -647,21 +644,10 @@ class _QRScannerPageState extends State<QRScannerPage> {
                 style: AppTypography.body,
               ),
               const SizedBox(height: 32),
-              ElevatedButton(
+              AppGradientButton(
+                text: 'Grant Permission',
                 onPressed: () => _checkPermission(isInitialCheck: false),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.merchantIndigo,
-                  foregroundColor: AppColors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                    vertical: 16,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 0,
-                ),
-                child: const Text('Grant Permission', style: TextStyle(fontWeight: FontWeight.bold)),
+                width: 200,
               ),
             ],
           ),
@@ -669,17 +655,11 @@ class _QRScannerPageState extends State<QRScannerPage> {
       );
     }
 
-    return Scaffold(
+    return AppScaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        title: Text(
-          'Scan QR Code',
-          style: AppTypography.headline.copyWith(color: Colors.white, fontSize: 20),
-        ),
+      appBar: AppAppBar(
+        titleText: 'Scan QR Code',
         backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
             icon: const Icon(Icons.keyboard_outlined),

@@ -83,6 +83,8 @@ class ApiEndpoints {
       '/restaurants/restaurant/bookings/$id';
   static const String merchantRedeemDeal = '/restaurants/deals/redeem';
   static const String merchantRedemptionHistory = '/restaurants/deals/redemption-history';
+  static const String merchantAnalytics = '/restaurants/analytics';
+
 
   static const String merchantRestaurantImages = '/restaurants/restaurant-images';
   static String merchantRestaurantImageDetail(int id) =>

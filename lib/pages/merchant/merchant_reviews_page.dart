@@ -87,11 +87,10 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
+    return AppScaffold(
       appBar: AppAppBar(
         titleText: 'Customer Reviews',
-        backgroundColor: AppColors.surface,
+        backgroundColor: Colors.transparent,
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

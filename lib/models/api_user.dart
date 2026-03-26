@@ -16,6 +16,24 @@ class ApiUser {
     this.profile,
   });
 
+  ApiUser copyWith({
+    int? id,
+    String? email,
+    String? username,
+    bool? isMerchant,
+    bool? isCustomer,
+    UserProfile? profile,
+  }) {
+    return ApiUser(
+      id: id ?? this.id,
+      email: email ?? this.email,
+      username: username ?? this.username,
+      isMerchant: isMerchant ?? this.isMerchant,
+      isCustomer: isCustomer ?? this.isCustomer,
+      profile: profile ?? this.profile,
+    );
+  }
+
   /// Convenience getter for profile picture
   String? get profilePicture => profile?.profilePicture;
 
@@ -67,6 +85,20 @@ class UserProfile {
     this.profilePicture,
     this.marketingOptIn = true,
   });
+
+  UserProfile copyWith({
+    String? role,
+    String? phoneNumber,
+    String? profilePicture,
+    bool? marketingOptIn,
+  }) {
+    return UserProfile(
+      role: role ?? this.role,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      profilePicture: profilePicture ?? this.profilePicture,
+      marketingOptIn: marketingOptIn ?? this.marketingOptIn,
+    );
+  }
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(

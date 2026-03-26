@@ -7,6 +7,7 @@ import '../../components/app_app_bar.dart';
 import '../../widgets/skeleton_loader.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/empty_state_widget.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class MerchantReviewsPage extends StatefulWidget {
   final int? restaurantId;
@@ -240,7 +241,6 @@ class _ReviewCard extends StatelessWidget {
       }
     }
 
-    final initial = user.substring(0, 1).toUpperCase();
 
     return AppCard(
       padding: const EdgeInsets.all(AppSpacing.xl),
@@ -256,14 +256,31 @@ class _ReviewCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.merchantAmber.withValues(alpha: 0.15),
                   shape: BoxShape.circle,
+                  image: review['user_profile_picture'] != null && !review['user_profile_picture'].toString().startsWith('assets/')
+                      ? DecorationImage(
+                          image: CachedNetworkImageProvider(review['user_profile_picture'].toString()),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
                 ),
                 alignment: Alignment.center,
-                child: Text(
-                  initial,
-                  style: AppTypography.title.copyWith(
-                    color: AppColors.merchantAmber,
-                    fontSize: 18,
-                  ),
+                child: Builder(
+                  builder: (context) {
+                    final profilePic = review['user_profile_picture']?.toString();
+                    if (profilePic == null) {
+                      return Icon(
+                        Icons.person,
+                        color: AppColors.merchantAmber.withValues(alpha: 0.5),
+                        size: 28,
+                      );
+                    }
+                    if (profilePic.startsWith('assets/')) {
+                      return ClipOval(
+                        child: Image.asset(profilePic, fit: BoxFit.cover),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
                 ),
               ),
               const SizedBox(width: AppSpacing.md),

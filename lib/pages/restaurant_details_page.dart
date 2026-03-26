@@ -1525,10 +1525,6 @@ class _ReviewItem extends StatelessWidget {
 
   const _ReviewItem({required this.review});
 
-  String _getInitials(String name) {
-    if (name.isEmpty) return '?';
-    return name[0].toUpperCase();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -1544,18 +1540,34 @@ class _ReviewItem extends StatelessWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFFF5F5F5),
                 shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Text(
-                  _getInitials(review.userName),
-                  style: AppFonts.bodyStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ),
+              image: review.userProfilePicture != null && !review.userProfilePicture!.startsWith('assets/')
+                  ? DecorationImage(
+                      image: CachedNetworkImageProvider(review.userProfilePicture!),
+                      fit: BoxFit.cover,
+                    )
+                  : null,
             ),
+            child: Builder(
+              builder: (context) {
+                final profilePic = review.userProfilePicture;
+                if (profilePic == null) {
+                  return Center(
+                    child: Icon(
+                      Icons.person,
+                      size: 24,
+                      color: AppColors.textDisabled.withValues(alpha: 0.5),
+                    ),
+                  );
+                }
+                if (profilePic.startsWith('assets/')) {
+                  return ClipOval(
+                    child: Image.asset(profilePic, fit: BoxFit.cover),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
             const SizedBox(width: 12),
             // Review Content
             Expanded(

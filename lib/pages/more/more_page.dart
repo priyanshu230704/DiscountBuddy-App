@@ -9,6 +9,7 @@ import '../../services/voucher_service.dart';
 import '../../models/voucher.dart';
 import '../profile_page.dart';
 import '../auth/login_page.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 /// More/Settings page
 class MorePage extends StatefulWidget {
@@ -561,24 +562,32 @@ class _MorePageState extends State<MorePage> {
     final user = AuthProvider().user;
     final displayName = user?.username ?? 'Guest';
     final email = user?.email ?? '';
-    final initials = _getInitials(displayName);
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.xxl),
       color: AppColors.textPrimary.withValues(alpha: 0.9),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 30,
-            backgroundColor: const Color(0xFF3E25F6),
-            child: Text(
-              initials,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
-            ),
+          Builder(
+            builder: (context) {
+              final profilePic = user?.profilePicture;
+              return CircleAvatar(
+                radius: 30,
+                backgroundColor: const Color(0xFF3E25F6),
+                backgroundImage: profilePic == null
+                    ? null
+                    : (profilePic.startsWith('assets/')
+                        ? AssetImage(profilePic)
+                        : CachedNetworkImageProvider(profilePic)) as ImageProvider,
+                child: profilePic == null
+                    ? const Icon(
+                        Icons.person,
+                        color: Colors.white70,
+                        size: 32,
+                      )
+                    : null,
+              );
+            },
           ),
           const SizedBox(width: AppSpacing.lg),
           Expanded(
@@ -613,16 +622,6 @@ class _MorePageState extends State<MorePage> {
     );
   }
 
-  String _getInitials(String name) {
-    if (name.isEmpty) return '?';
-    final parts = name.trim().split(' ');
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-    } else if (parts.length == 1 && parts[0].isNotEmpty) {
-      return parts[0].substring(0, parts[0].length > 1 ? 2 : 1).toUpperCase();
-    }
-    return name[0].toUpperCase();
-  }
 
   Widget _buildSection(String title, List<Widget> children) {
     return Column(

@@ -398,10 +398,12 @@ class AuthProvider extends ChangeNotifier {
 
   /// Update current user profile
   Future<bool> updateProfile({
+    String? username,
     String? firstName,
     String? lastName,
     String? email,
     File? imageFile,
+    String? avatarUrl,
   }) async {
     _isLoading = true;
     _errorMessage = null;
@@ -409,12 +411,25 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       final updatedUser = await _authService.updateProfile(
+        username: username,
         firstName: firstName,
         lastName: lastName,
         email: email,
         imageFile: imageFile,
+        avatarUrl: avatarUrl,
       );
+      
+      // Update local state with the returned user, 
+      // but if the backend hasn't implemented avatarUrl yet, 
+      // ensure we keep the local selection.
       _user = updatedUser;
+      if (avatarUrl != null && _user != null) {
+        _user = _user!.copyWith(
+          profile: _user!.profile?.copyWith(profilePicture: avatarUrl) ?? 
+                  UserProfile(role: _userRole, profilePicture: avatarUrl),
+        );
+      }
+      
       _isLoading = false;
       notifyListeners();
       return true;

@@ -14,6 +14,7 @@ class Review {
   final int rating;
   final String? comment;
   final bool isVerified;
+  final String? userProfilePicture;
   final DateTime createdAt;
 
   Review({
@@ -23,6 +24,7 @@ class Review {
     required this.rating,
     this.comment,
     required this.isVerified,
+    this.userProfilePicture,
     required this.createdAt,
   });
 
@@ -34,6 +36,7 @@ class Review {
       rating: _parseInt(json['rating']) ?? 0,
       comment: json['comment'] as String?,
       isVerified: json['is_verified'] as bool? ?? false,
+      userProfilePicture: json['user_profile_picture'] as String? ?? json['profile_picture'] as String?,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : DateTime.now(),

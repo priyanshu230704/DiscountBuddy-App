@@ -7,6 +7,8 @@ import '../models/api_user.dart';
 import '../config/api_endpoints.dart';
 import '../config/environment.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:path_provider/path_provider.dart';
 
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -535,34 +537,62 @@ class AuthService {
 
   /// Update user profile
   Future<ApiUser> updateProfile({
+    String? username,
     String? firstName,
     String? lastName,
     String? email,
     File? imageFile,
+    String? avatarUrl,
   }) async {
     try {
       final fields = <String, String>{};
-      if (firstName != null || lastName != null) {
-        // App uses space-separated names in username
-        final currentUsername = (await getStoredUser())?.username ?? '';
-        final parts = currentUsername.split(' ');
-        final fName = firstName ?? (parts.isNotEmpty ? parts[0] : '');
-        final lName =
-            lastName ?? (parts.length > 1 ? parts.sublist(1).join(' ') : '');
-        fields['username'] = '$fName $lName'.trim();
+      if (username != null) {
+        fields['username'] = username;
+      }
+      if (firstName != null) {
+        fields['first_name'] = firstName;
+      }
+      if (lastName != null) {
+        fields['last_name'] = lastName;
       }
       if (email != null) {
         fields['email'] = email;
       }
+      if (avatarUrl != null) {
+        fields['profile_picture'] = avatarUrl;
+      }
 
       Map<String, dynamic> response;
-      if (imageFile != null) {
-        final files = <String, http.MultipartFile>{
-          'profile_picture': await http.MultipartFile.fromPath(
+      if (imageFile != null || avatarUrl != null) {
+        final Map<String, http.MultipartFile> files = {};
+        File? uploadFile = imageFile;
+
+        // If it's an asset avatar, convert it to a temp file for uploading
+        if (uploadFile == null && avatarUrl != null && avatarUrl.startsWith('assets/')) {
+          try {
+            final byteData = await rootBundle.load(avatarUrl);
+            final bytes = byteData.buffer.asUint8List();
+            final tempDir = await getTemporaryDirectory();
+            final fileName = avatarUrl.split('/').last;
+            final tempFile = File('${tempDir.path}/$fileName');
+            await tempFile.writeAsBytes(bytes);
+            uploadFile = tempFile;
+          } catch (e) {
+            debugPrint('Error converting asset to file: $e');
+            // Fallback to sending it as a string field if conversion fails
+          }
+        }
+
+        if (uploadFile != null) {
+          files['profile_picture'] = await http.MultipartFile.fromPath(
             'profile_picture',
-            imageFile.path,
-          ),
-        };
+            uploadFile.path,
+          );
+        } else if (avatarUrl != null) {
+          // Send as a string if it's a URL or if asset conversion failed
+          fields['profile_picture'] = avatarUrl;
+        }
+
         response = await _apiService.patchMultipart(
           ApiEndpoints.currentUser,
           fields: fields,

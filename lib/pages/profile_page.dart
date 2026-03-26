@@ -12,6 +12,7 @@ import 'privacy_policy_page.dart';
 import 'saved_restaurants_page.dart';
 import 'savings_history_page.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 /// Profile Screen - NeoTaste style
 class ProfilePage extends StatefulWidget {
@@ -81,22 +82,11 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  String _getInitials(String name) {
-    if (name.isEmpty) return '?';
-    final parts = name.trim().split(' ');
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-    } else if (parts.length == 1 && parts[0].isNotEmpty) {
-      return parts[0][0].toUpperCase();
-    }
-    return name[0].toUpperCase();
-  }
 
   @override
   Widget build(BuildContext context) {
     final user = _authProvider.user;
     final displayName = user?.username ?? 'User';
-    final initials = _getInitials(displayName);
 
     return AppScaffold(
         body: SafeArea(
@@ -135,8 +125,9 @@ class _ProfilePageState extends State<ProfilePage> {
                         width: 72,
                         height: 72,
                         decoration: BoxDecoration(
-                          gradient: AppColors.purpleGradient,
+                          color: AppColors.surface,
                           borderRadius: BorderRadius.circular(36),
+                          border: Border.all(color: AppColors.cardBorder, width: 1),
                           boxShadow: [
                             BoxShadow(
                               color: AppColors.primary.withValues(alpha: 0.2),
@@ -145,15 +136,28 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                           ],
                         ),
-                        child: Center(
-                          child: Text(
-                            initials,
-                            style: AppTypography.title.copyWith(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+                        child: Builder(
+                          builder: (context) {
+                            final profilePic = user?.profilePicture;
+                            if (profilePic == null) {
+                              return Center(
+                                child: Icon(
+                                  Icons.person,
+                                  size: 40,
+                                  color: AppColors.textDisabled.withValues(alpha: 0.5),
+                                ),
+                              );
+                            }
+                            
+                            return ClipOval(
+                              child: profilePic.startsWith('assets/')
+                                  ? Image.asset(profilePic, fit: BoxFit.cover)
+                                  : CachedNetworkImage(
+                                      imageUrl: profilePic,
+                                      fit: BoxFit.cover,
+                                    ),
+                            );
+                          },
                         ),
                       ),
                       const SizedBox(width: 20),

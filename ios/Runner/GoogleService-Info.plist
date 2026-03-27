@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>690749586825-te9jchq8ibjk42uema45kcvl4sarmocc.apps.googleusercontent.com</string>
+	<string>690749586825-vhdn7his6rgv99hona0qbj1o6dsvja8f.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.690749586825-te9jchq8ibjk42uema45kcvl4sarmocc</string>
+	<string>com.googleusercontent.apps.690749586825-vhdn7his6rgv99hona0qbj1o6dsvja8f</string>
 	<key>ANDROID_CLIENT_ID</key>
 	<string>690749586825-0c5v33s1k418s14a9pb1krikf0mpo5ph.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
@@ -15,7 +15,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.ketan.discountbuddy</string>
+	<string>com.discountbuddy.iosapp</string>
 	<key>PROJECT_ID</key>
 	<string>discount-buddy-d51bf</string>
 	<key>STORAGE_BUCKET</key>
@@ -31,6 +31,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:690749586825:ios:80b06fa46619fe40603558</string>
+	<string>1:690749586825:ios:f1a1eccde2d24171603558</string>
 </dict>
 </plist>

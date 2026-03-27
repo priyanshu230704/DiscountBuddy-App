@@ -60,13 +60,13 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyATrEecCiku_ZApXJmJ6Q2cvr4vxvlyASs',
-    appId: '1:690749586825:ios:80b06fa46619fe40603558',
+    appId: '1:690749586825:ios:f1a1eccde2d24171603558',
     messagingSenderId: '690749586825',
     projectId: 'discount-buddy-d51bf',
     storageBucket: 'discount-buddy-d51bf.firebasestorage.app',
     androidClientId: '690749586825-0c5v33s1k418s14a9pb1krikf0mpo5ph.apps.googleusercontent.com',
-    iosClientId: '690749586825-te9jchq8ibjk42uema45kcvl4sarmocc.apps.googleusercontent.com',
-    iosBundleId: 'com.ketan.discountbuddy',
+    iosClientId: '690749586825-vhdn7his6rgv99hona0qbj1o6dsvja8f.apps.googleusercontent.com',
+    iosBundleId: 'com.discountbuddy.iosapp',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(

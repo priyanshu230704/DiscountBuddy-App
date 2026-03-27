@@ -20,7 +20,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 
 # version: 1.0.0+5 #for android 
-version: 1.0.0+4 #for ios
+version: 1.0.0+5 #for ios
 
 
 environment:
@@ -69,7 +69,6 @@ dependencies:
   url_launcher: ^6.3.0
   sign_in_with_apple: ^6.1.1
   google_fonts: ^6.2.1
-  app_tracking_transparency: ^2.0.6+1
   path_provider: ^2.1.5
 
 dev_dependencies:

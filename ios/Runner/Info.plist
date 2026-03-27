@@ -58,9 +58,7 @@
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>This app needs access to location when in the background to show your current location on the map.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This app needs access to location when open to show your current location on the map.</string>
-	<key>NSUserTrackingUsageDescription</key>
-	<string>We use your data to provide personalized offers and improve your experience. Your permission helps us support local restaurants and provide better discounts.</string>
+	<string>This app uses your location to show nearby restaurants and deals based on your current location.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>

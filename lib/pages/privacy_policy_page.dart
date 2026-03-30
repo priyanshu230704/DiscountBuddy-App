@@ -25,7 +25,7 @@ class PrivacyPolicyPage extends StatelessWidget {
             
             _buildSection(
               '1. Who We Are',
-              'DiscountBuddy is operated by Mark it up groups Ltd .\n\nWe are the data controller responsible for your personal data.\n\nContact details:\nEmail: contact@discoutbuddy.com\nAddress: 124 City Road, London, EC1V 2NX, United Kingdom',
+              'DiscountBuddy is operated by Mark it up groups Ltd .\n\nWe are the data controller responsible for your personal data.\n\nContact details:\nEmail: contact@discoutbuddy.com\nAddress: The Mall, Harrow, HA39TX, United Kingdom',
             ),
             
             _buildSection(
@@ -75,7 +75,7 @@ class PrivacyPolicyPage extends StatelessWidget {
             
             _buildSection(
               '11. Contact Us',
-              'If you have any questions about this policy:\n\nEmail: contact@discoutbuddy.com\nAddress: 124 City Road, London, EC1V 2NX, United Kingdom',
+              'If you have any questions about this policy:\n\nEmail: contact@discoutbuddy.com\nAddress: The Mall, Harrow, HA39TX, United Kingdom',
             ),
             
             const SizedBox(height: AppSpacing.xxxl),

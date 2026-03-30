@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme/app_fonts.dart';
 import '../theme/app_colors.dart';
 
@@ -27,6 +28,7 @@ class ThemeProvider extends ChangeNotifier {
       ),
       scaffoldBackgroundColor: AppColors.background,
       appBarTheme: AppBarTheme(
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
         centerTitle: false,
         elevation: 0,
         backgroundColor: AppColors.background,

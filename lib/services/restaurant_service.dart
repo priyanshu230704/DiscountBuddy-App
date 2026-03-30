@@ -13,11 +13,18 @@ class RestaurantService {
 
   // --- User Interactions ---
 
-  Future<List<Restaurant>> getRestaurants({int? cityId, int? page}) async {
+  Future<List<Restaurant>> getRestaurants({
+    int? cityId,
+    int? page,
+    double? latitude,
+    double? longitude,
+  }) async {
     try {
       final queryParams = <String, String>{};
       if (cityId != null) queryParams['city'] = cityId.toString();
       if (page != null) queryParams['page'] = page.toString();
+      if (latitude != null) queryParams['latitude'] = latitude.toString();
+      if (longitude != null) queryParams['longitude'] = longitude.toString();
 
       final response = await _apiService.get(
         ApiEndpoints.restaurants,
@@ -229,6 +236,34 @@ class RestaurantService {
     } catch (e) {
       // Return empty list if it fails, as it might be a 404/auth error handled gracefully
       return [];
+    }
+  }
+
+  /// Submit a partner request for a new restaurant
+  Future<void> submitPartnerRequest({
+    required String restaurantName,
+    required String contactName,
+    required String email,
+    required String phone,
+    required String cityName,
+    String? website,
+    String? comments,
+  }) async {
+    try {
+      await _apiService.post(
+        ApiEndpoints.partnerRequests,
+        body: {
+          'restaurant_name': restaurantName,
+          'contact_name': contactName,
+          'email': email,
+          'phone': phone,
+          'city_name': cityName,
+          'website': website,
+          'comments': comments,
+        },
+      );
+    } catch (e) {
+      throw Exception('Failed to submit partner request: ${e.toString()}');
     }
   }
 

@@ -13,6 +13,7 @@ import '../../widgets/app_gradient_button.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../models/restaurant.dart';
+import '../../services/location_service.dart';
 import '../restaurant_details_page.dart';
 
 /// Bookings/Redemptions Screen - Integrated with deal uses API
@@ -26,6 +27,7 @@ class BookingsPage extends StatefulWidget {
 class _BookingsPageState extends State<BookingsPage>
     with SingleTickerProviderStateMixin {
   final RestaurantService _restaurantService = RestaurantService();
+  final LocationService _locationService = LocationService();
   // Distance calculation is handled, but dist variable itself is not used currently
   // keeping it commented if needed, or just remove if we use it elsewhere
   // final dist = restaurant.distanceMiles ?? _kmToMiles(restaurant.distance);
@@ -56,10 +58,20 @@ class _BookingsPageState extends State<BookingsPage>
     });
 
     try {
+      // Get location for distance calculation
+      double? lat, lon;
+      try {
+        final position = await _locationService.getCurrentLocation();
+        lat = position.latitude;
+        lon = position.longitude;
+      } catch (e) {
+        debugPrint('Location fetching failed for bookings: $e');
+      }
+
       // Load redemptions, bookings and trending restaurants in parallel
       final results = await Future.wait([
         _restaurantService.getUserDealRedemptions(),
-        _restaurantService.getRestaurants(),
+        _restaurantService.getRestaurants(latitude: lat, longitude: lon),
         _restaurantService.getUserBookings(),
       ]);
 
@@ -139,16 +151,11 @@ class _BookingsPageState extends State<BookingsPage>
                         _bookings.isEmpty
                             ? RefreshIndicator(
                                 onRefresh: _loadData,
-                                child: SingleChildScrollView(
-                                  physics: const AlwaysScrollableScrollPhysics(),
-                                  child: SizedBox(
-                                    height: MediaQuery.of(context).size.height * 0.7,
-                                    child: const EmptyStateWidget(
-                                      icon: Icons.event_busy,
-                                      title: 'No reservations yet',
-                                      message: 'Pull to refresh or explore restaurants to get started.',
-                                    ),
-                                  ),
+                                child: _ReservationEmptyTab(
+                                  trendingItems: _trendingRestaurants,
+                                  onExplorePressed: () {
+                                    // Navigation to explore restaurants
+                                  },
                                 ),
                               )
                             : _BookingList(
@@ -197,12 +204,25 @@ class _ReservationEmptyTab extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AppCard(
+            padding: const EdgeInsets.all(AppSpacing.xl),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const SizedBox(height: AppSpacing.lg),
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.xl),
+                  decoration: const BoxDecoration(
+                    gradient: AppColors.primaryGradient,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.restaurant_menu_rounded,
+                    size: 48,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xl),
                 Text(
-                  'No reservations yet 🍽',
+                  'No reservations yet',
                   style: AppTypography.title.copyWith(fontSize: 22),
                   textAlign: TextAlign.center,
                 ),
@@ -212,10 +232,11 @@ class _ReservationEmptyTab extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: AppTypography.subtitle,
                 ),
-                const SizedBox(height: AppSpacing.xl),
+                const SizedBox(height: AppSpacing.xxl),
                 AppGradientButton(
                   onPressed: onExplorePressed,
-                  width: 200,
+                  width: double.infinity,
+                  height: 54,
                   child: const Text('Explore restaurants'),
                 ),
               ],
@@ -393,7 +414,7 @@ class _TrendingCard extends StatelessWidget {
                       ),
                       const SizedBox(width: AppSpacing.xs),
                       Text(
-                        '${item.distance.toStringAsFixed(1)} km away',
+                        '${(item.distanceMiles ?? item.distance * 0.621371).toStringAsFixed(1)} miles away',
                         style: AppTypography.bodySmall,
                       ),
                     ],

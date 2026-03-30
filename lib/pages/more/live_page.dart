@@ -639,7 +639,7 @@ class _LivePageState extends State<LivePage> {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            '${offer.distance.toStringAsFixed(1)} km',
+                            '${offer.distance.toStringAsFixed(1)} mi',
                             style: TextStyle(
                               color: Colors.grey[400],
                               fontSize: 11,

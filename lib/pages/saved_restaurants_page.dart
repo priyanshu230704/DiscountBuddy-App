@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import '../services/restaurant_service.dart';
+import 'package:geolocator/geolocator.dart';
 import '../models/restaurant.dart';
 import '../widgets/restaurant_card.dart';
 import '../widgets/loading_widget.dart';
@@ -30,6 +31,29 @@ class _SavedRestaurantsPageState extends State<SavedRestaurantsPage> {
     setState(() => _isLoading = true);
     try {
       final restaurants = await _restaurantService.getSavedRestaurants();
+      
+      // Calculate distances manually if API doesn't provide accurate distance
+      try {
+        final position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.low,
+          timeLimit: const Duration(seconds: 5),
+        ).catchError((_) => throw Exception("Timeout"));
+
+        for (int i = 0; i < restaurants.length; i++) {
+          final r = restaurants[i];
+          final distanceInMeters = Geolocator.distanceBetween(
+            position.latitude,
+            position.longitude,
+            r.latitude,
+            r.longitude,
+          );
+          // Convert meters to miles
+          restaurants[i] = r.copyWith(distanceMiles: distanceInMeters / 1609.344);
+        }
+      } catch (e) {
+        debugPrint('Location fetching failed for saved restaurants calculation: $e');
+      }
+
       if (mounted) {
         setState(() {
           _savedRestaurants = restaurants;

@@ -119,35 +119,41 @@ class _MainNavigationState extends State<MainNavigation> {
   Widget build(BuildContext context) {
     final isMerchant = _authProvider.isMerchant;
 
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+      ),
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
 
-        if (_currentIndex != 0) {
-          setState(() {
-            _currentIndex = 0;
-          });
-          return;
-        }
+          if (_currentIndex != 0) {
+            setState(() {
+              _currentIndex = 0;
+            });
+            return;
+          }
 
-        final now = DateTime.now();
-        if (_lastPressedAt == null ||
-            now.difference(_lastPressedAt!) > const Duration(seconds: 2)) {
-          _lastPressedAt = now;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Press back again to exit'),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              duration: const Duration(seconds: 2),
-            ),
-          );
-          return;
-        }
+          final now = DateTime.now();
+          if (_lastPressedAt == null ||
+              now.difference(_lastPressedAt!) > const Duration(seconds: 2)) {
+            _lastPressedAt = now;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Press back again to exit'),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+            return;
+          }
 
-        SystemNavigator.pop();
-      },
+          SystemNavigator.pop();
+        },
       child: Scaffold(
         body: IndexedStack(
         index: _currentIndex,
@@ -241,8 +247,10 @@ class _MainNavigationState extends State<MainNavigation> {
                   label: 'Profile',
                 ),
               ],
+            ),
+          ),
         ),
       ),
-    ));
+    );
   }
 }

@@ -11,6 +11,7 @@ import 'help_support_page.dart';
 import 'privacy_policy_page.dart';
 import 'saved_restaurants_page.dart';
 import 'savings_history_page.dart';
+import 'join_partner_page.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -152,10 +153,18 @@ class _ProfilePageState extends State<ProfilePage> {
                             return ClipOval(
                               child: profilePic.startsWith('assets/')
                                   ? Image.asset(profilePic, fit: BoxFit.cover)
-                                  : CachedNetworkImage(
-                                      imageUrl: profilePic,
-                                      fit: BoxFit.cover,
-                                    ),
+                                  : (profilePic.isNotEmpty
+                                      ? CachedNetworkImage(
+                                          imageUrl: profilePic,
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Center(
+                                          child: Icon(
+                                            Icons.person,
+                                            size: 40,
+                                            color: AppColors.textDisabled.withValues(alpha: 0.5),
+                                          ),
+                                        )),
                             );
                           },
                         ),
@@ -268,6 +277,19 @@ class _ProfilePageState extends State<ProfilePage> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => const HelpSupportPage(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _MenuTile(
+                      icon: Icons.storefront_outlined,
+                      title: 'Join as restaurant partner',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const JoinPartnerPage(),
                           ),
                         );
                       },

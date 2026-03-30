@@ -1324,18 +1324,23 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
             Positioned.fill(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: CachedNetworkImage(
-                  imageUrl: image.imageUrl,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    color: AppColors.cardBorder,
-                    child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    color: AppColors.cardBorder,
-                    child: const Icon(Icons.error_outline),
-                  ),
-                ),
+                child: image.imageUrl.isNotEmpty
+                    ? CachedNetworkImage(
+                        imageUrl: image.imageUrl,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          color: AppColors.cardBorder,
+                          child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: AppColors.cardBorder,
+                          child: const Icon(Icons.error_outline),
+                        ),
+                      )
+                    : Container(
+                        color: AppColors.cardBorder,
+                        child: const Icon(Icons.image_not_supported_outlined),
+                      ),
               ),
             ),
             if (type == 'gallery' && image.isPrimary)

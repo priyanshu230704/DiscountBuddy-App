@@ -628,8 +628,13 @@ class _NearbyPageState extends State<NearbyPage>
           ),
         );
       } else {
-        _userDotAnnotation!.geometry = _userLocation!;
-        await _pointManager!.update(_userDotAnnotation!);
+        try {
+          _userDotAnnotation!.geometry = _userLocation!;
+          await _pointManager!.update(_userDotAnnotation!);
+        } catch (e) {
+          // If the annotation was removed or lost on the native side
+          _userDotAnnotation = null;
+        }
       }
     }
 
@@ -638,7 +643,13 @@ class _NearbyPageState extends State<NearbyPage>
 
     for (final id in existingIds.difference(requiredIds)) {
       final ann = _restaurantPins[id];
-      if (ann != null) await _pointManager!.delete(ann);
+      if (ann != null) {
+        try {
+          await _pointManager!.delete(ann);
+        } catch (e) {
+          // Ignore if already deleted
+        }
+      }
       _restaurantPins.remove(id);
       _annotationIdToRestaurantId.removeWhere((key, value) => value == id);
     }
@@ -680,9 +691,13 @@ class _NearbyPageState extends State<NearbyPage>
       ann.iconSize = isSelected ? _pinSelectedIconSize : _pinNormalIconSize;
       ann.symbolSortKey = isSelected ? _selectedSortKey : _normalSortKey;
 
+    try {
       await _pointManager!.update(ann);
+    } catch (e) {
+      _restaurantPins.remove(r.id);
+      _annotationIdToRestaurantId.remove(ann.id);
     }
-  }
+  }}
 
   Future<void> _bounceSelectedMarker(String id) async {
     if (_pointManager == null) return;
@@ -696,25 +711,30 @@ class _NearbyPageState extends State<NearbyPage>
 
     _isMarkerAnimating = true;
 
-    ann.image = await _getMarkerBytes(dealText, true, true);
-    ann.iconSize = 1.55;
-    ann.symbolSortKey = _selectedSortKey;
-    await _pointManager!.update(ann);
-    await Future.delayed(const Duration(milliseconds: 120));
+    try {
+      ann.image = await _getMarkerBytes(dealText, true, true);
+      ann.iconSize = 1.55;
+      ann.symbolSortKey = _selectedSortKey;
+      await _pointManager!.update(ann);
+      await Future.delayed(const Duration(milliseconds: 120));
 
-    ann.image = await _getMarkerBytes(dealText, true, false);
-    ann.iconSize = _pinSelectedIconSize;
-    await _pointManager!.update(ann);
-    await Future.delayed(const Duration(milliseconds: 90));
+      ann.image = await _getMarkerBytes(dealText, true, false);
+      ann.iconSize = _pinSelectedIconSize;
+      await _pointManager!.update(ann);
+      await Future.delayed(const Duration(milliseconds: 90));
 
-    ann.image = await _getMarkerBytes(dealText, true, true);
-    ann.iconSize = 1.55;
-    await _pointManager!.update(ann);
-    await Future.delayed(const Duration(milliseconds: 85));
+      ann.image = await _getMarkerBytes(dealText, true, true);
+      ann.iconSize = 1.55;
+      await _pointManager!.update(ann);
+      await Future.delayed(const Duration(milliseconds: 85));
 
-    ann.image = await _getMarkerBytes(dealText, true, false);
-    ann.iconSize = _pinSelectedIconSize;
-    await _pointManager!.update(ann);
+      ann.image = await _getMarkerBytes(dealText, true, false);
+      ann.iconSize = _pinSelectedIconSize;
+      await _pointManager!.update(ann);
+    } catch (e) {
+      _restaurantPins.remove(id);
+      _annotationIdToRestaurantId.remove(ann.id);
+    }
 
     _isMarkerAnimating = false;
   }
@@ -731,11 +751,17 @@ class _NearbyPageState extends State<NearbyPage>
           minChildSize: 0.35,
           maxChildSize: 0.92,
           builder: (context, scrollController) {
-            return GenericBottomSheet(
-              title: "Restaurants in $_cityName",
-              onClose: () => Navigator.pop(context),
-              expandChild: true,
-              child: Column(
+            return Container(
+              decoration: const BoxDecoration(
+                gradient: AppColors.backgroundGradient,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+              ),
+              child: GenericBottomSheet(
+                title: "Restaurants in $_cityName",
+                onClose: () => Navigator.pop(context),
+                backgroundColor: Colors.transparent,
+                expandChild: true,
+                child: Column(
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 18),
@@ -862,12 +888,13 @@ class _NearbyPageState extends State<NearbyPage>
                   ),
                 ],
               ),
-            );
-          },
-        );
-      },
-    );
-  }
+            ),
+          );
+        },
+      );
+    },
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -897,6 +924,11 @@ class _NearbyPageState extends State<NearbyPage>
 
                     _pointManager = await _mapboxMap!.annotations
                         .createPointAnnotationManager();
+
+                    // RESET TRACKERS
+                    _userDotAnnotation = null;
+                    _restaurantPins.clear();
+                    _annotationIdToRestaurantId.clear();
 
                     await _ensureMarkerBytes();
                     await _syncPinsWithList();
@@ -1255,7 +1287,7 @@ class _NearbyPageState extends State<NearbyPage>
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppColors.surface.withValues(alpha: 0.98),
+          gradient: AppColors.backgroundGradient,
           borderRadius: AppRadius.xLarge,
           border: Border.all(color: AppColors.cardBorder),
           boxShadow: AppShadows.card,
@@ -1264,26 +1296,33 @@ class _NearbyPageState extends State<NearbyPage>
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(14),
-              child: CachedNetworkImage(
-                imageUrl: restaurant.imageUrl,
-                width: 90,
-                height: 90,
-                fit: BoxFit.cover,
-                placeholder: (_, _) => Container(
-                  width: 90,
-                  height: 90,
-                  color: Colors.grey.shade200,
-                  child: const Center(
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                ),
-                errorWidget: (_, _, _) => Container(
-                  width: 90,
-                  height: 90,
-                  color: Colors.grey.shade200,
-                  child: const Icon(Icons.restaurant),
-                ),
-              ),
+              child: restaurant.imageUrl.isNotEmpty
+                  ? CachedNetworkImage(
+                      imageUrl: restaurant.imageUrl,
+                      width: 90,
+                      height: 90,
+                      fit: BoxFit.cover,
+                      placeholder: (_, _) => Container(
+                        width: 90,
+                        height: 90,
+                        color: Colors.grey.shade200,
+                        child: const Center(
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                      errorWidget: (_, _, _) => Container(
+                        width: 90,
+                        height: 90,
+                        color: Colors.grey.shade200,
+                        child: const Icon(Icons.restaurant),
+                      ),
+                    )
+                  : Container(
+                      width: 90,
+                      height: 90,
+                      color: Colors.grey.shade200,
+                      child: const Icon(Icons.restaurant),
+                    ),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -1317,38 +1356,41 @@ class _NearbyPageState extends State<NearbyPage>
                     children: [
                       const Icon(
                         Icons.star,
-                        size: 18,
+                        size: 16,
                         color: AppColors.primaryPurple,
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 4),
                       Text(
-                        "${restaurant.rating.toStringAsFixed(1)} (${restaurant.reviewCount})",
-                        style: AppTypography.body.copyWith(
+                        "${restaurant.rating.toStringAsFixed(1)} (${restaurant.reviewCount} reviews)",
+                        style: AppTypography.bodySmall.copyWith(
                           fontWeight: FontWeight.w700,
                           color: Colors.black,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 8),
+                      const Text(
+                        "•",
+                        style: TextStyle(color: Colors.black26, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(width: 8),
                       Text(
-                        "${dist.toStringAsFixed(2)} miles",
+                        "${dist.toStringAsFixed(1)} miles",
                         style: AppTypography.bodySmall.copyWith(
                           fontWeight: FontWeight.w600,
                           color: Colors.black54,
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          restaurant.cuisine,
-                          style: AppTypography.bodySmall.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black54,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
                     ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "$_cityName • ${restaurant.cuisine}",
+                    style: AppTypography.bodySmall.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black54,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 10),
                   Wrap(

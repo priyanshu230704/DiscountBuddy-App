@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../design/app_colors.dart';
 
 class AppScaffold extends StatelessWidget {
@@ -25,20 +26,27 @@ class AppScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: backgroundColor == null ? AppColors.backgroundGradient : null,
-        color: backgroundColor,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
       ),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: appBar,
-        body: body,
-        bottomNavigationBar: bottomNavigationBar,
-        floatingActionButton: floatingActionButton,
-        floatingActionButtonLocation: floatingActionButtonLocation,
-        extendBodyBehindAppBar: extendBodyBehindAppBar,
-        resizeToAvoidBottomInset: resizeToAvoidBottomInset,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: backgroundColor == null ? AppColors.backgroundGradient : null,
+          color: backgroundColor,
+        ),
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: appBar,
+          body: body,
+          bottomNavigationBar: bottomNavigationBar,
+          floatingActionButton: floatingActionButton,
+          floatingActionButtonLocation: floatingActionButtonLocation,
+          extendBodyBehindAppBar: extendBodyBehindAppBar,
+          resizeToAvoidBottomInset: resizeToAvoidBottomInset,
+        ),
       ),
     );
   }

@@ -45,26 +45,39 @@ class RestaurantCard extends StatelessWidget {
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(_radius),
                     ),
-                    child: CachedNetworkImage(
-                      imageUrl: restaurant.imageUrl,
-                      height: 180,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        height: 180,
-                        color: AppColors.background,
-                        child: const Center(child: CircularProgressIndicator()),
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        height: 180,
-                        color: AppColors.background,
-                        child: Icon(
-                          Icons.restaurant,
-                          size: 48,
-                          color: AppColors.textDisabled,
-                        ),
-                      ),
-                    ),
+                    child: restaurant.imageUrl.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: restaurant.imageUrl,
+                            height: 180,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              height: 180,
+                              color: AppColors.background,
+                              child: const Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              height: 180,
+                              color: AppColors.background,
+                              child: Icon(
+                                Icons.restaurant,
+                                size: 48,
+                                color: AppColors.textDisabled,
+                              ),
+                            ),
+                          )
+                        : Container(
+                            height: 180,
+                            width: double.infinity,
+                            color: AppColors.background,
+                            child: Icon(
+                              Icons.restaurant,
+                              size: 48,
+                              color: AppColors.textDisabled,
+                            ),
+                          ),
                   ),
                   // Bookmark Icon
                   Positioned(
@@ -145,7 +158,7 @@ class RestaurantCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            '${restaurant.distance.toStringAsFixed(1)} km',
+                            '${(restaurant.distanceMiles ?? (restaurant.distance * 0.621371)).toStringAsFixed(1)} miles',
                             style: AppFonts.bodyStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w600,

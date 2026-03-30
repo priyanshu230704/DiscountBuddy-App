@@ -302,23 +302,30 @@ class _BrowsePageState extends State<BrowsePage> {
                             24,
                           ),
                         ),
-                        child: CachedNetworkImage(
-                          imageUrl: _filteredRestaurants[0].imageUrl,
-                          width: 120,
-                          height: 120,
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(
-                            width: 120,
-                            height: 120,
-                            color: Colors.grey[300],
-                          ),
-                          errorWidget: (context, url, error) => Container(
-                            width: 120,
-                            height: 120,
-                            color: Colors.grey[300],
-                            child: const Icon(Icons.restaurant),
-                          ),
-                        ),
+                        child: _filteredRestaurants[0].imageUrl.isNotEmpty
+                            ? CachedNetworkImage(
+                                imageUrl: _filteredRestaurants[0].imageUrl,
+                                width: 120,
+                                height: 120,
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => Container(
+                                  width: 120,
+                                  height: 120,
+                                  color: Colors.grey[300],
+                                ),
+                                errorWidget: (context, url, error) => Container(
+                                  width: 120,
+                                  height: 120,
+                                  color: Colors.grey[300],
+                                  child: const Icon(Icons.restaurant),
+                                ),
+                              )
+                            : Container(
+                                width: 120,
+                                height: 120,
+                                color: Colors.grey[300],
+                                child: const Icon(Icons.restaurant),
+                              ),
                       ),
                       // Info
                       Expanded(

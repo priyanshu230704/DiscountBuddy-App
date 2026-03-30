@@ -665,20 +665,25 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: CachedNetworkImage(
-                  imageUrl: image.imageUrl,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  height: double.infinity,
-                  placeholder: (context, url) => Container(
-                    color: AppColors.shimmer,
-                    child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                  ),
-                  errorWidget: (context, url, error) => Container(
-                    color: AppColors.shimmer,
-                    child: const Icon(Icons.error_outline, color: AppColors.error),
-                  ),
-                ),
+                child: image.imageUrl.isNotEmpty
+                    ? CachedNetworkImage(
+                        imageUrl: image.imageUrl,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                        placeholder: (context, url) => Container(
+                          color: AppColors.shimmer,
+                          child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: AppColors.shimmer,
+                          child: const Icon(Icons.error_outline, color: AppColors.error),
+                        ),
+                      )
+                    : Container(
+                        color: AppColors.shimmer,
+                        child: const Icon(Icons.image_not_supported_outlined, color: AppColors.textDisabled),
+                      ),
               ),
               Positioned(
                 top: 8,

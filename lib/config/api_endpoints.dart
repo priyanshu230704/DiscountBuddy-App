@@ -26,6 +26,7 @@ class ApiEndpoints {
   static const String searchRestaurants = '/restaurants/search';
   static const String homeData = '/restaurants/home';
   static const String dealUses = '/restaurants/deal-uses';
+  static const String partnerRequests = '/restaurants/partner-requests';
   static const String mysteryVisits = '/restaurants/mystery-visits';
 
   // Dynamic Routes

@@ -60,23 +60,36 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _initApp() async {
-    // Small delay to let animations start
-    await Future.delayed(const Duration(milliseconds: 500));
+    // Start timing the splash screen
+    final splashStartTime = DateTime.now();
 
-    // Check for updates
-    bool isUpdateBlocking = await _checkAppVersion();
+    // Start checking for updates in background with a timeout
+    final Future<bool> versionCheckFuture =
+        _checkAppVersion().timeout(const Duration(seconds: 5), onTimeout: () {
+      debugPrint('APP_VERSION_CHECK: Timed out after 5 seconds');
+      return false; // Don't block on timeout
+    });
+
+    // Let the animations run for at least some time
+    await Future.delayed(const Duration(milliseconds: 1200));
+
+    // Wait for version check if it's not done yet
+    final bool isUpdateBlocking = await versionCheckFuture;
 
     // If update check returned true (it means we should NOT proceed)
     if (isUpdateBlocking) return;
 
+    // Calculate how much more time we need to stay on splash
+    final elapsed = DateTime.now().difference(splashStartTime);
+    const minimumSplashDuration = Duration(milliseconds: 2500);
+
+    if (elapsed < minimumSplashDuration) {
+      await Future.delayed(minimumSplashDuration - elapsed);
+    }
+
     // Proceed if still mounted
     if (mounted) {
-      await Future.delayed(
-        const Duration(milliseconds: 1500),
-      ); // Minimum splash time
-      if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/onboarding-check');
-      }
+      Navigator.of(context).pushReplacementNamed('/onboarding-check');
     }
   }
 

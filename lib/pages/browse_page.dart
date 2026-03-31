@@ -12,7 +12,6 @@ import '../widgets/common_search_bar.dart';
 import '../widgets/border_gradient.dart';
 import 'restaurant_details_page.dart';
 import '../widgets/app_scaffold.dart';
-import '../components/app_app_bar.dart';
 
 /// Browse page with list and map view toggle
 class BrowsePage extends StatefulWidget {

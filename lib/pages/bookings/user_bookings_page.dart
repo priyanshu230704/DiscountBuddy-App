@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state_widget.dart';
-import '../../widgets/app_scaffold.dart';
 import '../../services/booking_service.dart';
 import '../../components/layout.dart';
 import '../../components/buttons.dart';

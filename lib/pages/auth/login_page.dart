@@ -208,19 +208,37 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
             
-            // Decorative Glow Bubbles (Mesh effect)
-            if (!isKeyboardOpen) ...[
-              Positioned(
-                top: -100,
-                right: -50,
-                child: _GlowBubble(size: 450, color: AppColors.primary.withValues(alpha: 0.35)),
+            // Decorative Glow Bubbles (Mesh effect - Animated)
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 1000),
+              curve: Curves.easeInOutBack,
+              top: isKeyboardOpen ? -150 : -100,
+              right: isKeyboardOpen ? -100 : -50,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 600),
+                opacity: isKeyboardOpen ? 0.6 : 1.0,
+                child: _GlowBubble(
+                  size: 450,
+                  color: AppColors.primary.withValues(alpha: 0.35),
+                  shimmer: true,
+                ),
               ),
-              Positioned(
-                bottom: -80,
-                left: -60,
-                child: _GlowBubble(size: 500, color: AppColors.secondary.withValues(alpha: 0.25)),
+            ),
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 1000),
+              curve: Curves.easeInOutBack,
+              bottom: isKeyboardOpen ? -150 : -80,
+              left: isKeyboardOpen ? -120 : -60,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 600),
+                opacity: isKeyboardOpen ? 0.4 : 1.0,
+                child: _GlowBubble(
+                  size: 500,
+                  color: AppColors.secondary.withValues(alpha: 0.25),
+                  shimmer: true,
+                ),
               ),
-            ],
+            ),
 
             // Sparkly Overlay (Subtle)
             Positioned.fill(
@@ -246,38 +264,45 @@ class _LoginPageState extends State<LoginPage> {
                   width: constraints.maxWidth,
                   child: Stack(
                     children: [
-                      // Floating 3D Icons
-                      if (!isKeyboardOpen) ...[
-                        Positioned(
-                          top: 240 * scale,
-                          left: -10 * scale,
-                          child: Opacity(
-                            opacity: 0.5,
-                            child: _AnimatedIcon(
-                              child: Image.asset('assets/png/sushi_icon.png', width: 64 * scale),
-                            ),
+                      // Floating 3D Icons (Animated & Smoother)
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 800),
+                        curve: Curves.easeOutCubic,
+                        top: isKeyboardOpen ? 180 * scale : 240 * scale,
+                        left: isKeyboardOpen ? -40 * scale : -10 * scale,
+                        child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 500),
+                          opacity: isKeyboardOpen ? 0.2 : 0.5,
+                          child: _AnimatedIcon(
+                            child: Image.asset('assets/png/sushi_icon.png', width: 64 * scale),
                           ),
                         ),
-                        Positioned(
-                          top: 340 * scale,
-                          right: -10 * scale,
-                          child: Opacity(
-                            opacity: 0.4,
-                            child: Image.asset('assets/png/burger_icon.png', width: 72 * scale),
+                      ),
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 800),
+                        curve: Curves.easeOutCubic,
+                        top: isKeyboardOpen ? 300 * scale : 340 * scale,
+                        right: isKeyboardOpen ? -40 * scale : -10 * scale,
+                        child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 500),
+                          opacity: isKeyboardOpen ? 0.15 : 0.4,
+                          child: Image.asset('assets/png/burger_icon.png', width: 72 * scale),
+                        ),
+                      ),
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 800),
+                        curve: Curves.easeOutCubic,
+                        top: isKeyboardOpen ? 120 * scale : 150 * scale,
+                        right: isKeyboardOpen ? 40 * scale : 20 * scale,
+                        child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 500),
+                          opacity: isKeyboardOpen ? 0.3 : 0.6,
+                          child: Transform.rotate(
+                            angle: -0.2,
+                            child: Image.asset('assets/png/discount_tag_icon.png', width: 48 * scale),
                           ),
                         ),
-                        Positioned(
-                          top: 150 * scale,
-                          right: 20 * scale,
-                          child: Opacity(
-                            opacity: 0.6,
-                            child: Transform.rotate(
-                              angle: -0.2,
-                              child: Image.asset('assets/png/discount_tag_icon.png', width: 48 * scale),
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                       
                       SafeArea(
                         key:  ValueKey('login_safe_area'),
@@ -763,26 +788,78 @@ class _AnimatedIcon extends StatelessWidget {
   }
 }
 
-class _GlowBubble extends StatelessWidget {
-  const _GlowBubble({required this.size, required this.color});
+class _GlowBubble extends StatefulWidget {
+  const _GlowBubble({
+    required this.size, 
+    required this.color,
+    this.shimmer = false,
+  });
 
   final double size;
   final Color color;
+  final bool shimmer;
+
+  @override
+  State<_GlowBubble> createState() => _GlowBubbleState();
+}
+
+class _GlowBubbleState extends State<_GlowBubble> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+  late Animation<Offset> _driftAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(seconds: 8),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine),
+    );
+
+    _driftAnimation = Tween<Offset>(
+      begin: const Offset(-20, -20),
+      end: const Offset(20, 20),
+    ).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [
-              color,
-              color.withValues(alpha: 0.3),
-              Colors.transparent,
-            ],
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: _driftAnimation.value,
+          child: Transform.scale(
+            scale: _scaleAnimation.value,
+            child: child,
+          ),
+        );
+      },
+      child: IgnorePointer(
+        child: Container(
+          width: widget.size,
+          height: widget.size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: [
+                widget.color,
+                widget.color.withValues(alpha: 0.3),
+                Colors.transparent,
+              ],
+            ),
           ),
         ),
       ),

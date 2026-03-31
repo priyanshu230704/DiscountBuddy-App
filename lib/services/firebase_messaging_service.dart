@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'notification_service.dart';
 import 'auth_service.dart';
 import '../utils/navigator_key.dart';
-import 'package:flutter/material.dart';
 
 /// Service to handle Firebase Cloud Messaging
 class FirebaseMessagingService {

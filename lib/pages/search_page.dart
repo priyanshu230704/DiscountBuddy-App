@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import '../models/restaurant.dart';
 import '../services/restaurant_service.dart';
-import 'package:discount_buddy/components/layout.dart' hide LoadingWidget;
 import '../widgets/restaurant_card.dart';
 import 'restaurant_details_page.dart';
 import '../widgets/app_scaffold.dart';

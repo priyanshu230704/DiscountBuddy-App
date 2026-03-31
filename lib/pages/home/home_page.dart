@@ -14,7 +14,6 @@ import '../../providers/auth_provider.dart';
 import '../restaurant_details_page.dart';
 import '../notifications_page.dart';
 import '../../widgets/city_selector_modal.dart';
-import '../../design/app_typography.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/app_gradient_button.dart';
 

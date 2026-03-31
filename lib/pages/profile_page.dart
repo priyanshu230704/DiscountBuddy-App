@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import '../widgets/app_scaffold.dart';
-import '../widgets/app_gradient_button.dart';
 import '../providers/auth_provider.dart';
 import '../services/wallet_service.dart';
 import '../services/restaurant_service.dart';
@@ -12,7 +11,6 @@ import 'privacy_policy_page.dart';
 import 'saved_restaurants_page.dart';
 import 'savings_history_page.dart';
 import 'join_partner_page.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../config/environment.dart';
 

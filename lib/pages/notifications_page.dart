@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import 'package:intl/intl.dart';
-import '../../components/layout.dart';
 import '../../models/notification.dart';
 import '../../services/notification_service.dart';
 import '../widgets/app_scaffold.dart';

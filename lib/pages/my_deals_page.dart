@@ -5,7 +5,7 @@ import '../services/restaurant_service.dart';
 import '../widgets/app_scaffold.dart';
 import '../components/app_app_bar.dart';
 import '../widgets/loading_widget.dart';
-import 'package:discount_buddy/components/layout.dart' hide LoadingWidget;
+import 'package:discount_buddy/components/layout.dart';
 
 class MyDealsPage extends StatefulWidget {
   const MyDealsPage({super.key});

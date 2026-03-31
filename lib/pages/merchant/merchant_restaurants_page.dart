@@ -4,7 +4,6 @@ import '../../services/merchant_service.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../widgets/app_scaffold.dart';
-import '../../widgets/app_gradient_button.dart';
 import '../../components/layout.dart';
 import '../../components/app_app_bar.dart';
 import 'add_restaurant_page.dart';

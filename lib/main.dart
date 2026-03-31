@@ -33,34 +33,39 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Load environment variables from .env file
-  await dotenv.load(fileName: ".env");
+  // Initialize essential services in parallel
+  final List<Future> initializations = [
+    dotenv.load(fileName: ".env"),
+    Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),
+  ];
 
-  // Initialize Firebase
   try {
-    debugPrint('Initializing Firebase...');
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    debugPrint('Firebase initialized successfully');
+    debugPrint('🚀 Starting initializations...');
+    await Future.wait(initializations);
+    debugPrint('✅ Essential services initialized');
   } catch (e) {
-    debugPrint('❌ Firebase initialization failed: $e');
-    debugPrint(
-      'Please ensure you have added google-services.json (Android) or GoogleService-Info.plist (iOS)',
-    );
+    debugPrint('⚠️ Initial initialization error: $e');
   }
 
-  // Set up background message handler
+  // Set up background message handler immediately if Firebase is initialized
   if (Firebase.apps.isNotEmpty) {
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   }
 
   // Lock app to portrait orientation
-  await SystemChrome.setPreferredOrientations([
+  SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
+  // Non-blocking initializations
+  _runBackgroundInitializations();
+
+  runApp(const DiscountBuddyApp());
+}
+
+/// Run non-critical initializations in background to not block app startup
+Future<void> _runBackgroundInitializations() async {
   // Initialize auth service to load stored tokens
   await AuthService().initializeAuth();
 
@@ -68,18 +73,15 @@ void main() async {
   if (Firebase.apps.isNotEmpty) {
     try {
       final firebaseService = FirebaseMessagingService();
-      await firebaseService.initialize();
+      // We don't await this here to let the app finish starting
+      // but we do start it.
+      firebaseService.initialize();
     } catch (e) {
       debugPrint('❌ Error initializing Firebase Messaging: $e');
     }
-  } else {
-    debugPrint(
-      '⚠️ Skipping Firebase Messaging initialization as Firebase is not initialized',
-    );
   }
 
   MapboxOptions.setAccessToken(Environment.mapboxAccessToken);
-  runApp(const DiscountBuddyApp());
 }
 
 class DiscountBuddyApp extends StatefulWidget {

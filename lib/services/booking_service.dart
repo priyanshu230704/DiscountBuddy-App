@@ -64,7 +64,41 @@ class BookingService {
     return [];
   }
 
-  /// Cancel a booking (User)
+  /// Update a booking (User) - PATCH
+  Future<Map<String, dynamic>> updateBooking({
+    required int bookingId,
+    DateTime? bookingDate,
+    int? numberOfGuests,
+    String? specialRequests,
+    String? contactName,
+    String? contactPhone,
+  }) async {
+    await _ensureAuthenticated();
+
+    final data = <String, dynamic>{};
+    if (bookingDate != null) data['booking_date'] = bookingDate.toIso8601String();
+    if (numberOfGuests != null) data['number_of_guests'] = numberOfGuests;
+    if (specialRequests != null) data['special_requests'] = specialRequests;
+    if (contactName != null) data['contact_name'] = contactName;
+    if (contactPhone != null) data['contact_phone'] = contactPhone;
+
+    return await _apiService.patch(
+      ApiEndpoints.bookingDetail(bookingId),
+      body: data,
+      type: ApiType.user,
+    );
+  }
+
+  /// Delete a booking (User) - DELETE
+  Future<void> deleteBooking(int bookingId) async {
+    await _ensureAuthenticated();
+    await _apiService.delete(
+      ApiEndpoints.bookingDetail(bookingId),
+      type: ApiType.user,
+    );
+  }
+
+  /// Cancel a booking (User) - POST (Legacy/Alternative)
   Future<void> cancelBooking(int bookingId) async {
     await _ensureAuthenticated();
     await _apiService.post(

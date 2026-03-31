@@ -83,6 +83,42 @@ class RestaurantService {
     }
   }
 
+  /// Update an existing booking (User) - PATCH
+  Future<Booking> updateBooking({
+    required int bookingId,
+    DateTime? bookingDate,
+    int? numberOfGuests,
+    String? specialRequests,
+    String? contactName,
+    String? contactPhone,
+  }) async {
+    try {
+      final body = <String, dynamic>{};
+      if (bookingDate != null) body['booking_date'] = bookingDate.toIso8601String();
+      if (numberOfGuests != null) body['number_of_guests'] = numberOfGuests;
+      if (specialRequests != null) body['special_requests'] = specialRequests;
+      if (contactName != null) body['contact_name'] = contactName;
+      if (contactPhone != null) body['contact_phone'] = contactPhone;
+
+      final response = await _apiService.patch(
+        ApiEndpoints.bookingDetail(bookingId),
+        body: body,
+      );
+      return Booking.fromJson(response);
+    } catch (e) {
+      throw Exception('Failed to update booking: ${e.toString()}');
+    }
+  }
+
+  /// Delete a booking (User) - DELETE
+  Future<void> deleteBooking(int bookingId) async {
+    try {
+      await _apiService.delete(ApiEndpoints.bookingDetail(bookingId));
+    } catch (e) {
+      throw Exception('Failed to delete booking: ${e.toString()}');
+    }
+  }
+
   /// Get user's bookings
   Future<List<Booking>> getUserBookings({String? status}) async {
     try {

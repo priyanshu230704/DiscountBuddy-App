@@ -62,8 +62,14 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
       final bookings = await _merchantService.getMerchantBookings(
         restaurantId: _selectedRestaurantId,
       );
-      // Sort by date desc
+      // Sort: Pending first, then by date desc
       bookings.sort((a, b) {
+        final statusA = (a['status'] ?? '').toString().toLowerCase();
+        final statusB = (b['status'] ?? '').toString().toLowerCase();
+        
+        if (statusA == 'pending' && statusB != 'pending') return -1;
+        if (statusA != 'pending' && statusB == 'pending') return 1;
+
         final dateA = DateTime.tryParse(a['booking_date'] ?? '') ?? DateTime(0);
         final dateB = DateTime.tryParse(b['booking_date'] ?? '') ?? DateTime(0);
         return dateB.compareTo(dateA);
@@ -443,7 +449,12 @@ class _BookingCard extends StatelessWidget {
                       child: Material(
                         color: Colors.transparent,
                         child: InkWell(
-                          onTap: () => onReview(booking['id'], 'cancelled'),
+                          onTap: () {
+                            final id = (booking['booking_id'] ?? booking['id']);
+                            if (id != null) {
+                              onReview(id as int, 'cancelled');
+                            }
+                          },
                           borderRadius: const BorderRadius.only(
                             bottomLeft: Radius.circular(24),
                           ),
@@ -477,7 +488,12 @@ class _BookingCard extends StatelessWidget {
                       child: Material(
                         color: Colors.transparent,
                         child: InkWell(
-                          onTap: () => onReview(booking['id'], 'confirmed'),
+                          onTap: () {
+                            final id = (booking['booking_id'] ?? booking['id']);
+                            if (id != null) {
+                              onReview(id as int, 'confirmed');
+                            }
+                          },
                           borderRadius: const BorderRadius.only(
                             bottomRight: Radius.circular(24),
                           ),

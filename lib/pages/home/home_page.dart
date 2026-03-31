@@ -1388,51 +1388,52 @@ class _FeedTile extends StatelessWidget {
                   // Right Side: Distance and Reserve Button
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const Icon(Icons.location_on_rounded,
-                              color: Color(0xFF8B5CF6), size: 12),
-                          const SizedBox(width: 3),
+                              color: Color(0xFF8B5CF6), size: 13),
+                          const SizedBox(width: 4),
                           Text(
                             '${dist.toStringAsFixed(1)} mi',
                             style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF6B7280),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF4B5563),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 12),
                       AppGradientButton(
                         onPressed: () {
-                          final slug = restaurant.slug ?? restaurant.id;
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => RestaurantDetailsPage(
-                                slug: slug,
+                                slug: restaurant.id,
                                 latitude: userLat,
                                 longitude: userLon,
                               ),
                             ),
                           );
                         },
-                        height: 32,
-                        borderRadius: BorderRadius.circular(10),
+                        height: 36,
+                        width: 92,
+                        borderRadius: BorderRadius.circular(12),
                         child: const Row(
-                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.calendar_month_rounded,
-                                color: Colors.white, size: 12),
-                            SizedBox(width: 4),
+                            Icon(Icons.calendar_today_rounded,
+                                color: Colors.white, size: 13),
+                            SizedBox(width: 6),
                             Text(
                               'Reserve',
                               style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
                                 color: Colors.white,
                                 letterSpacing: 0.2,
                               ),

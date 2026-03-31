@@ -14,6 +14,7 @@ import 'savings_history_page.dart';
 import 'join_partner_page.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../config/environment.dart';
 
 /// Profile Screen - NeoTaste style
 class ProfilePage extends StatefulWidget {
@@ -92,7 +93,8 @@ class _ProfilePageState extends State<ProfilePage> {
     return AppScaffold(
         body: SafeArea(
         bottom: false,
-        child: Column(
+        child: SingleChildScrollView(
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
@@ -155,7 +157,9 @@ class _ProfilePageState extends State<ProfilePage> {
                                   ? Image.asset(profilePic, fit: BoxFit.cover)
                                   : (profilePic.isNotEmpty
                                       ? CachedNetworkImage(
-                                          imageUrl: profilePic,
+                                          imageUrl: profilePic.startsWith('http') 
+                                              ? profilePic 
+                                              : '${Environment.baseUrl}$profilePic',
                                           fit: BoxFit.cover,
                                         )
                                       : Center(
@@ -328,7 +332,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   ],
                 ),
               ),
-              const Spacer(),
+              const SizedBox(height: AppSpacing.xxl),
               Center(
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.xl),
@@ -345,6 +349,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ],
           ),
         ),
+      ),
     );
   }
 

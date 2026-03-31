@@ -16,6 +16,8 @@ import 'package:discount_buddy/widgets/app_scaffold.dart';
 import 'package:discount_buddy/widgets/app_gradient_button.dart';
 import 'package:discount_buddy/design/app_radius.dart';
 import 'package:discount_buddy/design/app_shadows.dart';
+import 'dart:async';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import '../widgets/generic_bottom_sheet.dart';
@@ -62,6 +64,12 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
   ui.Image? _appLogoImage;
   Uint8List? _pinNormalBytes;
 
+  // Carousel
+  final PageController _imagePageController = PageController();
+  Timer? _carouselTimer;
+  int _currentImageIndex = 0;
+  bool _isUserInteracting = false;
+
   @override
   void initState() {
     super.initState();
@@ -86,8 +94,37 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
   @override
   void dispose() {
     _authProvider.removeListener(_onAuthStateChanged);
+    _carouselTimer?.cancel();
+    _imagePageController.dispose();
     // Mapbox map doesn't need manual dispose for the controller here
     super.dispose();
+  }
+
+  void _startCarouselTimer() {
+    _carouselTimer?.cancel();
+    // Do not start if user is interacting
+    if (_isUserInteracting) return;
+
+    final images = _restaurantDetail?.restaurant.restaurantImages
+        .where((img) => img.imageType == 'gallery')
+        .toList();
+    
+    // Safety check - need at least 2 images to carousel
+    if (images == null || images.length <= 1) return;
+
+    _carouselTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
+      if (!mounted) return;
+      if (_isUserInteracting) return; // Guard during periodic fire
+      
+      if (_imagePageController.hasClients) {
+        _currentImageIndex = (_currentImageIndex + 1) % images.length;
+        _imagePageController.animateToPage(
+          _currentImageIndex,
+          duration: const Duration(milliseconds: 600),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
   }
 
   void _onAuthStateChanged() {
@@ -228,6 +265,8 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
         _isLoading = false;
       });
 
+      _startCarouselTimer();
+
       // Check for mystery visit if user is a mystery guest
       if (_isMysteryGuest) {
         debugPrint('DEBUG: User is mystery guest, checking visits...');
@@ -331,11 +370,47 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     return 'Open until 22:00';
   }
 
-  // Get price range from restaurant data
-  String _getPriceRange(Restaurant restaurant) {
-    final priceRange = restaurant.priceRange ?? 2;
-    // Convert price range (1-4) to £ symbols
-    return '£' * priceRange;
+  // Get price range widget
+  Widget _buildPriceIndicator(Restaurant restaurant) {
+    final value = restaurant.priceRange ?? 2;
+    final labels = {
+      1: 'Budget',
+      2: 'Moderate',
+      3: 'Mid-range',
+      4: 'Premium',
+    };
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: List.generate(4, (index) {
+            final isActive = index < value;
+            return Text(
+              '£',
+              style: AppFonts.bodyStyle(
+                fontSize: 14,
+                height: 1,
+                fontWeight: isActive ? FontWeight.w900 : FontWeight.w400,
+                color: isActive
+                    ? AppColors.textPrimary
+                    : AppColors.textDisabled.withValues(alpha: 0.4),
+              ),
+            );
+          }),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          labels[value] ?? 'Moderate',
+          style: AppFonts.bodyStyle(
+            fontSize: 14,
+            color: AppColors.textSecondary,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
   }
 
   // Toggle favorite status
@@ -503,23 +578,106 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    restaurant.imageUrl.isNotEmpty
-                        ? CachedNetworkImage(
-                            imageUrl: restaurant.imageUrl,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => Container(
-                              color: AppColors.textDisabled,
-                              child: const Center(child: CircularProgressIndicator()),
-                            ),
-                            errorWidget: (context, url, error) => Container(
-                              color: AppColors.textDisabled,
-                              child: const Icon(Icons.restaurant, size: 64),
-                            ),
-                          )
-                        : Container(
+                    (() {
+                      final images = restaurant.restaurantImages
+                          .where((img) => img.imageType == 'gallery')
+                          .toList();
+
+                      if (images.isEmpty && restaurant.imageUrl.isEmpty) {
+                        return Container(
+                          color: AppColors.textDisabled,
+                          child: const Icon(Icons.restaurant, size: 64),
+                        );
+                      }
+
+                      // If we have restaurantImages, use PageView. Otherwise just the fallback imageUrl.
+                      if (images.isNotEmpty) {
+                        return NotificationListener<ScrollNotification>(
+                          onNotification: (notification) {
+                            if (notification is ScrollStartNotification) {
+                              _isUserInteracting = true;
+                              _carouselTimer?.cancel();
+                            } else if (notification is ScrollEndNotification) {
+                              _isUserInteracting = false;
+                              _startCarouselTimer();
+                            }
+                            return false;
+                          },
+                          child: PageView.builder(
+                            controller: _imagePageController,
+                            itemCount: images.length,
+                            onPageChanged: (index) {
+                              setState(() {
+                                _currentImageIndex = index;
+                              });
+                            },
+                            itemBuilder: (context, index) {
+                              return CachedNetworkImage(
+                                imageUrl: images[index].imageUrl,
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => Container(
+                                  color: AppColors.textDisabled,
+                                  child: const Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                ),
+                                errorWidget: (context, url, error) => Container(
+                                  color: AppColors.textDisabled,
+                                  child: const Icon(Icons.restaurant, size: 64),
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      } else {
+                        // Fallback to primary imageUrl if available
+                        return CachedNetworkImage(
+                          imageUrl: restaurant.imageUrl,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            color: AppColors.textDisabled,
+                            child: const Center(child: CircularProgressIndicator()),
+                          ),
+                          errorWidget: (context, url, error) => Container(
                             color: AppColors.textDisabled,
                             child: const Icon(Icons.restaurant, size: 64),
                           ),
+                        );
+                      }
+                    })(),
+
+                    // Carousel Indicators (Dots)
+                    (() {
+                      final imagesCount = restaurant.restaurantImages
+                          .where((img) => img.imageType == 'gallery')
+                          .length;
+                      if (imagesCount <= 1) return const SizedBox.shrink();
+
+                      return Positioned(
+                        bottom: 40,
+                        left: 0,
+                        right: 0,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(imagesCount, (index) {
+                            final isActive = _currentImageIndex == index;
+                            return AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              width: isActive ? 20 : 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: isActive
+                                    ? Colors.white
+                                    : Colors.white.withValues(alpha: 0.5),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            );
+                          }),
+                        ),
+                      );
+                    })(),
+
                     // White gradient fade at bottom
                     Positioned(
                       bottom: 0,
@@ -609,54 +767,6 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                       ),
                     ),
                   ],
-                  const SizedBox(height: 16),
-                  // Contact quick info
-                  if (restaurant.phoneNumber.isNotEmpty || (restaurant.email != null && restaurant.email!.isNotEmpty))
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppColors.background,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.cardBorder),
-                      ),
-                      child: Row(
-                        children: [
-                          if (restaurant.phoneNumber.isNotEmpty)
-                            Expanded(
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.phone_outlined, size: 16, color: AppColors.primary),
-                                  const SizedBox(width: 8),
-                                  Flexible(
-                                    child: Text(
-                                      restaurant.phoneNumber,
-                                      style: AppFonts.bodyStyle(fontSize: 13, fontWeight: FontWeight.w500),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          if (restaurant.email != null && restaurant.email!.isNotEmpty)
-                            Expanded(
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.email_outlined, size: 16, color: AppColors.primary),
-                                  const SizedBox(width: 8),
-                                  Flexible(
-                                    child: Text(
-                                      restaurant.email!,
-                                      style: AppFonts.bodyStyle(fontSize: 13, fontWeight: FontWeight.w500),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  const SizedBox(height: 16),
                   const SizedBox(height: 12),
                   // Details Rows
                   Column(
@@ -700,15 +810,16 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                       // Row 2: Price and Timing
                       Row(
                         children: [
-                          Text(
-                            _getPriceRange(restaurant),
-                            style: AppFonts.bodyStyle(
-                              fontSize: 14,
-                              color: AppColors.textPrimary,
-                            ),
+                          _buildPriceIndicator(restaurant),
+                          const SizedBox(width: 12),
+                          const Icon(
+                            Icons.circle,
+                            size: 4,
+                            color: AppColors.textDisabled,
                           ),
+                          const SizedBox(width: 12),
                           Text(
-                            ' ${_getOpeningHours(restaurant)}',
+                            _getOpeningHours(restaurant),
                             style: AppFonts.bodyStyle(
                               fontSize: 14,
                               color: AppColors.textPrimary,
@@ -797,13 +908,18 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                               final dealText = restaurant.discount.displayText;
                               final dealDesc = restaurant.discount.description;
                               final appLink = 'https://discountbuddy.app/deal/${restaurant.id}';
+                              const appStoreLink = 'https://apps.apple.com/in/app/discount-buddy-deals/id6760362068';
+                              const playStoreLink = 'https://play.google.com/store/apps/details?id=com.discountbuddy.app';
                               
                               final message =
                                   '🔥 Check out this amazing deal at ${restaurant.name}!\n\n'
                                   '✨ $dealText\n'
                                   '📝 $dealDesc\n\n'
                                   '📍 ${restaurant.address}\n\n'
-                                  '📲 View this deal on Discount Buddy:\n$appLink';
+                                  '📲 View this deal on Discount Buddy:\n$appLink\n\n'
+                                  'Download the App:\n'
+                                  '🍎 iOS: $appStoreLink\n'
+                                  '🤖 Android: $playStoreLink';
                               
                               // ignore: deprecated_member_use
                               Share.share(message);
@@ -893,22 +1009,17 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _showMysteryAuditModal,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: Text(
-                            _activeVisit!.status == 'assigned'
-                                ? 'Start Audit'
-                                : 'Continue Audit',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
+                      AppGradientButton(
+                        onPressed: _showMysteryAuditModal,
+                        height: 48,
+                        borderRadius: BorderRadius.circular(10),
+                        child: Text(
+                          _activeVisit!.status == 'assigned'
+                              ? 'Start Audit'
+                              : 'Continue Audit',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
                       ),
@@ -1111,12 +1222,22 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         ),
                       ),
                       if (!restaurant.hasUserReviewed)
-                        TextButton.icon(
-                          onPressed: _showAddReviewDialog,
-                          icon: const Icon(Icons.edit, size: 16),
-                          label: const Text('Write a review'),
-                          style: TextButton.styleFrom(
-                            foregroundColor: AppColors.primary,
+                        GestureDetector(
+                          onTap: _showAddReviewDialog,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.edit, size: 14, color: AppColors.primary),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Write a review',
+                                style: AppFonts.bodyStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                     ],
@@ -1248,24 +1369,29 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     if (restaurant.phoneNumber.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 12),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.phone,
-                              color: AppColors.textPrimary,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                restaurant.phoneNumber,
-                                style: AppFonts.bodyStyle(
-                                  fontSize: 14,
-                                  color: AppColors.textPrimary,
+                        child: InkWell(
+                          onTap: () {
+                            launchUrl(Uri.parse('tel:${restaurant.phoneNumber}'));
+                          },
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.phone,
+                                color: AppColors.textPrimary,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  restaurant.phoneNumber,
+                                  style: AppFonts.bodyStyle(
+                                    fontSize: 14,
+                                    color: AppColors.textPrimary,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     // Email
@@ -1273,54 +1399,58 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         restaurant.email!.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 12),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.email,
-                              color: AppColors.textPrimary,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                restaurant.email!,
-                                style: AppFonts.bodyStyle(
-                                  fontSize: 14,
-                                  color: AppColors.textPrimary,
+                        child: InkWell(
+                          onTap: () {
+                            launchUrl(Uri.parse('mailto:${restaurant.email!}'));
+                          },
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.email,
+                                color: AppColors.textPrimary,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  restaurant.email!,
+                                  style: AppFonts.bodyStyle(
+                                    fontSize: 14,
+                                    color: AppColors.textPrimary,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     // Website
                     if (restaurant.website.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 12),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.language,
-                              color: AppColors.textPrimary,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: () {
-                                  // Open website URL
-                                },
+                        child: InkWell(
+                          onTap: () {
+                            launchUrl(Uri.parse(restaurant.website));
+                          },
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.language,
+                                color: AppColors.textPrimary,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
                                 child: Text(
                                   restaurant.website,
                                   style: AppFonts.bodyStyle(
                                     fontSize: 14,
-                                    color: Colors.blue,
-                                    decoration: TextDecoration.underline,
+                                    color: AppColors.textPrimary,
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     const SizedBox(height: 8),
@@ -1691,36 +1821,78 @@ class _OfferCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(14),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppColors.primaryPurple.withValues(alpha: 0.12),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryPurple.withValues(alpha: 0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Title and Info Icon
+          // Header Row with Badge
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Text(
-                  _getOfferTitle(),
-                  style: AppFonts.bodyStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  gradient: AppColors.purpleGradient,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.local_offer, color: Colors.white, size: 12),
+                    const SizedBox(width: 5),
+                    Text(
+                      'DEAL',
+                      style: AppFonts.bodyStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: 1.1,
+                      ),
+                    ),
+                  ],
                 ),
               ),
+              // const Icon(
+              //   Icons.arrow_forward_ios,
+              //   size: 14,
+              //   color: AppColors.textDisabled,
+              // ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
+          // Title
+          Text(
+            _getOfferTitle(),
+            style: AppFonts.bodyStyle(
+              fontSize: 19,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textDarkest,
+              letterSpacing: -0.4,
+            ),
+          ),
+          const SizedBox(height: 8),
           // Description
           Text(
             discount.description,
             style: AppFonts.bodyStyle(
               fontSize: 14,
-              color: AppColors.textPrimary,
+              color: AppColors.textSecondary,
+              height: 1.5,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -2264,15 +2436,11 @@ class _AddReviewDialogState extends State<_AddReviewDialog> {
           onPressed: _isSubmitting ? null : () => Navigator.pop(context),
           child: Text('Cancel', style: AppFonts.bodyStyle(color: Colors.grey)),
         ),
-        ElevatedButton(
+        AppGradientButton(
           onPressed: _isSubmitting ? null : _handleSubmit,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primaryPurple,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
+          height: 44,
+          width: 100,
+          borderRadius: BorderRadius.circular(10),
           child: _isSubmitting
               ? const SizedBox(
                   width: 20,
@@ -2282,7 +2450,13 @@ class _AddReviewDialogState extends State<_AddReviewDialog> {
                     color: Colors.white,
                   ),
                 )
-              : Text('Submit', style: AppFonts.bodyStyle()),
+              : Text(
+                  'Submit',
+                  style: AppFonts.bodyStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
         ),
       ],
     );

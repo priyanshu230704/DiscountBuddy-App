@@ -75,12 +75,12 @@ class _NearbyPageState extends State<NearbyPage>
   bool _isUserMovingMap = false;
   bool _isMapReady = false;
 
-  static const int _pinNormalSize = 250;
-  static const int _pinSelectedSize = 310;
-  static const int _pinPopSize = 380;
+  static const int _pinNormalSize = 500;
+  static const int _pinSelectedSize = 620;
+  static const int _pinPopSize = 750;
 
-  static const double _pinNormalIconSize = 1.25;
-  static const double _pinSelectedIconSize = 1.35;
+  static const double _pinNormalIconSize = 0.62;
+  static const double _pinSelectedIconSize = 0.70;
 
   static const double _normalSortKey = 1;
   static const double _selectedSortKey = 9999;
@@ -234,6 +234,8 @@ class _NearbyPageState extends State<NearbyPage>
     try {
       final list = await _restaurantService.getRestaurants(
         cityId: _selectedCityId,
+        latitude: _userLocation?.coordinates.lat.toDouble(),
+        longitude: _userLocation?.coordinates.lng.toDouble(),
       );
 
       if (!mounted) return;
@@ -426,7 +428,7 @@ class _NearbyPageState extends State<NearbyPage>
     final canvas = Canvas(recorder);
 
     final double s = size.toDouble();
-    final Offset centerPoint = Offset(s / 2, s / 2); // The exact map point
+    final Offset centerPoint = Offset(s / 2, s * 0.85); // Tip sitting in lower part for headroom
 
     final TextSpan span = TextSpan(
       text: dealText,
@@ -510,53 +512,56 @@ class _NearbyPageState extends State<NearbyPage>
       ..color = selected ? Colors.white : AppColors.primaryPurple;
     canvas.drawCircle(topCenter, topRadius * 0.4, innerCirclePaint);
 
-    final Rect pillRect = Rect.fromCenter(
-      center: Offset(topCenter.dx, topCenter.dy - topRadius - pillHeight / 2 - s * 0.02),
-      width: pillWidth,
-      height: pillHeight,
-    );
+    // Only draw the bubble/pill if there is a deal text to show
+    if (dealText.isNotEmpty) {
+      final Rect pillRect = Rect.fromCenter(
+        center: Offset(topCenter.dx, topCenter.dy - topRadius - pillHeight / 2 - s * 0.02),
+        width: pillWidth,
+        height: pillHeight,
+      );
 
-    final Gradient pillGradient = const LinearGradient(
-      colors: [
-        Color(0xFF8B5CF6),
-        Color(0xFFC026D3),
-      ],
-      begin: Alignment.centerLeft,
-      end: Alignment.centerRight,
-    );
+      final Gradient pillGradient = const LinearGradient(
+        colors: [
+          Color(0xFF8B5CF6),
+          Color(0xFFC026D3),
+        ],
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
+      );
 
-    final Paint pillPaint = Paint()
-      ..shader = pillGradient.createShader(pillRect);
+      final Paint pillPaint = Paint()
+        ..shader = pillGradient.createShader(pillRect);
 
-    final pillShadowPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.2)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(pillRect.translate(0, 4), Radius.circular(pillHeight / 2)),
-      pillShadowPaint,
-    );
+      final pillShadowPaint = Paint()
+        ..color = Colors.black.withValues(alpha: 0.2)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(pillRect.translate(0, 4), Radius.circular(pillHeight / 2)),
+        pillShadowPaint,
+      );
 
-    final fillPointerPath = Path();
-    fillPointerPath.moveTo(topCenter.dx - s * 0.04, pillRect.bottom - 1);
-    fillPointerPath.lineTo(topCenter.dx + s * 0.04, pillRect.bottom - 1);
-    fillPointerPath.lineTo(topCenter.dx, pillRect.bottom + s * 0.04);
-    fillPointerPath.close();
-    
-    final Paint pointerPaint = Paint()..shader = pillGradient.createShader(pillRect);
-    canvas.drawPath(fillPointerPath, pointerPaint);
-    
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(pillRect, Radius.circular(pillHeight / 2)),
-      pillPaint,
-    );
+      final fillPointerPath = Path();
+      fillPointerPath.moveTo(topCenter.dx - s * 0.04, pillRect.bottom - 1);
+      fillPointerPath.lineTo(topCenter.dx + s * 0.04, pillRect.bottom - 1);
+      fillPointerPath.lineTo(topCenter.dx, pillRect.bottom + s * 0.04);
+      fillPointerPath.close();
+      
+      final Paint pointerPaint = Paint()..shader = pillGradient.createShader(pillRect);
+      canvas.drawPath(fillPointerPath, pointerPaint);
+      
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(pillRect, Radius.circular(pillHeight / 2)),
+        pillPaint,
+      );
 
-    tp.paint(
-      canvas,
-      Offset(
-        pillRect.left + paddingHorizontal,
-        pillRect.top + paddingVertical,
-      ),
-    );
+      tp.paint(
+        canvas,
+        Offset(
+          pillRect.left + paddingHorizontal,
+          pillRect.top + paddingVertical,
+        ),
+      );
+    }
 
     final picture = recorder.endRecording();
     final img = await picture.toImage(size, size);
@@ -658,7 +663,9 @@ class _NearbyPageState extends State<NearbyPage>
       if (_restaurantPins.containsKey(r.id)) continue;
 
       final bool isSelected = r.id == _selectedRestaurantId;
-      final dealText = r.discount.displayText;
+      final dealText = r.activeDeals.isNotEmpty && r.activeDeals.first.title != null && r.activeDeals.first.title!.isNotEmpty
+          ? r.activeDeals.first.title!
+          : r.discount.displayText;
       final imageBytes = await _getMarkerBytes(dealText, isSelected, false);
 
       final ann = await _pointManager!.create(
@@ -666,6 +673,8 @@ class _NearbyPageState extends State<NearbyPage>
           geometry: Point(coordinates: Position(r.longitude, r.latitude)),
           image: imageBytes,
           iconSize: isSelected ? _pinSelectedIconSize : _pinNormalIconSize,
+          iconAnchor: IconAnchor.BOTTOM,
+          iconOffset: [0.0, (500 * (1.0 - 0.85)) * (isSelected ? _pinSelectedIconSize : _pinNormalIconSize)], // compensating for shifted tip
           symbolSortKey: isSelected ? _selectedSortKey : _normalSortKey,
         ),
       );
@@ -685,10 +694,13 @@ class _NearbyPageState extends State<NearbyPage>
       if (ann == null) continue;
 
       final bool isSelected = r.id == _selectedRestaurantId;
-      final dealText = r.discount.displayText;
+      final dealText = r.activeDeals.isNotEmpty && r.activeDeals.first.title != null && r.activeDeals.first.title!.isNotEmpty
+          ? r.activeDeals.first.title!
+          : r.discount.displayText;
 
       ann.image = await _getMarkerBytes(dealText, isSelected, false);
       ann.iconSize = isSelected ? _pinSelectedIconSize : _pinNormalIconSize;
+      ann.iconOffset = [0.0, (500 * (1.0 - 0.85)) * (isSelected ? _pinSelectedIconSize : _pinNormalIconSize)];
       ann.symbolSortKey = isSelected ? _selectedSortKey : _normalSortKey;
 
     try {
@@ -707,29 +719,35 @@ class _NearbyPageState extends State<NearbyPage>
     if (ann == null) return;
 
     final r = _filteredRestaurants.firstWhere((res) => res.id == id, orElse: () => _filteredRestaurants.first);
-    final dealText = r.discount.displayText;
+    final dealText = r.activeDeals.isNotEmpty && r.activeDeals.first.title != null && r.activeDeals.first.title!.isNotEmpty
+        ? r.activeDeals.first.title!
+        : r.discount.displayText;
 
     _isMarkerAnimating = true;
 
     try {
       ann.image = await _getMarkerBytes(dealText, true, true);
-      ann.iconSize = 1.55;
+      ann.iconSize = 0.90;
+      ann.iconOffset = [0.0, (500 * (1.0 - 0.85)) * 0.90];
       ann.symbolSortKey = _selectedSortKey;
       await _pointManager!.update(ann);
       await Future.delayed(const Duration(milliseconds: 120));
 
       ann.image = await _getMarkerBytes(dealText, true, false);
       ann.iconSize = _pinSelectedIconSize;
+      ann.iconOffset = [0.0, (500 * (1.0 - 0.85)) * _pinSelectedIconSize];
       await _pointManager!.update(ann);
       await Future.delayed(const Duration(milliseconds: 90));
 
       ann.image = await _getMarkerBytes(dealText, true, true);
-      ann.iconSize = 1.55;
+      ann.iconSize = 0.90;
+      ann.iconOffset = [0.0, (500 * (1.0 - 0.85)) * 0.90];
       await _pointManager!.update(ann);
       await Future.delayed(const Duration(milliseconds: 85));
 
       ann.image = await _getMarkerBytes(dealText, true, false);
       ann.iconSize = _pinSelectedIconSize;
+      ann.iconOffset = [0.0, (500 * (1.0 - 0.85)) * _pinSelectedIconSize];
       await _pointManager!.update(ann);
     } catch (e) {
       _restaurantPins.remove(id);

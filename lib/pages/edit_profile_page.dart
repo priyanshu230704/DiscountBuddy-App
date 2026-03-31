@@ -7,6 +7,7 @@ import '../components/inputs.dart';
 import '../providers/auth_provider.dart';
 import '../design/app_avatars.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../config/environment.dart';
 
 /// Edit Profile Screen
 class EditProfilePage extends StatefulWidget {
@@ -168,7 +169,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                     ? Image.asset(_selectedAvatarUrl!, fit: BoxFit.cover)
                                     : (_selectedAvatarUrl != null && _selectedAvatarUrl!.isNotEmpty
                                         ? CachedNetworkImage(
-                                            imageUrl: _selectedAvatarUrl!,
+                                            imageUrl: (_selectedAvatarUrl != null && _selectedAvatarUrl!.startsWith('http'))
+                                                ? _selectedAvatarUrl!
+                                                : '${Environment.baseUrl}${_selectedAvatarUrl!}',
                                             fit: BoxFit.cover,
                                             placeholder: (context, url) => Center(
                                               child: CircularProgressIndicator(
@@ -301,7 +304,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                                 )
                                               : (avatarUrl.isNotEmpty
                                                   ? CachedNetworkImage(
-                                                      imageUrl: avatarUrl,
+                                                      imageUrl: avatarUrl.startsWith('http')
+                                                          ? avatarUrl
+                                                          : '${Environment.baseUrl}$avatarUrl',
                                                       fit: BoxFit.cover,
                                                       placeholder: (context, url) => Center(
                                                         child: CircularProgressIndicator(
@@ -360,7 +365,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
               AppGradientButton(
                 onPressed: _saveProfile,
                 isLoading: _isLoading,
-                child: const Text('Save'),
+                width: double.infinity,
+                child: Text(
+                  'Save Profile',
+                  style: AppTypography.body.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
               ),
               SizedBox(height: AppSpacing.xxxl),
             ],

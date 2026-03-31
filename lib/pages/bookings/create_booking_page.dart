@@ -241,7 +241,14 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
                 AppGradientButton(
                   onPressed: _isLoading ? null : _submitBooking,
                   isLoading: _isLoading,
-                  child: const Text('Confirm booking'),
+                  width: double.infinity,
+                  child: Text(
+                    'Confirm booking',
+                    style: AppTypography.body.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
               ],
             ),

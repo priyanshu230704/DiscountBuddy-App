@@ -96,6 +96,111 @@ class _BookingsPageState extends State<BookingsPage>
     }
   }
 
+  Future<void> _deleteBooking(int bookingId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel Booking'),
+        content: const Text('Are you sure you want to cancel this booking?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text('Yes, Cancel'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      setState(() => _isLoading = true);
+      try {
+        await _restaurantService.deleteBooking(bookingId);
+        await _loadData();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Booking cancelled successfully')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to cancel: $e')),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _editBooking(Booking booking) async {
+    // Show a simplified edit dialog
+    final TextEditingController guestsController = 
+        TextEditingController(text: booking.numberOfGuests.toString());
+    final TextEditingController requestController = 
+        TextEditingController(text: booking.specialRequests);
+    
+    final updated = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Reservation'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: guestsController,
+              decoration: const InputDecoration(labelText: 'Number of Guests'),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: requestController,
+              decoration: const InputDecoration(labelText: 'Special Requests'),
+              maxLines: 2,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Update'),
+          ),
+        ],
+      ),
+    );
+
+    if (updated == true) {
+      setState(() => _isLoading = true);
+      try {
+        await _restaurantService.updateBooking(
+          bookingId: booking.id,
+          numberOfGuests: int.tryParse(guestsController.text),
+          specialRequests: requestController.text,
+        );
+        await _loadData();
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to update: $e')),
+          );
+        }
+      }
+    }
+  }
+
   List<DealRedemption> _getRedemptionsByTab(int index) {
     // Sort by date descending
     final sortedList = List<DealRedemption>.from(_redemptions)
@@ -161,6 +266,8 @@ class _BookingsPageState extends State<BookingsPage>
                             : _BookingList(
                                 bookings: _bookings,
                                 onRefresh: _loadData,
+                                onEdit: _editBooking,
+                                onDelete: _deleteBooking,
                               ),
 
                         _RedemptionList(
@@ -864,10 +971,14 @@ class _StatusBadge extends StatelessWidget {
 class _BookingList extends StatelessWidget {
   final List<Booking> bookings;
   final Future<void> Function() onRefresh;
+  final Function(Booking) onEdit;
+  final Function(int) onDelete;
 
   const _BookingList({
     required this.bookings,
     required this.onRefresh,
+    required this.onEdit,
+    required this.onDelete,
   });
 
   @override
@@ -887,7 +998,11 @@ class _BookingList extends StatelessWidget {
         ),
         itemCount: sortedBookings.length,
         itemBuilder: (context, index) {
-          return _BookingCard(booking: sortedBookings[index]);
+          return _BookingCard(
+            booking: sortedBookings[index],
+            onEdit: () => onEdit(sortedBookings[index]),
+            onDelete: () => onDelete(sortedBookings[index].id),
+          );
         },
       ),
     );
@@ -896,7 +1011,14 @@ class _BookingList extends StatelessWidget {
 
 class _BookingCard extends StatelessWidget {
   final Booking booking;
-  const _BookingCard({required this.booking});
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  const _BookingCard({
+    required this.booking,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -949,6 +1071,34 @@ class _BookingCard extends StatelessWidget {
             Text(
               'Requests: ${booking.specialRequests}',
               style: AppTypography.bodySmall.copyWith(fontStyle: FontStyle.italic),
+            ),
+          ],
+          if (booking.status == BookingStatus.pending || booking.status == BookingStatus.confirmed) ...[
+            const SizedBox(height: 12),
+            const Divider(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton.icon(
+                  onPressed: onEdit,
+                  icon: const Icon(Icons.edit_outlined, size: 16),
+                  label: const Text('Edit'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                TextButton.icon(
+                  onPressed: onDelete,
+                  icon: const Icon(Icons.cancel_outlined, size: 16),
+                  label: const Text('Cancel'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppColors.error,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                  ),
+                ),
+              ],
             ),
           ],
         ],

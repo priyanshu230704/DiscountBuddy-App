@@ -10,6 +10,7 @@ import '../../models/voucher.dart';
 import '../profile_page.dart';
 import '../auth/login_page.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../../config/environment.dart';
 
 /// More/Settings page
 class MorePage extends StatefulWidget {
@@ -578,7 +579,11 @@ class _MorePageState extends State<MorePage> {
                     ? null
                     : (profilePic.startsWith('assets/')
                         ? AssetImage(profilePic)
-                        : CachedNetworkImageProvider(profilePic)) as ImageProvider,
+                        : CachedNetworkImageProvider(
+                            profilePic.startsWith('http')
+                                ? profilePic
+                                : '${Environment.baseUrl}$profilePic',
+                          )) as ImageProvider,
                 child: profilePic == null
                     ? const Icon(
                         Icons.person,

@@ -1200,63 +1200,55 @@ class _FeedTile extends StatelessWidget {
                   ),
                 ),
 
-                // Deal badge on top-left
+                // --- Deal Badge (New Stacked Design) ---
                 if (deals.isNotEmpty)
                   Positioned(
-                    top: 10,
-                    left: 10,
+                    top: 0,
+                    left: 0,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 5),
+                      padding: const EdgeInsets.fromLTRB(16, 14, 20, 14),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFFF97316), Color(0xFFEF4444)],
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
+                          colors: [Color(0xFFF97316), Color(0xFFFB923C)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(20), // Matches card rounding
+                          bottomRight: Radius.circular(36),
+                        ),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFFF97316).withValues(alpha: 0.4),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
+                            color: Colors.black.withValues(alpha: 0.2),
+                            blurRadius: 10,
+                            offset: const Offset(2, 2),
                           ),
                         ],
                       ),
-                      child: Row(
+                      child: Column(
                         mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.local_offer_rounded,
-                              color: Colors.white, size: 11),
-                          const SizedBox(width: 4),
                           Text(
-                            deals.first.displayText,
+                            deals.first.displayText.toUpperCase(),
                             style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
+                              fontSize: 19,
+                              fontWeight: FontWeight.w900,
                               color: Colors.white,
-                              letterSpacing: 0.2,
+                              height: 1.0,
+                              letterSpacing: -0.5,
                             ),
                           ),
-                          if (deals.length > 1) ...[
-                            const SizedBox(width: 4),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 5, vertical: 1),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.25),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                '+${deals.length - 1}',
-                                style: const TextStyle(
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white,
-                                ),
-                              ),
+                          const SizedBox(height: 3),
+                          const Text(
+                            "Limited Time",
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                              letterSpacing: 0.1,
                             ),
-                          ],
+                          ),
                         ],
                       ),
                     ),

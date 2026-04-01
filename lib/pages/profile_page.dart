@@ -283,19 +283,21 @@ class _ProfilePageState extends State<ProfilePage> {
                         );
                       },
                     ),
-                    const SizedBox(height: 16),
-                    _MenuTile(
-                      icon: Icons.storefront_outlined,
-                      title: 'Join as restaurant partner',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const JoinPartnerPage(),
-                          ),
-                        );
-                      },
-                    ),
+                    if (!_authProvider.isMerchant) ...[
+                      const SizedBox(height: 16),
+                      _MenuTile(
+                        icon: Icons.storefront_outlined,
+                        title: 'Join as restaurant partner',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const JoinPartnerPage(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     _MenuTile(
                       icon: Icons.privacy_tip_outlined,

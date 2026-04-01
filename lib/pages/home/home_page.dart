@@ -1213,15 +1213,16 @@ class _FeedTile extends StatelessWidget {
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
+                        // No topLeft radius: parent card's clipBehavior handles the rounded corner
+                        // ensuring a perfectly 'attached' look.
                         borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(20), // Matches card rounding
                           bottomRight: Radius.circular(36),
                         ),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.2),
-                            blurRadius: 10,
-                            offset: const Offset(2, 2),
+                            blurRadius: 12,
+                            offset: const Offset(3, 3), // Bleeds only down/right
                           ),
                         ],
                       ),

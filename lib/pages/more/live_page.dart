@@ -7,6 +7,8 @@ import '../../design/app_spacing.dart';
 import '../../widgets/blurred_ellipse_background.dart';
 import '../../widgets/border_gradient.dart';
 import '../../utils/distance_utils.dart';
+import '../../services/restaurant_service.dart';
+import '../../services/location_service.dart';
 
 /// Live page - "What's hot RIGHT NOW?" - Time-sensitive offer feed
 class LivePage extends StatefulWidget {
@@ -17,75 +19,27 @@ class LivePage extends StatefulWidget {
 }
 
 class _LivePageState extends State<LivePage> {
-  final List<LiveOffer> _liveOffers = [
-    LiveOffer(
-      id: '1',
-      restaurantName: 'Caffè Nero',
-      distance: 0.8,
-      discount: '25% OFF',
-      discountValue: 25,
-      expiresAt: DateTime.now().add(const Duration(minutes: 37)),
-      remainingRedemptions: 5,
-      description: 'On all hot beverages',
-      imageUrl:
-          'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=400',
-    ),
-    LiveOffer(
-      id: '2',
-      restaurantName: 'Prezzo',
-      distance: 1.2,
-      discount: '50% OFF',
-      discountValue: 50,
-      expiresAt: DateTime.now().add(const Duration(minutes: 15)),
-      remainingRedemptions: 2,
-      description: 'Main courses only',
-      imageUrl:
-          'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400',
-    ),
-    LiveOffer(
-      id: '3',
-      restaurantName: 'Bella Italia',
-      distance: 2.1,
-      discount: '2-FOR-1',
-      discountValue: 50,
-      expiresAt: DateTime.now().add(const Duration(minutes: 52)),
-      remainingRedemptions: 8,
-      description: 'Selected pizzas',
-      imageUrl:
-          'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400',
-    ),
-    LiveOffer(
-      id: '4',
-      restaurantName: 'ASK Italian',
-      distance: 1.5,
-      discount: '30% OFF',
-      discountValue: 30,
-      expiresAt: DateTime.now().add(const Duration(minutes: 8)),
-      remainingRedemptions: 3,
-      description: 'Dinner special',
-      imageUrl:
-          'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400',
-    ),
-    LiveOffer(
-      id: '5',
-      restaurantName: 'Zizzi',
-      distance: 0.9,
-      discount: '40% OFF',
-      discountValue: 40,
-      expiresAt: DateTime.now().add(const Duration(minutes: 23)),
-      remainingRedemptions: 12,
-      description: 'All pasta dishes',
-      imageUrl:
-          'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400',
-    ),
-  ];
+  final RestaurantService _restaurantService = RestaurantService();
+  final LocationService _locationService = LocationService();
+  double? _userLat;
+  double? _userLon;
+  bool _isLocating = false;
 
+  final List<LiveOffer> _liveOffers = [];
+  bool _isLoading = true;
   Timer? _timer;
   String _sortBy = 'distance'; // 'distance', 'time', 'discount'
 
   @override
   void initState() {
     super.initState();
+    _initData();
+  }
+
+  Future<void> _initData() async {
+    await _loadLocation();
+    await _loadOffers();
+    
     // Update countdown every second
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) {
@@ -99,6 +53,64 @@ class _LivePageState extends State<LivePage> {
     });
   }
 
+  Future<void> _loadLocation() async {
+    setState(() => _isLocating = true);
+    try {
+      final pos = await _locationService.getCurrentLocation();
+      if (mounted) {
+        setState(() {
+          _userLat = pos.latitude;
+          _userLon = pos.longitude;
+          _isLocating = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLocating = false);
+      }
+    }
+  }
+
+  Future<void> _loadOffers() async {
+    if (!mounted) return;
+    setState(() => _isLoading = true);
+    try {
+      final deals = await _restaurantService.getFlashDeals(
+        latitude: _userLat,
+        longitude: _userLon,
+      );
+
+      if (mounted) {
+        setState(() {
+          _liveOffers.clear();
+          for (final json in deals) {
+            final discountPct = json['discount_percentage'] ?? 0;
+            final discountText = json['title'] ?? '$discountPct% OFF';
+
+            _liveOffers.add(LiveOffer(
+              id: json['id'].toString(),
+              restaurantName: json['restaurant_name'] ?? 'Restaurant',
+              distance: (json['distance_miles'] ?? 0.0).toDouble(),
+              discount: discountText,
+              discountValue: (discountPct as num).toInt(),
+              expiresAt: DateTime.parse(json['end_date']),
+              remainingRedemptions: 0,
+              description: json['description'] ?? '',
+              imageUrl: json['primary_image'],
+              latitude: json['latitude'],
+              longitude: json['longitude'],
+            ));
+          }
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   @override
   void dispose() {
     _timer?.cancel();
@@ -108,6 +120,8 @@ class _LivePageState extends State<LivePage> {
   // Smart throttling: max 5-7 deals, prioritize based on sort option
   List<LiveOffer> get _filteredOffers {
     final sorted = List<LiveOffer>.from(_liveOffers);
+
+    if (sorted.isEmpty) return [];
 
     switch (_sortBy) {
       case 'time':
@@ -130,11 +144,7 @@ class _LivePageState extends State<LivePage> {
   }
 
   Future<void> _refreshOffers() async {
-    // Simulate refresh
-    await Future.delayed(const Duration(seconds: 1));
-    if (mounted) {
-      setState(() {});
-    }
+    await _initData();
   }
 
   String _formatTimeRemaining(DateTime expiresAt) {
@@ -288,9 +298,15 @@ class _LivePageState extends State<LivePage> {
                 ),
                 // Live Offers List
                 Expanded(
-                  child: activeOffers.isEmpty
-                      ? _buildEmptyState()
-                      : RefreshIndicator(
+                  child: _isLoading
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            color: Color(0xFF3E25F6),
+                          ),
+                        )
+                      : activeOffers.isEmpty
+                          ? _buildEmptyState()
+                          : RefreshIndicator(
                           onRefresh: _refreshOffers,
                           color: const Color(0xFF3E25F6),
                           child: ListView.builder(
@@ -639,8 +655,17 @@ class _LivePageState extends State<LivePage> {
                             color: Colors.grey[500],
                           ),
                           const SizedBox(width: 4),
-                          Text(
-                            DistanceUtils.formatMiles(offer.distance * 0.621371),
+                           Text(
+                            () {
+                              final miles = DistanceUtils.bestMiles(
+                                userLat: _userLat,
+                                userLon: _userLon,
+                                restaurantLat: offer.latitude ?? 0,
+                                restaurantLon: offer.longitude ?? 0,
+                                distanceKmFromApi: offer.distance,
+                              );
+                              return DistanceUtils.formatMiles(miles);
+                            }(),
                             style: TextStyle(
                               color: Colors.grey[400],
                               fontSize: 11,
@@ -719,7 +744,9 @@ class _LivePageState extends State<LivePage> {
 class LiveOffer {
   final String id;
   final String restaurantName;
-  final double distance; // in km
+  final double distance; // in km fallback
+  final double? latitude;
+  final double? longitude;
   final String discount;
   final int discountValue;
   final DateTime expiresAt;
@@ -731,6 +758,8 @@ class LiveOffer {
     required this.id,
     required this.restaurantName,
     required this.distance,
+    this.latitude,
+    this.longitude,
     required this.discount,
     required this.discountValue,
     required this.expiresAt,

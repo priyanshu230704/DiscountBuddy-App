@@ -38,6 +38,8 @@ class ApiEndpoints {
   static String toggleFavourite(String slug) =>
       '/restaurants/restaurant-detail/$slug/favourite';
 
+  static const String flashDeals = '/restaurants/deals/flash';
+
   static String claimDeal(int dealId) => '/restaurants/deals/$dealId/use';
 
   static String mysteryVisitDetail(int id) => '/restaurants/mystery-visits/$id';

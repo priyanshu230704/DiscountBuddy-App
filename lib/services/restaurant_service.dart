@@ -397,6 +397,30 @@ class RestaurantService {
     }
   }
 
+  /// Get "Hot Now" Flash Deals
+  Future<List<dynamic>> getFlashDeals({
+    double? latitude,
+    double? longitude,
+  }) async {
+    try {
+      final queryParams = <String, String>{};
+      if (latitude != null) queryParams['latitude'] = latitude.toString();
+      if (longitude != null) queryParams['longitude'] = longitude.toString();
+
+      final response = await _apiService.get(
+        ApiEndpoints.flashDeals,
+        queryParameters: queryParams,
+      );
+
+      return (response is List
+          ? response as List<dynamic>
+          : ((response)['data'] ?? (response)['results'] ?? [])
+                as List<dynamic>);
+    } catch (e) {
+      return [];
+    }
+  }
+
   /// Search restaurants
   Future<List<Restaurant>> searchRestaurants(
     String query, {

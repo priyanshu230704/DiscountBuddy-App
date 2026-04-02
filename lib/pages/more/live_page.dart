@@ -6,6 +6,7 @@ import '../../design/app_radius.dart';
 import '../../design/app_spacing.dart';
 import '../../widgets/blurred_ellipse_background.dart';
 import '../../widgets/border_gradient.dart';
+import '../../utils/distance_utils.dart';
 
 /// Live page - "What's hot RIGHT NOW?" - Time-sensitive offer feed
 class LivePage extends StatefulWidget {
@@ -639,7 +640,7 @@ class _LivePageState extends State<LivePage> {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            '${offer.distance.toStringAsFixed(1)} mi',
+                            DistanceUtils.formatMiles(offer.distance * 0.621371),
                             style: TextStyle(
                               color: Colors.grey[400],
                               fontSize: 11,

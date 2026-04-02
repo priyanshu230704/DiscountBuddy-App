@@ -4,13 +4,22 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/restaurant.dart';
 import 'package:discount_buddy/theme/app_colors.dart';
+import '../utils/distance_utils.dart';
 
 /// Premium, minimal Restaurant card widget
 class RestaurantCard extends StatelessWidget {
   final Restaurant restaurant;
   final VoidCallback? onTap;
+  final double? userLat;
+  final double? userLon;
 
-  const RestaurantCard({super.key, required this.restaurant, this.onTap});
+  const RestaurantCard({
+    super.key,
+    required this.restaurant,
+    this.onTap,
+    this.userLat,
+    this.userLon,
+  });
 
   static const double _spacing = 8.0;
   static const double _radius = 14.0;
@@ -158,7 +167,17 @@ class RestaurantCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            '${(restaurant.distanceMiles ?? (restaurant.distance * 0.621371)).toStringAsFixed(1)} miles',
+                            () {
+                              final miles = DistanceUtils.bestMiles(
+                                userLat: userLat,
+                                userLon: userLon,
+                                restaurantLat: restaurant.latitude,
+                                restaurantLon: restaurant.longitude,
+                                distanceMilesFromApi: restaurant.distanceMiles,
+                                distanceKmFromApi: restaurant.distance,
+                              );
+                              return DistanceUtils.formatMiles(miles);
+                            }(),
                             style: AppFonts.bodyStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w600,

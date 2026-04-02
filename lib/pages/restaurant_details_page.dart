@@ -11,6 +11,7 @@ import '../models/restaurant_detail.dart';
 import '../models/review.dart';
 import '../models/menu_item.dart';
 import '../services/restaurant_service.dart';
+import '../services/location_service.dart';
 import 'package:discount_buddy/design/app_colors.dart';
 import 'package:discount_buddy/widgets/app_scaffold.dart';
 import 'package:discount_buddy/widgets/app_gradient_button.dart';
@@ -30,6 +31,7 @@ import '../providers/auth_provider.dart';
 import 'mystery_guest/mystery_audit_modal.dart';
 import '../widgets/occupancy_tag.dart';
 import '../widgets/login_required_sheet.dart';
+import '../utils/distance_utils.dart';
 
 /// Restaurant details page - NeoTaste style
 class RestaurantDetailsPage extends StatefulWidget {
@@ -50,6 +52,7 @@ class RestaurantDetailsPage extends StatefulWidget {
 
 class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
   final RestaurantService _restaurantService = RestaurantService();
+  final LocationService _locationService = LocationService();
   final MysteryGuestService _mysteryGuestService = MysteryGuestService();
   final AuthProvider _authProvider = AuthProvider();
 
@@ -60,6 +63,10 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
   bool _isLoading = true;
   bool _isFavorite = false;
   String? _errorMessage;
+
+  // Resolved user coordinates (from widget args or on-demand GPS)
+  double? _resolvedUserLat;
+  double? _resolvedUserLon;
 
   ui.Image? _appLogoImage;
   Uint8List? _pinNormalBytes;
@@ -253,11 +260,26 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     });
 
     try {
+      // Resolve user coordinates: use passed‑in values first, then try GPS
+      double? lat = widget.latitude;
+      double? lon = widget.longitude;
+      if (lat == null || lon == null) {
+        try {
+          final pos = await _locationService.getCurrentLocation();
+          lat = pos.latitude;
+          lon = pos.longitude;
+        } catch (_) {
+          // Location unavailable — distance will show as '—'
+        }
+      }
+      _resolvedUserLat = lat;
+      _resolvedUserLon = lon;
+
       final restaurantDetail = await _restaurantService
           .getRestaurantDetailBySlug(
             widget.slug,
-            latitude: widget.latitude,
-            longitude: widget.longitude,
+            latitude: lat,
+            longitude: lon,
           );
       setState(() {
         _restaurantDetail = restaurantDetail;
@@ -796,7 +818,20 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
-                              '${restaurant.address.split(',').first} (${restaurant.distanceMiles?.toStringAsFixed(2) ?? _kmToMiles(restaurant.distance).toStringAsFixed(2)} miles)',
+                              () {
+                                final miles = DistanceUtils.bestMiles(
+                                  userLat: _resolvedUserLat,
+                                  userLon: _resolvedUserLon,
+                                  restaurantLat: restaurant.latitude,
+                                  restaurantLon: restaurant.longitude,
+                                  distanceMilesFromApi: restaurant.distanceMiles,
+                                  distanceKmFromApi: restaurant.distance,
+                                );
+                                final milesStr = miles != null
+                                    ? '${miles.toStringAsFixed(2)} miles'
+                                    : '— miles';
+                                return '${restaurant.address.split(',').first} ($milesStr)';
+                              }(),
                               style: AppFonts.bodyStyle(
                                 fontSize: 14,
                                 color: AppColors.textPrimary,

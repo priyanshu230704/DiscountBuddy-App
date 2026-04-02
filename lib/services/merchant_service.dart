@@ -774,6 +774,38 @@ class MerchantService {
     }
   }
 
+  /// Get reference data - Cuisines (public endpoint)
+  Future<List<Map<String, dynamic>>> getCuisines({
+    String? search,
+    String? ordering,
+  }) async {
+    try {
+      final queryParams = <String, String>{};
+      if (search != null && search.isNotEmpty) queryParams['search'] = search;
+      if (ordering != null) queryParams['ordering'] = ordering;
+
+      final response = await _apiService.get(
+        ApiEndpoints.cuisines,
+        queryParameters: queryParams,
+        type: ApiType.common,
+      );
+
+      if (response.containsKey('results')) {
+        final results = response['results'];
+        if (results is List) {
+          return (results).map((item) => item as Map<String, dynamic>).toList();
+        }
+      } else if (response is List) {
+        return (response as List)
+            .map((item) => item as Map<String, dynamic>)
+            .toList();
+      }
+      return [];
+    } catch (e) {
+      throw Exception('Failed to load cuisines: ${e.toString()}');
+    }
+  }
+
   /// --- Image Management ---
 
   /// Upload restaurant image

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import '../services/restaurant_service.dart';
-import 'package:geolocator/geolocator.dart';
+import '../services/location_service.dart';
 import '../models/restaurant.dart';
 import '../widgets/restaurant_card.dart';
 import '../widgets/loading_widget.dart';
 import 'restaurant_details_page.dart';
 import '../widgets/app_scaffold.dart';
 import '../components/app_app_bar.dart';
+import '../utils/distance_utils.dart';
 
 class SavedRestaurantsPage extends StatefulWidget {
   const SavedRestaurantsPage({super.key});
@@ -18,8 +19,11 @@ class SavedRestaurantsPage extends StatefulWidget {
 
 class _SavedRestaurantsPageState extends State<SavedRestaurantsPage> {
   final RestaurantService _restaurantService = RestaurantService();
+  final LocationService _locationService = LocationService();
   List<Restaurant> _savedRestaurants = [];
   bool _isLoading = true;
+  double? _userLat;
+  double? _userLon;
 
   @override
   void initState() {
@@ -30,29 +34,20 @@ class _SavedRestaurantsPageState extends State<SavedRestaurantsPage> {
   Future<void> _loadSaved() async {
     setState(() => _isLoading = true);
     try {
-      final restaurants = await _restaurantService.getSavedRestaurants();
-      
-      // Calculate distances manually if API doesn't provide accurate distance
+      // Get location for pinpoint distance
       try {
-        final position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.low,
-          timeLimit: const Duration(seconds: 5),
-        ).catchError((_) => throw Exception("Timeout"));
-
-        for (int i = 0; i < restaurants.length; i++) {
-          final r = restaurants[i];
-          final distanceInMeters = Geolocator.distanceBetween(
-            position.latitude,
-            position.longitude,
-            r.latitude,
-            r.longitude,
-          );
-          // Convert meters to miles
-          restaurants[i] = r.copyWith(distanceMiles: distanceInMeters / 1609.344);
-        }
+        final position = await _locationService.getCurrentLocation();
+        _userLat = position.latitude;
+        _userLon = position.longitude;
       } catch (e) {
-        debugPrint('Location fetching failed for saved restaurants calculation: $e');
+        debugPrint('Location unavailable for saved restaurants: $e');
       }
+
+      // Fetch saved restaurants
+      final restaurants = await _restaurantService.getSavedRestaurants(
+        latitude: _userLat,
+        longitude: _userLon,
+      );
 
       if (mounted) {
         setState(() {
@@ -102,12 +97,16 @@ class _SavedRestaurantsPageState extends State<SavedRestaurantsPage> {
                       final restaurant = _savedRestaurants[index];
                       return RestaurantCard(
                         restaurant: restaurant,
+                        userLat: _userLat,
+                        userLon: _userLon,
                         onTap: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => RestaurantDetailsPage(
                                 slug: restaurant.id,
+                                latitude: _userLat,
+                                longitude: _userLon,
                               ),
                             ),
                           );

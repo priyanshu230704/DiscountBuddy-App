@@ -93,6 +93,7 @@ class ApiEndpoints {
   // Common/Reference Routes
   static const String cities = '/restaurants/cities';
   static const String categories = '/restaurants/categories';
+  static const String cuisines = '/restaurants/cuisines';
   static const String facilityList = '/restaurants/facilities';
 
   // Wallet & Vouchers

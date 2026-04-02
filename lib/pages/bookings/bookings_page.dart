@@ -15,6 +15,7 @@ import '../../widgets/empty_state_widget.dart';
 import '../../models/restaurant.dart';
 import '../../services/location_service.dart';
 import '../restaurant_details_page.dart';
+import '../../utils/distance_utils.dart';
 
 /// Bookings/Redemptions Screen - Integrated with deal uses API
 class BookingsPage extends StatefulWidget {
@@ -36,6 +37,8 @@ class _BookingsPageState extends State<BookingsPage>
   bool _isLoading = true;
   late TabController _tabController;
   List<Restaurant> _trendingRestaurants = [];
+  double? _userLat;
+  double? _userLon;
 
 
   @override
@@ -80,6 +83,8 @@ class _BookingsPageState extends State<BookingsPage>
           _redemptions = results[0] as List<DealRedemption>;
           _trendingRestaurants = results[1] as List<Restaurant>;
           _bookings = results[2] as List<Booking>;
+          _userLat = lat;
+          _userLon = lon;
           _isLoading = false;
         });
       }
@@ -258,6 +263,8 @@ class _BookingsPageState extends State<BookingsPage>
                                 onRefresh: _loadData,
                                 child: _ReservationEmptyTab(
                                   trendingItems: _trendingRestaurants,
+                                  userLat: _userLat,
+                                  userLon: _userLon,
                                   onExplorePressed: () {
                                     // Navigation to explore restaurants
                                   },
@@ -293,10 +300,14 @@ class _ReservationEmptyTab extends StatelessWidget {
   const _ReservationEmptyTab({
     required this.trendingItems,
     required this.onExplorePressed,
+    this.userLat,
+    this.userLon,
   });
 
   final List<Restaurant> trendingItems;
   final VoidCallback onExplorePressed;
+  final double? userLat;
+  final double? userLon;
 
   @override
   Widget build(BuildContext context) {
@@ -367,8 +378,11 @@ class _ReservationEmptyTab extends StatelessWidget {
               scrollDirection: Axis.horizontal,
               itemCount: trendingItems.length,
               separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.lg),
-              itemBuilder: (context, index) =>
-                  _TrendingCard(item: trendingItems[index]),
+              itemBuilder: (context, index) => _TrendingCard(
+                item: trendingItems[index],
+                userLat: userLat,
+                userLon: userLon,
+              ),
             ),
           ),
         ],
@@ -380,9 +394,15 @@ class _ReservationEmptyTab extends StatelessWidget {
 
 
 class _TrendingCard extends StatelessWidget {
-  const _TrendingCard({required this.item});
+  const _TrendingCard({
+    required this.item,
+    this.userLat,
+    this.userLon,
+  });
 
   final Restaurant item;
+  final double? userLat;
+  final double? userLon;
 
   @override
   Widget build(BuildContext context) {
@@ -395,6 +415,8 @@ class _TrendingCard extends StatelessWidget {
             MaterialPageRoute(
               builder: (context) => RestaurantDetailsPage(
                 slug: item.id,
+                latitude: userLat,
+                longitude: userLon,
               ),
             ),
           );
@@ -521,7 +543,17 @@ class _TrendingCard extends StatelessWidget {
                       ),
                       const SizedBox(width: AppSpacing.xs),
                       Text(
-                        '${(item.distanceMiles ?? item.distance * 0.621371).toStringAsFixed(1)} miles away',
+                        () {
+                          final miles = DistanceUtils.bestMiles(
+                            userLat: userLat,
+                            userLon: userLon,
+                            restaurantLat: item.latitude,
+                            restaurantLon: item.longitude,
+                            distanceMilesFromApi: item.distanceMiles,
+                            distanceKmFromApi: item.distance,
+                          );
+                          return '${DistanceUtils.formatMiles(miles)} away';
+                        }(),
                         style: AppTypography.bodySmall,
                       ),
                     ],
@@ -867,6 +899,8 @@ class _RedemptionDetailModal extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (context) => RestaurantDetailsPage(
                         slug: redemption.restaurantId.toString(),
+                        latitude: null, // We don't have user location in this stateless widget easily, but bestMiles will handle it
+                        longitude: null,
                       ),
                     ),
                   );

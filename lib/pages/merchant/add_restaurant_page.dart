@@ -38,12 +38,14 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
 
   List<Map<String, dynamic>> _cities = [];
   List<Map<String, dynamic>> _categories = [];
+  List<Map<String, dynamic>> _cuisines = [];
   int? _selectedCityId;
   String _selectedCityName = '';
   final _cityController = TextEditingController();
   final _cityFocusNode = FocusNode();
   List<Map<String, dynamic>> _filteredCities = [];
   List<int> _selectedCategoryIds = [];
+  List<int> _selectedCuisineIds = [];
   List<Map<String, dynamic>> _facilities = [];
   List<int> _selectedFacilityIds = [];
   int _priceRange = 2;
@@ -265,6 +267,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
         _merchantService.getCities(),
         _merchantService.getCategories(),
         _merchantService.getFacilities(),
+        _merchantService.getCuisines(),
       ]);
 
       if (mounted) {
@@ -272,6 +275,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
           _cities = results[0];
           _categories = results[1];
           _facilities = results[2];
+          _cuisines = results[3];
           _filteredCities = _cities;
           _isLoadingData = false;
         });
@@ -324,6 +328,15 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
     if (restaurant['categories'] != null) {
       final categories = restaurant['categories'] as List;
       _selectedCategoryIds = categories.map((c) {
+        if (c is Map) return c['id'] as int;
+        return c as int;
+      }).toList();
+    }
+
+    // Load cuisines
+    if (restaurant['cuisines'] != null) {
+      final cuisines = restaurant['cuisines'] as List;
+      _selectedCuisineIds = cuisines.map((c) {
         if (c is Map) return c['id'] as int;
         return c as int;
       }).toList();
@@ -395,6 +408,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
         'email': _emailController.text.trim(),
         'website': _websiteController.text.trim(),
         'categories': _selectedCategoryIds,
+        'cuisine_ids': _selectedCuisineIds,
         'facilities': _selectedFacilityIds,
         'price_range': _priceRange,
         'menu_type': _menuType,
@@ -918,6 +932,55 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                                     _selectedCategoryIds.add(categoryId);
                                   } else {
                                     _selectedCategoryIds.remove(categoryId);
+                                  }
+                                });
+                              },
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: AppSpacing.xl),
+                    _buildSectionHeader('Cuisines', Icons.restaurant_rounded),
+                    const SizedBox(height: AppSpacing.md),
+                    _buildFormSection(
+                      children: [
+                        Text(
+                          'Select the specific cuisines your restaurant serves.',
+                          style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: _cuisines.map((cuisine) {
+                            final cuisineId = cuisine['id'] as int;
+                            final isSelected = _selectedCuisineIds.contains(cuisineId);
+                            return FilterChip(
+                              label: Text(cuisine['name'] as String),
+                              selected: isSelected,
+                              showCheckmark: false,
+                              selectedColor: AppColors.merchantIndigo,
+                              backgroundColor: AppColors.background,
+                              labelStyle: AppTypography.body.copyWith(
+                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                color: isSelected ? AppColors.white : AppColors.textPrimary,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                side: BorderSide(
+                                  color: isSelected
+                                      ? AppColors.merchantIndigo
+                                      : AppColors.cardBorder,
+                                ),
+                              ),
+                              onSelected: (selected) {
+                                setState(() {
+                                  if (selected) {
+                                    _selectedCuisineIds.add(cuisineId);
+                                  } else {
+                                    _selectedCuisineIds.remove(cuisineId);
                                   }
                                 });
                               },

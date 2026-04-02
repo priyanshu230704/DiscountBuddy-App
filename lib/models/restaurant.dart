@@ -1,3 +1,36 @@
+/// Cuisine model
+class Cuisine {
+  final int id;
+  final String name;
+  final String slug;
+  final String? icon;
+
+  Cuisine({
+    required this.id,
+    required this.name,
+    required this.slug,
+    this.icon,
+  });
+
+  factory Cuisine.fromJson(Map<String, dynamic> json) {
+    return Cuisine(
+      id: json['id'] as int? ?? 0,
+      name: json['name'] as String? ?? '',
+      slug: json['slug'] as String? ?? '',
+      icon: json['icon'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'slug': slug,
+      'icon': icon,
+    };
+  }
+}
+
 /// Opening Slot model
 class OpeningSlot {
   final String dayName;
@@ -163,6 +196,7 @@ class Restaurant {
   final List<Facility> facilities;
   final String menuType; // structured, image
   final List<RestaurantImage> restaurantImages;
+  final List<Cuisine> cuisines;
 
   Restaurant({
     required this.id,
@@ -197,6 +231,7 @@ class Restaurant {
     this.leaderboardScore = 0.0,
     this.menuType = 'structured',
     this.restaurantImages = const [],
+    this.cuisines = const [],
   });
 
   factory Restaurant.fromJson(Map<String, dynamic> json) {
@@ -204,6 +239,11 @@ class Restaurant {
             ?.map((e) => Discount.fromJson(e as Map<String, dynamic>))
             .toList() ??
         <Discount>[];
+
+    final List<Cuisine> cuisines = (json['cuisines'] as List<dynamic>?)
+            ?.map((e) => Cuisine.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        <Cuisine>[];
 
     return Restaurant(
       id: json['id']?.toString() ?? '',
@@ -248,6 +288,7 @@ class Restaurant {
               .toList() ??
           [],
       isFavourite: json['is_favourite'] as bool? ?? false,
+      cuisines: cuisines,
       hasUserReviewed: json['has_user_reviewed'] as bool? ?? false,
       openingSlots:
           (json['opening_slots'] as List<dynamic>?)
@@ -368,6 +409,7 @@ class Restaurant {
       facilities: facilities ?? this.facilities,
       menuType: menuType ?? this.menuType,
       restaurantImages: restaurantImages ?? this.restaurantImages,
+      cuisines: cuisines ?? this.cuisines,
     );
   }
 }

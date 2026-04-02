@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import '../models/restaurant.dart';
 import '../services/restaurant_service.dart';
+import '../services/location_service.dart';
 import '../widgets/restaurant_card.dart';
 import 'restaurant_details_page.dart';
 import '../widgets/app_scaffold.dart';
@@ -18,28 +20,49 @@ class SearchPage extends StatefulWidget {
 
 class _SearchPageState extends State<SearchPage> {
   final RestaurantService _restaurantService = RestaurantService();
+  final LocationService _locationService = LocationService();
   final TextEditingController _searchController = TextEditingController();
   List<Restaurant> _restaurants = [];
   List<Restaurant> _filteredRestaurants = [];
   bool _isLoading = false;
   String _selectedCuisine = 'All';
-
-  final List<String> _cuisines = [
-    'All',
-    'Italian',
-    'American',
-    'Fast Food',
-    'Chinese',
-    'Indian',
-    'Mexican',
-    'Thai',
-  ];
+  double? _userLat;
+  double? _userLon;
+  List<Map<String, dynamic>> _cuisines = [];
+  int? _selectedCuisineId;
 
   @override
   void initState() {
     super.initState();
-    _loadRestaurants();
+    _loadInitialData();
     _searchController.addListener(_onSearchChanged);
+  }
+
+  Future<void> _loadInitialData() async {
+    await Future.wait([
+      _loadLocationAndRestaurants(),
+      _loadCuisines(),
+    ]);
+  }
+
+  Future<void> _loadCuisines() async {
+    final cuisines = await _restaurantService.getCuisines();
+    if (mounted) {
+      setState(() {
+        _cuisines = cuisines;
+      });
+    }
+  }
+
+  Future<void> _loadLocationAndRestaurants() async {
+    try {
+      final position = await _locationService.getCurrentLocation();
+      _userLat = position.latitude;
+      _userLon = position.longitude;
+    } catch (e) {
+      debugPrint('Error getting location in SearchPage: $e');
+    }
+    await _loadRestaurants();
   }
 
   @override
@@ -54,37 +77,51 @@ class _SearchPageState extends State<SearchPage> {
     });
 
     try {
-      final restaurants = await _restaurantService.getNearbyRestaurants(
-        latitude: 51.5074,
-        longitude: -0.1278,
-      );
-      setState(() {
-        _restaurants = restaurants;
-        _filteredRestaurants = restaurants;
-        _isLoading = false;
-      });
+      final query = _searchController.text.trim();
+      List<Restaurant> results;
+
+      if (query.isNotEmpty) {
+        results = await _restaurantService.searchRestaurants(
+          query: query,
+          latitude: _userLat,
+          longitude: _userLon,
+        );
+      } else {
+        results = await _restaurantService.getRestaurants(
+          latitude: _userLat,
+          longitude: _userLon,
+        );
+      }
+
+      if (mounted) {
+        setState(() {
+          _restaurants = results;
+          _filterRestaurants(); // Still apply local cuisine filter if needed
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
+  Timer? _searchDebounce;
   void _onSearchChanged() {
-    _filterRestaurants();
+    if (_searchDebounce?.isActive ?? false) _searchDebounce!.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 500), () {
+      _loadRestaurants();
+    });
   }
 
   void _filterRestaurants() {
-    final query = _searchController.text.toLowerCase();
     setState(() {
       _filteredRestaurants = _restaurants.where((restaurant) {
-        final matchesSearch =
-            restaurant.name.toLowerCase().contains(query) ||
-            restaurant.cuisine.toLowerCase().contains(query) ||
-            restaurant.address.toLowerCase().contains(query);
-        final matchesCuisine =
-            _selectedCuisine == 'All' || restaurant.cuisine == _selectedCuisine;
-        return matchesSearch && matchesCuisine;
+        if (_selectedCuisineId == null) return true;
+        return restaurant.cuisines.any((c) => c.id == _selectedCuisineId);
       }).toList();
     });
   }
@@ -152,35 +189,65 @@ class _SearchPageState extends State<SearchPage> {
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.lg,
                 ),
-                itemCount: _cuisines.length,
+                itemCount: _cuisines.length + 1,
                 itemBuilder: (context, index) {
-                  final cuisine = _cuisines[index];
-                  final isSelected = cuisine == _selectedCuisine;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: AppSpacing.sm),
-                    child: FilterChip(
-                      label: Text(cuisine),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        setState(() {
-                          _selectedCuisine = cuisine;
-                          _filterRestaurants();
-                        });
-                      },
-                      selectedColor: AppColors.primary,
-                      backgroundColor: AppColors.surface,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        side: BorderSide(
-                          color: isSelected ? Colors.transparent : AppColors.cardBorder,
+                  if (index == 0) {
+                    final isSelected = _selectedCuisineId == null;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: AppSpacing.sm),
+                      child: FilterChip(
+                        label: const Text('All'),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          setState(() {
+                            _selectedCuisineId = null;
+                            _filterRestaurants();
+                          });
+                        },
+                        selectedColor: AppColors.primary,
+                        backgroundColor: AppColors.surface,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          side: BorderSide(
+                            color: isSelected ? Colors.transparent : AppColors.cardBorder,
+                          ),
+                        ),
+                        labelStyle: AppTypography.body.copyWith(
+                          color: isSelected ? AppColors.white : AppColors.textPrimary,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                         ),
                       ),
-                      labelStyle: AppTypography.body.copyWith(
-                        color: isSelected ? AppColors.white : AppColors.textPrimary,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    );
+                  } else {
+                    final cuisine = _cuisines[index - 1];
+                    final cuisineId = cuisine['id'];
+                    final isSelected = cuisineId == _selectedCuisineId;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: AppSpacing.sm),
+                      child: FilterChip(
+                        label: Text(cuisine['name'] as String),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          setState(() {
+                            _selectedCuisineId = selected ? cuisineId : null;
+                            _filterRestaurants();
+                          });
+                        },
+                        selectedColor: AppColors.primary,
+                        backgroundColor: AppColors.surface,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          side: BorderSide(
+                            color: isSelected ? Colors.transparent : AppColors.cardBorder,
+                          ),
+                        ),
+                        labelStyle: AppTypography.body.copyWith(
+                          color: isSelected ? AppColors.white : AppColors.textPrimary,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
                       ),
-                    ),
-                  );
+                    );
+                  }
                 },
               ),
             ),
@@ -219,13 +286,18 @@ class _SearchPageState extends State<SearchPage> {
                   final restaurant = _filteredRestaurants[index];
                   return RestaurantCard(
                     restaurant: restaurant,
+                    userLat: _userLat,
+                    userLon: _userLon,
                     onTap: () {
                       final slug = restaurant.slug ?? restaurant.id;
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              RestaurantDetailsPage(slug: slug),
+                          builder: (context) => RestaurantDetailsPage(
+                            slug: slug,
+                            latitude: _userLat,
+                            longitude: _userLon,
+                          ),
                         ),
                       );
                     },

@@ -16,6 +16,7 @@ import '../notifications_page.dart';
 import '../../widgets/city_selector_modal.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/app_gradient_button.dart';
+import '../../utils/distance_utils.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -1104,7 +1105,15 @@ class _FeedTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dist = restaurant.distanceMiles ?? kmToMiles(restaurant.distance);
+    // Compute pinpoint-accurate miles from user GPS + restaurant coordinates
+    final miles = DistanceUtils.bestMiles(
+      userLat: userLat,
+      userLon: userLon,
+      restaurantLat: restaurant.latitude,
+      restaurantLon: restaurant.longitude,
+      distanceMilesFromApi: restaurant.distanceMiles,
+      distanceKmFromApi: restaurant.distance,
+    );
     final hasImage = restaurant.imageUrl.isNotEmpty;
     final hasOccupancy = restaurant.occupancy != null;
     final deals = restaurant.activeDeals.where((d) => d.type != 'none').toList();
@@ -1389,7 +1398,7 @@ class _FeedTile extends StatelessWidget {
                               color: Color(0xFF8B5CF6), size: 13),
                           const SizedBox(width: 4),
                           Text(
-                            '${dist.toStringAsFixed(1)} mi',
+                            '${miles?.toStringAsFixed(1) ?? '—'} mi',
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,

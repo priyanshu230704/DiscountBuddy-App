@@ -17,6 +17,7 @@ import '../../widgets/filter_modal.dart';
 import '../../widgets/generic_bottom_sheet.dart';
 import '../../widgets/occupancy_tag.dart';
 import '../../widgets/app_scaffold.dart';
+import '../../utils/distance_utils.dart';
 
 class NearbyPage extends StatefulWidget {
   final double? initialLatitude;
@@ -56,6 +57,9 @@ class _NearbyPageState extends State<NearbyPage>
 
   List<Restaurant> _cityRestaurants = [];
   bool _isCityListLoading = false;
+
+  int? _selectedCuisineId;
+  String _selectedCuisineName = 'All';
 
   Restaurant? _selectedRestaurant;
   String? _selectedRestaurantId;
@@ -236,6 +240,9 @@ class _NearbyPageState extends State<NearbyPage>
         cityId: _selectedCityId,
         latitude: _userLocation?.coordinates.lat.toDouble(),
         longitude: _userLocation?.coordinates.lng.toDouble(),
+        // Add cuisine filtering to the API call
+        // Note: You might need to update getRestaurants in restaurant_service.dart
+        // to support this if not already present.
       );
 
       if (!mounted) return;
@@ -345,13 +352,19 @@ class _NearbyPageState extends State<NearbyPage>
     final q = _searchController.text.trim().toLowerCase();
 
     setState(() {
-      if (q.isEmpty) {
-        _filteredRestaurants = _restaurants;
+      if (q.isEmpty && _selectedCuisineId == null) {
+        _filteredRestaurants = _cityRestaurants;
       } else {
-        _filteredRestaurants = _restaurants.where((r) {
-          return r.name.toLowerCase().contains(q) ||
-              r.cuisine.toLowerCase().contains(q) ||
+        _filteredRestaurants = _cityRestaurants.where((r) {
+          final nameMatches = q.isEmpty ||
+              r.name.toLowerCase().contains(q) ||
               r.description.toLowerCase().contains(q);
+
+          final cuisineMatches = _selectedCuisineId == null ||
+              r.cuisines.any((c) => c.id == _selectedCuisineId) ||
+              r.cuisine.toLowerCase().contains(_selectedCuisineName.toLowerCase());
+
+          return nameMatches && cuisineMatches;
         }).toList();
       }
     });
@@ -362,16 +375,20 @@ class _NearbyPageState extends State<NearbyPage>
   double _kmToMiles(double km) => km * 0.621371;
 
   void _openRestaurant(Restaurant restaurant) {
-    if (_center == null) return;
+    // Prefer the user's actual GPS position for distance calculations in the
+    // details page, fall back to the current map centre if GPS isn't available.
+    final userLat = _userLocation?.coordinates.lat.toDouble()
+        ?? _center?.coordinates.lat.toDouble();
+    final userLon = _userLocation?.coordinates.lng.toDouble()
+        ?? _center?.coordinates.lng.toDouble();
+
     final slug = restaurant.id;
-    final lat = _center!.coordinates.lat.toDouble();
-    final lon = _center!.coordinates.lng.toDouble();
 
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) =>
-            RestaurantDetailsPage(slug: slug, latitude: lat, longitude: lon),
+            RestaurantDetailsPage(slug: slug, latitude: userLat, longitude: userLon),
       ),
     );
   }
@@ -1161,7 +1178,39 @@ class _NearbyPageState extends State<NearbyPage>
             child: Icon(Icons.search, size: 28, color: Colors.black),
           ),
         ),
+        const SizedBox(width: 8),
+        InkWell(
+          onTap: _openFilters,
+          borderRadius: BorderRadius.circular(14),
+          child: Padding(
+            padding: const EdgeInsets.all(6.0),
+            child: Icon(
+              Icons.filter_list,
+              size: 28,
+              color: _selectedCuisineId != null
+                  ? AppColors.primary
+                  : Colors.black,
+            ),
+          ),
+        ),
       ],
+    );
+  }
+
+  void _openFilters() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => FilterModal(
+        onApply: (filters) {
+          setState(() {
+            _selectedCuisineId = filters['cuisine_id'];
+            _selectedCuisineName = filters['cuisine_name'];
+          });
+          _filterRestaurants();
+        },
+      ),
     );
   }
 
@@ -1317,7 +1366,17 @@ class _NearbyPageState extends State<NearbyPage>
   }
 
   Widget _restaurantPreviewCard(Restaurant restaurant) {
-    final dist = restaurant.distanceMiles ?? _kmToMiles(restaurant.distance);
+    // Compute pinpoint-accurate miles using user GPS; fall back gracefully
+    final userLat = _userLocation?.coordinates.lat.toDouble();
+    final userLon = _userLocation?.coordinates.lng.toDouble();
+    final miles = DistanceUtils.bestMiles(
+      userLat: userLat,
+      userLon: userLon,
+      restaurantLat: restaurant.latitude,
+      restaurantLon: restaurant.longitude,
+      distanceMilesFromApi: restaurant.distanceMiles,
+      distanceKmFromApi: restaurant.distance,
+    );
     final tags = _getOfferTags(restaurant);
 
     return GestureDetector(
@@ -1412,7 +1471,7 @@ class _NearbyPageState extends State<NearbyPage>
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        "${dist.toStringAsFixed(1)} miles",
+                        "${miles?.toStringAsFixed(1) ?? '—'} miles",
                         style: AppTypography.bodySmall.copyWith(
                           fontWeight: FontWeight.w600,
                           color: Colors.black54,

@@ -1,8 +1,8 @@
 import 'package:discount_buddy/theme/app_colors.dart';
-
 import 'package:discount_buddy/theme/app_fonts.dart';
 import 'package:flutter/material.dart';
 import 'generic_bottom_sheet.dart';
+import '../services/restaurant_service.dart';
 
 /// Filter Modal - Bottom sheet with day, time, and category filters
 class FilterModal extends StatefulWidget {
@@ -15,106 +15,44 @@ class FilterModal extends StatefulWidget {
 }
 
 class _FilterModalState extends State<FilterModal> {
+  final RestaurantService _restaurantService = RestaurantService();
   String? _selectedDay;
   String? _selectedTime;
-  String _selectedCategory = 'All';
+  int? _selectedCuisineId;
+  String _selectedCuisineName = 'All';
+  List<Map<String, dynamic>> _cuisines = [];
+  bool _isLoadingCuisines = true;
 
-  final List<String> _days = [
-    'Today',
-    'Tomorrow',
-    'Sunday',
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday',
-  ];
-  final List<String> _times = [
-    '0:00',
-    '0:30',
-    '1:00',
-    '1:30',
-    '2:00',
-    '2:30',
-    '3:00',
-    '3:30',
-    '4:00',
-    '4:30',
-    '5:00',
-    '5:30',
-    '6:00',
-    '6:30',
-    '7:00',
-    '7:30',
-    '8:00',
-    '8:30',
-    '9:00',
-    '9:30',
-    '10:00',
-    '10:30',
-    '11:00',
-    '11:30',
-    '12:00',
-    '12:30',
-    '13:00',
-    '13:30',
-    '14:00',
-    '14:30',
-    '15:00',
-    '15:30',
-    '16:00',
-    '16:30',
-    '17:00',
-    '17:30',
-    '18:00',
-    '18:30',
-    '19:00',
-    '19:30',
-    '20:00',
-    '20:30',
-    '21:00',
-    '21:30',
-    '22:00',
-    '22:30',
-    '23:00',
-    '23:30',
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadCuisines();
+  }
 
-  final List<_CategoryData> _categories = [
-    _CategoryData(name: 'All', emoji: ''),
-    _CategoryData(name: 'Café', emoji: '☕'),
-    _CategoryData(name: 'Drinks', emoji: '🥂'),
-    _CategoryData(name: 'BBQ', emoji: '🔥'),
-    _CategoryData(name: 'Desserts', emoji: '🍰'),
-    _CategoryData(name: 'Breakfast', emoji: '🍳'),
-    _CategoryData(name: 'Asian', emoji: '🍱'),
-    _CategoryData(name: 'Burgers', emoji: '🍔'),
-    _CategoryData(name: 'Pizza', emoji: '🍕'),
-    _CategoryData(name: 'Fast Food', emoji: '🍟'),
-    _CategoryData(name: 'Vegan', emoji: '🥦'),
-    _CategoryData(name: 'Healthy', emoji: '🥗'),
-    _CategoryData(name: 'Seafood', emoji: '🦐'),
-    _CategoryData(name: 'Indian', emoji: '🍛'),
-    _CategoryData(name: 'Sushi', emoji: '🍣'),
-    _CategoryData(name: 'Italian', emoji: '🍅'),
-    _CategoryData(name: 'Bowls', emoji: '🍲'),
-    _CategoryData(name: 'Halal', emoji: '🕌'),
-    _CategoryData(name: 'Pasta', emoji: '🍝'),
-    _CategoryData(name: 'Sandwich', emoji: '🥪'),
-    _CategoryData(name: 'Japanese', emoji: '🇯🇵'),
-    _CategoryData(name: 'Mexican', emoji: '🌮'),
-    _CategoryData(name: 'Vegetarian', emoji: '🫑'),
-    _CategoryData(name: 'Mediterranean', emoji: '🫒'),
-    _CategoryData(name: 'Spanish', emoji: '🥘'),
-    _CategoryData(name: 'Curry', emoji: '🍛'),
-  ];
+  Future<void> _loadCuisines() async {
+    try {
+      final cuisines = await _restaurantService.getCuisines();
+      if (mounted) {
+        setState(() {
+          _cuisines = cuisines;
+          _isLoadingCuisines = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingCuisines = false;
+        });
+      }
+    }
+  }
 
   void _resetFilters() {
     setState(() {
       _selectedDay = null;
       _selectedTime = null;
-      _selectedCategory = 'All';
+      _selectedCuisineId = null;
+      _selectedCuisineName = 'All';
     });
   }
 
@@ -122,7 +60,8 @@ class _FilterModalState extends State<FilterModal> {
     final filters = {
       'day': _selectedDay,
       'time': _selectedTime,
-      'category': _selectedCategory,
+      'cuisine_id': _selectedCuisineId,
+      'cuisine_name': _selectedCuisineName,
     };
 
     if (widget.onApply != null) {
@@ -341,7 +280,7 @@ class _FilterModalState extends State<FilterModal> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Category',
+                      'Cuisine',
                       style: AppFonts.bodyStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -349,52 +288,78 @@ class _FilterModalState extends State<FilterModal> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _categories.map((category) {
-                        final isSelected = _selectedCategory == category.name;
+                    if (_isLoadingCuisines)
+                      const Center(child: CircularProgressIndicator())
+                    else
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          // "All" option
+                          FilterChip(
+                            label: const Text('All'),
+                            selected: _selectedCuisineId == null,
+                            onSelected: (selected) {
+                              setState(() {
+                                _selectedCuisineId = null;
+                                _selectedCuisineName = 'All';
+                              });
+                            },
+                            selectedColor: AppColors.primaryPurple,
+                            backgroundColor: AppColors.textDisabled.withValues(
+                              alpha: 0.2,
+                            ),
+                            labelStyle: AppFonts.bodyStyle(
+                              color: _selectedCuisineId == null
+                                  ? Colors.white
+                                  : AppColors.textPrimary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          ..._cuisines.map((cuisine) {
+                            final id = cuisine['id'];
+                            final name = cuisine['name'] as String;
+                            final isSelected = _selectedCuisineId == id;
 
-                        return FilterChip(
-                          label: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (category.emoji.isNotEmpty) ...[
-                                Text(category.emoji),
-                                const SizedBox(width: 4),
-                              ],
-                              Text(category.name),
-                            ],
-                          ),
-                          selected: isSelected,
-                          onSelected: (selected) {
-                            setState(() {
-                              _selectedCategory = selected
-                                  ? category.name
-                                  : 'All';
-                            });
-                          },
-                          selectedColor: AppColors.primaryPurple,
-                          backgroundColor: AppColors.textDisabled.withValues(
-                            alpha: 0.2,
-                          ),
-                          labelStyle: AppFonts.bodyStyle(
-                            color: isSelected
-                                ? Colors.white
-                                : AppColors.textPrimary,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        );
-                      }).toList(),
-                    ),
+                            return FilterChip(
+                              label: Text(name),
+                              selected: isSelected,
+                              onSelected: (selected) {
+                                setState(() {
+                                  _selectedCuisineId = selected ? id : null;
+                                  _selectedCuisineName = selected ? name : 'All';
+                                });
+                              },
+                              selectedColor: AppColors.primaryPurple,
+                              backgroundColor: AppColors.textDisabled.withValues(
+                                alpha: 0.2,
+                              ),
+                              labelStyle: AppFonts.bodyStyle(
+                                color: isSelected
+                                    ? Colors.white
+                                    : AppColors.textPrimary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            );
+                          }).toList(),
+                        ],
+                      ),
                   ],
                 ),
               ),

@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../theme/app_fonts.dart';
 import '../models/restaurant.dart';
 import '../services/restaurant_service.dart';
+import '../services/location_service.dart';
 import '../widgets/restaurant_card.dart';
 import '../widgets/loading_widget.dart';
 import '../widgets/blurred_ellipse_background.dart';
@@ -23,6 +24,7 @@ class BrowsePage extends StatefulWidget {
 
 class _BrowsePageState extends State<BrowsePage> {
   final RestaurantService _restaurantService = RestaurantService();
+  final LocationService _locationService = LocationService();
   final TextEditingController _searchController = TextEditingController();
   List<Restaurant> _restaurants = [];
   List<Restaurant> _filteredRestaurants = [];
@@ -30,6 +32,8 @@ class _BrowsePageState extends State<BrowsePage> {
   bool _isMapView = false;
   GoogleMapController? _mapController;
   Set<Marker> _markers = {};
+  double? _userLat;
+  double? _userLon;
 
   @override
   void initState() {
@@ -51,9 +55,18 @@ class _BrowsePageState extends State<BrowsePage> {
     });
 
     try {
+      // Get real location
+      try {
+        final position = await _locationService.getCurrentLocation();
+        _userLat = position.latitude;
+        _userLon = position.longitude;
+      } catch (e) {
+        debugPrint('Error getting location in BrowsePage: $e');
+      }
+
       final restaurants = await _restaurantService.getNearbyRestaurants(
-        latitude: 51.5074,
-        longitude: -0.1278,
+        latitude: _userLat ?? 51.5074,
+        longitude: _userLon ?? -0.1278,
       );
       setState(() {
         _restaurants = restaurants;
@@ -100,6 +113,8 @@ class _BrowsePageState extends State<BrowsePage> {
               MaterialPageRoute(
                 builder: (context) => RestaurantDetailsPage(
                   slug: restaurant.slug ?? restaurant.id,
+                  latitude: _userLat,
+                  longitude: _userLon,
                 ),
               ),
             );
@@ -230,12 +245,18 @@ class _BrowsePageState extends State<BrowsePage> {
         final restaurant = _filteredRestaurants[index];
         return RestaurantCard(
           restaurant: restaurant,
+          userLat: _userLat,
+          userLon: _userLon,
           onTap: () {
             final slug = restaurant.slug ?? restaurant.id;
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => RestaurantDetailsPage(slug: slug),
+                builder: (context) => RestaurantDetailsPage(
+                  slug: slug,
+                  latitude: _userLat,
+                  longitude: _userLon,
+                ),
               ),
             );
           },
@@ -251,8 +272,8 @@ class _BrowsePageState extends State<BrowsePage> {
     return Stack(
       children: [
         GoogleMap(
-          initialCameraPosition: const CameraPosition(
-            target: LatLng(51.5074, -0.1278), // London
+          initialCameraPosition: CameraPosition(
+            target: LatLng(_userLat ?? 51.5074, _userLon ?? -0.1278), // User location or London
             zoom: 13,
           ),
           markers: _markers,
@@ -285,7 +306,11 @@ class _BrowsePageState extends State<BrowsePage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => RestaurantDetailsPage(slug: slug),
+                        builder: (context) => RestaurantDetailsPage(
+                          slug: slug,
+                          latitude: _userLat,
+                          longitude: _userLon,
+                        ),
                       ),
                     );
                   },

@@ -11,6 +11,25 @@ import 'api_service.dart';
 class RestaurantService {
   final ApiService _apiService = ApiService();
 
+  // --- Search & Filters ---
+
+  Future<List<Map<String, dynamic>>> getCuisines() async {
+    try {
+      final response = await _apiService.get(ApiEndpoints.cuisines);
+      if (response.containsKey('results')) {
+        final results = response['results'];
+        if (results is List) {
+          return results.map((item) => item as Map<String, dynamic>).toList();
+        }
+      } else if (response is List) {
+        return response.map((item) => item as Map<String, dynamic>).toList();
+      }
+      return [];
+    } catch (e) {
+      return []; // Return empty list on error for now
+    }
+  }
+
   // --- User Interactions ---
 
   Future<List<Restaurant>> getRestaurants({
@@ -43,6 +62,38 @@ class RestaurantService {
           .toList();
     } catch (e) {
       return _getMockRestaurants();
+    }
+  }
+
+  Future<List<Restaurant>> searchRestaurants({
+    required String query,
+    double? latitude,
+    double? longitude,
+  }) async {
+    try {
+      final queryParams = <String, String>{
+        'q': query,
+      };
+      if (latitude != null) queryParams['latitude'] = latitude.toString();
+      if (longitude != null) queryParams['longitude'] = longitude.toString();
+
+      final response = await _apiService.get(
+        ApiEndpoints.searchRestaurants,
+        queryParameters: queryParams,
+      );
+
+      final List<dynamic> restaurantsJson = response is List
+          ? response as List<dynamic>
+          : ((response)['results'] ?? (response)['data'] ?? [])
+                as List<dynamic>;
+
+      return restaurantsJson
+          .map(
+            (json) => convertApiRestaurantToModel(json as Map<String, dynamic>),
+          )
+          .toList();
+    } catch (e) {
+      return [];
     }
   }
 
@@ -256,9 +307,19 @@ class RestaurantService {
   }
 
   /// Get user's saved restaurants
-  Future<List<Restaurant>> getSavedRestaurants() async {
+  Future<List<Restaurant>> getSavedRestaurants({
+    double? latitude,
+    double? longitude,
+  }) async {
     try {
-      final response = await _apiService.get(ApiEndpoints.savedRestaurants);
+      final queryParams = <String, String>{};
+      if (latitude != null) queryParams['latitude'] = latitude.toString();
+      if (longitude != null) queryParams['longitude'] = longitude.toString();
+
+      final response = await _apiService.get(
+        ApiEndpoints.savedRestaurants,
+        queryParameters: queryParams.isNotEmpty ? queryParams : null,
+      );
 
       // The ApiService wraps lists in a 'data' key for consistency
       final List<dynamic> results =
@@ -337,11 +398,19 @@ class RestaurantService {
   }
 
   /// Search restaurants
-  Future<List<Restaurant>> searchRestaurants(String query) async {
+  Future<List<Restaurant>> searchRestaurants(
+    String query, {
+    double? latitude,
+    double? longitude,
+  }) async {
     try {
+      final queryParams = <String, String>{'q': query};
+      if (latitude != null) queryParams['latitude'] = latitude.toString();
+      if (longitude != null) queryParams['longitude'] = longitude.toString();
+
       final response = await _apiService.get(
         ApiEndpoints.searchRestaurants,
-        queryParameters: {'q': query},
+        queryParameters: queryParams,
       );
 
       // The response is a list directly, but ApiService might wrap it in 'data'
@@ -537,8 +606,8 @@ class RestaurantService {
       final response = await _apiService.get(
         ApiEndpoints.restaurantDetail(slug),
         queryParameters: {
-          if (latitude != null) 'lat': latitude.toString(),
-          if (longitude != null) 'lon': longitude.toString(),
+          if (latitude != null) 'latitude': latitude.toString(),
+          if (longitude != null) 'longitude': longitude.toString(),
         },
       );
       return _convertDetailResponseToModel(response);
@@ -558,8 +627,8 @@ class RestaurantService {
       final response = await _apiService.get(
         ApiEndpoints.restaurantDetail(slug),
         queryParameters: {
-          if (latitude != null) 'lat': latitude.toString(),
-          if (longitude != null) 'lon': longitude.toString(),
+          if (latitude != null) 'latitude': latitude.toString(),
+          if (longitude != null) 'longitude': longitude.toString(),
         },
       );
 

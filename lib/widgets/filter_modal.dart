@@ -22,6 +22,22 @@ class _FilterModalState extends State<FilterModal> {
   String _selectedCuisineName = 'All';
   List<Map<String, dynamic>> _cuisines = [];
   bool _isLoadingCuisines = true;
+  final List<String> _days = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday'
+  ];
+  final List<String> _times = [
+    'Morning',
+    'Lunch',
+    'Afternoon',
+    'Evening',
+    'Night'
+  ];
 
   @override
   void initState() {
@@ -335,13 +351,13 @@ class _FilterModalState extends State<FilterModal> {
                               onSelected: (selected) {
                                 setState(() {
                                   _selectedCuisineId = selected ? id : null;
-                                  _selectedCuisineName = selected ? name : 'All';
+                                  _selectedCuisineName =
+                                      selected ? name : 'All';
                                 });
                               },
                               selectedColor: AppColors.primaryPurple,
-                              backgroundColor: AppColors.textDisabled.withValues(
-                                alpha: 0.2,
-                              ),
+                              backgroundColor: AppColors.textDisabled
+                                  .withValues(alpha: 0.2),
                               labelStyle: AppFonts.bodyStyle(
                                 color: isSelected
                                     ? Colors.white
@@ -357,24 +373,19 @@ class _FilterModalState extends State<FilterModal> {
                                 borderRadius: BorderRadius.circular(14),
                               ),
                             );
-                          }).toList(),
+                          }),
                         ],
                       ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
-            ],
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
         ),
-      ),
     );
   }
 }
 
-class _CategoryData {
-  final String name;
-  final String emoji;
 
-  _CategoryData({required this.name, required this.emoji});
-}

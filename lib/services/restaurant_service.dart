@@ -16,15 +16,8 @@ class RestaurantService {
   Future<List<Map<String, dynamic>>> getCuisines() async {
     try {
       final response = await _apiService.get(ApiEndpoints.cuisines);
-      if (response.containsKey('results')) {
-        final results = response['results'];
-        if (results is List) {
-          return results.map((item) => item as Map<String, dynamic>).toList();
-        }
-      } else if (response is List) {
-        return response.map((item) => item as Map<String, dynamic>).toList();
-      }
-      return [];
+      final List<dynamic> results = _extractList(response);
+      return results.map((item) => item as Map<String, dynamic>).toList();
     } catch (e) {
       return []; // Return empty list on error for now
     }
@@ -421,38 +414,7 @@ class RestaurantService {
     }
   }
 
-  /// Search restaurants
-  Future<List<Restaurant>> searchRestaurants(
-    String query, {
-    double? latitude,
-    double? longitude,
-  }) async {
-    try {
-      final queryParams = <String, String>{'q': query};
-      if (latitude != null) queryParams['latitude'] = latitude.toString();
-      if (longitude != null) queryParams['longitude'] = longitude.toString();
 
-      final response = await _apiService.get(
-        ApiEndpoints.searchRestaurants,
-        queryParameters: queryParams,
-      );
-
-      // The response is a list directly, but ApiService might wrap it in 'data'
-      final List<dynamic> restaurantsJson = response is List
-          ? response as List<dynamic>
-          : ((response)['data'] ?? (response)['results'] ?? [])
-                as List<dynamic>;
-
-      return restaurantsJson
-          .map(
-            (json) => convertApiRestaurantToModel(json as Map<String, dynamic>),
-          )
-          .toList();
-    } catch (e) {
-      // For demo purposes, return mock data
-      return _getMockRestaurants();
-    }
-  }
 
   /// Get restaurant by ID
   Future<Restaurant> getRestaurantById(String id) async {

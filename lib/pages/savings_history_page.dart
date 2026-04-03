@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import 'package:intl/intl.dart';
-import 'package:discount_buddy/components/layout.dart' hide LoadingWidget;
+import 'package:discount_buddy/components/layout.dart';
 import '../components/buttons.dart';
 import '../models/deal_redemption.dart';
 import '../services/restaurant_service.dart';

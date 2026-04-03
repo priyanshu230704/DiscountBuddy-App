@@ -25,7 +25,7 @@ class _SearchPageState extends State<SearchPage> {
   List<Restaurant> _restaurants = [];
   List<Restaurant> _filteredRestaurants = [];
   bool _isLoading = false;
-  String _selectedCuisine = 'All';
+
   double? _userLat;
   double? _userLon;
   List<Map<String, dynamic>> _cuisines = [];

@@ -52,14 +52,15 @@ class _NearbyPageState extends State<NearbyPage>
   double _zoom = 13;
   int? _selectedCityId;
 
-  List<Restaurant> _restaurants = [];
   List<Restaurant> _filteredRestaurants = [];
 
   List<Restaurant> _cityRestaurants = [];
   bool _isCityListLoading = false;
 
   int? _selectedCuisineId;
-  String _selectedCuisineName = 'All';
+  int? _selectedDay;
+  String? _selectedTime;
+  Timer? _debounce;
 
   Restaurant? _selectedRestaurant;
   String? _selectedRestaurantId;
@@ -99,7 +100,7 @@ class _NearbyPageState extends State<NearbyPage>
   void initState() {
     super.initState();
 
-    _searchController.addListener(_filterRestaurants);
+    _searchController.addListener(_onSearchChanged);
 
     _cardController = AnimationController(
       vsync: this,
@@ -121,6 +122,7 @@ class _NearbyPageState extends State<NearbyPage>
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchController.dispose();
     _searchFocusNode.dispose();
     _cardController.dispose();
@@ -240,16 +242,16 @@ class _NearbyPageState extends State<NearbyPage>
         cityId: _selectedCityId,
         latitude: _userLocation?.coordinates.lat.toDouble(),
         longitude: _userLocation?.coordinates.lng.toDouble(),
-        // Add cuisine filtering to the API call
-        // Note: You might need to update getRestaurants in restaurant_service.dart
-        // to support this if not already present.
+        search: _searchController.text.trim(),
+        cuisines: _selectedCuisineId,
+        day: _selectedDay,
+        time: _selectedTime,
       );
 
       if (!mounted) return;
 
       setState(() {
         _cityRestaurants = list;
-        _restaurants = list;
         _filteredRestaurants = list;
 
         _isLoading = false;
@@ -258,13 +260,30 @@ class _NearbyPageState extends State<NearbyPage>
 
       await _ensureMarkerBytes();
       await _syncPinsWithList();
-      await _moveCameraToCenter();
+      
+      final hasActiveFilter = _searchController.text.trim().isNotEmpty || 
+                              _selectedCuisineId != null || 
+                              _selectedDay != null || 
+                              _selectedTime != null;
+                              
+      if (hasActiveFilter && list.length == 1) {
+        final r = list.first;
+        setState(() {
+          _selectedRestaurant = r;
+          _selectedRestaurantId = r.id;
+        });
+        _cardController.forward(from: 0);
+        await _refreshPinsStateOnly();
+        await _bounceSelectedMarker(r.id);
+        await _moveToRestaurant(r);
+      } else {
+        await _moveCameraToCenter();
+      }
     } catch (_) {
       if (!mounted) return;
 
       setState(() {
         _cityRestaurants = [];
-        _restaurants = [];
         _filteredRestaurants = [];
 
         _isLoading = false;
@@ -348,31 +367,13 @@ class _NearbyPageState extends State<NearbyPage>
     _isProgrammaticMove = false;
   }
 
-  void _filterRestaurants() async {
-    final q = _searchController.text.trim().toLowerCase();
-
-    setState(() {
-      if (q.isEmpty && _selectedCuisineId == null) {
-        _filteredRestaurants = _cityRestaurants;
-      } else {
-        _filteredRestaurants = _cityRestaurants.where((r) {
-          final nameMatches = q.isEmpty ||
-              r.name.toLowerCase().contains(q) ||
-              r.description.toLowerCase().contains(q);
-
-          final cuisineMatches = _selectedCuisineId == null ||
-              r.cuisines.any((c) => c.id == _selectedCuisineId) ||
-              r.cuisine.toLowerCase().contains(_selectedCuisineName.toLowerCase());
-
-          return nameMatches && cuisineMatches;
-        }).toList();
-      }
+  void _onSearchChanged() {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      _loadCityRestaurants();
     });
-
-    await _syncPinsWithList();
   }
 
-  double _kmToMiles(double km) => km * 0.621371;
 
   void _openRestaurant(Restaurant restaurant) {
     // Prefer the user's actual GPS position for distance calculations in the
@@ -1198,17 +1199,47 @@ class _NearbyPageState extends State<NearbyPage>
   }
 
   void _openFilters() {
+    _showFilterModal();
+  }
+
+  void _showFilterModal() {
+    final days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    final currentDayString = _selectedDay != null ? days[_selectedDay!] : null;
+
+    final reverseTimes = {
+      '09:00:00': 'Morning',
+      '12:00:00': 'Lunch',
+      '15:00:00': 'Afternoon',
+      '18:00:00': 'Evening',
+      '20:00:00': 'Night',
+    };
+    final currentTimeString = _selectedTime != null ? reverseTimes[_selectedTime] : null;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
+      useSafeArea: true,
       builder: (context) => FilterModal(
+        initialDay: currentDayString,
+        initialTime: currentTimeString,
+        initialCuisineId: _selectedCuisineId,
         onApply: (filters) {
           setState(() {
             _selectedCuisineId = filters['cuisine_id'];
-            _selectedCuisineName = filters['cuisine_name'];
+
+            _selectedDay = filters['day'] != null ? days.indexOf(filters['day']) : null;
+            
+            final times = {
+              'Morning': '09:00:00',
+              'Lunch': '12:00:00',
+              'Afternoon': '15:00:00',
+              'Evening': '18:00:00',
+              'Night': '20:00:00',
+            };
+            _selectedTime = filters['time'] != null ? times[filters['time']] : null;
           });
-          _filterRestaurants();
+          _loadCityRestaurants();
         },
       ),
     );
@@ -1279,20 +1310,7 @@ class _NearbyPageState extends State<NearbyPage>
           child: _bottomPillButton(
             icon: Icons.filter_alt_outlined,
             label: "Filter",
-            onTap: () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                useSafeArea: true,
-                builder: (_) => FilterModal(
-                  onApply: (filters) {
-                    debugPrint("Filters applied: $filters");
-                    _loadCityRestaurants();
-                  },
-                ),
-              );
-            },
+            onTap: _showFilterModal,
           ),
         ),
         const SizedBox(width: 12),

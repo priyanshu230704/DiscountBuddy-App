@@ -30,6 +30,10 @@ class RestaurantService {
     int? page,
     double? latitude,
     double? longitude,
+    String? search,
+    int? cuisines,
+    int? day,
+    String? time,
   }) async {
     try {
       final queryParams = <String, String>{};
@@ -37,6 +41,10 @@ class RestaurantService {
       if (page != null) queryParams['page'] = page.toString();
       if (latitude != null) queryParams['latitude'] = latitude.toString();
       if (longitude != null) queryParams['longitude'] = longitude.toString();
+      if (search != null && search.isNotEmpty) queryParams['search'] = search;
+      if (cuisines != null) queryParams['cuisines'] = cuisines.toString();
+      if (day != null) queryParams['day'] = day.toString();
+      if (time != null && time.isNotEmpty) queryParams['time'] = time;
 
       final response = await _apiService.get(
         ApiEndpoints.restaurants,

@@ -6,9 +6,20 @@ import '../services/restaurant_service.dart';
 
 /// Filter Modal - Bottom sheet with day, time, and category filters
 class FilterModal extends StatefulWidget {
+  final String? initialDay;
+  final String? initialTime;
+  final int? initialCuisineId;
+  final String? initialCuisineName;
   final Function(Map<String, dynamic>)? onApply;
 
-  const FilterModal({super.key, this.onApply});
+  const FilterModal({
+    super.key,
+    this.initialDay,
+    this.initialTime,
+    this.initialCuisineId,
+    this.initialCuisineName,
+    this.onApply,
+  });
 
   @override
   State<FilterModal> createState() => _FilterModalState();
@@ -42,6 +53,10 @@ class _FilterModalState extends State<FilterModal> {
   @override
   void initState() {
     super.initState();
+    _selectedDay = widget.initialDay;
+    _selectedTime = widget.initialTime;
+    _selectedCuisineId = widget.initialCuisineId;
+    _selectedCuisineName = widget.initialCuisineName ?? 'All';
     _loadCuisines();
   }
 

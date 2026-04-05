@@ -441,26 +441,43 @@ class _NearbyPageState extends State<NearbyPage>
     required int size,
     required bool selected,
     required String dealText,
+    required String restaurantName,
   }) async {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
 
     final double s = size.toDouble();
-    // Tip at bottom
-    final Offset tip = Offset(s / 2, s * 0.92);
-    final double radius = s * 0.15;
-    final double yCenter = tip.dy - s * 0.38;
+    
+    // Scale down pin drawing vertically to leave space for top/bottom bubbles
+    final double pinScale = 0.70;
+    final double scaledS = s * pinScale;
+    
+    // Push down slightly to leave top room
+    final double yOffset = s * 0.08;
+
+    // Tip at bottom of the PIN (not the canvas)
+    final Offset rawTip = Offset(s / 2, yOffset + scaledS * 0.92);
+    
+    // We want the TIP to be exactly at the CENTER of our image to avoid Mapbox anchor/offset artifacts.
+    // This makes IconAnchor.CENTER perfectly stable across all iconSizes.
+    final double dy = (s / 2) - rawTip.dy;
+    canvas.save();
+    canvas.translate(0, dy);
+
+    final Offset tip = rawTip; // tip logic remains same, but canvas is shifted
+    final double radius = scaledS * 0.15;
+    final double yCenter = tip.dy - scaledS * 0.38;
     final Offset center = Offset(s / 2, yCenter);
 
     // 1. Draw Large Soft Shadow
     final shadowPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.15)
+      ..color = Colors.black.withOpacity(0.15)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
     canvas.drawOval(
       Rect.fromCenter(
-        center: Offset(tip.dx, tip.dy + s * 0.01),
-        width: s * 0.28,
-        height: s * 0.07,
+        center: Offset(tip.dx, tip.dy + scaledS * 0.01),
+        width: scaledS * 0.28,
+        height: scaledS * 0.07,
       ),
       shadowPaint,
     );
@@ -468,72 +485,67 @@ class _NearbyPageState extends State<NearbyPage>
     // 2. Define the Classic Map Pin Shape
     final path = Path();
     path.moveTo(tip.dx, tip.dy);
-    // Left side curve (plump shoulder to tip)
+    // Left side curve 
     path.cubicTo(
-      center.dx - radius * 0.15, tip.dy - s * 0.12, 
+      center.dx - radius * 0.15, tip.dy - scaledS * 0.12, 
       center.dx - radius, yCenter + radius * 1.4, 
       center.dx - radius, yCenter,
     );
-    // Top perfect circle arch
+    // Top circle arch
     path.arcToPoint(
       Offset(center.dx + radius, yCenter),
       radius: Radius.circular(radius),
       clockwise: true,
     );
-    // Right side curve (plump shoulder to tip)
+    // Right side curve 
     path.cubicTo(
       center.dx + radius, yCenter + radius * 1.4,
-      center.dx + radius * 0.15, tip.dy - s * 0.12,
+      center.dx + radius * 0.15, tip.dy - scaledS * 0.12,
       tip.dx, tip.dy,
     );
     path.close();
 
     // 3. Draw Thick White Border
-    // Rendered underneath the fill so we see exactly half its width as a crisp outer glow/border
     final outerWhitePaint = Paint()
-      ..color = selected ? Colors.white : Colors.white.withValues(alpha: 0.95)
+      ..color = selected ? Colors.white : Colors.white.withOpacity(0.95)
       ..style = PaintingStyle.stroke
       ..strokeJoin = StrokeJoin.round
-      ..strokeWidth = s * 0.06; // Renders effectively as 0.03 width outside
+      ..strokeWidth = scaledS * 0.06;
     canvas.drawPath(path, outerWhitePaint);
 
-    // 4. Fill with Vibrant Gradient (exactly matching the magenta/purple hue)
+    // 4. Fill with Gradient
     final Rect pinBounds = Rect.fromPoints(
       Offset(center.dx - radius, center.dy - radius),
       tip,
     );
-    
     final Gradient pinGradient = const LinearGradient(
-      colors: [
-        Color(0xFFE879F9), // Light Vibrant Pink/Purple
-        Color(0xFFA855F7), // Deep Purple
-      ],
+      colors: [Color(0xFFE879F9), Color(0xFFA855F7)],
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
     );
     final fillPaint = Paint()..shader = pinGradient.createShader(pinBounds);
     canvas.drawPath(path, fillPaint);
 
-    // 5. Thin Dark Purple Outline (gives it that sharp illustrative pop)
+    // 5. Thin Dark Outline
     final innerOutlinePaint = Paint()
       ..color = const Color(0xFF7E22CE)
       ..style = PaintingStyle.stroke
       ..strokeJoin = StrokeJoin.round
-      ..strokeWidth = s * 0.006;
+      ..strokeWidth = scaledS * 0.006;
     canvas.drawPath(path, innerOutlinePaint);
 
-    // 6. Draw the Prominent White Inner Dot (with matching outline)
+    // 6. Draw White Inner Dot
     final innerCircleRadius = radius * 0.48;
     final innerCirclePaint = Paint()..color = Colors.white;
     canvas.drawCircle(center, innerCircleRadius, innerCirclePaint);
-    canvas.drawCircle(center, innerCircleRadius, innerOutlinePaint); // dark ring around the dot
+    canvas.drawCircle(center, innerCircleRadius, innerOutlinePaint);
 
-    // 7. Draw the Bubble/Pill (if there is deal text)
+    // 7. Draw Deal Bubble (Top)
     if (dealText.isNotEmpty) {
       final TextSpan span = TextSpan(
         text: dealText,
         style: AppTypography.title.copyWith(
-          fontSize: selected ? s * 0.12 : s * 0.10,
+          fontSize: selected ? scaledS * 0.12 : scaledS * 0.10,
           fontWeight: FontWeight.w900,
           color: Colors.white,
         ),
@@ -545,62 +557,105 @@ class _NearbyPageState extends State<NearbyPage>
       );
       tp.layout();
 
-      final double paddingHorizontal = s * 0.08;
-      final double paddingVertical = s * 0.05;
-      final double pillWidth = tp.width + paddingHorizontal * 2;
-      final double pillHeight = tp.height + paddingVertical * 2;
+      final double padH = scaledS * 0.08;
+      final double padV = scaledS * 0.05;
+      final double pillWidth = tp.width + padH * 2;
+      final double pillHeight = tp.height + padV * 2;
 
       final Rect pillRect = Rect.fromCenter(
-        center: Offset(center.dx, center.dy - radius - pillHeight / 2 - s * 0.04),
+        center: Offset(center.dx, center.dy - radius - pillHeight / 2 - scaledS * 0.04),
         width: pillWidth,
         height: pillHeight,
       );
 
       final Gradient pillGradient = const LinearGradient(
-        colors: [
-          Color(0xFFD946EF), // Bright Fuchsia
-          Color(0xFFA855F7), // Purple
-        ],
+        colors: [Color(0xFFD946EF), Color(0xFFA855F7)],
         begin: Alignment.centerLeft,
         end: Alignment.centerRight,
       );
+      final pillPaint = Paint()..shader = pillGradient.createShader(pillRect);
 
-      final Paint pillPaint = Paint()
-        ..shader = pillGradient.createShader(pillRect);
-
-      // Pill shadow
       final pillShadowPaint = Paint()
-        ..color = Colors.black.withValues(alpha: 0.15)
+        ..color = Colors.black.withOpacity(0.15)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
       canvas.drawRRect(
         RRect.fromRectAndRadius(pillRect.translate(0, 4), Radius.circular(pillHeight / 2)),
         pillShadowPaint,
       );
 
-      // Triangle pointer
       final pointerPath = Path();
-      pointerPath.moveTo(center.dx - s * 0.04, pillRect.bottom - 1);
-      pointerPath.lineTo(center.dx + s * 0.04, pillRect.bottom - 1);
-      pointerPath.lineTo(center.dx, pillRect.bottom + s * 0.05);
+      pointerPath.moveTo(center.dx - scaledS * 0.04, pillRect.bottom - 1);
+      pointerPath.lineTo(center.dx + scaledS * 0.04, pillRect.bottom - 1);
+      pointerPath.lineTo(center.dx, pillRect.bottom + scaledS * 0.05);
       pointerPath.close();
+      canvas.drawPath(pointerPath, pillPaint);
       
-      final pointerPaint = Paint()..shader = pillGradient.createShader(pillRect);
-      canvas.drawPath(pointerPath, pointerPaint);
-      
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(pillRect, Radius.circular(pillHeight / 2)),
-        pillPaint,
-      );
-
-      tp.paint(
-        canvas,
-        Offset(
-          pillRect.left + paddingHorizontal,
-          pillRect.top + paddingVertical,
-        ),
-      );
+      canvas.drawRRect(RRect.fromRectAndRadius(pillRect, Radius.circular(pillHeight / 2)), pillPaint);
+      tp.paint(canvas, Offset(pillRect.left + padH, pillRect.top + padV));
     }
 
+    // 8. Draw Restaurant Name Bubble (Bottom)
+    if (restaurantName.isNotEmpty) {
+      final TextSpan span = TextSpan(
+        text: restaurantName,
+        style: AppTypography.title.copyWith(
+          fontSize: selected ? scaledS * 0.11 : scaledS * 0.09,
+          fontWeight: FontWeight.w700,
+          color: AppColors.textPrimary,
+        ),
+      );
+      final TextPainter tp = TextPainter(
+        text: span,
+        textAlign: TextAlign.center,
+        textDirection: TextDirection.ltr,
+      );
+      tp.layout();
+
+      final double padH = scaledS * 0.08;
+      final double padV = scaledS * 0.04;
+      final double pillWidth = tp.width + padH * 2;
+      final double pillHeight = tp.height + padV * 2;
+
+      final Rect pillRect = Rect.fromCenter(
+        center: Offset(center.dx, tip.dy + pillHeight / 2 + scaledS * 0.06),
+        width: pillWidth,
+        height: pillHeight,
+      );
+
+      final pillPaint = Paint()..color = Colors.white;
+
+      final pillShadowPaint = Paint()
+        ..color = Colors.black.withOpacity(0.12)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(pillRect.translate(0, 4), Radius.circular(pillHeight / 2)),
+        pillShadowPaint,
+      );
+
+      final pillOutlinePaint = Paint()
+        ..color = const Color(0xFFE5E7EB)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = scaledS * 0.01;
+
+      final pointerPath = Path();
+      pointerPath.moveTo(center.dx - scaledS * 0.04, pillRect.top + 1);
+      pointerPath.lineTo(center.dx + scaledS * 0.04, pillRect.top + 1);
+      pointerPath.lineTo(center.dx, pillRect.top - scaledS * 0.05);
+      pointerPath.close();
+      canvas.drawPath(pointerPath, pillPaint);
+      canvas.drawPath(pointerPath, pillOutlinePaint); // draw outline for pointer
+
+      canvas.drawRRect(RRect.fromRectAndRadius(pillRect, Radius.circular(pillHeight / 2)), pillPaint);
+      canvas.drawRRect(RRect.fromRectAndRadius(pillRect, Radius.circular(pillHeight / 2)), pillOutlinePaint);
+
+      // Redraw pointer fill to hide outline line behind pointer
+      final pointerFillPaint = Paint()..color = Colors.white;
+      canvas.drawPath(pointerPath, pointerFillPaint);
+      
+      tp.paint(canvas, Offset(pillRect.left + padH, pillRect.top + padV));
+    }
+
+    canvas.restore();
     final picture = recorder.endRecording();
     final img = await picture.toImage(size, size);
     final pngBytes = await img.toByteData(format: ui.ImageByteFormat.png);
@@ -608,8 +663,8 @@ class _NearbyPageState extends State<NearbyPage>
     return pngBytes!.buffer.asUint8List();
   }
 
-  Future<Uint8List> _getMarkerBytes(String dealText, bool selected, bool popping) async {
-    final cacheKey = '${dealText}_${selected}_$popping';
+  Future<Uint8List> _getMarkerBytes(String dealText, String restaurantName, bool selected, bool popping) async {
+    final cacheKey = '${dealText}_${restaurantName}_${selected}_$popping';
     if (_markerCache.containsKey(cacheKey)) {
       return _markerCache[cacheKey]!;
     }
@@ -620,6 +675,7 @@ class _NearbyPageState extends State<NearbyPage>
       size: size,
       selected: selected,
       dealText: dealText,
+      restaurantName: restaurantName,
     );
     
     _markerCache[cacheKey] = bytes;
@@ -704,15 +760,15 @@ class _NearbyPageState extends State<NearbyPage>
       final dealText = r.activeDeals.isNotEmpty && r.activeDeals.first.title != null && r.activeDeals.first.title!.isNotEmpty
           ? r.activeDeals.first.title!
           : r.discount.displayText;
-      final imageBytes = await _getMarkerBytes(dealText, isSelected, false);
+      final imageBytes = await _getMarkerBytes(dealText, r.name, isSelected, false);
 
       final ann = await _pointManager!.create(
         PointAnnotationOptions(
           geometry: Point(coordinates: Position(r.longitude, r.latitude)),
           image: imageBytes,
           iconSize: isSelected ? _pinSelectedIconSize : _pinNormalIconSize,
-          iconAnchor: IconAnchor.BOTTOM,
-          iconOffset: [0.0, (500 * (1.0 - 0.92)) * (isSelected ? _pinSelectedIconSize : _pinNormalIconSize)], // compensating for shifted tip
+          iconAnchor: IconAnchor.CENTER,
+          iconOffset: [0.0, 0.0],
           symbolSortKey: isSelected ? _selectedSortKey : _normalSortKey,
         ),
       );
@@ -736,9 +792,10 @@ class _NearbyPageState extends State<NearbyPage>
           ? r.activeDeals.first.title!
           : r.discount.displayText;
 
-      ann.image = await _getMarkerBytes(dealText, isSelected, false);
+      ann.image = await _getMarkerBytes(dealText, r.name, isSelected, false);
       ann.iconSize = isSelected ? _pinSelectedIconSize : _pinNormalIconSize;
-      ann.iconOffset = [0.0, (500 * (1.0 - 0.92)) * (isSelected ? _pinSelectedIconSize : _pinNormalIconSize)];
+      ann.iconAnchor = IconAnchor.CENTER;
+      ann.iconOffset = [0.0, 0.0];
       ann.symbolSortKey = isSelected ? _selectedSortKey : _normalSortKey;
 
     try {
@@ -764,28 +821,32 @@ class _NearbyPageState extends State<NearbyPage>
     _isMarkerAnimating = true;
 
     try {
-      ann.image = await _getMarkerBytes(dealText, true, true);
+      ann.image = await _getMarkerBytes(dealText, r.name, true, true);
       ann.iconSize = 0.75;
-      ann.iconOffset = [0.0, (500 * (1.0 - 0.92)) * 0.75];
+      ann.iconAnchor = IconAnchor.CENTER;
+      ann.iconOffset = [0.0, 0.0];
       ann.symbolSortKey = _selectedSortKey;
       await _pointManager!.update(ann);
       await Future.delayed(const Duration(milliseconds: 120));
 
-      ann.image = await _getMarkerBytes(dealText, true, false);
+      ann.image = await _getMarkerBytes(dealText, r.name, true, false);
       ann.iconSize = _pinSelectedIconSize;
-      ann.iconOffset = [0.0, (500 * (1.0 - 0.92)) * _pinSelectedIconSize];
+      ann.iconAnchor = IconAnchor.CENTER;
+      ann.iconOffset = [0.0, 0.0];
       await _pointManager!.update(ann);
       await Future.delayed(const Duration(milliseconds: 90));
 
-      ann.image = await _getMarkerBytes(dealText, true, true);
+      ann.image = await _getMarkerBytes(dealText, r.name, true, true);
       ann.iconSize = 0.75;
-      ann.iconOffset = [0.0, (500 * (1.0 - 0.92)) * 0.75];
+      ann.iconAnchor = IconAnchor.CENTER;
+      ann.iconOffset = [0.0, 0.0];
       await _pointManager!.update(ann);
       await Future.delayed(const Duration(milliseconds: 85));
 
-      ann.image = await _getMarkerBytes(dealText, true, false);
+      ann.image = await _getMarkerBytes(dealText, r.name, true, false);
       ann.iconSize = _pinSelectedIconSize;
-      ann.iconOffset = [0.0, (500 * (1.0 - 0.92)) * _pinSelectedIconSize];
+      ann.iconAnchor = IconAnchor.CENTER;
+      ann.iconOffset = [0.0, 0.0];
       await _pointManager!.update(ann);
     } catch (e) {
       _restaurantPins.remove(id);
@@ -978,6 +1039,9 @@ class _NearbyPageState extends State<NearbyPage>
                       setState(() => _isMapReady = true);
                     }
 
+                    if (_pointManager != null) {
+                      await _mapboxMap!.annotations.removeAnnotationManager(_pointManager!);
+                    }
                     _pointManager = await _mapboxMap!.annotations
                         .createPointAnnotationManager();
 
@@ -1495,18 +1559,41 @@ class _NearbyPageState extends State<NearbyPage>
                           color: Colors.black54,
                         ),
                       ),
+                      if (restaurant.cuisine.isNotEmpty && restaurant.cuisine != 'Restaurant') ...[
+                        const SizedBox(width: 8),
+                        const Text(
+                          "•",
+                          style: TextStyle(color: Colors.black26, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.restaurant_menu_rounded,
+                            color: Colors.black45, size: 14),
+                        const SizedBox(width: 3),
+                        Text(
+                          restaurant.cuisine,
+                          style: AppTypography.bodySmall.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    "$_cityName • ${restaurant.cuisine}",
-                    style: AppTypography.bodySmall.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black54,
+
+                  // Restaurant Description
+                  if (restaurant.description.trim().isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    Text(
+                      restaurant.description.trim(),
+                      style: AppTypography.bodySmall.copyWith(
+                        color: Colors.black45,
+                        height: 1.3,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  ],
                   const SizedBox(height: 10),
                   Wrap(
                     spacing: 10,

@@ -18,13 +18,13 @@ class AppFonts {
   static const String hubotSans = 'HubotSans';
   static const String hubotSansItalic = 'HubotSans-Italic';
 
-  // Semantically defined fonts for easy site-wide changes - Now using Poppins
-  static String? get titleFont => GoogleFonts.poppins().fontFamily;
-  static String? get headingFont => GoogleFonts.poppins().fontFamily;
-  static String? get buttonFont => GoogleFonts.poppins().fontFamily;
-  static String? get bodyFont => GoogleFonts.poppins().fontFamily;
-  static String? get inputFont => GoogleFonts.poppins().fontFamily;
-  static String? get logoFont => GoogleFonts.poppins().fontFamily;
+  // Semantically defined fonts for easy site-wide changes
+  static String? get titleFont => GoogleFonts.montserrat().fontFamily;
+  static String? get headingFont => GoogleFonts.montserrat().fontFamily;
+  static String? get buttonFont => GoogleFonts.inter().fontFamily;
+  static String? get bodyFont => GoogleFonts.inter().fontFamily;
+  static String? get inputFont => GoogleFonts.inter().fontFamily;
+  static String? get logoFont => GoogleFonts.montserrat().fontFamily;
 
   // Utility methods to get TextStyle quickly
   static TextStyle titleStyle({

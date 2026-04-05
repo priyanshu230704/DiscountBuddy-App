@@ -572,7 +572,7 @@ class RestaurantService {
       address: address,
       latitude: latitude,
       longitude: longitude,
-      cuisine: cityName.isNotEmpty ? cityName : cuisine,
+      cuisine: cuisine,
       occupancy: json['occupancy'] as String?,
       rating: averageRating.toDouble(),
       reviewCount: reviewsCount,

@@ -409,7 +409,7 @@ class Restaurant {
       facilities: facilities ?? this.facilities,
       menuType: menuType ?? this.menuType,
       restaurantImages: restaurantImages ?? this.restaurantImages,
-      cuisines: cuisines ?? this.cuisines,
+      cuisines: cuisines,
     );
   }
 }

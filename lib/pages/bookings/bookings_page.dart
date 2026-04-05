@@ -149,33 +149,86 @@ class _BookingsPageState extends State<BookingsPage>
     final TextEditingController requestController = 
         TextEditingController(text: booking.specialRequests);
     
-    final updated = await showDialog<bool>(
+    DateTime selectedDate = booking.bookingDate;
+    TimeOfDay selectedTime = TimeOfDay.fromDateTime(booking.bookingDate);
+    
+    final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Edit Reservation'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: guestsController,
-              decoration: const InputDecoration(labelText: 'Number of Guests'),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: requestController,
-              decoration: const InputDecoration(labelText: 'Special Requests'),
-              maxLines: 2,
-            ),
-          ],
+        content: StatefulBuilder(
+          builder: (context, setState) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: guestsController,
+                  decoration: const InputDecoration(labelText: 'Number of Guests'),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: requestController,
+                  decoration: const InputDecoration(labelText: 'Special Requests'),
+                  maxLines: 2,
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton.icon(
+                        icon: const Icon(Icons.calendar_today, size: 18),
+                        label: Text(DateFormat('MMM d, yyyy').format(selectedDate)),
+                        onPressed: () async {
+                          final date = await showDatePicker(
+                            context: context,
+                            initialDate: selectedDate,
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime.now().add(const Duration(days: 365)),
+                          );
+                          if (date != null) {
+                            setState(() => selectedDate = date);
+                          }
+                        },
+                      ),
+                    ),
+                    Expanded(
+                      child: TextButton.icon(
+                        icon: const Icon(Icons.access_time, size: 18),
+                        label: Text(selectedTime.format(context)),
+                        onPressed: () async {
+                          final time = await showTimePicker(
+                            context: context,
+                            initialTime: selectedTime,
+                          );
+                          if (time != null) {
+                            setState(() => selectedTime = time);
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          }
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.pop(context, {
+              'update': true,
+              'date': DateTime(
+                selectedDate.year,
+                selectedDate.month,
+                selectedDate.day,
+                selectedTime.hour,
+                selectedTime.minute,
+              ),
+            }),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
@@ -186,11 +239,12 @@ class _BookingsPageState extends State<BookingsPage>
       ),
     );
 
-    if (updated == true) {
+    if (result != null && result['update'] == true) {
       setState(() => _isLoading = true);
       try {
         await _restaurantService.updateBooking(
           bookingId: booking.id,
+          bookingDate: result['date'] as DateTime,
           numberOfGuests: int.tryParse(guestsController.text),
           specialRequests: requestController.text,
         );
@@ -666,11 +720,31 @@ class _RedemptionCard extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.sm),
               Text(
-                'Used: ${DateFormat('MMM d, yyyy HH:mm').format(redemption.usedAt)}',
+                'Claimed: ${DateFormat('MMM d, yyyy HH:mm').format(redemption.usedAt)}',
                 style: AppTypography.bodySmall,
               ),
             ],
           ),
+          if (redemption.redeemedAt != null) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                const Icon(
+                  Icons.check_circle_outline,
+                  size: 16,
+                  color: AppColors.success,
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Text(
+                  'Redeemed: ${DateFormat('MMM d, yyyy HH:mm').format(redemption.redeemedAt!)}',
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.success,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ],
           if (redemption.redemptionCode != null) ...[
             const SizedBox(height: AppSpacing.sm),
             Row(
@@ -869,11 +943,22 @@ class _RedemptionDetailModal extends StatelessWidget {
                       const SizedBox(height: AppSpacing.lg),
                       _DetailRow(
                         icon: Icons.calendar_today,
-                        label: 'Used on',
+                        label: 'Claimed on',
                         value: DateFormat(
                           'EEEE, MMM d, yyyy HH:mm',
                         ).format(redemption.usedAt),
                       ),
+                      if (redemption.redeemedAt != null) ...[
+                        const SizedBox(height: AppSpacing.lg),
+                        _DetailRow(
+                          icon: Icons.verified_rounded,
+                          label: 'Redeemed on',
+                          value: DateFormat(
+                            'EEEE, MMM d, yyyy HH:mm',
+                          ).format(redemption.redeemedAt!),
+                          valueColor: const Color(0xFF10B981),
+                        ),
+                      ],
 
                       if (redemption.notes != null &&
                           redemption.notes!.isNotEmpty) ...[
@@ -1107,7 +1192,8 @@ class _BookingCard extends StatelessWidget {
               style: AppTypography.bodySmall.copyWith(fontStyle: FontStyle.italic),
             ),
           ],
-          if (booking.status == BookingStatus.pending || booking.status == BookingStatus.confirmed) ...[
+          if ((booking.status == BookingStatus.pending || booking.status == BookingStatus.confirmed) &&
+              booking.bookingDate.isAfter(DateTime.now())) ...[
             const SizedBox(height: 12),
             const Divider(),
             Row(

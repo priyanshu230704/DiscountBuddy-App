@@ -60,12 +60,15 @@ class LocationService {
       if (placemarks.isNotEmpty) {
         final placemark = placemarks.first;
 
-        // Try to get subLocality, then locality, then subAdministrativeArea, then administrativeArea
+        // Helper to treat empty strings as null
+        String? validString(String? val) =>
+            (val != null && val.isNotEmpty) ? val : null;
+
         String? cityName =
-            placemark.subLocality ??
-            placemark.locality ??
-            placemark.subAdministrativeArea ??
-            placemark.administrativeArea;
+            validString(placemark.subLocality) ??
+            validString(placemark.locality) ??
+            validString(placemark.subAdministrativeArea) ??
+            validString(placemark.administrativeArea);
 
         // If still no city, try to get country
         if (cityName == null || cityName.isEmpty) {
@@ -81,10 +84,11 @@ class LocationService {
       // Fallback: return formatted location string
       if (placemarks.isNotEmpty) {
         final placemark = placemarks.first;
-        if (placemark.administrativeArea != null) {
+        if (placemark.administrativeArea != null &&
+            placemark.administrativeArea!.isNotEmpty) {
           return placemark.administrativeArea!;
         }
-        if (placemark.country != null) {
+        if (placemark.country != null && placemark.country!.isNotEmpty) {
           return placemark.country!;
         }
       }

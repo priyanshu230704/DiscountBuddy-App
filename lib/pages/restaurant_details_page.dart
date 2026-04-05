@@ -942,7 +942,6 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             onTap: () {
                               final dealText = restaurant.discount.displayText;
                               final dealDesc = restaurant.discount.description;
-                              final appLink = 'https://discountbuddy.app/deal/${restaurant.id}';
                               const appStoreLink = 'https://apps.apple.com/in/app/discount-buddy-deals/id6760362068';
                               const playStoreLink = 'https://play.google.com/store/apps/details?id=com.discountbuddy.app';
                               
@@ -951,7 +950,6 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                   '✨ $dealText\n'
                                   '📝 $dealDesc\n\n'
                                   '📍 ${restaurant.address}\n\n'
-                                  '📲 View this deal on Discount Buddy:\n$appLink\n\n'
                                   'Download the App:\n'
                                   '🍎 iOS: $appStoreLink\n'
                                   '🤖 Android: $playStoreLink';
@@ -1130,11 +1128,11 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
             ),
 
           // Offer Card Section
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (restaurant.activeDeals.isNotEmpty)
+          if (restaurant.activeDeals.isNotEmpty)
+            SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                     child: Text(
@@ -1146,29 +1144,29 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                       ),
                     ),
                   ),
-                if (restaurant.activeDeals.length > 1)
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: restaurant.activeDeals.map((deal) {
-                        return Container(
-                          width: 300,
-                          margin: const EdgeInsets.only(right: 12),
-                          child: _OfferCard(discount: deal),
-                        );
-                      }).toList(),
+                  if (restaurant.activeDeals.length > 1)
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: restaurant.activeDeals.map((deal) {
+                          return Container(
+                            width: 300,
+                            margin: const EdgeInsets.only(right: 12),
+                            child: _OfferCard(discount: deal),
+                          );
+                        }).toList(),
+                      ),
+                    )
+                  else
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: _OfferCard(discount: restaurant.activeDeals.first),
                     ),
-                  )
-                else
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: _OfferCard(discount: restaurant.discount),
-                  ),
-              ],
+                ],
+              ),
             ),
-          ),
 
           const SliverToBoxAdapter(child: SizedBox(height: 17)),
           
@@ -1920,18 +1918,20 @@ class _OfferCard extends StatelessWidget {
               letterSpacing: -0.4,
             ),
           ),
-          const SizedBox(height: 8),
-          // Description
-          Text(
-            discount.description,
-            style: AppFonts.bodyStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
-              height: 1.5,
+          // Description (Show only if not empty)
+          if (discount.description.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              discount.description,
+              style: AppFonts.bodyStyle(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+                height: 1.5,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
+          ],
         ],
       ),
     );

@@ -16,16 +16,16 @@ class AppTypography {
 
   static TextStyle title = TextStyle(
     fontFamily: AppFonts.titleFont,
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: FontWeight.w700,
-    letterSpacing: -0.3,
+    letterSpacing: -0.5,
     height: 1.2,
     color: AppColors.textDarkest,
   );
 
   static TextStyle subtitle = TextStyle(
     fontFamily: AppFonts.bodyFont,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: FontWeight.w500,
     height: 1.4,
     color: AppColors.textSecondary,
@@ -61,6 +61,14 @@ class AppTypography {
     fontWeight: FontWeight.w500,
     letterSpacing: 0.2,
     color: AppColors.textDisabled,
+  );
+
+  static TextStyle price = TextStyle(
+    fontFamily: AppFonts.titleFont,
+    fontSize: 18,
+    fontWeight: FontWeight.w700,
+    letterSpacing: -0.2,
+    color: AppColors.textDarkest,
   );
 
   static TextStyle button = TextStyle(

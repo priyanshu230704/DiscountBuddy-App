@@ -8,7 +8,6 @@ import '../widgets/loading_widget.dart';
 import 'restaurant_details_page.dart';
 import '../widgets/app_scaffold.dart';
 import '../components/app_app_bar.dart';
-import '../utils/distance_utils.dart';
 
 class SavedRestaurantsPage extends StatefulWidget {
   const SavedRestaurantsPage({super.key});

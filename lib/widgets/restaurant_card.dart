@@ -270,19 +270,33 @@ class RestaurantCard extends StatelessWidget {
                         ),
                       ],
                     ),
+
+                    if (restaurant.description.trim().isNotEmpty) ...[
+                      const SizedBox(height: _spacing * 1.5),
+                      Text(
+                        restaurant.description.trim(),
+                        style: AppFonts.bodyStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 13,
+                          height: 1.3,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                     const SizedBox(height: _spacing * 1.5),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Icon(
-                          Icons.location_on_outlined,
+                          Icons.restaurant_menu_outlined,
                           size: 16,
                           color: AppColors.textSecondary,
                         ),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            restaurant.address,
+                            restaurant.cuisine,
                             style: AppFonts.bodyStyle(
                               color: AppColors.textSecondary,
                               fontSize: 13,

@@ -240,49 +240,62 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           longitude: _userLongitude,
         );
 
+        // Normalize maps from new structure
+        final Map<String, dynamic> restaurantsData = homeData['restaurants'] as Map<String, dynamic>? ?? {};
+        final Map<String, dynamic> dealsData = homeData['deals'] as Map<String, dynamic>? ?? {};
+        final Map<String, dynamic> cuisinesData = homeData['cuisines'] as Map<String, dynamic>? ?? {};
+        final Map<String, dynamic> sections = homeData['sections'] as Map<String, dynamic>? ?? {};
+
         final Map<int, String> cuisineMap = {};
-        final cuisinesJson = homeData['cuisines'] as List<dynamic>? ?? [];
-
-        for (final cuisineGroup in cuisinesJson) {
-          if (cuisineGroup is Map<String, dynamic>) {
-            final cuisine = cuisineGroup['cuisine'] as Map<String, dynamic>?;
-            final cuisineName = cuisine?['name'] as String? ?? 'Restaurant';
-
-            final restaurants =
-                cuisineGroup['restaurants'] as List<dynamic>? ?? [];
-            for (final restaurant in restaurants) {
-              if (restaurant is Map<String, dynamic>) {
-                final restaurantId = restaurant['id'] as int?;
-                if (restaurantId != null) {
-                  cuisineMap[restaurantId] = cuisineName;
-                }
-              }
+        cuisinesData.forEach((key, value) {
+          if (value is Map<String, dynamic>) {
+            final id = value['id'] as int?;
+            final name = value['name'] as String?;
+            if (id != null && name != null) {
+              cuisineMap[id] = name;
             }
           }
+        });
+
+        // Helper to convert normalized restaurant to model
+        Restaurant parseRestaurant(int id) {
+          final json = restaurantsData[id.toString()] as Map<String, dynamic>?;
+          if (json == null) return _restaurantService.convertApiRestaurantToModel({'id': id});
+
+          final List<dynamic> cuisineIds = json['cuisines'] as List<dynamic>? ?? [];
+          final List<dynamic> dealIds = json['deals'] as List<dynamic>? ?? [];
+
+          // Resolve first cuisine name
+          String resolvedCuisine = 'Restaurant';
+          if (cuisineIds.isNotEmpty) {
+            resolvedCuisine = cuisineMap[cuisineIds.first as int] ?? 'Restaurant';
+          }
+
+          // Resolve deals
+          final List<Map<String, dynamic>> inflatedDeals = [];
+          for (final dId in dealIds) {
+            final dealJson = dealsData[dId.toString()] as Map<String, dynamic>?;
+            if (dealJson != null) {
+              inflatedDeals.add(dealJson);
+            }
+          }
+
+          // Merge into a format that convertApiRestaurantToModel understands
+          final Map<String, dynamic> mergedJson = Map<String, dynamic>.from(json);
+          mergedJson['active_deals'] = inflatedDeals;
+          
+          return _restaurantService.convertApiRestaurantToModel(
+            mergedJson,
+            cuisineMap: {id: resolvedCuisine},
+          );
         }
 
-        final allRestaurantsJson =
-            homeData['all_restaurants'] as List<dynamic>? ?? [];
-        final nearbyRestaurantsJson =
-            homeData['nearby'] as List<dynamic>? ?? [];
+        // Parse sections
+        final List<int> allIds = List<int>.from(sections['all_restaurants'] ?? sections['top_10'] ?? []);
+        final List<int> nearbyIds = List<int>.from(sections['nearby'] ?? []);
 
-        final allRestaurants = allRestaurantsJson
-            .map(
-              (json) => _restaurantService.convertApiRestaurantToModel(
-                json as Map<String, dynamic>,
-                cuisineMap: cuisineMap,
-              ),
-            )
-            .toList();
-
-        final nearbyRestaurants = nearbyRestaurantsJson
-            .map(
-              (json) => _restaurantService.convertApiRestaurantToModel(
-                json as Map<String, dynamic>,
-                cuisineMap: cuisineMap,
-              ),
-            )
-            .toList();
+        final allRestaurants = allIds.map((id) => parseRestaurant(id)).toList();
+        final nearbyRestaurants = nearbyIds.map((id) => parseRestaurant(id)).toList();
 
         // Sort by leaderboard score (highest first)
         allRestaurants.sort(
@@ -291,37 +304,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         nearbyRestaurants.sort(
           (a, b) => b.leaderboardScore.compareTo(a.leaderboardScore),
         );
-
-        final List<Map<String, dynamic>> cuisineSections = [];
-        for (final group in cuisinesJson) {
-          if (group is Map<String, dynamic>) {
-            final cuisine = group['cuisine'] as Map<String, dynamic>?;
-            if (cuisine != null) {
-              final restaurantsJson =
-                  group['restaurants'] as List<dynamic>? ?? [];
-              final restaurants = restaurantsJson
-                  .map(
-                    (r) => _restaurantService.convertApiRestaurantToModel(
-                      r as Map<String, dynamic>,
-                      cuisineMap: cuisineMap,
-                    ),
-                  )
-                  .toList();
-
-              // Sort by leaderboard score (highest first)
-              restaurants.sort(
-                (a, b) => b.leaderboardScore.compareTo(a.leaderboardScore),
-              );
-
-              cuisineSections.add({
-                'id': cuisine['id'],
-                'name': cuisine['name'],
-                'icon': cuisine['icon'],
-                'restaurants': restaurants,
-              });
-            }
-          }
-        }
 
         if (!mounted) return;
         setState(() {
@@ -1310,7 +1292,7 @@ class _FeedTile extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
                     child: Column(
@@ -1359,15 +1341,18 @@ class _FeedTile extends StatelessWidget {
                                   color: Color(0xFF8B5CF6),
                                 ),
                               ),
-                          ],
-                        ),
 
-                        // Cuisine/City
-                        if (restaurant.cuisine.isNotEmpty &&
-                            restaurant.cuisine != 'Restaurant') ...[
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
+                            // Cuisine directly after rating/reviews
+                            if (restaurant.cuisine.isNotEmpty &&
+                                restaurant.cuisine != 'Restaurant') ...[
+                              const Text(
+                                " • ",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  color: Color(0xFF9CA3AF),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                               const Icon(Icons.restaurant_menu_rounded,
                                   color: Color(0xFFB0B8C5), size: 11),
                               const SizedBox(width: 3),
@@ -1375,11 +1360,26 @@ class _FeedTile extends StatelessWidget {
                                 restaurant.cuisine,
                                 style: const TextStyle(
                                   fontSize: 11,
-                                  color: Color(0xFF9CA3AF),
-                                  fontWeight: FontWeight.w500,
+                                  color: Color(0xFF4B5563),
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ],
+                          ],
+                        ),
+
+                        // Restaurant Description
+                        if (restaurant.description.isNotEmpty) ...[
+                          const SizedBox(height: 5),
+                          Text(
+                            restaurant.description,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF6B7280),
+                              height: 1.3,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ],

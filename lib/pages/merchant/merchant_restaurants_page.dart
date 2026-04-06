@@ -114,39 +114,28 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
             color: Colors.transparent,
             padding: const EdgeInsets.fromLTRB(
                 AppSpacing.xl, AppSpacing.sm, AppSpacing.xl, AppSpacing.lg),
-            child: Container(
-              height: 48,
-              decoration: BoxDecoration(
-                color: AppColors.background,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.cardBorder),
-              ),
-              child: Row(
-                children: [
-                  const SizedBox(width: AppSpacing.md),
-                  const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: _filterRestaurants,
-                      decoration: InputDecoration(
-                        hintText: "Search restaurants...",
-                        hintStyle: AppTypography.bodySmall.copyWith(fontSize: 14),
-                        border: InputBorder.none,
-                      ),
-                      style: AppTypography.body.copyWith(fontSize: 14),
-                    ),
-                  ),
-                  if (_searchController.text.isNotEmpty)
-                    IconButton(
-                      icon: const Icon(Icons.close, size: 18, color: AppColors.textSecondary),
-                      onPressed: () {
-                        _searchController.clear();
-                        _filterRestaurants('');
-                      },
-                    ),
-                ],
+            child: AppCard(
+              padding: EdgeInsets.zero,
+              child: TextField(
+                controller: _searchController,
+                onChanged: _filterRestaurants,
+                decoration: InputDecoration(
+                  hintText: "Search restaurants...",
+                  hintStyle: AppTypography.bodySmall.copyWith(fontSize: 14),
+                  prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.close, size: 18, color: AppColors.textSecondary),
+                          onPressed: () {
+                            _searchController.clear();
+                            _filterRestaurants('');
+                          },
+                        )
+                      : null,
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                style: AppTypography.body.copyWith(fontSize: 14),
               ),
             ),
           ),

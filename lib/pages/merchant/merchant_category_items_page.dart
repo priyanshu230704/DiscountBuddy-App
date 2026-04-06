@@ -180,7 +180,7 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
                   style: AppTypography.body.copyWith(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
                 ),
               ),
-              ElevatedButton(
+              AppGradientButton(
                 onPressed: () {
                   if (nameController.text.trim().isEmpty || priceController.text.trim().isEmpty) return;
                   Navigator.pop(context, {
@@ -195,13 +195,8 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
                     'is_available': isAvailable,
                   });
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.merchantIndigo,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
+                width: 160,
+                height: 48,
                 child: Text(
                   existingItem == null ? 'Add Item' : 'Save Changes',
                   style: const TextStyle(fontWeight: FontWeight.bold),
@@ -280,15 +275,11 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
               style: AppTypography.body.copyWith(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
             ),
           ),
-          ElevatedButton(
+          AppGradientButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
+            width: 120,
+            height: 48,
+            gradient: LinearGradient(colors: [AppColors.error, AppColors.error.withValues(alpha: 0.8)]),
             child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],

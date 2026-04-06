@@ -1,30 +1,21 @@
 import 'package:flutter/material.dart';
 
-import 'package:google_fonts/google_fonts.dart';
 
 class AppFonts {
-  // PolySans Families - Best for Titles, Buttons, and Accents
-  static const String polySansNeutral = 'PolySans-Neutral';
-  static const String polySansMedian = 'PolySans-Median';
-  static const String polySansBulky = 'PolySans-Bulky';
-  static const String polySansSlim = 'PolySans-Slim';
-  
-  static const String polySansNeutralWide = 'PolySans-NeutralWide';
-  static const String polySansMedianWide = 'PolySans-MedianWide';
-  static const String polySansBulkyWide = 'PolySans-BulkyWide';
-  static const String polySansSlimWide = 'PolySans-SlimWide';
+  // Graphik Family
 
-  // HubotSans Family (Legacy)
-  static const String hubotSans = 'HubotSans';
-  static const String hubotSansItalic = 'HubotSans-Italic';
+  // Graphik Family
+  static const String graphik = 'Graphik';
+  static const String graphikMedium = 'Graphik-Medium';
 
   // Semantically defined fonts for easy site-wide changes
-  static String? get titleFont => GoogleFonts.montserrat().fontFamily;
-  static String? get headingFont => GoogleFonts.montserrat().fontFamily;
-  static String? get buttonFont => GoogleFonts.inter().fontFamily;
-  static String? get bodyFont => GoogleFonts.inter().fontFamily;
-  static String? get inputFont => GoogleFonts.inter().fontFamily;
-  static String? get logoFont => GoogleFonts.montserrat().fontFamily;
+  static String? get titleFont => graphik;
+  static String? get headingFont => graphik;
+  static String? get buttonFont => graphik;
+  static String? get bodyFont => graphik;
+  static String? get inputFont => graphik;
+  static String? get logoFont => graphik;
+  static String? get accentFont => graphikMedium;
 
   // Utility methods to get TextStyle quickly
   static TextStyle titleStyle({

@@ -686,15 +686,11 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                               style: AppTypography.body.copyWith(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
                             ),
                           ),
-                          ElevatedButton(
+                          AppGradientButton(
                             onPressed: () => Navigator.pop(context, true),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.error,
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            ),
+                            width: 120,
+                            height: 48,
+                            gradient: LinearGradient(colors: [AppColors.error, AppColors.error.withValues(alpha: 0.8)]),
                             child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.bold)),
                           ),
                         ],

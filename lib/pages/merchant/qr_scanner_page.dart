@@ -111,16 +111,13 @@ class _QRScannerPageState extends State<QRScannerPage> {
               style: AppTypography.body.copyWith(color: AppColors.textSecondary),
             ),
           ),
-          ElevatedButton(
+          AppGradientButton(
             onPressed: () {
               Navigator.pop(context);
               openAppSettings();
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.merchantIndigo,
-              foregroundColor: AppColors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
+            width: 160,
+            height: 48,
             child: const Text('Open Settings'),
           ),
         ],
@@ -263,36 +260,26 @@ class _QRScannerPageState extends State<QRScannerPage> {
                   },
                 ),
                 const SizedBox(height: 32),
-                SizedBox(
+                AppGradientButton(
+                  onPressed: () {
+                    if (formKey.currentState!.validate()) {
+                      final price = double.parse(priceController.text);
+                      final peopleCount = int.parse(peopleController.text);
+                      Navigator.of(context).pop();
+                      _processRedemption(
+                        qrData: qrData,
+                        manualCode: manualCode,
+                        price: price,
+                        peopleCount: peopleCount,
+                        restaurantId: _selectedRestaurantId,
+                      );
+                    }
+                  },
                   width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      if (formKey.currentState!.validate()) {
-                        final price = double.parse(priceController.text);
-                        final peopleCount = int.parse(peopleController.text);
-                        Navigator.of(context).pop();
-                        _processRedemption(
-                          qrData: qrData,
-                          manualCode: manualCode,
-                          price: price,
-                          peopleCount: peopleCount,
-                          restaurantId: _selectedRestaurantId,
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.merchantIndigo,
-                      foregroundColor: AppColors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Text(
-                      'Redeem Deal',
-                      style: AppTypography.title.copyWith(color: AppColors.white),
-                    ),
+                  height: 56,
+                  child: Text(
+                    'Redeem Deal',
+                    style: AppTypography.title.copyWith(color: AppColors.white),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -474,26 +461,16 @@ class _QRScannerPageState extends State<QRScannerPage> {
                 const SizedBox(height: 24),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-                  child: SizedBox(
+                  child: AppGradientButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(); // Close sheet
+                      Navigator.of(context).pop(); // Go back to dashboard
+                    },
                     width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop(); // Close sheet
-                        Navigator.of(context).pop(); // Go back to dashboard
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.merchantIndigo,
-                        foregroundColor: AppColors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      child: Text(
-                        'Done',
-                        style: AppTypography.title.copyWith(color: AppColors.white),
-                      ),
+                    height: 56,
+                    child: Text(
+                      'Done',
+                      style: AppTypography.title.copyWith(color: AppColors.white),
                     ),
                   ),
                 ),
@@ -575,33 +552,25 @@ class _QRScannerPageState extends State<QRScannerPage> {
               const SizedBox(height: 32),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-                child: SizedBox(
+                child: AppGradientButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    // Resume scanner after closing error
+                    Future.delayed(const Duration(milliseconds: 300), () {
+                      if (mounted && !_isProcessing) _controller.start();
+                    });
+                  },
                   width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      // Resume scanner after closing error
-                      Future.delayed(const Duration(milliseconds: 300), () {
-                        if (mounted && !_isProcessing) _controller.start();
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.background,
-                      foregroundColor: AppColors.textPrimary,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      elevation: 0,
-                      side: BorderSide(
-                        color: AppColors.cardBorder,
-                        width: 1.5,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: Text(
-                      'Try Again',
-                      style: AppTypography.title.copyWith(fontSize: 16),
-                    ),
+                  height: 56,
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.textDisabled.withValues(alpha: 0.1),
+                      AppColors.textDisabled.withValues(alpha: 0.1),
+                    ],
+                  ),
+                  child: Text(
+                    'Try Again',
+                    style: AppTypography.title.copyWith(fontSize: 16, color: AppColors.textPrimary),
                   ),
                 ),
               ),
@@ -778,7 +747,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
               ),
             ),
           ),
-          ElevatedButton(
+          AppGradientButton(
             onPressed: () {
               final code = controller.text.trim();
               if (code.length != 6) {
@@ -789,13 +758,8 @@ class _QRScannerPageState extends State<QRScannerPage> {
               Navigator.of(context).pop();
               _showRedemptionDetailsModal(manualCode: code);
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.merchantIndigo,
-              foregroundColor: AppColors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
+            width: 120,
+            height: 48,
             child: const Text('Next', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],

@@ -269,7 +269,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                           'View Full Analytics',
                           style: AppTypography.body.copyWith(
                             color: Colors.white,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w700,
                             fontSize: 15,
                           ),
                         ),
@@ -464,7 +464,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
       pinned: true,
       floating: false,
       elevation: 0,
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFFF3E8FF),
       automaticallyImplyLeading: false,
       expandedHeight: 0,
       toolbarHeight: 74,
@@ -508,7 +508,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                     "Merchant Central",
                     style: AppTypography.title.copyWith(
                       fontSize: 18,
-                      fontWeight: FontWeight.w900,
+                      fontWeight: FontWeight.w700,
                       color: AppColors.textDarkest,
                       letterSpacing: -0.5,
                     ),
@@ -529,7 +529,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                         style: AppTypography.caption.copyWith(
                           fontSize: 11,
                           color: AppColors.textSecondary.withValues(alpha: 0.8),
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
@@ -622,7 +622,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                       'Scan',
                       style: AppTypography.body.copyWith(
                         color: Colors.white,
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                         fontSize: 12,
                       ),
                     ),
@@ -684,7 +684,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                       _selectedRestaurantName,
                       style: AppTypography.title.copyWith(
                         fontSize: 22,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: FontWeight.w700,
                         color: AppColors.textDarkest,
                         letterSpacing: -0.5,
                       ),
@@ -715,7 +715,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
             Text(
               "Current Status",
               style: AppTypography.caption.copyWith(
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w600,
                 color: AppColors.textDarkest.withValues(alpha: 0.6),
                 letterSpacing: 1.0,
               ),
@@ -756,7 +756,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
           name,
           style: AppTypography.bodySmall.copyWith(
             color: isSelected ? Colors.white : AppColors.textPrimary,
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
           ),
         ),
       ),
@@ -807,7 +807,7 @@ class _OccupancySegment extends StatelessWidget {
               label,
               style: AppTypography.bodySmall.copyWith(
                 color: isSelected ? activeColor : const Color(0xFF64748B), // Slate 500
-                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 fontSize: 12,
               ),
             ),
@@ -904,7 +904,7 @@ class _ModernStatCard extends StatelessWidget {
                                 value,
                                 style: AppTypography.headline.copyWith(
                                   fontSize: 22,
-                                  fontWeight: FontWeight.w900,
+                                  fontWeight: FontWeight.w700,
                                   color: valueColor ?? AppColors.textDarkest,
                                   letterSpacing: -1,
                                 ),
@@ -978,7 +978,7 @@ class _ModernStatCard extends StatelessWidget {
                           value,
                           style: AppTypography.headline.copyWith(
                             fontSize: 18,
-                            fontWeight: FontWeight.w900,
+                            fontWeight: FontWeight.w700,
                             color: valueColor ?? AppColors.textDarkest,
                             letterSpacing: -0.5,
                           ),

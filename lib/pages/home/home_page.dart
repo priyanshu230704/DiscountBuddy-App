@@ -489,7 +489,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                 "Discount",
                                 style: AppTypography.title.copyWith(
                                   fontSize: 20,
-                                  fontWeight: FontWeight.w800,
+                                  fontWeight: FontWeight.w700,
                                   height: 1.0,
                                   color: const Color(0xFF1B1436),
                                   letterSpacing: -0.4,
@@ -503,7 +503,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                 "Buddy",
                                 style: AppTypography.title.copyWith(
                                   fontSize: 20,
-                                  fontWeight: FontWeight.w800,
+                                  fontWeight: FontWeight.w700,
                                   height: 1.0,
                                   color: const Color(0xFF8B5CF6),
                                   letterSpacing: -0.4,
@@ -562,7 +562,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                               Text(
                                 _cityName,
                                 style: AppTypography.body.copyWith(
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w700,
                                   fontSize: 14,
                                   color: AppColors.textPrimary,
                                 ),
@@ -729,7 +729,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               : "Top Rated Restaurants",
           style: AppTypography.title.copyWith(
             fontSize: 20,
-            fontWeight: FontWeight.w900,
+            fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
           ),
         ),

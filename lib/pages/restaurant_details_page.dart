@@ -414,7 +414,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
               style: AppFonts.bodyStyle(
                 fontSize: 14,
                 height: 1,
-                fontWeight: isActive ? FontWeight.w900 : FontWeight.w400,
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
                 color: isActive
                     ? AppColors.textPrimary
                     : AppColors.textDisabled.withValues(alpha: 0.4),
@@ -739,7 +739,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                           restaurant.name,
                           style: AppFonts.titleStyle(
                             fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
                             color: AppColors.textPrimary,
                           ),
                         ),
@@ -769,7 +769,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                 restaurant.leaderboardScore.toStringAsFixed(1),
                                 style: AppFonts.titleStyle(
                                   fontSize: 14,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w700,
                                   color: Colors.amber.shade800,
                                 ),
                               ),

@@ -296,7 +296,7 @@ class _BookingsPageState extends State<BookingsPage>
               indicatorColor: AppColors.primary,
               indicatorWeight: 3,
               dividerColor: Colors.transparent, // Fix: Remove Material 3 underline in TabBar
-              labelStyle: AppTypography.bodySmall.copyWith(
+              labelStyle: AppTypography.body.copyWith(
                 fontWeight: FontWeight.w700,
               ),
               tabs: const [
@@ -395,7 +395,10 @@ class _ReservationEmptyTab extends StatelessWidget {
                 const SizedBox(height: AppSpacing.xl),
                 Text(
                   'No reservations yet',
-                  style: AppTypography.title.copyWith(fontSize: 22),
+                  style: AppTypography.title.copyWith(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: AppSpacing.sm),
@@ -526,7 +529,7 @@ class _TrendingCard extends StatelessWidget {
                             item.discount.type == 'none' ? 'Special Deal' : item.discount.description,
                             style: AppTypography.body.copyWith(
                               color: Colors.white,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                           Text(
@@ -556,7 +559,10 @@ class _TrendingCard extends StatelessWidget {
                     item.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTypography.title.copyWith(fontSize: 18),
+                    style: AppTypography.title.copyWith(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Row(

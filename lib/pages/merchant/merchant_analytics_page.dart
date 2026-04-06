@@ -129,10 +129,10 @@ class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Analytics', style: AppTypography.title.copyWith(
-            fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.textDarkest,
+            fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textDarkest,
           )),
           Text(widget.restaurantName, style: AppTypography.caption.copyWith(
-            color: AppColors.textSecondary, fontWeight: FontWeight.w600,
+            color: AppColors.textSecondary, fontWeight: FontWeight.w500,
           )),
         ],
       ),
@@ -177,7 +177,7 @@ class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
                 textAlign: TextAlign.center,
                 style: AppTypography.bodySmall.copyWith(
                   color: isSelected ? Colors.white : AppColors.textSecondary,
-                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 ),
               ),
             ),
@@ -259,7 +259,7 @@ class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
             children: steps.map((s) => Column(
               children: [
                 Text(_fmt(s.value), style: AppTypography.body.copyWith(
-                  fontWeight: FontWeight.w800, color: s.color, fontSize: 16,
+                  fontWeight: FontWeight.w700, color: s.color, fontSize: 16,
                 )),
                 Text(s.label, style: AppTypography.caption.copyWith(color: AppColors.textSecondary)),
               ],
@@ -275,7 +275,7 @@ class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(r, style: AppTypography.caption.copyWith(
-                color: AppColors.primary, fontWeight: FontWeight.w700,
+                color: AppColors.primary, fontWeight: FontWeight.w600,
               )),
             )).toList(),
           ),
@@ -404,7 +404,7 @@ class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
                       ),
                       alignment: Alignment.center,
                       child: Text('${daily[i]}', style: AppTypography.caption.copyWith(
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
                         color: intensity > 0.5 ? Colors.white : AppColors.textSecondary,
                       )),
                     ),
@@ -530,7 +530,7 @@ class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(total.toString(), style: AppTypography.title.copyWith(
-                          fontWeight: FontWeight.w900, fontSize: 22,
+                          fontWeight: FontWeight.w700, fontSize: 22,
                         )),
                         Text('Total', style: AppTypography.caption.copyWith(color: AppColors.textSecondary)),
                       ],
@@ -603,8 +603,8 @@ class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
             child: Row(children: [
               Container(width: 12, height: 12, decoration: BoxDecoration(color: s.color, shape: BoxShape.circle)),
               const SizedBox(width: 8),
-              Expanded(child: Text(s.label, style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600))),
-              Text('${s.pct.toStringAsFixed(1)}%', style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w800, color: s.color)),
+              Expanded(child: Text(s.label, style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w500))),
+              Text('${s.pct.toStringAsFixed(1)}%', style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700, color: s.color)),
             ]),
           )),
         ],
@@ -628,7 +628,7 @@ class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
             const SizedBox(width: 12),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(overall.toStringAsFixed(1), style: AppTypography.headline.copyWith(
-                fontSize: 32, fontWeight: FontWeight.w900, color: AppColors.textDarkest,
+                fontSize: 32, fontWeight: FontWeight.w700, color: AppColors.textDarkest,
               )),
               Text('Overall Rating', style: AppTypography.caption.copyWith(color: AppColors.textSecondary)),
             ]),
@@ -818,7 +818,7 @@ class _SectionTitle extends StatelessWidget {
       Icon(icon, size: 18, color: AppColors.primary),
       const SizedBox(width: 8),
       Text(title, style: AppTypography.title.copyWith(
-        fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textDarkest,
+        fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textDarkest,
       )),
     ]);
   }
@@ -886,7 +886,7 @@ class _KPICard extends StatelessWidget {
           ),
           const Spacer(),
           Text(data.value, style: AppTypography.title.copyWith(
-            fontSize: 18, fontWeight: FontWeight.w900, color: data.color,
+            fontSize: 18, fontWeight: FontWeight.w700, color: data.color,
           )),
           Text(data.label, style: AppTypography.caption.copyWith(
             color: AppColors.textSecondary, fontSize: 10, fontWeight: FontWeight.w600,
@@ -916,9 +916,9 @@ class _InfoChip extends StatelessWidget {
       child: Row(children: [
         Icon(icon, size: 16, color: color),
         const SizedBox(width: 8),
-        Text(label, style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
+        Text(label, style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w500)),
         const Spacer(),
-        Text(value, style: AppTypography.body.copyWith(color: color, fontWeight: FontWeight.w800)),
+        Text(value, style: AppTypography.body.copyWith(color: color, fontWeight: FontWeight.w700)),
       ]),
     );
   }
@@ -933,7 +933,7 @@ class _RevenueMetric extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(children: [
-      Text(value, style: AppTypography.title.copyWith(fontSize: 16, fontWeight: FontWeight.w900, color: color)),
+      Text(value, style: AppTypography.title.copyWith(fontSize: 16, fontWeight: FontWeight.w700, color: color)),
       Text(label, style: AppTypography.caption.copyWith(color: AppColors.textSecondary, fontSize: 10), textAlign: TextAlign.center),
     ]);
   }
@@ -949,7 +949,7 @@ class _DealStat extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(children: [
       Text(value, style: AppTypography.body.copyWith(
-        fontWeight: FontWeight.w800,
+        fontWeight: FontWeight.w700,
         fontSize: 13,
         color: highlight ? AppColors.primary : AppColors.textDarkest,
       )),
@@ -970,7 +970,7 @@ class _LegendRow extends StatelessWidget {
       Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
       const SizedBox(width: 8),
       Expanded(child: Text(label, style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary))),
-      Text(value, style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w800, color: color)),
+      Text(value, style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700, color: color)),
     ]);
   }
 }
@@ -987,7 +987,7 @@ class _BigMetric extends StatelessWidget {
     return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
       Icon(icon, color: color, size: 24),
       const SizedBox(height: 6),
-      Text(value, style: AppTypography.headline.copyWith(fontSize: 28, fontWeight: FontWeight.w900, color: color)),
+      Text(value, style: AppTypography.headline.copyWith(fontSize: 28, fontWeight: FontWeight.w700, color: color)),
       Text(label, style: AppTypography.caption.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
     ]);
   }
@@ -1004,7 +1004,7 @@ class _RatingBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final pct = maxValue > 0 ? (value / maxValue).clamp(0.0, 1.0) : 0.0;
     return Row(children: [
-      SizedBox(width: 70, child: Text(label, style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600))),
+      SizedBox(width: 70, child: Text(label, style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w500))),
       Expanded(
         child: ClipRRect(
           borderRadius: BorderRadius.circular(4),
@@ -1017,7 +1017,7 @@ class _RatingBar extends StatelessWidget {
         ),
       ),
       const SizedBox(width: 8),
-      Text('${value.toStringAsFixed(0)}', style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w800, color: color)),
+      Text('${value.toStringAsFixed(0)}', style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700, color: color)),
     ]);
   }
 }
@@ -1033,7 +1033,7 @@ class _SmallBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(8)),
-      child: Text(text, style: AppTypography.caption.copyWith(color: fg, fontWeight: FontWeight.w700, fontSize: 10)),
+      child: Text(text, style: AppTypography.caption.copyWith(color: fg, fontWeight: FontWeight.w600, fontSize: 10)),
     );
   }
 }

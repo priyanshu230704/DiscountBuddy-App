@@ -13,6 +13,7 @@ import 'savings_history_page.dart';
 import 'join_partner_page.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../config/environment.dart';
+import '../components/app_app_bar.dart';
 
 /// Profile Screen - NeoTaste style
 class ProfilePage extends StatefulWidget {
@@ -89,265 +90,255 @@ class _ProfilePageState extends State<ProfilePage> {
     final displayName = user?.username ?? 'User';
 
     return AppScaffold(
-        body: SafeArea(
-        bottom: false,
-        child: SingleChildScrollView(
-          child: Column(
+      appBar: AppAppBar(
+        titleText: 'Profile',
+        centerTitle: false,
+        backgroundColor: const Color(0xFFF3E8FF),
+      ),
+      body: SingleChildScrollView(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(AppSpacing.xxl, AppSpacing.xxl, AppSpacing.xxl, 0),
-                child: Text(
-                  'Profile',
-                  style: AppTypography.headline.copyWith(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xxxl),
+          children: [
+            const SizedBox(height: AppSpacing.lg),
 
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const EditProfilePage(),
-                      ),
-                    );
-                  },
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 72,
-                        height: 72,
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(36),
-                          border: Border.all(color: AppColors.cardBorder, width: 1),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.2),
-                              blurRadius: 15,
-                              offset: const Offset(0, 8),
-                            ),
-                          ],
-                        ),
-                        child: Builder(
-                          builder: (context) {
-                            final profilePic = user?.profilePicture;
-                            if (profilePic == null) {
-                              return Center(
-                                child: Icon(
-                                  Icons.person,
-                                  size: 40,
-                                  color: AppColors.textDisabled.withValues(alpha: 0.5),
-                                ),
-                              );
-                            }
-                            
-                            return ClipOval(
-                              child: profilePic.startsWith('assets/')
-                                  ? Image.asset(profilePic, fit: BoxFit.cover)
-                                  : (profilePic.isNotEmpty
-                                      ? CachedNetworkImage(
-                                          imageUrl: profilePic.startsWith('http') 
-                                              ? profilePic 
-                                              : '${Environment.baseUrl}$profilePic',
-                                          fit: BoxFit.cover,
-                                        )
-                                      : Center(
-                                          child: Icon(
-                                            Icons.person,
-                                            size: 40,
-                                            color: AppColors.textDisabled.withValues(alpha: 0.5),
-                                          ),
-                                        )),
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 20),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              displayName,
-                              style: AppTypography.title.copyWith(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.textPrimary,
-                                letterSpacing: -0.4,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Edit profile',
-                              style: AppTypography.body.copyWith(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Icon(
-                        Icons.chevron_right,
-                        color: AppColors.textPrimary,
-                        size: 28,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              // Stats Grid
-              if (!_authProvider.isMerchant) ...[
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _StatCard(
-                          icon: Icons.emoji_events,
-                          value: _stats?.userLevel ?? 'Bronze',
-                          label: 'Level',
-                          iconColor: AppColors.primary,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const SavingsHistoryPage(),
-                              ),
-                            );
-                          },
-                          child: _StatCard(
-                            icon: Icons.account_balance_wallet_rounded,
-                            value: '£${_stats?.moneySaved.toStringAsFixed(0) ?? '5'}',
-                            label: 'Saved',
-                            iconColor: AppColors.primary,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const SavedRestaurantsPage(),
-                              ),
-                            );
-                          },
-                          child: _StatCard(
-                            icon: Icons.favorite,
-                            value: _stats?.favouriteRestaurants.toString() ?? '2',
-                            label: 'Favourites',
-                            iconColor: AppColors.primary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 32),
-              ],
-
-              // Menu Options
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  children: [
-                    _MenuTile(
-                      icon: Icons.help_outline,
-                      title: 'Help & Support',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const HelpSupportPage(),
-                          ),
-                        );
-                      },
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const EditProfilePage(),
                     ),
-                    if (!_authProvider.isMerchant) ...[
-                      const SizedBox(height: 16),
-                      _MenuTile(
-                        icon: Icons.storefront_outlined,
-                        title: 'Join as restaurant partner',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const JoinPartnerPage(),
-                            ),
+                  );
+                },
+                child: Row(
+                  children: [
+                    Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(36),
+                        border: Border.all(color: AppColors.cardBorder, width: 1),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.2),
+                            blurRadius: 15,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Builder(
+                        builder: (context) {
+                          final profilePic = user?.profilePicture;
+                          if (profilePic == null) {
+                            return Center(
+                              child: Icon(
+                                Icons.person,
+                                size: 40,
+                                color: AppColors.textDisabled.withValues(alpha: 0.5),
+                              ),
+                            );
+                          }
+                          
+                          return ClipOval(
+                            child: profilePic.startsWith('assets/')
+                                ? Image.asset(profilePic, fit: BoxFit.cover)
+                                : (profilePic.isNotEmpty
+                                    ? CachedNetworkImage(
+                                        imageUrl: profilePic.startsWith('http') 
+                                            ? profilePic 
+                                            : '${Environment.baseUrl}$profilePic',
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Center(
+                                        child: Icon(
+                                          Icons.person,
+                                          size: 40,
+                                          color: AppColors.textDisabled.withValues(alpha: 0.5),
+                                        ),
+                                      )),
                           );
                         },
                       ),
-                    ],
-                    const SizedBox(height: 16),
-                    _MenuTile(
-                      icon: Icons.privacy_tip_outlined,
-                      title: 'Privacy Policy',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const PrivacyPolicyPage(),
+                    ),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            displayName,
+                            style: AppTypography.title.copyWith(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary,
+                              letterSpacing: -0.4,
+                            ),
                           ),
-                        );
-                      },
+                          const SizedBox(height: 4),
+                          Text(
+                            'Edit profile',
+                            style: AppTypography.body.copyWith(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 16),
-                    _MenuTile(
-                      icon: Icons.logout_rounded,
-                      title: 'Logout',
-                      isDestructive: false,
-                      onTap: () {
-                        _showLogoutConfirmation();
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _MenuTile(
-                      icon: Icons.delete_forever_rounded,
-                      title: 'Delete Account',
-                      isDestructive: true,
-                      onTap: () {
-                        _showDeleteAccountConfirmation();
-                      },
+                    Icon(
+                      Icons.chevron_right,
+                      color: AppColors.textPrimary,
+                      size: 28,
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: AppSpacing.xxl),
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.xl),
-                  child: Text(
-                    'powered by Markitup Group Ltd.',
-                    style: AppTypography.body.copyWith(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textDisabled,
+            ),
+            const SizedBox(height: 32),
+
+            // Stats Grid
+            if (!_authProvider.isMerchant) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _StatCard(
+                        icon: Icons.emoji_events,
+                        value: _stats?.userLevel ?? 'Bronze',
+                        label: 'Level',
+                        iconColor: AppColors.primary,
+                      ),
                     ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SavingsHistoryPage(),
+                            ),
+                          );
+                        },
+                        child: _StatCard(
+                          icon: Icons.account_balance_wallet_rounded,
+                          value: '£${_stats?.moneySaved.toStringAsFixed(0) ?? '5'}',
+                          label: 'Saved',
+                          iconColor: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SavedRestaurantsPage(),
+                            ),
+                          );
+                        },
+                        child: _StatCard(
+                          icon: Icons.favorite,
+                          value: _stats?.favouriteRestaurants.toString() ?? '2',
+                          label: 'Favourites',
+                          iconColor: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+            ],
+
+            // Menu Options
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                children: [
+                  _MenuTile(
+                    icon: Icons.help_outline,
+                    title: 'Help & Support',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HelpSupportPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  if (!_authProvider.isMerchant) ...[
+                    const SizedBox(height: 16),
+                    _MenuTile(
+                      icon: Icons.storefront_outlined,
+                      title: 'Join as restaurant partner',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const JoinPartnerPage(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  _MenuTile(
+                    icon: Icons.privacy_tip_outlined,
+                    title: 'Privacy Policy',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PrivacyPolicyPage(),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  _MenuTile(
+                    icon: Icons.logout_rounded,
+                    title: 'Logout',
+                    isDestructive: false,
+                    onTap: () {
+                      _showLogoutConfirmation();
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  _MenuTile(
+                    icon: Icons.delete_forever_rounded,
+                    title: 'Delete Account',
+                    isDestructive: true,
+                    onTap: () {
+                      _showDeleteAccountConfirmation();
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xxl),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.xl),
+                child: Text(
+                  'powered by Markitup Group Ltd.',
+                  style: AppTypography.body.copyWith(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textDisabled,
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -360,7 +351,7 @@ class _ProfilePageState extends State<ProfilePage> {
         shape: RoundedRectangleBorder(borderRadius: AppRadius.xLarge),
         title: Text(
           'Logout',
-          style: AppTypography.title.copyWith(fontWeight: FontWeight.w800),
+          style: AppTypography.title.copyWith(fontWeight: FontWeight.w600),
         ),
         content: Text(
           'Are you sure you want to logout?',
@@ -407,7 +398,7 @@ class _ProfilePageState extends State<ProfilePage> {
         title: Text(
           'Delete Account',
           style: AppTypography.title.copyWith(
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w600,
             color: AppColors.error,
           ),
         ),
@@ -495,7 +486,7 @@ class _ProfilePageState extends State<ProfilePage> {
         shape: RoundedRectangleBorder(borderRadius: AppRadius.xLarge),
         title: Text(
           'Verify Deletion',
-          style: AppTypography.title.copyWith(fontWeight: FontWeight.w800),
+          style: AppTypography.title.copyWith(fontWeight: FontWeight.w600),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -632,7 +623,7 @@ class _MenuTile extends StatelessWidget {
                 title,
                 style: AppTypography.body.copyWith(
                   fontSize: 17,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w600,
                   color: isDestructive
                       ? AppColors.error
                       : AppColors.textPrimary,
@@ -685,7 +676,7 @@ class _StatCard extends StatelessWidget {
             value,
             style: AppTypography.title.copyWith(
               fontSize: 22,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
             ),
             maxLines: 1,

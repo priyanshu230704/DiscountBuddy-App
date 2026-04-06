@@ -8,7 +8,7 @@ class AppTypography {
   static TextStyle headline = TextStyle(
     fontFamily: AppFonts.headingFont,
     fontSize: 28,
-    fontWeight: FontWeight.w800,
+    fontWeight: FontWeight.w700,
     letterSpacing: -0.8,
     height: 1.1,
     color: AppColors.textDarkest,
@@ -17,7 +17,7 @@ class AppTypography {
   static TextStyle title = TextStyle(
     fontFamily: AppFonts.titleFont,
     fontSize: 24,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w600,
     letterSpacing: -0.5,
     height: 1.2,
     color: AppColors.textDarkest,
@@ -26,7 +26,7 @@ class AppTypography {
   static TextStyle subtitle = TextStyle(
     fontFamily: AppFonts.bodyFont,
     fontSize: 16,
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.w400,
     height: 1.4,
     color: AppColors.textSecondary,
   );
@@ -66,7 +66,7 @@ class AppTypography {
   static TextStyle price = TextStyle(
     fontFamily: AppFonts.titleFont,
     fontSize: 18,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w600,
     letterSpacing: -0.2,
     color: AppColors.textDarkest,
   );
@@ -77,6 +77,13 @@ class AppTypography {
     fontWeight: FontWeight.w600,
     letterSpacing: -0.1,
     color: AppColors.white,
+  );
+
+  static TextStyle accent = TextStyle(
+    fontFamily: AppFonts.accentFont,
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textPrimary,
   );
 }
 

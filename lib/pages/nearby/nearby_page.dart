@@ -546,7 +546,7 @@ class _NearbyPageState extends State<NearbyPage>
         text: dealText,
         style: AppTypography.title.copyWith(
           fontSize: selected ? scaledS * 0.12 : scaledS * 0.10,
-          fontWeight: FontWeight.w900,
+          fontWeight: FontWeight.w700,
           color: Colors.white,
         ),
       );
@@ -975,7 +975,7 @@ class _NearbyPageState extends State<NearbyPage>
                                               overflow: TextOverflow.ellipsis,
                                               style: AppTypography.title.copyWith(
                                                 fontSize: 16,
-                                                fontWeight: FontWeight.w900,
+                                                fontWeight: FontWeight.w700,
                                                 color: Colors.black,
                                               ),
                                             ),
@@ -1218,7 +1218,7 @@ class _NearbyPageState extends State<NearbyPage>
                     overflow: TextOverflow.ellipsis,
                     style: AppTypography.headline.copyWith(
                       fontSize: cityFontSize,
-                      fontWeight: FontWeight.w900,
+                      fontWeight: FontWeight.w700,
                       color: Colors.black,
                       height: 1.0,
                     ),
@@ -1516,7 +1516,7 @@ class _NearbyPageState extends State<NearbyPage>
                           restaurant.name,
                           style: AppTypography.title.copyWith(
                             fontSize: 20,
-                            fontWeight: FontWeight.w900,
+                            fontWeight: FontWeight.w700,
                             color: Colors.black,
                           ),
                           maxLines: 1,

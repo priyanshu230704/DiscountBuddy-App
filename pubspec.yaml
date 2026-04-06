@@ -19,8 +19,8 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 
 
-# version: 1.0.0+5 #for android 
-version: 1.0.1+6 #for ios
+version: 1.0.1+6 #for android 
+# version: 1.0.1+6 #for ios
 
 
 environment:
@@ -106,68 +106,23 @@ flutter:
     - assets/png/
     - assets/svg/
     - .env
-    - assets/fonts/PolySans/
-    - assets/fonts/HubotSans/
-    - assets/fonts/
 
   fonts:
-    # PolySans font families
-    - family: PolySans-Bulky
+    - family: Graphik
       fonts:
-        - asset: assets/fonts/PolySans/polysanstrial-bulky.otf
-
-    - family: PolySans-BulkyWide
-      fonts:
-        - asset: assets/fonts/PolySans/polysanstrial-bulkywide.otf
-
-    - family: PolySans-Median
-      fonts:
-        - asset: assets/fonts/PolySans/polysanstrial-median.otf
-
-    - family: PolySans-MedianWide
-      fonts:
-        - asset: assets/fonts/PolySans/polysanstrial-medianwide.otf
-
-    - family: PolySans-Neutral
-      fonts:
-        - asset: assets/fonts/PolySans/polysanstrial-neutral.otf
-
-    - family: PolySans-NeutralWide
-      fonts:
-        - asset: assets/fonts/PolySans/polysanstrial-neutralwide.otf
-
-    - family: PolySans-Slim
-      fonts:
-        - asset: assets/fonts/PolySans/polysanstrial-slim.otf
-
-    - family: PolySans-SlimWide
-      fonts:
-        - asset: assets/fonts/PolySans/polysanstrial-slimwide.otf
-
-    # HubotSans font families
-    - family: HubotSans
-      fonts:
-        - asset: assets/fonts/HubotSans/HubotSans-Regular.ttf
-        - asset: assets/fonts/HubotSans/HubotSans-Bold.ttf
+        - asset: assets/fonts/Graphik_Collection/Graphik Family/Graphik-Regular-Trial.otf
+        - asset: assets/fonts/Graphik_Collection/Graphik Family/Graphik-Bold-Trial.otf
           weight: 700
-        - asset: assets/fonts/HubotSans/HubotSans-SemiBold.ttf
+        - asset: assets/fonts/Graphik_Collection/Graphik Family/Graphik-Semibold-Trial.otf
           weight: 600
-        - asset: assets/fonts/HubotSans/HubotSans-Medium.ttf
+        - asset: assets/fonts/Graphik_Collection/Graphik Family/Graphik-Medium-Trial.otf
           weight: 500
-        - asset: assets/fonts/HubotSans/HubotSans-Light.ttf
+        - asset: assets/fonts/Graphik_Collection/Graphik Family/Graphik-Light-Trial.otf
           weight: 300
-        - asset: assets/fonts/HubotSans/HubotSans-ExtraLight.ttf
-          weight: 200
-        - asset: assets/fonts/HubotSans/HubotSans-Black.ttf
-          weight: 900
-        - asset: assets/fonts/HubotSans/HubotSans-ExtraBold.ttf
-          weight: 800
 
-    - family: HubotSans-Italic
+    - family: Graphik-Medium
       fonts:
-        - asset: assets/fonts/HubotSans/HubotSans-Italic.ttf
-        - asset: assets/fonts/HubotSans/HubotSans-BoldItalic.ttf
-          weight: 700
+        - asset: assets/fonts/Graphik_Collection/Graphik Family/Graphik-Medium-Trial.otf
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

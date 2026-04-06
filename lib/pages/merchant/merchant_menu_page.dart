@@ -196,18 +196,13 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
               style: AppTypography.body.copyWith(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
             ),
           ),
-          ElevatedButton(
+          AppGradientButton(
             onPressed: () {
               if (nameController.text.trim().isEmpty) return;
               Navigator.pop(context, true);
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.merchantIndigo,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
+            width: 150,
+            height: 48,
             child: const Text('Add Category', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
@@ -267,18 +262,13 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
               style: AppTypography.body.copyWith(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
             ),
           ),
-          ElevatedButton(
+          AppGradientButton(
             onPressed: () {
               if (nameController.text.trim().isEmpty) return;
               Navigator.pop(context, true);
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.merchantIndigo,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
+            width: 150,
+            height: 48,
             child: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
@@ -325,15 +315,11 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
               style: AppTypography.body.copyWith(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
             ),
           ),
-          ElevatedButton(
+          AppGradientButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
+            width: 120,
+            height: 48,
+            gradient: LinearGradient(colors: [AppColors.error, AppColors.error.withValues(alpha: 0.8)]),
             child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
@@ -445,7 +431,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
                   style: AppTypography.body.copyWith(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
                 ),
               ),
-              ElevatedButton(
+              AppGradientButton(
                 onPressed: () {
                   if (nameController.text.trim().isEmpty || priceController.text.trim().isEmpty) return;
                   Navigator.pop(context, {
@@ -460,13 +446,8 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
                     'is_available': isAvailable,
                   });
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.merchantIndigo,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
+                width: 160,
+                height: 48,
                 child: Text(
                   existingItem == null ? 'Add Item' : 'Save Changes',
                   style: const TextStyle(fontWeight: FontWeight.bold),
@@ -543,15 +524,11 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
               style: AppTypography.body.copyWith(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
             ),
           ),
-          ElevatedButton(
+          AppGradientButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
+            width: 120,
+            height: 48,
+            gradient: LinearGradient(colors: [AppColors.error, AppColors.error.withValues(alpha: 0.8)]),
             child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
@@ -592,15 +569,30 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
       floatingActionButton: _menuType == 'image'
           ? FloatingActionButton.extended(
               onPressed: _pickAndUploadMenuPhoto,
-              backgroundColor: AppColors.merchantIndigo,
+              backgroundColor: AppColors.primary,
               icon: const Icon(Icons.add_photo_alternate_rounded, color: Colors.white),
               label: const Text('Add Menu Image', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             )
-          : FloatingActionButton.extended(
-              onPressed: _addOrUpdateItem,
-              backgroundColor: AppColors.merchantIndigo,
-              icon: const Icon(Icons.add_rounded, color: Colors.white),
-              label: const Text('Add Item', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          : Container(
+              decoration: BoxDecoration(
+                gradient: AppColors.purpleGradient,
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: FloatingActionButton.extended(
+                onPressed: _addOrUpdateItem,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                highlightElevation: 0,
+                icon: const Icon(Icons.add_rounded, color: Colors.white),
+                label: const Text('Add Item', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
             ),
     );
   }
@@ -728,21 +720,29 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
 
   Widget _buildCategorySelector() {
     return Container(
-      height: 60,
+      height: 64,
+      padding: const EdgeInsets.symmetric(vertical: 8),
       color: Colors.transparent,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
         itemCount: _categories.length + 1,
         itemBuilder: (context, index) {
           if (index == 0) {
             return Padding(
               padding: const EdgeInsets.only(right: 8),
-              child: ActionChip(
-                backgroundColor: AppColors.merchantIndigo.withValues(alpha: 0.1),
-                label: const Icon(Icons.add, color: AppColors.merchantIndigo, size: 18),
-                onPressed: _addCategory,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              child: InkWell(
+                onTap: _addCategory,
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.cardBorder),
+                  ),
+                  child: const Icon(Icons.add, color: AppColors.textPrimary, size: 20),
+                ),
               ),
             );
           }
@@ -751,20 +751,34 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
           final isSelected = _selectedCategoryId == category['id'];
 
           return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: ChoiceChip(
-              label: Text(category['name']),
-              selected: isSelected,
-              onSelected: (selected) {
-                if (selected) _selectCategory(category['id']);
-              },
-              backgroundColor: AppColors.background,
-              selectedColor: AppColors.merchantIndigo,
-              labelStyle: TextStyle(
-                color: isSelected ? Colors.white : AppColors.textPrimary,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            padding: const EdgeInsets.only(right: 12),
+            child: GestureDetector(
+              onTap: () => _selectCategory(category['id']),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  gradient: isSelected ? AppColors.purpleGradient : null,
+                  color: isSelected ? null : AppColors.background,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: isSelected ? [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    )
+                  ] : null,
+                  border: isSelected ? null : Border.all(color: AppColors.cardBorder),
+                ),
+                child: Text(
+                  category['name'],
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : AppColors.textSecondary,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
               ),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             ),
           );
         },
@@ -1025,9 +1039,11 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
             onPressed: () => Navigator.pop(context, false),
             child: const Text('Cancel'),
           ),
-          ElevatedButton(
+          AppGradientButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error, foregroundColor: Colors.white),
+            width: 120,
+            height: 48,
+            gradient: LinearGradient(colors: [AppColors.error, AppColors.error.withValues(alpha: 0.8)]),
             child: const Text('Delete'),
           ),
         ],

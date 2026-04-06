@@ -16,6 +16,8 @@ class AppAppBar extends AppBar {
           title: Text(
             titleText,
             style: AppTypography.title.copyWith(
+              fontWeight: FontWeight.w600,
+              fontSize: 24, // Stronger presence for the page header
               color: foregroundColor ?? AppColors.textPrimary,
             ),
           ),

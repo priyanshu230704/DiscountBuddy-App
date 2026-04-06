@@ -89,23 +89,52 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
   }
 
   Future<void> _toggleDealStatus(int dealId) async {
+    // Find the deal to update locally (Optimistic Update)
+    final dealIndex = _deals.indexWhere((d) => d['id'] == dealId);
+    if (dealIndex == -1) return;
+
+    final originalStatus = _deals[dealIndex]['is_active'] ?? false;
+    
+    setState(() {
+      _deals[dealIndex]['is_active'] = !originalStatus;
+    });
+
     try {
       final response = await _merchantService.toggleDealStatus(dealId);
-      if (mounted && response['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(response['detail'] ?? 'Status updated'),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: AppColors.success,
-          ),
-        );
-        _loadDeals();
+      
+      if (mounted) {
+        if (response['success'] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response['detail'] ?? 'Status updated'),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: AppColors.success,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+          // No need to call _loadDeals() if we've already updated the state locally
+        } else {
+          // Revert on failure
+          setState(() {
+            _deals[dealIndex]['is_active'] = originalStatus;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response['detail'] ?? 'Failed to update status'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
+        // Revert on error
+        setState(() {
+          _deals[dealIndex]['is_active'] = originalStatus;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to update status: $e'),
+            content: Text('Failed to update status: ${e.toString()}'),
             backgroundColor: AppColors.error,
           ),
         );

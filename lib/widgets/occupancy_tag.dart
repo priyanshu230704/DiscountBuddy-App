@@ -1,4 +1,4 @@
-import 'package:discount_buddy/theme/app_fonts.dart';
+import 'package:discount_buddy/design/app_typography.dart';
 import 'package:flutter/material.dart';
 
 class OccupancyTag extends StatelessWidget {
@@ -46,9 +46,9 @@ class OccupancyTag extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: AppFonts.bodyStyle(
+        style: AppTypography.caption.copyWith(
           fontSize: isSmall ? 10 : 12,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w700,
           color: textColor,
         ),
       ),

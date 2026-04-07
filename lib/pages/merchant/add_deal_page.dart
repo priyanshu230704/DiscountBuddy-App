@@ -220,7 +220,7 @@ class _AddDealPageState extends State<AddDealPage> {
                               .map(
                                 (r) => DropdownMenuItem<int>(
                                   value: r['id'] as int,
-                                  child: Text(r['name'] as String),
+                                  child: Text(r['name'] as String, style: AppTypography.body),
                                 ),
                               )
                               .toList(),
@@ -342,7 +342,7 @@ class _AddDealPageState extends State<AddDealPage> {
                             'Featured Deal',
                             style: AppTypography.title.copyWith(fontSize: 16),
                           ),
-                          subtitle: const Text('Highlight this deal at the top of your page'),
+                          subtitle: Text('Highlight this deal at the top of your page', style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary)),
                           value: _isFeatured,
                           onChanged: (v) => setState(() => _isFeatured = v),
                           activeThumbColor: AppColors.merchantIndigo,
@@ -441,9 +441,9 @@ class _AddDealPageState extends State<AddDealPage> {
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       labelPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      labelStyle: AppTypography.body.copyWith(
+      labelStyle: AppTypography.bodySmall.copyWith(
         color: selected ? AppColors.white : AppColors.textPrimary,
-        fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+        fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
       ),
     );
   }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../theme/app_fonts.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_colors.dart';
 
 class ThemeProvider extends ChangeNotifier {
@@ -34,11 +34,10 @@ class ThemeProvider extends ChangeNotifier {
         backgroundColor: AppColors.background,
         foregroundColor: AppColors.textPrimary,
         surfaceTintColor: Colors.transparent,
-        titleTextStyle: TextStyle(
-          fontFamily: AppFonts.titleFont,
+        titleTextStyle: GoogleFonts.poppins(
           color: AppColors.textPrimary,
-          fontSize: 24, // Clear hierarchy
-          fontWeight: FontWeight.w700,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
           letterSpacing: -0.5,
         ),
       ),
@@ -67,96 +66,80 @@ class ThemeProvider extends ChangeNotifier {
           fontWeight: FontWeight.w500,
         ),
       ),
-      textTheme: TextTheme().copyWith(
-        displayLarge: TextStyle(
-          fontFamily: AppFonts.titleFont,
-          fontWeight: FontWeight.w800,
-          color: AppColors.textPrimary,
-          height: 1.1,
-          letterSpacing: -1,
-        ),
-        displayMedium: TextStyle(
-          fontFamily: AppFonts.titleFont,
-          fontWeight: FontWeight.w800,
-          color: AppColors.textPrimary,
-          height: 1.1,
-          letterSpacing: -0.5,
-        ),
-        displaySmall: TextStyle(
-          fontFamily: AppFonts.titleFont,
+      textTheme: TextTheme(
+        displayLarge: GoogleFonts.poppins(
           fontWeight: FontWeight.w700,
           color: AppColors.textPrimary,
-          height: 1.2,
         ),
-        headlineLarge: TextStyle(
-          fontFamily: AppFonts.titleFont,
+        displayMedium: GoogleFonts.poppins(
           fontWeight: FontWeight.w700,
           color: AppColors.textPrimary,
-          height: 1.2,
-          letterSpacing: -0.5,
         ),
-        headlineMedium: TextStyle(
-          fontFamily: AppFonts.titleFont,
-          fontWeight: FontWeight.w700,
-          color: AppColors.textPrimary,
-          height: 1.2,
-          letterSpacing: -0.5,
-        ),
-        headlineSmall: TextStyle(
-          fontFamily: AppFonts.titleFont,
+        displaySmall: GoogleFonts.poppins(
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
-          height: 1.3,
         ),
-        titleLarge: TextStyle(
-          fontFamily: AppFonts.titleFont,
+        headlineLarge: GoogleFonts.poppins(
+          fontSize: 28,
           fontWeight: FontWeight.w700,
           color: AppColors.textPrimary,
-          height: 1.3,
         ),
-        titleMedium: TextStyle(
-          fontFamily: AppFonts.titleFont,
+        headlineMedium: GoogleFonts.poppins(
+          fontSize: 24,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
-          height: 1.4,
         ),
-        titleSmall: TextStyle(
-          fontFamily: AppFonts.titleFont,
+        headlineSmall: GoogleFonts.poppins(
+          fontSize: 20,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
-          height: 1.4,
         ),
-        bodyLarge: TextStyle(
-          fontFamily: AppFonts.bodyFont,
+        titleLarge: GoogleFonts.poppins(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
+        titleMedium: GoogleFonts.poppins(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
+        titleSmall: GoogleFonts.poppins(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
+        bodyLarge: GoogleFonts.inter(
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+          color: AppColors.textPrimary,
+          height: 1.5, // 24px / 16px
+        ),
+        bodyMedium: GoogleFonts.inter(
+          fontSize: 16,
           fontWeight: FontWeight.w400,
           color: AppColors.textPrimary,
           height: 1.5,
         ),
-        bodyMedium: TextStyle(
-          fontFamily: AppFonts.bodyFont,
-          fontWeight: FontWeight.w400,
-          color: AppColors.textPrimary,
-          height: 1.5,
-        ),
-        bodySmall: TextStyle(
-          fontFamily: AppFonts.bodyFont,
+        bodySmall: GoogleFonts.inter(
+          fontSize: 14, // Helper Text
           fontWeight: FontWeight.w400,
           color: AppColors.textSecondary,
-          height: 1.5,
         ),
-        labelLarge: TextStyle(
-          fontFamily: AppFonts.bodyFont,
-          fontWeight: FontWeight.w600,
+        labelLarge: GoogleFonts.inter(
+          fontSize: 16,
+          fontWeight: FontWeight.w500, // Medium for buttons
           color: AppColors.textPrimary,
+          letterSpacing: 0.2,
         ),
-        labelMedium: TextStyle(
-          fontFamily: AppFonts.bodyFont,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary,
-        ),
-        labelSmall: TextStyle(
-          fontFamily: AppFonts.bodyFont,
+        labelMedium: GoogleFonts.inter(
+          fontSize: 14,
           fontWeight: FontWeight.w500,
+          color: AppColors.textPrimary,
+        ),
+        labelSmall: GoogleFonts.inter(
+          fontSize: 12, // Caption
+          fontWeight: FontWeight.w400,
           color: AppColors.textSecondary,
         ),
       ),
@@ -169,11 +152,10 @@ class ThemeProvider extends ChangeNotifier {
             borderRadius: BorderRadius.circular(14),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          textStyle: TextStyle(
-            fontFamily: AppFonts.buttonFont,
-            fontWeight: FontWeight.w600,
+          textStyle: GoogleFonts.inter(
+            fontWeight: FontWeight.w500, // Medium
             fontSize: 16,
-            letterSpacing: -0.1,
+            letterSpacing: 0.2,
           ),
         ),
       ),
@@ -188,20 +170,18 @@ class ThemeProvider extends ChangeNotifier {
             borderRadius: BorderRadius.circular(14),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          textStyle: TextStyle(
-            fontFamily: AppFonts.buttonFont,
-            fontWeight: FontWeight.w600,
+          textStyle: GoogleFonts.inter(
+            fontWeight: FontWeight.w500, // Medium
             fontSize: 16,
-            letterSpacing: -0.1,
+            letterSpacing: 0.2,
           ),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.primary,
-          textStyle: TextStyle(
-            fontFamily: AppFonts.buttonFont,
-            fontWeight: FontWeight.w600,
+          textStyle: GoogleFonts.inter(
+            fontWeight: FontWeight.w500, // Medium
             fontSize: 14,
           ),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -242,17 +222,24 @@ class ThemeProvider extends ChangeNotifier {
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: AppColors.error, width: 1.5),
         ),
-        hintStyle: TextStyle(
-          fontFamily: AppFonts.inputFont,
-          color: AppColors.textDisabled,
-          fontSize: 15,
+        hintStyle: GoogleFonts.inter(
+          color: const Color(0xFF9CA3AF),
+          fontSize: 16,
           fontWeight: FontWeight.w400,
         ),
-        labelStyle: TextStyle(
-          fontFamily: AppFonts.inputFont,
+        labelStyle: GoogleFonts.inter(
           color: AppColors.textSecondary,
-          fontSize: 15,
+          fontSize: 16,
           fontWeight: FontWeight.w500,
+        ),
+        floatingLabelStyle: GoogleFonts.inter(
+          color: AppColors.primary,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
+        helperStyle: GoogleFonts.inter(
+          fontSize: 14,
+          color: AppColors.textSecondary,
         ),
       ),
     );

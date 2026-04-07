@@ -98,6 +98,9 @@ class ApiEndpoints {
   static const String cuisines = '/restaurants/cuisines';
   static const String facilityList = '/restaurants/facilities';
 
+  // Core
+  static const String banners = '/core/banners';
+
   // Wallet & Vouchers
   static const String userVouchers = '/vouchers/me';
   static const String wallet = '/wallet';

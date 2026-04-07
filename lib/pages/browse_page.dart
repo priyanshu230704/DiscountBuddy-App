@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../theme/app_fonts.dart';
+import 'package:discount_buddy/design/app_typography.dart';
 import '../models/restaurant.dart';
 import '../services/restaurant_service.dart';
 import '../services/location_service.dart';
@@ -231,7 +231,7 @@ class _BrowsePageState extends State<BrowsePage> {
             const SizedBox(height: 16),
             Text(
               'No restaurants found',
-              style: AppFonts.titleStyle(fontSize: 18, color: AppColors.textSecondary),
+              style: AppTypography.title.copyWith(fontSize: 18, color: AppColors.textSecondary, fontWeight: FontWeight.w700),
             ),
           ],
         ),
@@ -372,19 +372,19 @@ class _BrowsePageState extends State<BrowsePage> {
                                 ),
                                 child: Text(
                                   _filteredRestaurants[0].discount.displayText,
-                                  style: const TextStyle(
+                                  style: AppTypography.caption.copyWith(
                                     color: Colors.white,
                                     fontSize: 10,
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 _filteredRestaurants[0].name,
-                                  style: AppFonts.titleStyle(
+                                  style: AppTypography.title.copyWith(
                                     fontSize: 16,
-                                    fontWeight: FontWeight.w800,
+                                    fontWeight: FontWeight.w700,
                                     color: AppColors.textPrimary,
                                   ),
                                 maxLines: 1,
@@ -393,10 +393,10 @@ class _BrowsePageState extends State<BrowsePage> {
                               const SizedBox(height: 2),
                               Text(
                                 _filteredRestaurants[0].address,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.grey[600],
-                                ),
+                                  style: AppTypography.bodySmall.copyWith(
+                                    color: AppColors.textSecondary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -409,9 +409,9 @@ class _BrowsePageState extends State<BrowsePage> {
                                     ? _filteredRestaurants[0].discount.validDays
                                           .join(' - ')
                                     : 'Mon - Sun',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.grey[600],
+                                style: AppTypography.caption.copyWith(
+                                  color: AppColors.textSecondary,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ],

@@ -267,10 +267,9 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                       children: [
                         Text(
                           'View Full Analytics',
-                          style: AppTypography.body.copyWith(
+                          style: AppTypography.title.copyWith(
                             color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 15,
+                            fontSize: 16,
                           ),
                         ),
                         Text(
@@ -507,10 +506,8 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                   Text(
                     "Merchant Central",
                     style: AppTypography.title.copyWith(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 20,
                       color: AppColors.textDarkest,
-                      letterSpacing: -0.5,
                     ),
                   ),
                   Row(
@@ -620,9 +617,8 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                     const SizedBox(width: 5),
                     Text(
                       'Scan',
-                      style: AppTypography.body.copyWith(
+                      style: AppTypography.button.copyWith(
                         color: Colors.white,
-                        fontWeight: FontWeight.w700,
                         fontSize: 12,
                       ),
                     ),
@@ -684,9 +680,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                       _selectedRestaurantName,
                       style: AppTypography.title.copyWith(
                         fontSize: 22,
-                        fontWeight: FontWeight.w700,
                         color: AppColors.textDarkest,
-                        letterSpacing: -0.5,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -807,8 +801,7 @@ class _OccupancySegment extends StatelessWidget {
               label,
               style: AppTypography.bodySmall.copyWith(
                 color: isSelected ? activeColor : const Color(0xFF64748B), // Slate 500
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
               ),
             ),
           ),
@@ -904,9 +897,7 @@ class _ModernStatCard extends StatelessWidget {
                                 value,
                                 style: AppTypography.headline.copyWith(
                                   fontSize: 22,
-                                  fontWeight: FontWeight.w700,
                                   color: valueColor ?? AppColors.textDarkest,
-                                  letterSpacing: -1,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -930,7 +921,6 @@ class _ModernStatCard extends StatelessWidget {
                         style: AppTypography.bodySmall.copyWith(
                           color: AppColors.textSecondary,
                           fontWeight: FontWeight.w600,
-                          fontSize: 13,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -978,9 +968,7 @@ class _ModernStatCard extends StatelessWidget {
                           value,
                           style: AppTypography.headline.copyWith(
                             fontSize: 18,
-                            fontWeight: FontWeight.w700,
                             color: valueColor ?? AppColors.textDarkest,
-                            letterSpacing: -0.5,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -1005,7 +993,6 @@ class _ModernStatCard extends StatelessWidget {
                   style: AppTypography.bodySmall.copyWith(
                     color: AppColors.textSecondary,
                     fontWeight: FontWeight.w600,
-                    fontSize: 11,
                   ),
                   maxLines: 1,
                   textAlign: TextAlign.center,

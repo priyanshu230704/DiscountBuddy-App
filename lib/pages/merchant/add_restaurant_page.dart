@@ -672,7 +672,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                       builder: (context) => AlertDialog(
                         backgroundColor: AppColors.surface,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-                        title: Text('Delete Restaurant?', style: AppTypography.title),
+                        title: Text('Delete Restaurant?', style: AppTypography.title.copyWith(fontSize: 18)),
                         content: Text(
                           'Are you sure you want to delete this restaurant? This action cannot be undone.',
                           style: AppTypography.body,
@@ -683,7 +683,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                             onPressed: () => Navigator.pop(context, false),
                             child: Text(
                               'Cancel',
-                              style: AppTypography.body.copyWith(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                              style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700, color: AppColors.textSecondary),
                             ),
                           ),
                           AppGradientButton(
@@ -691,7 +691,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                             width: 120,
                             height: 48,
                             gradient: LinearGradient(colors: [AppColors.error, AppColors.error.withValues(alpha: 0.8)]),
-                            child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.bold)),
+                            child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.w700)),
                           ),
                         ],
                       ),
@@ -910,8 +910,8 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                               showCheckmark: false,
                               selectedColor: AppColors.merchantIndigo,
                               backgroundColor: AppColors.background,
-                              labelStyle: AppTypography.body.copyWith(
-                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                              labelStyle: AppTypography.bodySmall.copyWith(
+                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                                 color: isSelected ? AppColors.white : AppColors.textPrimary,
                               ),
                               shape: RoundedRectangleBorder(
@@ -959,8 +959,8 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                               showCheckmark: false,
                               selectedColor: AppColors.merchantIndigo,
                               backgroundColor: AppColors.background,
-                              labelStyle: AppTypography.body.copyWith(
-                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                              labelStyle: AppTypography.bodySmall.copyWith(
+                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                                 color: isSelected ? AppColors.white : AppColors.textPrimary,
                               ),
                               shape: RoundedRectangleBorder(
@@ -1008,8 +1008,8 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                               showCheckmark: false,
                               selectedColor: AppColors.merchantIndigo,
                               backgroundColor: AppColors.background,
-                              labelStyle: AppTypography.body.copyWith(
-                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                              labelStyle: AppTypography.bodySmall.copyWith(
+                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                                 color: isSelected ? AppColors.white : AppColors.textPrimary,
                               ),
                               shape: RoundedRectangleBorder(

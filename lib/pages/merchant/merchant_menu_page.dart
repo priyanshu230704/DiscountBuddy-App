@@ -177,7 +177,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text('Add Menu Category', style: AppTypography.title),
+        title: Text('Add Menu Category', style: AppTypography.title.copyWith(fontSize: 18)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -203,7 +203,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
             },
             width: 150,
             height: 48,
-            child: const Text('Add Category', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: const Text('Add Category', style: TextStyle(fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -243,7 +243,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text('Edit Category', style: AppTypography.title),
+        title: Text('Edit Category', style: AppTypography.title.copyWith(fontSize: 18)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -269,7 +269,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
             },
             width: 150,
             height: 48,
-            child: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -301,7 +301,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text('Delete Category?', style: AppTypography.title),
+        title: Text('Delete Category?', style: AppTypography.title.copyWith(fontSize: 18)),
         content: Text(
           'Are you sure you want to delete this category and all its items? This action cannot be undone.',
           style: AppTypography.body,
@@ -366,7 +366,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
           return AlertDialog(
             backgroundColor: AppColors.surface,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-            title: Text(existingItem == null ? 'Add Item' : 'Edit Item', style: AppTypography.title),
+            title: Text(existingItem == null ? 'Add Item' : 'Edit Item', style: AppTypography.title.copyWith(fontSize: 18)),
             content: SizedBox(
               width: double.maxFinite,
               child: SingleChildScrollView(
@@ -390,21 +390,21 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
                     Text('Dietary Tags', style: AppTypography.subtitle.copyWith(color: AppColors.textPrimary)),
                     const SizedBox(height: AppSpacing.sm),
                     SwitchListTile(
-                      title: Text('Vegetarian', style: AppTypography.body),
+                      title: Text('Vegetarian', style: AppTypography.bodySmall),
                       value: isVegetarian,
                       activeThumbColor: AppColors.success,
                       contentPadding: EdgeInsets.zero,
                       onChanged: (v) => setState(() => isVegetarian = v),
                     ),
                     SwitchListTile(
-                      title: Text('Vegan', style: AppTypography.body),
+                      title: Text('Vegan', style: AppTypography.bodySmall),
                       value: isVegan,
                       activeThumbColor: AppColors.success,
                       contentPadding: EdgeInsets.zero,
                       onChanged: (v) => setState(() => isVegan = v),
                     ),
                     SwitchListTile(
-                      title: Text('Gluten Free', style: AppTypography.body),
+                      title: Text('Gluten Free', style: AppTypography.bodySmall),
                       value: isGlutenFree,
                       activeThumbColor: AppColors.merchantAmber,
                       contentPadding: EdgeInsets.zero,
@@ -412,7 +412,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
                     ),
                     const Divider(height: 32),
                     SwitchListTile(
-                      title: Text('Available', style: AppTypography.body.copyWith(fontWeight: FontWeight.bold)),
+                      title: Text('Available', style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700)),
                       value: isAvailable,
                       activeThumbColor: AppColors.merchantIndigo,
                       contentPadding: EdgeInsets.zero,
@@ -428,7 +428,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
                 onPressed: () => Navigator.pop(context),
                 child: Text(
                   'Cancel',
-                  style: AppTypography.body.copyWith(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                  style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700, color: AppColors.textSecondary),
                 ),
               ),
               AppGradientButton(
@@ -450,7 +450,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
                 height: 48,
                 child: Text(
                   existingItem == null ? 'Add Item' : 'Save Changes',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
               ),
             ],
@@ -510,7 +510,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text('Delete Item?', style: AppTypography.title),
+        title: Text('Delete Item?', style: AppTypography.title.copyWith(fontSize: 18)),
         content: Text(
           'Are you sure you want to delete "${item['name']}"? This action cannot be undone.',
           style: AppTypography.body,
@@ -560,6 +560,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
       appBar: AppAppBar(
         titleText: widget.restaurantName,
         backgroundColor: Colors.transparent,
+        automaticallyImplyLeading: false,
       ),
       body: _isLoading
           ? _buildLoadingState()
@@ -571,7 +572,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
               onPressed: _pickAndUploadMenuPhoto,
               backgroundColor: AppColors.primary,
               icon: const Icon(Icons.add_photo_alternate_rounded, color: Colors.white),
-              label: const Text('Add Menu Image', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              label: const Text('Add Menu Image', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
             )
           : Container(
               decoration: BoxDecoration(
@@ -591,7 +592,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
                 elevation: 0,
                 highlightElevation: 0,
                 icon: const Icon(Icons.add_rounded, color: Colors.white),
-                label: const Text('Add Item', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                label: const Text('Add Item', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
               ),
             ),
     );
@@ -773,9 +774,9 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
                 ),
                 child: Text(
                   category['name'],
-                  style: TextStyle(
+                  style: AppTypography.bodySmall.copyWith(
                     color: isSelected ? Colors.white : AppColors.textSecondary,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                   ),
                 ),
               ),

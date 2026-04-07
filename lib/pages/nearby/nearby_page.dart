@@ -1418,6 +1418,7 @@ class _NearbyPageState extends State<NearbyPage>
                 style: AppTypography.button.copyWith(
                   fontSize: 13,
                   color: Colors.white,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],
@@ -1515,7 +1516,7 @@ class _NearbyPageState extends State<NearbyPage>
                         child: Text(
                           restaurant.name,
                           style: AppTypography.title.copyWith(
-                            fontSize: 20,
+                            fontSize: 18,
                             fontWeight: FontWeight.w700,
                             color: Colors.black,
                           ),
@@ -1547,9 +1548,12 @@ class _NearbyPageState extends State<NearbyPage>
                         ),
                       ),
                       const SizedBox(width: 8),
-                      const Text(
+                      Text(
                         "•",
-                        style: TextStyle(color: Colors.black26, fontWeight: FontWeight.bold),
+                        style: AppTypography.bodySmall.copyWith(
+                          color: Colors.black26,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(width: 8),
                       Text(
@@ -1561,9 +1565,12 @@ class _NearbyPageState extends State<NearbyPage>
                       ),
                       if (restaurant.cuisine.isNotEmpty && restaurant.cuisine != 'Restaurant') ...[
                         const SizedBox(width: 8),
-                        const Text(
+                        Text(
                           "•",
-                          style: TextStyle(color: Colors.black26, fontWeight: FontWeight.bold),
+                          style: AppTypography.bodySmall.copyWith(
+                            color: Colors.black26,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const SizedBox(width: 8),
                         const Icon(Icons.restaurant_menu_rounded,
@@ -1611,7 +1618,7 @@ class _NearbyPageState extends State<NearbyPage>
                         child: Text(
                           t,
                           style: AppTypography.bodySmall.copyWith(
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w700,
                             color: Colors.white,
                           ),
                         ),

@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import '../theme/app_fonts.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 /// Semantic typography scale reused across screens and components.
 class AppTypography {
   // Display / page headers
-  static TextStyle headline = TextStyle(
-    fontFamily: AppFonts.headingFont,
+  static TextStyle headline = GoogleFonts.poppins(
     fontSize: 28,
     fontWeight: FontWeight.w700,
     letterSpacing: -0.8,
@@ -14,8 +13,7 @@ class AppTypography {
     color: AppColors.textDarkest,
   );
 
-  static TextStyle title = TextStyle(
-    fontFamily: AppFonts.titleFont,
+  static TextStyle title = GoogleFonts.poppins(
     fontSize: 24,
     fontWeight: FontWeight.w600,
     letterSpacing: -0.5,
@@ -23,64 +21,67 @@ class AppTypography {
     color: AppColors.textDarkest,
   );
 
-  static TextStyle subtitle = TextStyle(
-    fontFamily: AppFonts.bodyFont,
-    fontSize: 16,
+  static TextStyle subtitle = GoogleFonts.inter(
+    fontSize: 14,
     fontWeight: FontWeight.w400,
     height: 1.4,
     color: AppColors.textSecondary,
   );
 
-  static TextStyle bodyLarge = TextStyle(
-    fontFamily: AppFonts.bodyFont,
-    fontSize: 16,
+  static TextStyle bodyLarge = GoogleFonts.inter(
+    fontSize: 15,
     fontWeight: FontWeight.w600,
     height: 1.5,
     color: AppColors.textPrimary,
   );
 
-  static TextStyle body = TextStyle(
-    fontFamily: AppFonts.bodyFont,
-    fontSize: 14,
+  static TextStyle body = GoogleFonts.inter(
+    fontSize: 16, // User requested 16px
     fontWeight: FontWeight.w400,
     height: 1.5,
     color: AppColors.textPrimary,
   );
 
-  static TextStyle bodySmall = TextStyle(
-    fontFamily: AppFonts.bodyFont,
-    fontSize: 12,
+  static TextStyle bodySmall = GoogleFonts.inter(
+    fontSize: 14, // User requested 14px (Helper Text)
     fontWeight: FontWeight.w400,
-    height: 1.4,
     color: AppColors.textSecondary,
   );
 
-  static TextStyle caption = TextStyle(
-    fontFamily: AppFonts.bodyFont,
-    fontSize: 11,
-    fontWeight: FontWeight.w500,
-    letterSpacing: 0.2,
-    color: AppColors.textDisabled,
+  static TextStyle caption = GoogleFonts.inter(
+    fontSize: 12, // User requested 12px
+    fontWeight: FontWeight.w400,
+    color: AppColors.textSecondary,
   );
 
-  static TextStyle price = TextStyle(
-    fontFamily: AppFonts.titleFont,
+  static TextStyle labelLarge = GoogleFonts.inter(
+    fontSize: 14,
+    fontWeight: FontWeight.w500, // Medium for buttons
+    color: AppColors.textPrimary,
+    letterSpacing: 0.2,
+  );
+
+  static TextStyle labelMedium = GoogleFonts.inter(
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textPrimary,
+  );
+
+  static TextStyle price = GoogleFonts.poppins(
     fontSize: 18,
     fontWeight: FontWeight.w600,
     letterSpacing: -0.2,
     color: AppColors.textDarkest,
   );
 
-  static TextStyle button = TextStyle(
-    fontFamily: AppFonts.buttonFont,
+  static TextStyle button = GoogleFonts.inter(
     fontSize: 16,
-    fontWeight: FontWeight.w600,
-    letterSpacing: -0.1,
+    fontWeight: FontWeight.w500, // Medium
+    letterSpacing: 0.2,
     color: AppColors.white,
   );
 
-  static TextStyle accent = TextStyle(
-    fontFamily: AppFonts.accentFont,
+  static TextStyle accent = GoogleFonts.inter(
     fontSize: 14,
     fontWeight: FontWeight.w500,
     color: AppColors.textPrimary,

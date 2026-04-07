@@ -114,7 +114,7 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
           return AlertDialog(
             backgroundColor: AppColors.surface,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-            title: Text(existingItem == null ? 'Add Item' : 'Edit Item', style: AppTypography.title),
+            title: Text(existingItem == null ? 'Add Item' : 'Edit Item', style: AppTypography.title.copyWith(fontSize: 18)),
             content: SizedBox(
               width: double.maxFinite,
               child: SingleChildScrollView(
@@ -139,21 +139,21 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
                     Text('Dietary Tags', style: AppTypography.subtitle.copyWith(color: AppColors.textPrimary)),
                     const SizedBox(height: AppSpacing.sm),
                     SwitchListTile(
-                      title: Text('Vegetarian', style: AppTypography.body),
+                      title: Text('Vegetarian', style: AppTypography.bodySmall),
                       value: isVegetarian,
                       activeThumbColor: AppColors.success,
                       contentPadding: EdgeInsets.zero,
                       onChanged: (v) => setState(() => isVegetarian = v),
                     ),
                     SwitchListTile(
-                      title: Text('Vegan', style: AppTypography.body),
+                      title: Text('Vegan', style: AppTypography.bodySmall),
                       value: isVegan,
                       activeThumbColor: AppColors.success,
                       contentPadding: EdgeInsets.zero,
                       onChanged: (v) => setState(() => isVegan = v),
                     ),
                     SwitchListTile(
-                      title: Text('Gluten Free', style: AppTypography.body),
+                      title: Text('Gluten Free', style: AppTypography.bodySmall),
                       value: isGlutenFree,
                       activeThumbColor: AppColors.merchantAmber,
                       contentPadding: EdgeInsets.zero,
@@ -161,7 +161,7 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
                     ),
                     const Divider(height: 32),
                     SwitchListTile(
-                      title: Text('Available', style: AppTypography.body.copyWith(fontWeight: FontWeight.bold)),
+                      title: Text('Available', style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700)),
                       value: isAvailable,
                       activeThumbColor: AppColors.merchantIndigo,
                       contentPadding: EdgeInsets.zero,
@@ -177,7 +177,7 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
                 onPressed: () => Navigator.pop(context),
                 child: Text(
                   'Cancel',
-                  style: AppTypography.body.copyWith(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                  style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700, color: AppColors.textSecondary),
                 ),
               ),
               AppGradientButton(
@@ -199,7 +199,7 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
                 height: 48,
                 child: Text(
                   existingItem == null ? 'Add Item' : 'Save Changes',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
               ),
             ],
@@ -261,7 +261,7 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text('Delete Item?', style: AppTypography.title),
+        title: Text('Delete Item?', style: AppTypography.title.copyWith(fontSize: 18)),
         content: Text(
           'Are you sure you want to delete "${item['name']}"? This action cannot be undone.',
           style: AppTypography.body,
@@ -272,7 +272,7 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
             onPressed: () => Navigator.pop(context, false),
             child: Text(
               'Cancel',
-              style: AppTypography.body.copyWith(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+              style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700, color: AppColors.textSecondary),
             ),
           ),
           AppGradientButton(
@@ -280,7 +280,7 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
             width: 120,
             height: 48,
             gradient: LinearGradient(colors: [AppColors.error, AppColors.error.withValues(alpha: 0.8)]),
-            child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -350,7 +350,7 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
             const SizedBox(width: 8),
             Text(
               'Add Item', 
-              style: AppTypography.body.copyWith(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+              style: AppTypography.body.copyWith(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16),
             ),
           ],
         ),
@@ -437,7 +437,7 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
                     padding: const EdgeInsets.only(top: 6, bottom: 12),
                     child: Text(
                       item['description'],
-                      style: AppTypography.body.copyWith(
+                      style: AppTypography.bodySmall.copyWith(
                         color: isAvailable ? AppColors.textSecondary : AppColors.textDisabled,
                       ),
                     ),

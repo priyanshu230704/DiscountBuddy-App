@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import '../widgets/app_scaffold.dart';
@@ -11,6 +12,7 @@ import 'privacy_policy_page.dart';
 import 'saved_restaurants_page.dart';
 import 'savings_history_page.dart';
 import 'join_partner_page.dart';
+import 'level_progress_page.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../config/environment.dart';
 import '../components/app_app_bar.dart';
@@ -83,6 +85,16 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  void _navigateToLevelDetails() {
+    if (_stats == null) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LevelProgressPage(stats: _stats!),
+      ),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -94,6 +106,7 @@ class _ProfilePageState extends State<ProfilePage> {
         titleText: 'Profile',
         centerTitle: false,
         backgroundColor: const Color(0xFFF3E8FF),
+        automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -201,17 +214,20 @@ class _ProfilePageState extends State<ProfilePage> {
             const SizedBox(height: 32),
 
             // Stats Grid
-            if (!_authProvider.isMerchant) ...[
+            if (!_authProvider.isMerchant && _stats != null) ...[
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
                 child: Row(
                   children: [
                     Expanded(
-                      child: _StatCard(
-                        icon: Icons.emoji_events,
-                        value: _stats?.userLevel ?? 'Bronze',
-                        label: 'Level',
-                        iconColor: AppColors.primary,
+                      child: GestureDetector(
+                        onTap: _navigateToLevelDetails,
+                        child: _StatCard(
+                          icon: Icons.emoji_events,
+                          value: _stats?.progression.tier ?? 'Bronze',
+                          label: _stats?.progression.rank ?? 'Level',
+                          iconColor: AppColors.primary,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -227,8 +243,8 @@ class _ProfilePageState extends State<ProfilePage> {
                         },
                         child: _StatCard(
                           icon: Icons.account_balance_wallet_rounded,
-                          value: '£${_stats?.moneySaved.toStringAsFixed(0) ?? '5'}',
-                          label: 'Saved',
+                          value: '£${_stats?.moneySaved.toStringAsFixed(0) ?? '0'}',
+                          label: 'Savings',
                           iconColor: AppColors.primary,
                         ),
                       ),
@@ -246,7 +262,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         },
                         child: _StatCard(
                           icon: Icons.favorite,
-                          value: _stats?.favouriteRestaurants.toString() ?? '2',
+                          value: _stats?.favouriteRestaurants.toString() ?? '0',
                           label: 'Favourites',
                           iconColor: AppColors.primary,
                         ),
@@ -255,6 +271,9 @@ class _ProfilePageState extends State<ProfilePage> {
                   ],
                 ),
               ),
+              const SizedBox(height: 32),
+            ] else if (!_authProvider.isMerchant && _stats == null) ...[
+              const Center(child: CircularProgressIndicator()),
               const SizedBox(height: 32),
             ],
 
@@ -643,7 +662,6 @@ class _MenuTile extends StatelessWidget {
     );
   }
 }
-
 class _StatCard extends StatelessWidget {
   final IconData icon;
   final String value;

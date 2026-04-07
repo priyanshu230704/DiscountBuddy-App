@@ -108,7 +108,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
             onPressed: () => Navigator.pop(context),
             child: Text(
               'Cancel',
-              style: AppTypography.body.copyWith(color: AppColors.textSecondary),
+              style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w600),
             ),
           ),
           AppGradientButton(
@@ -196,7 +196,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
                 const SizedBox(height: 24),
                 Text(
                   'Redemption Details',
-                  style: AppTypography.title.copyWith(fontSize: 20),
+                  style: AppTypography.title.copyWith(fontSize: 18, fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -359,7 +359,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
               const SizedBox(height: 24),
               Text(
                 'Verifying deal...',
-                style: AppTypography.title.copyWith(fontSize: 16),
+                style: AppTypography.title.copyWith(fontSize: 18, fontWeight: FontWeight.w700),
               ),
             ],
           ),
@@ -419,7 +419,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
                     children: [
                       Text(
                         dealRedemption.deal.title,
-                        style: AppTypography.title.copyWith(fontSize: 18),
+                        style: AppTypography.title.copyWith(fontSize: 18, fontWeight: FontWeight.w700),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -470,7 +470,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
                     height: 56,
                     child: Text(
                       'Done',
-                      style: AppTypography.title.copyWith(color: AppColors.white),
+                      style: AppTypography.title.copyWith(color: AppColors.white, fontSize: 18, fontWeight: FontWeight.w700),
                     ),
                   ),
                 ),
@@ -502,8 +502,8 @@ class _QRScannerPageState extends State<QRScannerPage> {
           Expanded(
             child: Text(
               value,
-              style: AppTypography.body.copyWith(
-                fontWeight: isBold ? FontWeight.w800 : FontWeight.w700,
+              style: AppTypography.bodySmall.copyWith(
+                fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
                 color: valueColor ?? AppColors.textPrimary,
               ),
             ),
@@ -543,9 +543,9 @@ class _QRScannerPageState extends State<QRScannerPage> {
                 child: Text(
                   message,
                   textAlign: TextAlign.center,
-                  style: AppTypography.body.copyWith(
-                    fontSize: 16,
-                    height: 1.4,
+                  style: AppTypography.bodySmall.copyWith(
+                    height: 1.5,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
@@ -570,7 +570,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
                   ),
                   child: Text(
                     'Try Again',
-                    style: AppTypography.title.copyWith(fontSize: 16, color: AppColors.textPrimary),
+                    style: AppTypography.title.copyWith(fontSize: 16, color: AppColors.textPrimary, fontWeight: FontWeight.w700),
                   ),
                 ),
               ),
@@ -679,7 +679,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
                           'Position QR code within frame',
                           style: AppTypography.body.copyWith(
                             color: Colors.white,
-                            fontWeight: FontWeight.w600,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
@@ -710,13 +710,13 @@ class _QRScannerPageState extends State<QRScannerPage> {
           controller: controller,
           keyboardType: TextInputType.number,
           maxLength: 6,
-          style: AppTypography.body.copyWith(fontSize: 18, letterSpacing: 2),
+          style: AppTypography.title.copyWith(fontSize: 20, letterSpacing: 2, fontWeight: FontWeight.w700),
           textAlign: TextAlign.center,
           decoration: InputDecoration(
             hintText: '000000',
             hintStyle: AppTypography.body.copyWith(
               color: AppColors.textDisabled, 
-              fontSize: 18, 
+              fontSize: 20, 
               letterSpacing: 2
             ),
             filled: true,
@@ -742,7 +742,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
             child: Text(
               'Cancel',
               style: AppTypography.body.copyWith(
-                fontWeight: FontWeight.w600, 
+                fontWeight: FontWeight.w700, 
                 color: AppColors.textSecondary
               ),
             ),
@@ -760,7 +760,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
             },
             width: 120,
             height: 48,
-            child: const Text('Next', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: const Text('Next', style: TextStyle(fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -808,7 +808,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
                     restaurant['name'],
                     style: TextStyle(
                       color: Colors.white,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                       fontSize: 13,
                     ),
                   ),

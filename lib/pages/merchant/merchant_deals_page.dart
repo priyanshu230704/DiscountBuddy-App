@@ -404,7 +404,7 @@ class _DealCard extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: AppTypography.title.copyWith(fontSize: 17),
+                      style: AppTypography.title.copyWith(fontSize: 16),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -438,14 +438,14 @@ class _DealCard extends StatelessWidget {
                 Text(
                   '$usedCount / $maxUses used',
                   style: AppTypography.caption.copyWith(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                   ),
                 )
               else
                 Text(
                   '$usedCount used',
                   style: AppTypography.caption.copyWith(
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
             ],
@@ -495,7 +495,7 @@ class _InfoTag extends StatelessWidget {
           Text(
             label,
             style: AppTypography.bodySmall.copyWith(
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],

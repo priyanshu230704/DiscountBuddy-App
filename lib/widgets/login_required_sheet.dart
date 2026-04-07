@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:discount_buddy/theme/app_colors.dart';
-import 'package:discount_buddy/theme/app_fonts.dart';
+import 'package:discount_buddy/design/app_typography.dart';
 import 'generic_bottom_sheet.dart';
 
 class LoginRequiredSheet extends StatelessWidget {
@@ -57,18 +57,17 @@ class LoginRequiredSheet extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               'Join DiscountBuddy',
-              style: AppFonts.titleStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
+              style: AppTypography.headline.copyWith(
+                color: AppColors.textPrimary,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
             Text(
               'Please login to access all features like bookings, reviews, and redeeming offers.',
-              style: AppFonts.bodyStyle(
+              style: AppTypography.bodySmall.copyWith(
                 color: AppColors.textSecondary,
-                fontSize: 16,
+                fontWeight: FontWeight.w600,
               ),
               textAlign: TextAlign.center,
             ),
@@ -87,8 +86,8 @@ class LoginRequiredSheet extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                child: const Text('Login / Sign Up',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                child: Text('Login / Sign Up',
+                    style: AppTypography.button),
               ),
             ),
             if (isClosable) ...[
@@ -97,9 +96,9 @@ class LoginRequiredSheet extends StatelessWidget {
                 onPressed: () => Navigator.pop(context),
                 child: Text(
                   'Maybe Later',
-                  style: AppFonts.bodyStyle(
+                  style: AppTypography.bodySmall.copyWith(
                     color: AppColors.textDisabled,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
@@ -109,9 +108,9 @@ class LoginRequiredSheet extends StatelessWidget {
                 onPressed: onBackToHome,
                 child: Text(
                   'Back to Home',
-                  style: AppFonts.bodyStyle(
+                  style: AppTypography.bodySmall.copyWith(
                     color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),

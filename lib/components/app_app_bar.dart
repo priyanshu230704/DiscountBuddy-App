@@ -10,6 +10,7 @@ class AppAppBar extends AppBar {
     super.actions,
     super.bottom,
     super.leading,
+    super.automaticallyImplyLeading = true,
     Color? backgroundColor,
     Color? foregroundColor,
   }) : super(

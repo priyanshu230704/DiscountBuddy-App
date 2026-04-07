@@ -128,9 +128,7 @@ class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Analytics', style: AppTypography.title.copyWith(
-            fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textDarkest,
-          )),
+          Text('Analytics', style: AppTypography.title.copyWith(fontSize: 18)),
           Text(widget.restaurantName, style: AppTypography.caption.copyWith(
             color: AppColors.textSecondary, fontWeight: FontWeight.w500,
           )),
@@ -177,7 +175,7 @@ class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
                 textAlign: TextAlign.center,
                 style: AppTypography.bodySmall.copyWith(
                   color: isSelected ? Colors.white : AppColors.textSecondary,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                 ),
               ),
             ),
@@ -258,7 +256,7 @@ class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: steps.map((s) => Column(
               children: [
-                Text(_fmt(s.value), style: AppTypography.body.copyWith(
+                Text(_fmt(s.value), style: AppTypography.title.copyWith(
                   fontWeight: FontWeight.w700, color: s.color, fontSize: 16,
                 )),
                 Text(s.label, style: AppTypography.caption.copyWith(color: AppColors.textSecondary)),
@@ -404,7 +402,7 @@ class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
                       ),
                       alignment: Alignment.center,
                       child: Text('${daily[i]}', style: AppTypography.caption.copyWith(
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
                         color: intensity > 0.5 ? Colors.white : AppColors.textSecondary,
                       )),
                     ),
@@ -449,7 +447,7 @@ class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
                       Row(children: [
                         Expanded(child: Text(
                           d['title'] ?? '',
-                          style: AppTypography.body.copyWith(fontWeight: FontWeight.w700, fontSize: 13),
+                          style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         )),
@@ -603,7 +601,7 @@ class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
             child: Row(children: [
               Container(width: 12, height: 12, decoration: BoxDecoration(color: s.color, shape: BoxShape.circle)),
               const SizedBox(width: 8),
-              Expanded(child: Text(s.label, style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w500))),
+              Expanded(child: Text(s.label, style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600))),
               Text('${s.pct.toStringAsFixed(1)}%', style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700, color: s.color)),
             ]),
           )),
@@ -628,7 +626,7 @@ class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
             const SizedBox(width: 12),
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(overall.toStringAsFixed(1), style: AppTypography.headline.copyWith(
-                fontSize: 32, fontWeight: FontWeight.w700, color: AppColors.textDarkest,
+                fontSize: 28, fontWeight: FontWeight.w700, color: AppColors.textDarkest,
               )),
               Text('Overall Rating', style: AppTypography.caption.copyWith(color: AppColors.textSecondary)),
             ]),
@@ -737,7 +735,7 @@ class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
             child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Icon(ico, color: fg, size: 20),
               const SizedBox(width: 10),
-              Expanded(child: Text(a['message'] ?? '', style: AppTypography.bodySmall.copyWith(color: fg, fontWeight: FontWeight.w600))),
+              Expanded(child: Text(a['message'] ?? '', style: AppTypography.bodySmall.copyWith(color: fg, fontWeight: FontWeight.w700))),
             ]),
           );
         }).toList(),

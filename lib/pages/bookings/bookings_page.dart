@@ -396,7 +396,7 @@ class _ReservationEmptyTab extends StatelessWidget {
                 Text(
                   'No reservations yet',
                   style: AppTypography.title.copyWith(
-                    fontSize: 22,
+                    fontSize: 20, // Match section titles (20px)
                     fontWeight: FontWeight.w700,
                   ),
                   textAlign: TextAlign.center,
@@ -560,7 +560,7 @@ class _TrendingCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppTypography.title.copyWith(
-                      fontSize: 18,
+                      fontSize: 16, // Match feed tiles (16px)
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -1182,13 +1182,23 @@ class _BookingCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           Row(
             children: [
-              const Icon(Icons.calendar_today, size: 16, color: AppColors.textSecondary),
+              const Icon(Icons.calendar_today, size: 14, color: AppColors.textSecondary),
               const SizedBox(width: AppSpacing.sm),
-              Text('$dateStr at $timeStr', style: AppTypography.bodySmall),
-              const Spacer(),
-              const Icon(Icons.people, size: 16, color: AppColors.textSecondary),
+              Expanded(
+                child: Text(
+                  '$dateStr at $timeStr',
+                  style: AppTypography.bodySmall,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              const Icon(Icons.people, size: 14, color: AppColors.textSecondary),
               const SizedBox(width: AppSpacing.sm),
-              Text('${booking.numberOfGuests} guests', style: AppTypography.bodySmall),
+              Text(
+                '${booking.numberOfGuests} guests',
+                style: AppTypography.bodySmall,
+              ),
             ],
           ),
           if (booking.specialRequests.isNotEmpty) ...[

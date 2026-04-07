@@ -88,6 +88,7 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
       appBar: AppAppBar(
         titleText: widget.selectMenuMode ? 'Select Restaurant' : 'Restaurants',
         backgroundColor: Colors.transparent,
+        automaticallyImplyLeading: false,
         actions: widget.selectMenuMode
             ? null
             : [
@@ -121,7 +122,7 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
                 onChanged: _filterRestaurants,
                 decoration: InputDecoration(
                   hintText: "Search restaurants...",
-                  hintStyle: AppTypography.bodySmall.copyWith(fontSize: 14),
+                  hintStyle: AppTypography.bodySmall,
                   prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
@@ -135,7 +136,7 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(vertical: 12),
                 ),
-                style: AppTypography.body.copyWith(fontSize: 14),
+                style: AppTypography.body,
               ),
             ),
           ),
@@ -144,7 +145,7 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
               padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.sm),
               child: Text(
                 '${_filteredRestaurants.length} Restaurant${_filteredRestaurants.length == 1 ? '' : 's'}',
-                style: AppTypography.title.copyWith(fontSize: 18),
+                style: AppTypography.title.copyWith(fontSize: 18, fontWeight: FontWeight.w700),
               ),
             ),
           Expanded(
@@ -282,7 +283,7 @@ class _RestaurantCard extends StatelessWidget {
               children: [
                 Text(
                   restaurant['name'] as String? ?? 'Unknown',
-                  style: AppTypography.title.copyWith(fontSize: 16),
+                  style: AppTypography.title.copyWith(fontSize: 18, fontWeight: FontWeight.w700),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -302,9 +303,10 @@ class _RestaurantCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         restaurant['address'] as String? ?? 'No address provided',
-                        style: AppTypography.bodySmall,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.bodySmall.copyWith(
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],

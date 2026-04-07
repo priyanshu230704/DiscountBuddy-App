@@ -1,4 +1,4 @@
-import 'package:discount_buddy/theme/app_fonts.dart';
+import 'package:discount_buddy/design/app_typography.dart';
 import 'package:flutter/material.dart';
 import '../design/app_colors.dart';
 import '../services/onboarding_service.dart';
@@ -235,7 +235,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       onPressed: _skipOnboarding,
                       child: Text(
                         'Skip',
-                        style: AppFonts.bodyStyle(
+                        style: AppTypography.bodySmall.copyWith(
                           color: const Color(0xFF5F567A).withValues(alpha: 0.7),
                           fontSize: 16 * scale,
                           fontWeight: FontWeight.w700,
@@ -279,7 +279,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         children: [
                           Text(
                             "Don't have an account? ",
-                            style: AppFonts.bodyStyle(
+                            style: AppTypography.bodySmall.copyWith(
                               color: const Color(
                                 0xFF5F567A,
                               ).withValues(alpha: 0.7),
@@ -304,7 +304,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             ),
                             child: Text(
                               "Register",
-                              style: AppFonts.bodyStyle(
+                              style: AppTypography.bodySmall.copyWith(
                                 color: const Color(0xFF8B5CF6),
                                 fontWeight: FontWeight.w800,
                                 fontSize: 14 * scale,
@@ -334,7 +334,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           const Spacer(flex: 4),
           Text(
             pageData.title,
-            style: AppFonts.titleStyle(
+            style: AppTypography.headline.copyWith(
               color: const Color(0xFF1B1436),
               fontSize: 34 * scale,
               fontWeight: FontWeight.w800,
@@ -346,7 +346,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           SizedBox(height: 20 * scale),
           Text(
             pageData.description,
-            style: AppFonts.bodyStyle(
+            style: AppTypography.body.copyWith(
               color: const Color(0xFF5F567A).withValues(alpha: 0.8),
               fontSize: 17 * scale,
               height: 1.6,
@@ -418,10 +418,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ),
         child: Text(
           'Get Started',
-          style: AppFonts.titleStyle(
+          style: AppTypography.title.copyWith(
             fontSize: 19 * scale,
             fontWeight: FontWeight.w700,
             letterSpacing: 0.5,
+            color: Colors.white,
           ),
         ),
       ),

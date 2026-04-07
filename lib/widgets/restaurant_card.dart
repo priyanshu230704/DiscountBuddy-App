@@ -1,6 +1,5 @@
-import 'package:discount_buddy/theme/app_fonts.dart';
+import 'package:discount_buddy/design/app_typography.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/restaurant.dart';
 import 'package:discount_buddy/theme/app_colors.dart';
@@ -135,10 +134,9 @@ class RestaurantCard extends StatelessWidget {
                         ),
                         child: Text(
                           restaurant.discount.displayText,
-                          style: GoogleFonts.inter(
+                          style: AppTypography.caption.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,
-                            fontSize: 12,
                             letterSpacing: 0.2,
                           ),
                         ),
@@ -178,10 +176,9 @@ class RestaurantCard extends StatelessWidget {
                               );
                               return DistanceUtils.formatMiles(miles);
                             }(),
-                            style: AppFonts.bodyStyle(
+                            style: AppTypography.bodySmall.copyWith(
                               color: Colors.white,
                               fontWeight: FontWeight.w600,
-                              fontSize: 12,
                             ),
                           ),
                         ],
@@ -203,9 +200,9 @@ class RestaurantCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             restaurant.name,
-                            style: AppFonts.bodyStyle(
+                            style: AppTypography.title.copyWith(
                               fontSize: 18,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w700,
                               color: AppColors.textPrimary,
                               letterSpacing: -0.3,
                             ),
@@ -232,17 +229,15 @@ class RestaurantCard extends StatelessWidget {
                               const SizedBox(width: 4),
                               Text(
                                 restaurant.rating.toStringAsFixed(1),
-                                style: AppFonts.bodyStyle(
+                                style: AppTypography.bodySmall.copyWith(
                                   fontWeight: FontWeight.w700,
-                                  fontSize: 13,
                                   color: AppColors.textPrimary,
                                 ),
                               ),
                               Text(
                                 ' (${restaurant.reviewCount})',
-                                style: AppFonts.bodyStyle(
+                                style: AppTypography.bodySmall.copyWith(
                                   color: AppColors.textSecondary,
-                                  fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -275,9 +270,8 @@ class RestaurantCard extends StatelessWidget {
                       const SizedBox(height: _spacing * 1.5),
                       Text(
                         restaurant.description.trim(),
-                        style: AppFonts.bodyStyle(
+                        style: AppTypography.bodySmall.copyWith(
                           color: AppColors.textSecondary,
-                          fontSize: 13,
                           height: 1.3,
                         ),
                         maxLines: 1,
@@ -297,9 +291,8 @@ class RestaurantCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             restaurant.cuisine,
-                            style: AppFonts.bodyStyle(
+                            style: AppTypography.bodySmall.copyWith(
                               color: AppColors.textSecondary,
-                              fontSize: 13,
                               fontWeight: FontWeight.w400,
                             ),
                             maxLines: 1,
@@ -327,9 +320,8 @@ class RestaurantCard extends StatelessWidget {
         Flexible(
           child: Text(
             text,
-            style: AppFonts.bodyStyle(
+            style: AppTypography.bodySmall.copyWith(
               color: AppColors.textSecondary,
-              fontSize: 13,
               fontWeight: FontWeight.w500,
             ),
             maxLines: 1,

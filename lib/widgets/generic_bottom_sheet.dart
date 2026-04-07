@@ -1,6 +1,6 @@
 import 'package:discount_buddy/theme/app_colors.dart';
 
-import 'package:discount_buddy/theme/app_fonts.dart';
+import 'package:discount_buddy/design/app_typography.dart';
 import 'package:flutter/material.dart';
 
 class GenericBottomSheet extends StatelessWidget {
@@ -60,16 +60,14 @@ class GenericBottomSheet extends StatelessWidget {
                       Expanded(
                         child: Text(
                           title,
-                          style: AppFonts.bodyStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                          style: AppTypography.title.copyWith(
                             color: AppColors.textPrimary,
                           ),
                         ),
                       )
                     else
                       const Spacer(),
-                    ?headerAction,
+                    if (headerAction != null) headerAction!,
                     if (showCloseButton)
                       IconButton(
                         icon: const Icon(Icons.close),
@@ -86,7 +84,7 @@ class GenericBottomSheet extends StatelessWidget {
             if (expandChild) Expanded(child: child) else Flexible(child: child),
 
             // Footer
-            ?footer,
+            if (footer != null) footer!,
           ],
         ),
       ),

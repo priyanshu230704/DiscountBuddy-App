@@ -302,7 +302,7 @@ class _MorePageState extends State<MorePage> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: AppTypography.body.copyWith(
                       color: Colors.white,
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
@@ -311,7 +311,7 @@ class _MorePageState extends State<MorePage> {
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: TextStyle(color: Colors.grey[400], fontSize: 13),
+                    style: AppTypography.bodySmall.copyWith(color: Colors.grey[400], fontSize: 13),
                   ),
                 ],
               ),
@@ -366,7 +366,7 @@ class _MorePageState extends State<MorePage> {
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: TextStyle(color: Colors.grey[400], fontSize: 13),
+                    style: AppTypography.bodySmall.copyWith(color: Colors.grey[400], fontSize: 13),
                   ),
                 ],
               ),
@@ -480,7 +480,7 @@ class _MorePageState extends State<MorePage> {
                               children: [
                                 Text(
                                   voucher.title,
-                                  style: const TextStyle(
+                                  style: AppTypography.body.copyWith(
                                     color: Colors.white,
                                     fontSize: 15,
                                     fontWeight: FontWeight.w600,
@@ -510,7 +510,7 @@ class _MorePageState extends State<MorePage> {
                             ),
                             child: Text(
                               voucher.isActive ? 'Active' : 'Inactive',
-                              style: TextStyle(
+                              style: AppTypography.caption.copyWith(
                                 color: voucher.isActive
                                     ? Colors.green
                                     : Colors.grey,
@@ -729,16 +729,16 @@ class _MorePageState extends State<MorePage> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  style: AppTypography.body.copyWith(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: TextStyle(color: Colors.grey[400], fontSize: 13),
+                    style: AppTypography.bodySmall.copyWith(color: Colors.grey[400], fontSize: 13),
                   ),
                 ],
               ),

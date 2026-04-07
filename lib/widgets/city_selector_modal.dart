@@ -1,6 +1,6 @@
 import 'package:discount_buddy/theme/app_colors.dart';
 
-import 'package:discount_buddy/theme/app_fonts.dart';
+import 'package:discount_buddy/design/app_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:discount_buddy/services/city_service.dart';
 import 'package:discount_buddy/models/city.dart';
@@ -46,10 +46,9 @@ class CitySelectorModal extends StatelessWidget {
                   child: Text(
                     "Failed to load cities\n${snapshot.error}",
                     textAlign: TextAlign.center,
-                    style: AppFonts.bodyStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
+                    style: AppTypography.bodySmall.copyWith(
                       color: AppColors.error,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -65,8 +64,7 @@ class CitySelectorModal extends StatelessWidget {
                 padding: const EdgeInsets.all(32.0),
                 child: Text(
                   "No cities found",
-                  style: AppFonts.bodyStyle(
-                    fontSize: 16,
+                  style: AppTypography.bodySmall.copyWith(
                     fontWeight: FontWeight.w600,
                     color: AppColors.textSecondary,
                   ),
@@ -150,8 +148,8 @@ class CitySelectorModal extends StatelessWidget {
                                 children: [
                                   Text(
                                     city.name,
-                                    style: AppFonts.bodyStyle(
-                                      fontSize: 17,
+                                    style: AppTypography.title.copyWith(
+                                      fontSize: 16,
                                       fontWeight: FontWeight.w700,
                                       color: isSelected
                                           ? AppColors.primaryPurple
@@ -171,10 +169,9 @@ class CitySelectorModal extends StatelessWidget {
                                         const SizedBox(width: 4),
                                         Text(
                                           "$restaurantCount places",
-                                          style: AppFonts.bodyStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w500,
+                                          style: AppTypography.bodySmall.copyWith(
                                             color: AppColors.textSecondary,
+                                            fontWeight: FontWeight.w600,
                                           ),
                                         ),
                                       ],
@@ -182,10 +179,9 @@ class CitySelectorModal extends StatelessWidget {
                                   else
                                     Text(
                                       "Coming Soon",
-                                      style: AppFonts.bodyStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
+                                      style: AppTypography.bodySmall.copyWith(
                                         color: AppColors.textDisabled,
+                                        fontWeight: FontWeight.w600,
                                       ),
                                     ),
                                 ],
@@ -219,8 +215,7 @@ class CitySelectorModal extends StatelessWidget {
                                 ),
                                 child: Text(
                                   'Active',
-                                  style: AppFonts.bodyStyle(
-                                    fontSize: 12,
+                                  style: AppTypography.caption.copyWith(
                                     fontWeight: FontWeight.w700,
                                     color: AppColors.primaryPurple,
                                   ),

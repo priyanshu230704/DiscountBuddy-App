@@ -3,7 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../theme/app_fonts.dart';
+import 'package:discount_buddy/design/app_typography.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'main_navigation.dart';
 import '../models/restaurant.dart';
@@ -411,7 +411,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
             final isActive = index < value;
             return Text(
               '£',
-              style: AppFonts.bodyStyle(
+              style: AppTypography.bodySmall.copyWith(
                 fontSize: 14,
                 height: 1,
                 fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
@@ -425,7 +425,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
         const SizedBox(width: 8),
         Text(
           labels[value] ?? 'Moderate',
-          style: AppFonts.bodyStyle(
+          style: AppTypography.bodySmall.copyWith(
             fontSize: 14,
             color: AppColors.textSecondary,
             fontWeight: FontWeight.w500,
@@ -539,7 +539,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
               const SizedBox(height: 16),
               Text(
                 _errorMessage ?? 'Failed to load restaurant',
-                style: AppFonts.bodyStyle(
+                style: AppTypography.body.copyWith(
                   fontSize: 16,
                   color: AppColors.textSecondary,
                 ),
@@ -737,7 +737,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                       Expanded(
                         child: Text(
                           restaurant.name,
-                          style: AppFonts.titleStyle(
+                          style: AppTypography.title.copyWith(
                             fontSize: 24,
                             fontWeight: FontWeight.w700,
                             color: AppColors.textPrimary,
@@ -767,7 +767,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                               const SizedBox(width: 4),
                               Text(
                                 restaurant.leaderboardScore.toStringAsFixed(1),
-                                style: AppFonts.titleStyle(
+                                style: AppTypography.title.copyWith(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
                                   color: Colors.amber.shade800,
@@ -782,7 +782,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     const SizedBox(height: 12),
                     Text(
                       restaurant.description,
-                      style: AppFonts.bodyStyle(
+                      style: AppTypography.body.copyWith(
                         fontSize: 15,
                         height: 1.5,
                         color: AppColors.textPrimary.withValues(alpha: 0.8),
@@ -799,7 +799,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         children: [
                           Text(
                             restaurant.cuisine,
-                            style: AppFonts.bodyStyle(
+                            style: AppTypography.bodySmall.copyWith(
                               fontSize: 14,
                               color: AppColors.textPrimary,
                             ),
@@ -832,7 +832,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                     : '— miles';
                                 return '${restaurant.address.split(',').first} ($milesStr)';
                               }(),
-                              style: AppFonts.bodyStyle(
+                              style: AppTypography.bodySmall.copyWith(
                                 fontSize: 14,
                                 color: AppColors.textPrimary,
                               ),
@@ -855,7 +855,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                           const SizedBox(width: 12),
                           Text(
                             _getOpeningHours(restaurant),
-                            style: AppFonts.bodyStyle(
+                            style: AppTypography.bodySmall.copyWith(
                               fontSize: 14,
                               color: AppColors.textPrimary,
                             ),
@@ -887,7 +887,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                               const SizedBox(width: 8),
                               Text(
                                 'Menu',
-                                style: AppFonts.titleStyle(
+                                style: AppTypography.title.copyWith(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
                                   color: Colors.white,
@@ -998,8 +998,8 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             _activeVisit != null
                                 ? 'Mystery Audit'
                                 : 'Mystery Guest',
-                            style: AppFonts.bodyStyle(
-                              fontWeight: FontWeight.bold,
+                            style: AppTypography.body.copyWith(
+                              fontWeight: FontWeight.w700,
                               fontSize: 16,
                               color: Colors.blue.shade900,
                             ),
@@ -1036,7 +1036,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     if (_activeVisit != null) ...[
                       Text(
                         'Complete your anonymous audit to help improve quality and earn rewards.',
-                        style: AppFonts.bodyStyle(
+                        style: AppTypography.bodySmall.copyWith(
                           fontSize: 13,
                           color: Colors.blue.shade700,
                         ),
@@ -1079,7 +1079,8 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                     const SizedBox(width: 6),
                                     Text(
                                       'Audit Submitted',
-                                      style: AppFonts.bodyStyle(
+                                      style: AppTypography.title.copyWith(
+                                        fontSize: 14,
                                         fontWeight: FontWeight.w600,
                                         color: AppColors.success.withValues(
                                           alpha: 0.9,
@@ -1094,14 +1095,14 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                     children: [
                                       Text(
                                         'Overall Score: ',
-                                        style: AppFonts.bodyStyle(
+                                        style: AppTypography.bodySmall.copyWith(
                                           fontSize: 14,
                                           color: Colors.blue.shade700,
                                         ),
                                       ),
                                       Text(
                                         '${v.overallScore!.toStringAsFixed(1)}/100',
-                                        style: AppFonts.bodyStyle(
+                                        style: AppTypography.bodySmall.copyWith(
                                           fontSize: 14,
                                           fontWeight: FontWeight.bold,
                                           color: Colors.blue.shade900,
@@ -1116,7 +1117,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     ] else ...[
                       Text(
                         'No audit is currently assigned for this restaurant. You can view and manage your visits from the dashboard.',
-                        style: AppFonts.bodyStyle(
+                        style: AppTypography.bodySmall.copyWith(
                           fontSize: 13,
                           color: Colors.blue.shade700,
                         ),
@@ -1137,7 +1138,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                     child: Text(
                       'Active Offers 📢',
-                      style: AppFonts.bodyStyle(
+                      style: AppTypography.body.copyWith(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -1180,7 +1181,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                   children: [
                     Text(
                       'Facilities 🛠️',
-                      style: AppFonts.bodyStyle(
+                      style: AppTypography.body.copyWith(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary,
@@ -1208,7 +1209,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                               ],
                               Text(
                                 fac.name,
-                                style: AppFonts.bodyStyle(
+                                style: AppTypography.body.copyWith(
                                   fontSize: 13,
                                   color: AppColors.textPrimary,
                                   fontWeight: FontWeight.w500,
@@ -1248,7 +1249,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     children: [
                       Text(
                         'Ratings & reviews',
-                        style: AppFonts.bodyStyle(
+                        style: AppTypography.body.copyWith(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
@@ -1264,7 +1265,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                               const SizedBox(width: 4),
                               Text(
                                 'Write a review',
-                                style: AppFonts.bodyStyle(
+                                style: AppTypography.body.copyWith(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.primary,
@@ -1287,7 +1288,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         children: [
                           Text(
                             restaurant.rating.toStringAsFixed(1),
-                            style: AppFonts.bodyStyle(
+                            style: AppTypography.headline.copyWith(
                               fontSize: 32,
                               fontWeight: FontWeight.bold,
                               color: AppColors.textPrimary,
@@ -1319,7 +1320,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                   const SizedBox(height: 8),
                   Text(
                     '${restaurant.reviewCount} ratings | ${restaurant.reviewCount} reviews',
-                    style: AppFonts.bodyStyle(
+                    style: AppTypography.bodySmall.copyWith(
                       fontSize: 14,
                       color: AppColors.textSecondary,
                     ),
@@ -1332,7 +1333,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                       child: Center(
                         child: Text(
                           'No reviews yet',
-                          style: AppFonts.bodyStyle(
+                          style: AppTypography.bodySmall.copyWith(
                             fontSize: 14,
                             color: AppColors.textSecondary,
                           ),
@@ -1365,7 +1366,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                       const SizedBox(width: 8),
                       Text(
                         'Location',
-                        style: AppFonts.bodyStyle(
+                        style: AppTypography.body.copyWith(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary,
@@ -1376,7 +1377,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                   const SizedBox(height: 8),
                   Text(
                     restaurant.address,
-                    style: AppFonts.bodyStyle(
+                    style: AppTypography.bodySmall.copyWith(
                       fontSize: 14,
                       color: AppColors.textPrimary,
                     ),
@@ -1386,7 +1387,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     const SizedBox(height: 4),
                     Text(
                       restaurant.postcode!,
-                      style: AppFonts.bodyStyle(
+                      style: AppTypography.bodySmall.copyWith(
                         fontSize: 14,
                         color: AppColors.textPrimary,
                       ),
@@ -1417,7 +1418,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                               Expanded(
                                 child: Text(
                                   restaurant.phoneNumber,
-                                  style: AppFonts.bodyStyle(
+                                  style: AppTypography.bodySmall.copyWith(
                                     fontSize: 14,
                                     color: AppColors.textPrimary,
                                   ),
@@ -1447,7 +1448,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                               Expanded(
                                 child: Text(
                                   restaurant.email!,
-                                  style: AppFonts.bodyStyle(
+                                  style: AppTypography.bodySmall.copyWith(
                                     fontSize: 14,
                                     color: AppColors.textPrimary,
                                   ),
@@ -1476,7 +1477,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                               Expanded(
                                 child: Text(
                                   restaurant.website,
-                                  style: AppFonts.bodyStyle(
+                                  style: AppTypography.bodySmall.copyWith(
                                     fontSize: 14,
                                     color: AppColors.textPrimary,
                                   ),
@@ -1618,7 +1619,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                   height: 52,
                   child: Text(
                     'Book Table',
-                    style: AppFonts.bodyStyle(
+                    style: AppTypography.body.copyWith(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -1656,7 +1657,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                   height: 52,
                   child: Text(
                     'Redeem Offer',
-                    style: AppFonts.bodyStyle(
+                    style: AppTypography.body.copyWith(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -1740,7 +1741,7 @@ class _ReviewItem extends StatelessWidget {
                   // Name
                   Text(
                     review.userName,
-                    style: AppFonts.bodyStyle(
+                    style: AppTypography.bodySmall.copyWith(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
@@ -1771,7 +1772,7 @@ class _ReviewItem extends StatelessWidget {
                       const SizedBox(width: 8),
                       Text(
                         review.timeAgo,
-                        style: AppFonts.bodyStyle(
+                        style: AppTypography.bodySmall.copyWith(
                           fontSize: 12,
                           color: AppColors.textSecondary,
                         ),
@@ -1796,7 +1797,7 @@ class _ReviewItem extends StatelessWidget {
                             const SizedBox(width: 4),
                             Text(
                               'Verified',
-                              style: AppFonts.bodyStyle(
+                              style: AppTypography.bodySmall.copyWith(
                                 fontSize: 12,
                                 color: AppColors.textSecondary,
                               ),
@@ -1810,7 +1811,7 @@ class _ReviewItem extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       review.comment!,
-                      style: AppFonts.bodyStyle(
+                      style: AppTypography.bodySmall.copyWith(
                         fontSize: 14,
                         color: AppColors.textPrimary,
                       ),
@@ -1890,7 +1891,7 @@ class _OfferCard extends StatelessWidget {
                     const SizedBox(width: 5),
                     Text(
                       'DEAL',
-                      style: AppFonts.bodyStyle(
+                      style: AppTypography.title.copyWith(
                         fontSize: 10,
                         fontWeight: FontWeight.w900,
                         color: Colors.white,
@@ -1911,7 +1912,7 @@ class _OfferCard extends StatelessWidget {
           // Title
           Text(
             _getOfferTitle(),
-            style: AppFonts.bodyStyle(
+            style: AppTypography.body.copyWith(
               fontSize: 19,
               fontWeight: FontWeight.w800,
               color: AppColors.textDarkest,
@@ -1923,7 +1924,7 @@ class _OfferCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               discount.description,
-              style: AppFonts.bodyStyle(
+              style: AppTypography.bodySmall.copyWith(
                 fontSize: 14,
                 color: AppColors.textSecondary,
                 height: 1.5,
@@ -2027,7 +2028,7 @@ class MenuPopup extends StatelessWidget {
                 children: [
                   Text(
                     category.name,
-                    style: AppFonts.bodyStyle(
+                    style: AppTypography.body.copyWith(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
@@ -2037,7 +2038,7 @@ class MenuPopup extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       category.description,
-                      style: AppFonts.bodyStyle(
+                      style: AppTypography.bodySmall.copyWith(
                         fontSize: 14,
                         color: AppColors.textSecondary,
                       ),
@@ -2060,7 +2061,7 @@ class MenuPopup extends StatelessWidget {
     return Center(
       child: Text(
         'No menu available',
-        style: AppFonts.bodyStyle(
+        style: AppTypography.body.copyWith(
           fontSize: 14,
           color: AppColors.textSecondary,
         ),
@@ -2101,7 +2102,7 @@ class _MenuItemCard extends StatelessWidget {
                 ), // Space for symbol + price
                 child: Text(
                   item.name,
-                  style: AppFonts.bodyStyle(
+                  style: AppTypography.body.copyWith(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
@@ -2117,7 +2118,7 @@ class _MenuItemCard extends StatelessWidget {
                   ), // Space for symbol + price
                   child: Text(
                     item.description,
-                    style: AppFonts.bodyStyle(
+                    style: AppTypography.body.copyWith(
                       fontSize: 14,
                       color: AppColors.textSecondary,
                       height: 1.4,
@@ -2142,7 +2143,7 @@ class _MenuItemCard extends StatelessWidget {
                       ),
                       child: Text(
                         'VG',
-                        style: AppFonts.bodyStyle(
+                        style: AppTypography.body.copyWith(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
                           color: AppColors.success,
@@ -2162,7 +2163,7 @@ class _MenuItemCard extends StatelessWidget {
                       ),
                       child: Text(
                         'GF',
-                        style: AppFonts.bodyStyle(
+                        style: AppTypography.body.copyWith(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
                           color: Colors.blue,
@@ -2177,7 +2178,7 @@ class _MenuItemCard extends StatelessWidget {
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
                     'Currently unavailable',
-                    style: AppFonts.bodyStyle(
+                    style: AppTypography.body.copyWith(
                       fontSize: 12,
                       color: Colors.red,
                       fontStyle: FontStyle.italic,
@@ -2195,7 +2196,7 @@ class _MenuItemCard extends StatelessWidget {
               children: [
                 Text(
                   '£${item.price}',
-                  style: AppFonts.bodyStyle(
+                  style: AppTypography.body.copyWith(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
@@ -2276,7 +2277,7 @@ class _OpeningHoursSection extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               'Opening Hours',
-              style: AppFonts.bodyStyle(
+              style: AppTypography.body.copyWith(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
@@ -2316,7 +2317,7 @@ class _OpeningHoursSection extends StatelessWidget {
                   children: [
                     Text(
                       slot.dayName.substring(0, 3), // Mon, Tue, etc.
-                      style: AppFonts.bodyStyle(
+                      style: AppTypography.body.copyWith(
                         fontSize: 14,
                         fontWeight: isToday ? FontWeight.bold : FontWeight.w600,
                         color: isToday
@@ -2328,7 +2329,7 @@ class _OpeningHoursSection extends StatelessWidget {
                     if (slot.isClosed)
                       Text(
                         'Closed',
-                        style: AppFonts.bodyStyle(
+                        style: AppTypography.body.copyWith(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                           color: Colors.red.shade400,
@@ -2337,8 +2338,8 @@ class _OpeningHoursSection extends StatelessWidget {
                     else ...[
                       Text(
                         slot.openingTime,
-                        style: AppFonts.bodyStyle(
-                          fontSize: 13,
+                        style: AppTypography.bodySmall.copyWith(
+                          fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textPrimary,
                         ),
@@ -2346,8 +2347,8 @@ class _OpeningHoursSection extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         slot.closingTime,
-                        style: AppFonts.bodyStyle(
-                          fontSize: 11,
+                        style: AppTypography.bodySmall.copyWith(
+                          fontSize: 14,
                           fontWeight: FontWeight.w500,
                           color: AppColors.textSecondary,
                         ),
@@ -2413,7 +2414,7 @@ class _AddReviewDialogState extends State<_AddReviewDialog> {
     return AlertDialog(
       title: Text(
         'Write a Review',
-        style: AppFonts.bodyStyle(fontWeight: FontWeight.bold),
+        style: AppTypography.body.copyWith(fontWeight: FontWeight.bold),
       ),
       content: SingleChildScrollView(
         child: Column(
@@ -2444,7 +2445,7 @@ class _AddReviewDialogState extends State<_AddReviewDialog> {
             const SizedBox(height: 16),
             Text(
               'Your Comment',
-              style: AppFonts.bodyStyle(
+              style: AppTypography.bodySmall.copyWith(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -2454,7 +2455,7 @@ class _AddReviewDialogState extends State<_AddReviewDialog> {
               controller: _commentController,
               decoration: InputDecoration(
                 hintText: 'Share your experience...',
-                hintStyle: AppFonts.bodyStyle(color: Colors.grey),
+                hintStyle: AppTypography.bodySmall.copyWith(color: Colors.grey),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -2469,7 +2470,7 @@ class _AddReviewDialogState extends State<_AddReviewDialog> {
       actions: [
         TextButton(
           onPressed: _isSubmitting ? null : () => Navigator.pop(context),
-          child: Text('Cancel', style: AppFonts.bodyStyle(color: Colors.grey)),
+          child: Text('Cancel', style: AppTypography.bodySmall.copyWith(color: Colors.grey)),
         ),
         AppGradientButton(
           onPressed: _isSubmitting ? null : _handleSubmit,
@@ -2487,7 +2488,7 @@ class _AddReviewDialogState extends State<_AddReviewDialog> {
                 )
               : Text(
                   'Submit',
-                  style: AppFonts.bodyStyle(
+                  style: AppTypography.bodySmall.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),

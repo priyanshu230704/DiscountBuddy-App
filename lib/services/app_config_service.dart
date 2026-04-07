@@ -33,4 +33,16 @@ class AppConfigService {
       return null;
     }
   }
+  Future<List<Map<String, dynamic>>> getBanners() async {
+    try {
+      final response = await _apiService.get(
+        '/core/banners', // Or configure ApiEndpoints.banners
+      );
+      final results = response['results'] as List<dynamic>? ?? [];
+      return results.map((e) => e as Map<String, dynamic>).toList();
+    } catch (e) {
+      debugPrint('Error fetching banners: $e');
+      return [];
+    }
+  }
 }

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -10,6 +11,7 @@ import '../../models/restaurant.dart';
 import '../../services/restaurant_service.dart';
 import '../../services/location_service.dart';
 import '../../services/notification_service.dart';
+import '../../services/app_config_service.dart';
 import '../../providers/auth_provider.dart';
 import '../restaurant_details_page.dart';
 import '../notifications_page.dart';
@@ -32,6 +34,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   final LocationService _locationService = LocationService();
   final NotificationService _notificationService = NotificationService();
   final AuthProvider _authProvider = AuthProvider();
+  final AppConfigService _appConfigService = AppConfigService();
 
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
@@ -39,12 +42,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   List<Restaurant> _restaurants = [];
   List<Restaurant> _nearbyRestaurants = [];
   List<Restaurant> _filteredRestaurants = [];
+  List<Map<String, dynamic>> _banners = [];
 
   bool _isLoading = true;
   bool _isSearching = false;
 
   String _cityName = 'Detecting...';
   int _notificationCount = 0;
+  int _currentBannerIndex = 0;
   StreamSubscription<RemoteMessage>? _notificationSubscription;
 
   double? _userLatitude;
@@ -234,6 +239,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     setState(() => _isLoading = true);
 
     try {
+      try {
+        final bannersData = await _appConfigService.getBanners();
+        final visibleBanners = bannersData.where((b) => b['is_visible'] == true).toList();
+        visibleBanners.sort((a, b) => (a['priority'] as int? ?? 0).compareTo(b['priority'] as int? ?? 0));
+        _banners = visibleBanners;
+      } catch (e) {
+        debugPrint('Failed to load banners: $e');
+      }
+
       if (_authProvider.isCustomer) {
         final homeData = await _restaurantService.getHomeData(
           latitude: _userLatitude,
@@ -464,18 +478,29 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                     children: [
                       // Logo
                       Container(
-                        width: 60,
-                        height: 60,
-                        padding: const EdgeInsets.all(2),
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withValues(alpha: 0.1),
+                              blurRadius: 20,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.all(3),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(15),
+                          borderRadius: BorderRadius.circular(11),
                           child: Image.asset(
                             "assets/png/db_logo.png",
                             fit: BoxFit.cover,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 14),
                       // Title
                       Expanded(
                         child: Column(
@@ -656,16 +681,51 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   Widget _buildBanners() {
+    if (_banners.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+
     return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: SizedBox(
-          height: 100,
-          child: const _GradientBanner(
-            title: "Get the Best Restaurant Deals",
-            subtitle: "",
+      child: Column(
+        children: [
+          CarouselSlider(
+            items: _banners.map((banner) {
+              return _GradientBanner(
+                title: banner['title'] as String? ?? '',
+                subtitle: banner['body'] as String? ?? '',
+                imageUrl: banner['image'] as String?,
+              );
+            }).toList(),
+            options: CarouselOptions(
+              height: 100,
+              viewportFraction: 1.0,
+              autoPlay: _banners.length > 1,
+              autoPlayInterval: const Duration(seconds: 5),
+              onPageChanged: (index, reason) {
+                setState(() => _currentBannerIndex = index);
+              },
+            ),
           ),
-        ),
+          if (_banners.length > 1)
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: _banners.asMap().entries.map((entry) {
+                  return Container(
+                    width: 8.0,
+                    height: 8.0,
+                    margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.primary.withValues(
+                        alpha: _currentBannerIndex == entry.key ? 0.9 : 0.2,
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          const SizedBox(height: 8),
+        ],
       ),
     );
   }
@@ -750,13 +810,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
 
     if (list.isEmpty) {
-      return const SliverToBoxAdapter(
+      return SliverToBoxAdapter(
         child: Padding(
           padding: EdgeInsets.only(top: 40),
           child: Center(
             child: Text(
               "No restaurants found 😅",
-              style: TextStyle(color: AppColors.textSecondary),
+              style: AppTypography.body.copyWith(color: AppColors.textSecondary),
             ),
           ),
         ),
@@ -903,11 +963,44 @@ class _FilterChipX extends StatelessWidget {
 class _GradientBanner extends StatelessWidget {
   final String title;
   final String subtitle;
+  final String? imageUrl;
 
-  const _GradientBanner({required this.title, required this.subtitle});
+  const _GradientBanner({
+    required this.title, 
+    required this.subtitle,
+    this.imageUrl,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (imageUrl != null && imageUrl!.isNotEmpty) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(28),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.3),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.hardEdge,
+        child: CachedNetworkImage(
+          imageUrl: imageUrl!,
+          fit: BoxFit.cover,
+          width: double.infinity,
+          height: double.infinity,
+          errorWidget: (context, url, error) => _buildTextBanner(context),
+        ),
+      );
+    }
+
+    return _buildTextBanner(context);
+  }
+
+  Widget _buildTextBanner(BuildContext context) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
@@ -963,7 +1056,7 @@ class _GradientBanner extends StatelessWidget {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        "Savor the Savings, Every Day",
+                        subtitle.isNotEmpty ? subtitle : "Savor the Savings, Every Day",
                         style: AppTypography.body.copyWith(
                           fontSize: 11,
                           fontWeight: FontWeight.w700,
@@ -1223,7 +1316,7 @@ class _FeedTile extends StatelessWidget {
                         children: [
                           Text(
                             deals.first.displayText.toUpperCase(),
-                            style: const TextStyle(
+                            style: AppTypography.title.copyWith(
                               fontSize: 19,
                               fontWeight: FontWeight.w900,
                               color: Colors.white,
@@ -1232,9 +1325,9 @@ class _FeedTile extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 3),
-                          const Text(
+                          Text(
                             "Limited Time",
-                            style: TextStyle(
+                            style: AppTypography.bodySmall.copyWith(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                               color: Colors.white,
@@ -1275,7 +1368,7 @@ class _FeedTile extends StatelessWidget {
                           const SizedBox(width: 3),
                           Text(
                             _occupancyLabel(restaurant.occupancy),
-                            style: TextStyle(
+                            style: AppTypography.caption.copyWith(
                               fontSize: 9,
                               fontWeight: FontWeight.w700,
                               color: _occupancyColor(restaurant.occupancy),
@@ -1301,10 +1394,9 @@ class _FeedTile extends StatelessWidget {
                         // Name row
                         Text(
                           restaurant.name,
-                          style: const TextStyle(
+                          style: AppTypography.title.copyWith(
                             fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: Color(0xFF111827),
+                            fontWeight: FontWeight.w700,
                             letterSpacing: -0.3,
                           ),
                           maxLines: 1,
@@ -1321,21 +1413,21 @@ class _FeedTile extends StatelessWidget {
                               const SizedBox(width: 2),
                               Text(
                                 restaurant.rating.toStringAsFixed(1),
-                                style: const TextStyle(
+                                style: AppTypography.bodySmall.copyWith(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFF374151),
+                                  color: const Color(0xFF374151),
                                 ),
                               ),
                               Text(
                                 ' (${restaurant.reviewCount})',
-                                style: const TextStyle(
+                                style: AppTypography.caption.copyWith(
                                     fontSize: 10, color: Color(0xFF9CA3AF)),
                               ),
                             ] else
-                              const Text(
+                              Text(
                                 'New',
-                                style: TextStyle(
+                                style: AppTypography.bodySmall.copyWith(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
                                   color: Color(0xFF8B5CF6),
@@ -1345,9 +1437,9 @@ class _FeedTile extends StatelessWidget {
                             // Cuisine directly after rating/reviews
                             if (restaurant.cuisine.isNotEmpty &&
                                 restaurant.cuisine != 'Restaurant') ...[
-                              const Text(
+                              Text(
                                 " • ",
-                                style: TextStyle(
+                                style: AppTypography.caption.copyWith(
                                   fontSize: 10,
                                   color: Color(0xFF9CA3AF),
                                   fontWeight: FontWeight.bold,
@@ -1358,9 +1450,9 @@ class _FeedTile extends StatelessWidget {
                               const SizedBox(width: 3),
                               Text(
                                 restaurant.cuisine,
-                                style: const TextStyle(
+                                style: AppTypography.bodySmall.copyWith(
                                   fontSize: 11,
-                                  color: Color(0xFF4B5563),
+                                  color: const Color(0xFF4B5563),
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -1373,9 +1465,9 @@ class _FeedTile extends StatelessWidget {
                           const SizedBox(height: 5),
                           Text(
                             restaurant.description,
-                            style: const TextStyle(
+                            style: AppTypography.bodySmall.copyWith(
                               fontSize: 12,
-                              color: Color(0xFF6B7280),
+                              color: const Color(0xFF6B7280),
                               height: 1.3,
                             ),
                             maxLines: 1,
@@ -1399,10 +1491,9 @@ class _FeedTile extends StatelessWidget {
                           const SizedBox(width: 4),
                           Text(
                             '${miles?.toStringAsFixed(1) ?? '—'} mi',
-                            style: const TextStyle(
-                              fontSize: 12,
+                            style: AppTypography.bodySmall.copyWith(
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF4B5563),
+                              color: const Color(0xFF4B5563),
                             ),
                           ),
                         ],
@@ -1424,19 +1515,18 @@ class _FeedTile extends StatelessWidget {
                         height: 36,
                         width: 92,
                         borderRadius: BorderRadius.circular(12),
-                        child: const Row(
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.calendar_today_rounded,
+                            const Icon(Icons.calendar_today_rounded,
                                 color: Colors.white, size: 13),
-                            SizedBox(width: 6),
+                            const SizedBox(width: 6),
                             Text(
                               'Reserve',
-                              style: TextStyle(
+                              style: AppTypography.button.copyWith(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
-                                letterSpacing: 0.2,
                               ),
                             ),
                           ],
@@ -1539,7 +1629,7 @@ class _DealCarouselState extends State<_DealCarousel> {
       ),
       child: Text(
         deal.displayText,
-        style: const TextStyle(
+        style: AppTypography.caption.copyWith(
           fontSize: 10,
           fontWeight: FontWeight.w800,
           color: Colors.white,

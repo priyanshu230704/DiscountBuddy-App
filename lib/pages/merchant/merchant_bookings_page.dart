@@ -312,7 +312,7 @@ class _BookingCard extends StatelessWidget {
               const SizedBox(height: 12),
               _DetailRow(label: 'Status', value: status.toUpperCase()),
               const SizedBox(height: 12),
-              const Text('Special Requests:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              const Text('Special Requests:', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
               const SizedBox(height: 4),
               Text(
                 specialRequests,
@@ -379,7 +379,7 @@ class _BookingCard extends StatelessWidget {
                         initial,
                         style: AppTypography.title.copyWith(
                           color: AppColors.merchantBlue,
-                          fontSize: 18,
+                          fontSize: 16,
                         ),
                       ),
                     ),
@@ -390,7 +390,7 @@ class _BookingCard extends StatelessWidget {
                         children: [
                           Text(
                             customer,
-                            style: AppTypography.title.copyWith(fontSize: 17),
+                            style: AppTypography.title.copyWith(fontSize: 16),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -584,20 +584,20 @@ class _StatusBadge extends StatelessWidget {
 
     switch (status.toLowerCase()) {
       case 'confirmed':
-        color = const Color(0xFF2E7D32);
-        bg = const Color(0xFFE8F5E9);
+        color = AppColors.success;
+        bg = AppColors.success.withValues(alpha: 0.1);
         icon = Icons.check_circle_rounded;
         label = 'Confirmed';
         break;
       case 'cancelled':
-        color = const Color(0xFFC62828);
-        bg = const Color(0xFFFFEBEE);
+        color = AppColors.error;
+        bg = AppColors.error.withValues(alpha: 0.1);
         icon = Icons.cancel_rounded;
         label = 'Declined';
         break;
       default:
-        color = const Color(0xFFED8936);
-        bg = const Color(0xFFFEEBC8);
+        color = AppColors.discount;
+        bg = AppColors.discount.withValues(alpha: 0.1);
         icon = Icons.hourglass_top_rounded;
         label = 'Pending';
     }
@@ -618,11 +618,11 @@ class _StatusBadge extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             label,
-            style: AppTypography.caption.copyWith(
-              color: color,
-              fontWeight: FontWeight.w700,
-              fontSize: 11,
-            ),
+              style: AppTypography.caption.copyWith(
+                color: color,
+                fontWeight: FontWeight.w700,
+                fontSize: 10,
+              ),
           ),
         ],
       ),
@@ -642,7 +642,7 @@ class _DetailRow extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTypography.caption.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
+        Text(label, style: AppTypography.caption.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w700)),
         const SizedBox(height: 2),
         Text(
           value,

@@ -5,7 +5,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'register_page.dart';
 import '../../providers/auth_provider.dart';
 import '../../theme/app_colors.dart';
-import '../../theme/app_fonts.dart';
+import 'package:discount_buddy/design/app_typography.dart';
 import '../../widgets/auth/auth_theme.dart';
 
 /// Login Screen - DiscountBuddy Redesign
@@ -361,11 +361,11 @@ class _LoginPageState extends State<LoginPage> {
                                     Text(
                                       'Welcome back',
                                       textAlign: TextAlign.center,
-                                      style: AppFonts.titleStyle(
-                                        color:  Color(0xFF1B1436),
-                                        fontSize: (isKeyboardOpen ? 24 : 32) * scale,
+                                      style: AppTypography.title.copyWith(
+                                        fontSize: 36,
                                         fontWeight: FontWeight.w800,
-                                        letterSpacing: -0.6,
+                                        color: AppColors.textPrimary,
+                                        letterSpacing: -1.0,
                                       ),
                                     ),
                                     
@@ -374,7 +374,7 @@ class _LoginPageState extends State<LoginPage> {
                                       Text(
                                         'Ready for amazing deals? 🍜\nLog in and start exploring now.',
                                         textAlign: TextAlign.center,
-                                        style: AppFonts.bodyStyle(
+                                        style: AppTypography.body.copyWith(
                                           color: AppColors.textSecondary.withValues(alpha: 0.9),
                                           fontSize: 16 * scale,
                                           height: 1.3,
@@ -457,10 +457,10 @@ class _LoginPageState extends State<LoginPage> {
                                               ),
                                               child: Text(
                                                 'Forgot password?',
-                                                style: AppFonts.bodyStyle(
-                                                  color: AppColors.primary,
-                                                  fontWeight: FontWeight.w700,
-                                                  fontSize: 13 * scale,
+                                                style: AppTypography.bodySmall.copyWith(
+                                                  fontSize: 14,
+                                                  color: AppColors.textSecondary,
+                                                  fontWeight: FontWeight.w600,
                                                 ),
                                               ),
                                             ),
@@ -505,10 +505,10 @@ class _LoginPageState extends State<LoginPage> {
                                                     )
                                                   : Text(
                                                       'Log In',
-                                                      style: AppFonts.titleStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 18 * scale,
-                                                        fontWeight: FontWeight.w700,
+                                                      style: AppTypography.title.copyWith(
+                                                        fontSize: 18,
+                                                        color: AppColors.white,
+                                                        fontWeight: FontWeight.w800,
                                                       ),
                                                     ),
                                             ),
@@ -521,11 +521,11 @@ class _LoginPageState extends State<LoginPage> {
                                                 padding: const EdgeInsets.symmetric(horizontal: 16),
                                                 child: Text(
                                                   'OR',
-                                                    style: AppFonts.bodyStyle(
-                                                      color: AppColors.textDisabled,
-                                                      fontWeight: FontWeight.w700,
-                                                      fontSize: 12 * scale,
-                                                    ),
+                                                     style: AppTypography.bodySmall.copyWith(
+                                                       color: AppColors.textDisabled,
+                                                       fontWeight: FontWeight.w700,
+                                                       fontSize: 12 * scale,
+                                                     ),
                                                 ),
                                               ),
                                               Expanded(child: Divider(color: AppColors.textDisabled.withValues(alpha: 0.3))),
@@ -565,11 +565,11 @@ class _LoginPageState extends State<LoginPage> {
                                             children: [
                                               Text(
                                                 'New here?',
-                                                style: AppFonts.bodyStyle(
-                                                  color: AppColors.textSecondary.withValues(alpha: 0.8),
-                                                  fontSize: 14 * scale,
-                                                  fontWeight: FontWeight.w500,
-                                                ),
+                                                 style: AppTypography.bodySmall.copyWith(
+                                                   color: AppColors.textSecondary.withValues(alpha: 0.8),
+                                                   fontSize: 14 * scale,
+                                                   fontWeight: FontWeight.w500,
+                                                 ),
                                               ),
                                               TextButton(
                                                 onPressed: () {
@@ -585,10 +585,9 @@ class _LoginPageState extends State<LoginPage> {
                                                 ),
                                                 child: Text(
                                                   'Create account',
-                                                  style: AppFonts.bodyStyle(
-                                                    color: AppColors.primary,
-                                                    fontWeight: FontWeight.w800,
-                                                    fontSize: 14 * scale,
+                                                  style: AppTypography.bodySmall.copyWith(
+                                                    color: AppColors.primaryPurple,
+                                                    fontWeight: FontWeight.w700,
                                                   ),
                                                 ),
                                               ),
@@ -621,10 +620,10 @@ class _LoginPageState extends State<LoginPage> {
                           },
                           child: Text(
                             'Skip',
-                            style: AppFonts.bodyStyle(
-                              color: AppColors.primary,
+                            style: AppTypography.bodySmall.copyWith(
+                              color: AppColors.textDisabled,
                               fontWeight: FontWeight.w700,
-                              fontSize: 16 * scale,
+                              fontSize: 12,
                             ),
                           ),
                         ),
@@ -702,11 +701,11 @@ class _LoginPageState extends State<LoginPage> {
             SizedBox(width: 12 * scale),
             Text(
               label,
-              style: AppFonts.bodyStyle(
-                color: AppColors.textPrimary,
-                fontSize: 16 * scale,
-                fontWeight: FontWeight.w600,
-              ),
+               style: AppTypography.body.copyWith(
+                 color: AppColors.textPrimary,
+                 fontSize: 16 * scale,
+                 fontWeight: FontWeight.w600,
+               ),
             ),
           ],
         ),
@@ -731,17 +730,17 @@ class _LoginPageState extends State<LoginPage> {
       focusNode: focusNode,
       keyboardType: keyboardType,
       obscureText: obscureText,
-      style: AppFonts.bodyStyle(
+      style: AppTypography.body.copyWith(
         color: AppColors.textPrimary,
-        fontSize: 16 * scale,
+        fontSize: 15,
         fontWeight: FontWeight.w600,
       ),
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: AppFonts.bodyStyle(
+        hintStyle: AppTypography.bodySmall.copyWith(
           color: AppColors.textDisabled,
-          fontSize: 16 * scale,
-          fontWeight: FontWeight.w500,
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
         ),
         filled: true,
         fillColor: AppColors.background,

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../design/app_colors.dart';
 import '../../design/app_radius.dart';
-import '../../theme/app_fonts.dart';
+import 'package:discount_buddy/design/app_typography.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/auth/auth_theme.dart';
 import '../../widgets/auth/auth_text_field.dart';
@@ -436,7 +436,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                       ? 'Verify your account'
                                       : 'Set a password',
                               textAlign: TextAlign.center,
-                              style: AppFonts.titleStyle(
+                              style: AppTypography.title.copyWith(
                                 fontSize: 34,
                                 fontWeight: FontWeight.w800,
                                 color: AppColors.textPrimary,
@@ -451,7 +451,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                       ? 'Enter the OTP sent to your email.'
                                       : 'Create a secure password to finish.',
                               textAlign: TextAlign.center,
-                              style: AppFonts.bodyStyle(
+                              style: AppTypography.bodySmall.copyWith(
                                 fontSize: 14,
                                 color: AppColors.textSecondary,
                                 fontWeight: FontWeight.w600,
@@ -508,7 +508,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                     const SizedBox(height: 18),
                                     Text(
                                       'Choose account type',
-                                      style: AppFonts.bodyStyle(
+                                      style: AppTypography.bodySmall.copyWith(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w700,
                                         color: AppColors.textPrimary,
@@ -594,14 +594,12 @@ class _RegisterPageState extends State<RegisterPage> {
                                           Expanded(
                                             child: Text(
                                               'I agree to the Terms of Service and Privacy Policy',
-                                              style:
-                                                  AppFonts.bodyStyle(
-                                                    fontSize: 13,
-                                                    fontWeight: FontWeight.w600,
-                                                    color:
-                                                        AppColors.textSecondary,
-                                                    height: 1.3,
-                                                  ),
+                                              style: AppTypography.bodySmall.copyWith(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w600,
+                                                color: AppColors.textSecondary,
+                                                height: 1.3,
+                                              ),
                                             ),
                                           ),
                                         ],
@@ -617,7 +615,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                       ),
                                       child: Text(
                                         'Code sent to ${_emailController.text}',
-                                        style: AppFonts.bodyStyle(
+                                        style: AppTypography.bodySmall.copyWith(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w700,
                                           color: AppColors.primaryPurple,
@@ -760,13 +758,11 @@ class _RegisterPageState extends State<RegisterPage> {
                                                     : _currentStep == 1
                                                         ? 'Verify Code'
                                                         : 'Complete Registration',
-                                                style:
-                                                    AppFonts.bodyStyle(
-                                                      color: Colors.white,
-                                                      fontSize: 16,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
+                                                style: AppTypography.bodySmall.copyWith(
+                                                  color: Colors.white,
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
                                               ),
                                       ),
                                     ),
@@ -788,7 +784,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                           ),
                                           child: Text(
                                             'OR',
-                                            style: AppFonts.bodyStyle(
+                                            style: AppTypography.bodySmall.copyWith(
                                               color: AppColors.textDisabled,
                                               fontWeight: FontWeight.w700,
                                               fontSize: 12,
@@ -834,7 +830,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                     children: [
                                       Text(
                                         'Already have an account?',
-                                        style: AppFonts.bodyStyle(
+                                        style: AppTypography.bodySmall.copyWith(
                                           color: AppColors.textSecondary,
                                           fontSize: 14,
                                           fontWeight: FontWeight.w500,
@@ -889,9 +885,9 @@ class _RegisterPageState extends State<RegisterPage> {
                                         },
                                         child: Text(
                                           'Log in',
-                                          style: AppFonts.bodyStyle(
+                                          style: AppTypography.bodySmall.copyWith(
                                             color: AppColors.primaryPurple,
-                                            fontWeight: FontWeight.w800,
+                                            fontWeight: FontWeight.w700,
                                             fontSize: 14,
                                           ),
                                         ),
@@ -974,7 +970,7 @@ class _RegisterPageState extends State<RegisterPage> {
             const SizedBox(width: 12),
             Text(
               label,
-              style: AppFonts.bodyStyle(
+              style: AppTypography.bodySmall.copyWith(
                 color: AppColors.textPrimary,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -1021,7 +1017,7 @@ class _RegisterPageState extends State<RegisterPage> {
             const SizedBox(height: 8),
             Text(
               label,
-              style: AppFonts.bodyStyle(
+              style: AppTypography.bodySmall.copyWith(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
                 color: isSelected

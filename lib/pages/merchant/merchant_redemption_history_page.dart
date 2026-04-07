@@ -212,7 +212,7 @@ class _MerchantRedemptionHistoryPageState extends State<MerchantRedemptionHistor
                   children: [
                     Text(
                       deal['name'] ?? 'Mystery Deal',
-                      style: AppTypography.title.copyWith(fontSize: 18),
+                      style: AppTypography.title.copyWith(fontSize: 18, fontWeight: FontWeight.w700),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -232,6 +232,7 @@ class _MerchantRedemptionHistoryPageState extends State<MerchantRedemptionHistor
                     style: AppTypography.title.copyWith(
                       color: AppColors.primary,
                       fontSize: 18,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   Text(

@@ -1,5 +1,5 @@
 import 'package:discount_buddy/theme/app_colors.dart';
-import 'package:discount_buddy/theme/app_fonts.dart';
+import 'package:discount_buddy/design/app_typography.dart';
 import 'package:flutter/material.dart';
 import 'generic_bottom_sheet.dart';
 import '../services/restaurant_service.dart';
@@ -121,9 +121,8 @@ class _FilterModalState extends State<FilterModal> {
           onPressed: _resetFilters,
           child: Text(
             'Reset',
-            style: AppFonts.bodyStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
+            style: AppTypography.bodySmall.copyWith(
+              fontWeight: FontWeight.w700,
               color: AppColors.textSecondary,
             ),
           ),
@@ -163,9 +162,10 @@ class _FilterModalState extends State<FilterModal> {
                   ),
                   child: Text(
                     'Apply',
-                    style: AppFonts.bodyStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                    style: AppTypography.title.copyWith(
+                      color: AppColors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
@@ -192,9 +192,9 @@ class _FilterModalState extends State<FilterModal> {
                   children: [
                     Text(
                       'Day',
-                      style: AppFonts.bodyStyle(
+                      style: AppTypography.title.copyWith(
                         fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary,
                       ),
                     ),
@@ -221,12 +221,11 @@ class _FilterModalState extends State<FilterModal> {
                               selectedColor: AppColors.primaryPurple,
                               backgroundColor: AppColors.textDisabled
                                   .withValues(alpha: 0.2),
-                              labelStyle: AppFonts.bodyStyle(
+                              labelStyle: AppTypography.bodySmall.copyWith(
                                 color: isSelected
                                     ? Colors.white
                                     : AppColors.textSecondary,
                                 fontWeight: FontWeight.w600,
-                                fontSize: 14,
                               ),
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 16,
@@ -252,9 +251,9 @@ class _FilterModalState extends State<FilterModal> {
                   children: [
                     Text(
                       'Time',
-                      style: AppFonts.bodyStyle(
+                      style: AppTypography.title.copyWith(
                         fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary,
                       ),
                     ),
@@ -281,12 +280,11 @@ class _FilterModalState extends State<FilterModal> {
                               selectedColor: AppColors.primaryPurple,
                               backgroundColor: AppColors.textDisabled
                                   .withValues(alpha: 0.2),
-                              labelStyle: AppFonts.bodyStyle(
+                              labelStyle: AppTypography.bodySmall.copyWith(
                                 color: isSelected
                                     ? Colors.white
                                     : AppColors.textSecondary,
                                 fontWeight: FontWeight.w600,
-                                fontSize: 14,
                               ),
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 16,
@@ -312,9 +310,9 @@ class _FilterModalState extends State<FilterModal> {
                   children: [
                     Text(
                       'Cuisine',
-                      style: AppFonts.bodyStyle(
+                      style: AppTypography.title.copyWith(
                         fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary,
                       ),
                     ),
@@ -340,12 +338,11 @@ class _FilterModalState extends State<FilterModal> {
                             backgroundColor: AppColors.textDisabled.withValues(
                               alpha: 0.2,
                             ),
-                            labelStyle: AppFonts.bodyStyle(
+                            labelStyle: AppTypography.bodySmall.copyWith(
                               color: _selectedCuisineId == null
                                   ? Colors.white
                                   : AppColors.textPrimary,
                               fontWeight: FontWeight.w600,
-                              fontSize: 14,
                             ),
                             padding: const EdgeInsets.symmetric(
                               horizontal: 12,
@@ -373,12 +370,11 @@ class _FilterModalState extends State<FilterModal> {
                               selectedColor: AppColors.primaryPurple,
                               backgroundColor: AppColors.textDisabled
                                   .withValues(alpha: 0.2),
-                              labelStyle: AppFonts.bodyStyle(
+                              labelStyle: AppTypography.bodySmall.copyWith(
                                 color: isSelected
                                     ? Colors.white
                                     : AppColors.textPrimary,
                                 fontWeight: FontWeight.w600,
-                                fontSize: 14,
                               ),
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 12,

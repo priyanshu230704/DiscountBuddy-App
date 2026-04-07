@@ -102,7 +102,7 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
               padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.sm, AppSpacing.xl, AppSpacing.sm),
               child: Text(
                 '${_reviews.length} Review${_reviews.length == 1 ? '' : 's'}',
-                style: AppTypography.title.copyWith(fontSize: 18),
+                style: AppTypography.title.copyWith(fontSize: 18, fontWeight: FontWeight.w700),
               ),
             ),
           Expanded(
@@ -290,14 +290,17 @@ class _ReviewCard extends StatelessWidget {
                   children: [
                     Text(
                       user,
-                      style: AppTypography.title.copyWith(fontSize: 16),
+                      style: AppTypography.title.copyWith(fontSize: 16, fontWeight: FontWeight.w700),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
                     Text(
                       restaurant,
-                      style: AppTypography.subtitle,
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.textSecondary,
+                        fontWeight: FontWeight.w600,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -313,7 +316,7 @@ class _ReviewCard extends StatelessWidget {
                   Text(
                     rating.toString(),
                     style: AppTypography.body.copyWith(
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w700,
                       color: AppColors.textPrimary,
                     ),
                   ),
@@ -332,9 +335,10 @@ class _ReviewCard extends StatelessWidget {
               ),
               child: Text(
                 comment,
-                style: AppTypography.body.copyWith(
+                style: AppTypography.bodySmall.copyWith(
                   color: AppColors.textPrimary,
-                  height: 1.4,
+                  height: 1.5,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),

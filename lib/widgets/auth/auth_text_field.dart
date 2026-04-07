@@ -1,4 +1,4 @@
-import 'package:discount_buddy/theme/app_fonts.dart';
+import 'package:discount_buddy/design/app_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'auth_theme.dart';
@@ -101,7 +101,7 @@ class AuthTextField extends StatelessWidget {
             width: AuthTheme.inputBorderWidth,
           ),
         ),
-        errorStyle: AppFonts.bodyStyle(color: Colors.red, fontSize: 12),
+        errorStyle: AppTypography.caption.copyWith(color: Colors.red, fontWeight: FontWeight.w500),
         suffixIcon: showToggle && onToggleVisibility != null
             ? IconButton(
                 icon: Icon(

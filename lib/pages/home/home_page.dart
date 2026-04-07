@@ -241,8 +241,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     try {
       try {
         final bannersData = await _appConfigService.getBanners();
-        final visibleBanners = bannersData.where((b) => b['is_visible'] == true).toList();
-        visibleBanners.sort((a, b) => (a['priority'] as int? ?? 0).compareTo(b['priority'] as int? ?? 0));
+        final visibleBanners = bannersData
+            .where((b) => b['is_visible'] == true)
+            .toList();
+        visibleBanners.sort(
+          (a, b) => (a['priority'] as int? ?? 0).compareTo(
+            b['priority'] as int? ?? 0,
+          ),
+        );
         _banners = visibleBanners;
       } catch (e) {
         debugPrint('Failed to load banners: $e');
@@ -255,10 +261,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         );
 
         // Normalize maps from new structure
-        final Map<String, dynamic> restaurantsData = homeData['restaurants'] as Map<String, dynamic>? ?? {};
-        final Map<String, dynamic> dealsData = homeData['deals'] as Map<String, dynamic>? ?? {};
-        final Map<String, dynamic> cuisinesData = homeData['cuisines'] as Map<String, dynamic>? ?? {};
-        final Map<String, dynamic> sections = homeData['sections'] as Map<String, dynamic>? ?? {};
+        final Map<String, dynamic> restaurantsData =
+            homeData['restaurants'] as Map<String, dynamic>? ?? {};
+        final Map<String, dynamic> dealsData =
+            homeData['deals'] as Map<String, dynamic>? ?? {};
+        final Map<String, dynamic> cuisinesData =
+            homeData['cuisines'] as Map<String, dynamic>? ?? {};
+        final Map<String, dynamic> sections =
+            homeData['sections'] as Map<String, dynamic>? ?? {};
 
         final Map<int, String> cuisineMap = {};
         cuisinesData.forEach((key, value) {
@@ -274,15 +284,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         // Helper to convert normalized restaurant to model
         Restaurant parseRestaurant(int id) {
           final json = restaurantsData[id.toString()] as Map<String, dynamic>?;
-          if (json == null) return _restaurantService.convertApiRestaurantToModel({'id': id});
+          if (json == null)
+            return _restaurantService.convertApiRestaurantToModel({'id': id});
 
-          final List<dynamic> cuisineIds = json['cuisines'] as List<dynamic>? ?? [];
+          final List<dynamic> cuisineIds =
+              json['cuisines'] as List<dynamic>? ?? [];
           final List<dynamic> dealIds = json['deals'] as List<dynamic>? ?? [];
 
           // Resolve first cuisine name
           String resolvedCuisine = 'Restaurant';
           if (cuisineIds.isNotEmpty) {
-            resolvedCuisine = cuisineMap[cuisineIds.first as int] ?? 'Restaurant';
+            resolvedCuisine =
+                cuisineMap[cuisineIds.first as int] ?? 'Restaurant';
           }
 
           // Resolve deals
@@ -295,9 +308,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           }
 
           // Merge into a format that convertApiRestaurantToModel understands
-          final Map<String, dynamic> mergedJson = Map<String, dynamic>.from(json);
+          final Map<String, dynamic> mergedJson = Map<String, dynamic>.from(
+            json,
+          );
           mergedJson['active_deals'] = inflatedDeals;
-          
+
           return _restaurantService.convertApiRestaurantToModel(
             mergedJson,
             cuisineMap: {id: resolvedCuisine},
@@ -305,11 +320,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         }
 
         // Parse sections
-        final List<int> allIds = List<int>.from(sections['all_restaurants'] ?? sections['top_10'] ?? []);
+        final List<int> allIds = List<int>.from(
+          sections['all_restaurants'] ?? sections['top_10'] ?? [],
+        );
         final List<int> nearbyIds = List<int>.from(sections['nearby'] ?? []);
 
         final allRestaurants = allIds.map((id) => parseRestaurant(id)).toList();
-        final nearbyRestaurants = nearbyIds.map((id) => parseRestaurant(id)).toList();
+        final nearbyRestaurants = nearbyIds
+            .map((id) => parseRestaurant(id))
+            .toList();
 
         // Sort by leaderboard score (highest first)
         allRestaurants.sort(
@@ -457,11 +476,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       floating: false,
       snap: false,
       elevation: 0,
-      backgroundColor: const Color(0xFFF3E8FF), // Opaque to hide content scrolling underneath
+      backgroundColor: const Color(
+        0xFFF3E8FF,
+      ), // Opaque to hide content scrolling underneath
       automaticallyImplyLeading: false,
       toolbarHeight: 60,
-      collapsedHeight: _isSearching ? 112 + topPadding : 30 + topPadding,
-      expandedHeight: _isSearching ? 112 + topPadding : 30 + topPadding,
+      collapsedHeight: _isSearching ? 112 + topPadding : 56 + topPadding,
+      expandedHeight: _isSearching ? 112 + topPadding : 56 + topPadding,
       stretch: false,
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
@@ -469,7 +490,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           child: SafeArea(
             bottom: false,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 2, 12, 0),
+              padding: const EdgeInsets.fromLTRB(16, 16, 12, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -681,7 +702,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   Widget _buildBanners() {
-    if (_banners.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+    if (_banners.isEmpty) {
+      return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
 
     return SliverToBoxAdapter(
       child: Column(
@@ -736,8 +759,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final double maxWidth = constraints.maxWidth.isFinite 
-                ? constraints.maxWidth 
+            final double maxWidth = constraints.maxWidth.isFinite
+                ? constraints.maxWidth
                 : MediaQuery.of(context).size.width - 32;
             const gap = 10.0;
             final chipWidth = (maxWidth - (gap * 2)) / 3;
@@ -816,7 +839,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           child: Center(
             child: Text(
               "No restaurants found 😅",
-              style: AppTypography.body.copyWith(color: AppColors.textSecondary),
+              style: AppTypography.body.copyWith(
+                color: AppColors.textSecondary,
+              ),
             ),
           ),
         ),
@@ -923,9 +948,7 @@ class _FilterChipX extends StatelessWidget {
             borderRadius: BorderRadius.circular(20),
             gradient: active ? AppColors.purpleGradient : null,
             color: active ? null : AppColors.surface,
-            border: active
-                ? null
-                : Border.all(color: AppColors.cardBorder),
+            border: active ? null : Border.all(color: AppColors.cardBorder),
             boxShadow: [
               if (active)
                 BoxShadow(
@@ -966,7 +989,7 @@ class _GradientBanner extends StatelessWidget {
   final String? imageUrl;
 
   const _GradientBanner({
-    required this.title, 
+    required this.title,
     required this.subtitle,
     this.imageUrl,
   });
@@ -976,16 +999,7 @@ class _GradientBanner extends StatelessWidget {
     if (imageUrl != null && imageUrl!.isNotEmpty) {
       return Container(
         margin: const EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.3),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(28)),
         clipBehavior: Clip.hardEdge,
         child: CachedNetworkImage(
           imageUrl: imageUrl!,
@@ -1006,13 +1020,6 @@ class _GradientBanner extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
         gradient: AppColors.purpleGradient,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
       ),
       clipBehavior: Clip.hardEdge,
       child: Stack(
@@ -1033,42 +1040,46 @@ class _GradientBanner extends StatelessWidget {
 
           // Content
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.fromLTRB(14, 18, 16, 8),
             child: Row(
               children: [
                 Expanded(
-                  flex: 60,
+                  flex: 72,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Text(
                         title,
                         style: AppTypography.title.copyWith(
-                          fontSize: 16,
+                          fontSize: 15,
                           height: 1.1,
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
                           letterSpacing: -0.4,
                         ),
-                        maxLines: 2,
+                        maxLines: 3,
                         overflow: TextOverflow.visible,
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
                       Text(
-                        subtitle.isNotEmpty ? subtitle : "Savor the Savings, Every Day",
+                        subtitle.isNotEmpty
+                            ? subtitle
+                            : "Savor the Savings, Every Day",
                         style: AppTypography.body.copyWith(
-                          fontSize: 11,
+                          fontSize: 10,
                           fontWeight: FontWeight.w700,
                           fontStyle: FontStyle.italic,
                           color: Colors.white,
                           letterSpacing: 0.1,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
-                const Expanded(flex: 40, child: SizedBox()),
+                const Expanded(flex: 28, child: SizedBox()),
               ],
             ),
           ),
@@ -1191,7 +1202,9 @@ class _FeedTile extends StatelessWidget {
     );
     final hasImage = restaurant.imageUrl.isNotEmpty;
     final hasOccupancy = restaurant.occupancy != null;
-    final deals = restaurant.activeDeals.where((d) => d.type != 'none').toList();
+    final deals = restaurant.activeDeals
+        .where((d) => d.type != 'none')
+        .toList();
 
     return GestureDetector(
       onTap: () {
@@ -1306,7 +1319,10 @@ class _FeedTile extends StatelessWidget {
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.2),
                             blurRadius: 12,
-                            offset: const Offset(3, 3), // Bleeds only down/right
+                            offset: const Offset(
+                              3,
+                              3,
+                            ), // Bleeds only down/right
                           ),
                         ],
                       ),
@@ -1346,9 +1362,13 @@ class _FeedTile extends StatelessWidget {
                     right: 10,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 5),
+                        horizontal: 8,
+                        vertical: 5,
+                      ),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.65), // Dark background for contrast
+                        color: Colors.black.withValues(
+                          alpha: 0.65,
+                        ), // Dark background for contrast
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: Colors.white.withValues(alpha: 0.15),
@@ -1408,8 +1428,11 @@ class _FeedTile extends StatelessWidget {
                         Row(
                           children: [
                             if (restaurant.rating > 0) ...[
-                              const Icon(Icons.star_rounded,
-                                  color: Color(0xFFFBBF24), size: 14),
+                              const Icon(
+                                Icons.star_rounded,
+                                color: Color(0xFFFBBF24),
+                                size: 14,
+                              ),
                               const SizedBox(width: 2),
                               Text(
                                 restaurant.rating.toStringAsFixed(1),
@@ -1422,7 +1445,9 @@ class _FeedTile extends StatelessWidget {
                               Text(
                                 ' (${restaurant.reviewCount})',
                                 style: AppTypography.caption.copyWith(
-                                    fontSize: 10, color: Color(0xFF9CA3AF)),
+                                  fontSize: 10,
+                                  color: Color(0xFF9CA3AF),
+                                ),
                               ),
                             ] else
                               Text(
@@ -1445,8 +1470,11 @@ class _FeedTile extends StatelessWidget {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              const Icon(Icons.restaurant_menu_rounded,
-                                  color: Color(0xFFB0B8C5), size: 11),
+                              const Icon(
+                                Icons.restaurant_menu_rounded,
+                                color: Color(0xFFB0B8C5),
+                                size: 11,
+                              ),
                               const SizedBox(width: 3),
                               Text(
                                 restaurant.cuisine,
@@ -1486,8 +1514,11 @@ class _FeedTile extends StatelessWidget {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.location_on_rounded,
-                              color: Color(0xFF8B5CF6), size: 13),
+                          const Icon(
+                            Icons.location_on_rounded,
+                            color: Color(0xFF8B5CF6),
+                            size: 13,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             '${miles?.toStringAsFixed(1) ?? '—'} mi',
@@ -1518,8 +1549,11 @@ class _FeedTile extends StatelessWidget {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.calendar_today_rounded,
-                                color: Colors.white, size: 13),
+                            const Icon(
+                              Icons.calendar_today_rounded,
+                              color: Colors.white,
+                              size: 13,
+                            ),
                             const SizedBox(width: 6),
                             Text(
                               'Reserve',

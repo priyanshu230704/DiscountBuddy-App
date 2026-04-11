@@ -244,12 +244,49 @@ class Restaurant {
             ?.map((e) => Cuisine.fromJson(e as Map<String, dynamic>))
             .toList() ??
         <Cuisine>[];
+        
+    final List<dynamic> rawImagesList = json['images'] as List<dynamic>? ?? [];
+    List<RestaurantImage> parsedRestaurantImages = [];
+    List<String> plainStringImages = [];
+
+    for (var raw in rawImagesList) {
+      if (raw is Map<String, dynamic>) {
+        parsedRestaurantImages.add(RestaurantImage.fromJson(raw));
+      } else if (raw is String) {
+        plainStringImages.add(raw);
+      }
+    }
+
+    parsedRestaurantImages.sort((a, b) {
+      if (a.isPrimary && !b.isPrimary) return -1;
+      if (!a.isPrimary && b.isPrimary) return 1;
+      return a.order.compareTo(b.order);
+    });
+
+    final List<String> sortedImageUrls = parsedRestaurantImages
+        .map((e) => e.imageUrl)
+        .where((u) => u.isNotEmpty)
+        .toList();
+        
+    if (sortedImageUrls.isEmpty && plainStringImages.isNotEmpty) {
+      sortedImageUrls.addAll(plainStringImages);
+    } else {
+      for (var plain in plainStringImages) {
+        if (!sortedImageUrls.contains(plain)) {
+          sortedImageUrls.add(plain);
+        }
+      }
+    }
+
+    final String primaryImageUrl = sortedImageUrls.isNotEmpty 
+        ? sortedImageUrls.first 
+        : (json['imageUrl'] as String? ?? json['image'] as String? ?? '');
 
     return Restaurant(
       id: json['id']?.toString() ?? '',
       name: json['name'] as String? ?? '',
       description: json['description'] as String? ?? '',
-      imageUrl: json['imageUrl'] as String? ?? '',
+      imageUrl: primaryImageUrl,
       address: json['address'] as String? ?? '',
       latitude: _parseDouble(json['latitude']) ?? 0.0,
       longitude: _parseDouble(json['longitude']) ?? 0.0,
@@ -269,11 +306,7 @@ class Restaurant {
       discount: json['discount'] != null
           ? Discount.fromJson(json['discount'] as Map<String, dynamic>)
           : (activeDeals.isNotEmpty ? activeDeals.first : Discount(type: 'none', description: '')),
-      images:
-          (json['images'] as List<dynamic>?)
-              ?.map((e) => e.toString())
-              .toList() ??
-          [],
+      images: sortedImageUrls,
       phoneNumber: json['phoneNumber'] as String? ?? '',
       website: json['website'] as String? ?? '',
       openingHours:
@@ -303,11 +336,7 @@ class Restaurant {
       slug: json['slug'] as String?,
       leaderboardScore: _parseDouble(json['leaderboard_score']) ?? 0.0,
       menuType: json['menu_type'] as String? ?? 'structured',
-      restaurantImages:
-          (json['images'] as List<dynamic>?)
-              ?.map((e) => RestaurantImage.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
+      restaurantImages: parsedRestaurantImages,
     );
   }
 

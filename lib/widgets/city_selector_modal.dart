@@ -56,7 +56,8 @@ class CitySelectorModal extends StatelessWidget {
             );
           }
 
-          final cities = snapshot.data ?? [];
+          final allCities = snapshot.data ?? [];
+          final cities = allCities.where((c) => c.name.toLowerCase().contains('london')).toList();
 
           if (cities.isEmpty) {
             return Center(

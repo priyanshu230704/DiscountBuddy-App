@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -72,6 +73,7 @@ class _NearbyPageState extends State<NearbyPage>
   final Map<String, Uint8List> _markerCache = {};
 
   PointAnnotation? _userDotAnnotation;
+  ui.Image? _appLogoImage;
 
   bool _isManualCitySelected = false;
   bool _isMarkerAnimating = false;
@@ -238,10 +240,13 @@ class _NearbyPageState extends State<NearbyPage>
     _cardController.reverse();
 
     try {
+      final double? queryLat = _isManualCitySelected ? _center?.coordinates.lat.toDouble() : _userLocation?.coordinates.lat.toDouble();
+      final double? queryLon = _isManualCitySelected ? _center?.coordinates.lng.toDouble() : _userLocation?.coordinates.lng.toDouble();
+
       final list = await _restaurantService.getRestaurants(
         cityId: _selectedCityId,
-        latitude: _userLocation?.coordinates.lat.toDouble(),
-        longitude: _userLocation?.coordinates.lng.toDouble(),
+        latitude: queryLat,
+        longitude: queryLon,
         search: _searchController.text.trim(),
         cuisines: _selectedCuisineId,
         day: _selectedDay,
@@ -447,105 +452,114 @@ class _NearbyPageState extends State<NearbyPage>
     final canvas = Canvas(recorder);
 
     final double s = size.toDouble();
-    
-    // Scale down pin drawing vertically to leave space for top/bottom bubbles
-    final double pinScale = 0.70;
+    // Increase canvas width significantly to stop text from truncating left or right
+    final double canvasWidth = s * 2.8; 
+    final double canvasHeight = s * 1.5; 
+
+    // Scale down pin to offer plenty of breathing room for bubbles above and below
+    final double pinScale = 0.50; 
     final double scaledS = s * pinScale;
     
-    // Push down slightly to leave top room
-    final double yOffset = s * 0.08;
+    // Start drawing downward to avoid cropping the top bubble
+    final double yOffset = canvasHeight * 0.20;
 
-    // Tip at bottom of the PIN (not the canvas)
-    final Offset rawTip = Offset(s / 2, yOffset + scaledS * 0.92);
+    // The literal pointy bit of the marker
+    final Offset rawTip = Offset(canvasWidth / 2, yOffset + scaledS * 0.92);
     
-    // We want the TIP to be exactly at the CENTER of our image to avoid Mapbox anchor/offset artifacts.
-    // This makes IconAnchor.CENTER perfectly stable across all iconSizes.
-    final double dy = (s / 2) - rawTip.dy;
+    // Center the TIP identically so Mapbox IconAnchor.CENTER applies accurately natively.
+    final double dy = (canvasHeight / 2) - rawTip.dy;
     canvas.save();
     canvas.translate(0, dy);
 
-    final Offset tip = rawTip; // tip logic remains same, but canvas is shifted
-    final double radius = scaledS * 0.15;
-    final double yCenter = tip.dy - scaledS * 0.38;
-    final Offset center = Offset(s / 2, yCenter);
+    final double topRadius = scaledS * 0.28;
+    final Offset topCenter = Offset(canvasWidth / 2, rawTip.dy - topRadius * 2.20);
 
-    // 1. Draw Large Soft Shadow
+    // 1. Drop shadow 
     final shadowPaint = Paint()
-      ..color = Colors.black.withOpacity(0.15)
+      ..color = Colors.black.withValues(alpha: 0.20)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
+
     canvas.drawOval(
       Rect.fromCenter(
-        center: Offset(tip.dx, tip.dy + scaledS * 0.01),
-        width: scaledS * 0.28,
-        height: scaledS * 0.07,
+        center: Offset(topCenter.dx, topCenter.dy + scaledS * 0.55),
+        width: scaledS * 0.45,
+        height: scaledS * 0.15,
       ),
       shadowPaint,
     );
 
-    // 2. Define the Classic Map Pin Shape
+    // 2. Draw Pin Body Geometry
     final path = Path();
-    path.moveTo(tip.dx, tip.dy);
-    // Left side curve 
-    path.cubicTo(
-      center.dx - radius * 0.15, tip.dy - scaledS * 0.12, 
-      center.dx - radius, yCenter + radius * 1.4, 
-      center.dx - radius, yCenter,
+    path.addOval(Rect.fromCircle(center: topCenter, radius: topRadius));
+
+    final Offset p1 = Offset(
+      topCenter.dx - topRadius * 0.75,
+      topCenter.dy + topRadius * 0.55,
     );
-    // Top circle arch
-    path.arcToPoint(
-      Offset(center.dx + radius, yCenter),
-      radius: Radius.circular(radius),
-      clockwise: true,
+    final Offset p2 = Offset(
+      topCenter.dx + topRadius * 0.75,
+      topCenter.dy + topRadius * 0.55,
     );
-    // Right side curve 
-    path.cubicTo(
-      center.dx + radius, yCenter + radius * 1.4,
-      center.dx + radius * 0.15, tip.dy - scaledS * 0.12,
-      tip.dx, tip.dy,
+    final Offset tip = Offset(topCenter.dx, topCenter.dy + topRadius * 2.20);
+
+    path.moveTo(p1.dx, p1.dy);
+    path.quadraticBezierTo(
+      topCenter.dx,
+      topCenter.dy + topRadius * 1.50,
+      tip.dx,
+      tip.dy,
+    );
+    path.quadraticBezierTo(
+      topCenter.dx,
+      topCenter.dy + topRadius * 1.50,
+      p2.dx,
+      p2.dy,
     );
     path.close();
 
-    // 3. Draw Thick White Border
-    final outerWhitePaint = Paint()
-      ..color = selected ? Colors.white : Colors.white.withOpacity(0.95)
-      ..style = PaintingStyle.stroke
-      ..strokeJoin = StrokeJoin.round
-      ..strokeWidth = scaledS * 0.06;
-    canvas.drawPath(path, outerWhitePaint);
-
-    // 4. Fill with Gradient
-    final Rect pinBounds = Rect.fromPoints(
-      Offset(center.dx - radius, center.dy - radius),
-      tip,
-    );
-    final Gradient pinGradient = const LinearGradient(
-      colors: [Color(0xFFE879F9), Color(0xFFA855F7)],
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-    );
-    final fillPaint = Paint()..shader = pinGradient.createShader(pinBounds);
+    // 3. Fill Pin Body
+    final fillPaint = Paint()..color = Colors.white;
     canvas.drawPath(path, fillPaint);
 
-    // 5. Thin Dark Outline
-    final innerOutlinePaint = Paint()
-      ..color = const Color(0xFF7E22CE)
+    // Subtle stroke border
+    final borderPaint = Paint()
+      ..color = Colors.black.withValues(alpha: selected ? 0.2 : 0.08)
       ..style = PaintingStyle.stroke
-      ..strokeJoin = StrokeJoin.round
-      ..strokeWidth = scaledS * 0.006;
-    canvas.drawPath(path, innerOutlinePaint);
+      ..strokeWidth = scaledS * 0.025;
+    canvas.drawPath(path, borderPaint);
 
-    // 6. Draw White Inner Dot
-    final innerCircleRadius = radius * 0.48;
-    final innerCirclePaint = Paint()..color = Colors.white;
-    canvas.drawCircle(center, innerCircleRadius, innerCirclePaint);
-    canvas.drawCircle(center, innerCircleRadius, innerOutlinePaint);
+    // Draw the white inner circle
+    final innerCirclePaint = Paint()..color = const Color(0xFFF9FAFB); 
+    canvas.drawCircle(topCenter, topRadius * 0.95, innerCirclePaint);
+
+    // Draw the actual db_logo.png app logo inside the pin
+    if (_appLogoImage != null) {
+      final double logoSize = topRadius * 1.55;
+      final Rect destRect = Rect.fromCenter(
+        center: topCenter,
+        width: logoSize,
+        height: logoSize,
+      );
+      final Rect srcRect = Rect.fromLTWH(
+        0,
+        0,
+        _appLogoImage!.width.toDouble(),
+        _appLogoImage!.height.toDouble(),
+      );
+      canvas.drawImageRect(
+        _appLogoImage!,
+        srcRect,
+        destRect,
+        Paint()..filterQuality = FilterQuality.high,
+      );
+    }
 
     // 7. Draw Deal Bubble (Top)
     if (dealText.isNotEmpty) {
       final TextSpan span = TextSpan(
         text: dealText,
         style: AppTypography.title.copyWith(
-          fontSize: selected ? scaledS * 0.12 : scaledS * 0.10,
+          fontSize: selected ? scaledS * 0.13 : scaledS * 0.11,
           fontWeight: FontWeight.w700,
           color: Colors.white,
         ),
@@ -557,13 +571,13 @@ class _NearbyPageState extends State<NearbyPage>
       );
       tp.layout();
 
-      final double padH = scaledS * 0.08;
+      final double padH = scaledS * 0.10;
       final double padV = scaledS * 0.05;
       final double pillWidth = tp.width + padH * 2;
       final double pillHeight = tp.height + padV * 2;
 
       final Rect pillRect = Rect.fromCenter(
-        center: Offset(center.dx, center.dy - radius - pillHeight / 2 - scaledS * 0.04),
+        center: Offset(topCenter.dx, topCenter.dy - topRadius - pillHeight / 2 - scaledS * 0.04),
         width: pillWidth,
         height: pillHeight,
       );
@@ -576,7 +590,7 @@ class _NearbyPageState extends State<NearbyPage>
       final pillPaint = Paint()..shader = pillGradient.createShader(pillRect);
 
       final pillShadowPaint = Paint()
-        ..color = Colors.black.withOpacity(0.15)
+        ..color = Colors.black.withValues(alpha: 0.15)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
       canvas.drawRRect(
         RRect.fromRectAndRadius(pillRect.translate(0, 4), Radius.circular(pillHeight / 2)),
@@ -584,9 +598,9 @@ class _NearbyPageState extends State<NearbyPage>
       );
 
       final pointerPath = Path();
-      pointerPath.moveTo(center.dx - scaledS * 0.04, pillRect.bottom - 1);
-      pointerPath.lineTo(center.dx + scaledS * 0.04, pillRect.bottom - 1);
-      pointerPath.lineTo(center.dx, pillRect.bottom + scaledS * 0.05);
+      pointerPath.moveTo(topCenter.dx - scaledS * 0.05, pillRect.bottom - 1);
+      pointerPath.lineTo(topCenter.dx + scaledS * 0.05, pillRect.bottom - 1);
+      pointerPath.lineTo(topCenter.dx, pillRect.bottom + scaledS * 0.08);
       pointerPath.close();
       canvas.drawPath(pointerPath, pillPaint);
       
@@ -599,9 +613,9 @@ class _NearbyPageState extends State<NearbyPage>
       final TextSpan span = TextSpan(
         text: restaurantName,
         style: AppTypography.title.copyWith(
-          fontSize: selected ? scaledS * 0.11 : scaledS * 0.09,
+          fontSize: selected ? scaledS * 0.12 : scaledS * 0.10,
           fontWeight: FontWeight.w700,
-          color: AppColors.textPrimary,
+          color: Colors.black87,
         ),
       );
       final TextPainter tp = TextPainter(
@@ -611,13 +625,13 @@ class _NearbyPageState extends State<NearbyPage>
       );
       tp.layout();
 
-      final double padH = scaledS * 0.08;
-      final double padV = scaledS * 0.04;
+      final double padH = scaledS * 0.10;
+      final double padV = scaledS * 0.05;
       final double pillWidth = tp.width + padH * 2;
       final double pillHeight = tp.height + padV * 2;
 
       final Rect pillRect = Rect.fromCenter(
-        center: Offset(center.dx, tip.dy + pillHeight / 2 + scaledS * 0.06),
+        center: Offset(topCenter.dx, tip.dy + pillHeight / 2 + scaledS * 0.04),
         width: pillWidth,
         height: pillHeight,
       );
@@ -625,7 +639,7 @@ class _NearbyPageState extends State<NearbyPage>
       final pillPaint = Paint()..color = Colors.white;
 
       final pillShadowPaint = Paint()
-        ..color = Colors.black.withOpacity(0.12)
+        ..color = Colors.black.withValues(alpha: 0.12)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
       canvas.drawRRect(
         RRect.fromRectAndRadius(pillRect.translate(0, 4), Radius.circular(pillHeight / 2)),
@@ -638,9 +652,9 @@ class _NearbyPageState extends State<NearbyPage>
         ..strokeWidth = scaledS * 0.01;
 
       final pointerPath = Path();
-      pointerPath.moveTo(center.dx - scaledS * 0.04, pillRect.top + 1);
-      pointerPath.lineTo(center.dx + scaledS * 0.04, pillRect.top + 1);
-      pointerPath.lineTo(center.dx, pillRect.top - scaledS * 0.05);
+      pointerPath.moveTo(topCenter.dx - scaledS * 0.05, pillRect.top + 1);
+      pointerPath.lineTo(topCenter.dx + scaledS * 0.05, pillRect.top + 1);
+      pointerPath.lineTo(topCenter.dx, pillRect.top - scaledS * 0.08);
       pointerPath.close();
       canvas.drawPath(pointerPath, pillPaint);
       canvas.drawPath(pointerPath, pillOutlinePaint); // draw outline for pointer
@@ -657,7 +671,7 @@ class _NearbyPageState extends State<NearbyPage>
 
     canvas.restore();
     final picture = recorder.endRecording();
-    final img = await picture.toImage(size, size);
+    final img = await picture.toImage(canvasWidth.toInt(), canvasHeight.toInt());
     final pngBytes = await img.toByteData(format: ui.ImageByteFormat.png);
 
     return pngBytes!.buffer.asUint8List();
@@ -682,7 +696,16 @@ class _NearbyPageState extends State<NearbyPage>
     return bytes;
   }
 
-  Future<void> _ensureMarkerBytes() async {}
+  Future<void> _ensureMarkerBytes() async {
+    if (_appLogoImage == null) {
+      final ByteData data = await rootBundle.load('assets/png/db_logo.png');
+      final ui.Codec codec = await ui.instantiateImageCodec(
+        data.buffer.asUint8List(),
+      );
+      final ui.FrameInfo fi = await codec.getNextFrame();
+      _appLogoImage = fi.image;
+    }
+  }
 
   Future<Uint8List> _createUserDotBytes() async {
     final recorder = ui.PictureRecorder();
@@ -1576,11 +1599,15 @@ class _NearbyPageState extends State<NearbyPage>
                         const Icon(Icons.restaurant_menu_rounded,
                             color: Colors.black45, size: 14),
                         const SizedBox(width: 3),
-                        Text(
-                          restaurant.cuisine,
-                          style: AppTypography.bodySmall.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black54,
+                        Expanded(
+                          child: Text(
+                            restaurant.cuisine,
+                            style: AppTypography.bodySmall.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black54,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],

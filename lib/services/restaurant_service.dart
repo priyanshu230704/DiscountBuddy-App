@@ -481,7 +481,10 @@ class RestaurantService {
     // The list endpoint returns `primary_image` (a single absolute URL string).
     // The detail endpoint returns `images` (an array of image objects).
     // Check primary_image first, then fall back to images array.
-    String imageUrl = json['primary_image'] as String? ?? '';
+    String imageUrl = json['primary_image'] as String? ?? json['image'] as String? ?? json['image_url'] as String? ?? '';
+    if (imageUrl.isNotEmpty && imageUrl.startsWith('/')) {
+        imageUrl = 'http://10.149.127.15:8000$imageUrl';
+    }
 
     if (imageUrl.isEmpty) {
       // Fallback: parse images array (detail endpoint)
@@ -563,6 +566,10 @@ class RestaurantService {
     final List<Discount> activeDeals = dealsJson
         .map((e) => Discount.fromJson(e as Map<String, dynamic>))
         .toList();
+
+    if (imageUrl.isNotEmpty && imageUrl.startsWith('/')) {
+      imageUrl = 'http://10.149.127.15:8000$imageUrl';
+    }
 
     return Restaurant(
       id: restaurantId.toString(),

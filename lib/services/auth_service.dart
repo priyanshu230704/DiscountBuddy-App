@@ -276,7 +276,7 @@ class AuthService {
       }
 
       final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+          googleUser.authentication as GoogleSignInAuthentication;
       final idToken = googleAuth.idToken;
       if (idToken == null || idToken.isEmpty) {
         throw ApiException('Failed to get Google ID token');

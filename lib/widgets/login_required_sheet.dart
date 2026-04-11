@@ -44,79 +44,81 @@ class LoginRequiredSheet extends StatelessWidget {
       title: 'Login Required',
       showCloseButton: isClosable,
       onClose: isClosable ? () => Navigator.pop(context) : null,
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.lock_person_rounded,
-              size: 80,
-              color: AppColors.primary,
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Join DiscountBuddy',
-              style: AppTypography.headline.copyWith(
-                color: AppColors.textPrimary,
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.lock_person_rounded,
+                size: 80,
+                color: AppColors.primary,
               ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Please login to access all features like bookings, reviews, and redeeming offers.',
-              style: AppTypography.bodySmall.copyWith(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+              const SizedBox(height: 24),
+              Text(
+                'Join DiscountBuddy',
+                style: AppTypography.headline.copyWith(
+                  color: AppColors.textPrimary,
                 ),
-                child: Text('Login / Sign Up',
-                    style: AppTypography.button),
+                textAlign: TextAlign.center,
               ),
-            ),
-            if (isClosable) ...[
               const SizedBox(height: 12),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(
-                  'Maybe Later',
-                  style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.textDisabled,
-                    fontWeight: FontWeight.w700,
+              Text(
+                'Please login to access all features like bookings, reviews, and redeeming offers.',
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
+                  child: Text('Login / Sign Up',
+                      style: AppTypography.button),
                 ),
               ),
-            ] else ...[
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: onBackToHome,
-                child: Text(
-                  'Back to Home',
-                  style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w700,
+              if (isClosable) ...[
+                const SizedBox(height: 12),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    'Maybe Later',
+                    style: AppTypography.bodySmall.copyWith(
+                      color: AppColors.textDisabled,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
-              ),
+              ] else ...[
+                const SizedBox(height: 12),
+                TextButton(
+                  onPressed: onBackToHome,
+                  child: Text(
+                    'Back to Home',
+                    style: AppTypography.bodySmall.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 16),
             ],
-            const SizedBox(height: 16),
-          ],
+          ),
         ),
       ),
     );

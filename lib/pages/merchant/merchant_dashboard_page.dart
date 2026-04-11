@@ -504,11 +504,13 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "Merchant Central",
+                    "Discount\nBuddy",
                     style: AppTypography.title.copyWith(
-                      fontSize: 20,
+                      fontSize: 18,
                       color: AppColors.textDarkest,
+                      height: 1.1,
                     ),
+                    maxLines: 2,
                   ),
                   Row(
                     children: [

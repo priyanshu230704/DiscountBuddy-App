@@ -609,25 +609,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
 
-                      // Skip Button (Relocated to be on top)
-                      Positioned(
-                        top: 50,
-                        right: 16,
-                        child: TextButton(
-                          onPressed: () {
-                            _authProvider?.skipLogin();
-                            Navigator.pushReplacementNamed(context, '/home');
-                          },
-                          child: Text(
-                            'Skip',
-                            style: AppTypography.bodySmall.copyWith(
-                              color: AppColors.textDisabled,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      ),
+
                     ],
                   ),
                 );

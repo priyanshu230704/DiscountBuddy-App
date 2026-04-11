@@ -456,6 +456,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             slivers: [
               _buildHeader(),
+              const SliverToBoxAdapter(child: SizedBox(height: 5)),
               if (!_isSearching) _buildBanners(),
               if (!_isSearching) _buildFilterTabs(),
               if (!_isSearching) _buildSectionTitle(),
@@ -480,9 +481,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         0xFFF3E8FF,
       ), // Opaque to hide content scrolling underneath
       automaticallyImplyLeading: false,
-      toolbarHeight: 60,
-      collapsedHeight: _isSearching ? 112 + topPadding : 56 + topPadding,
-      expandedHeight: _isSearching ? 112 + topPadding : 56 + topPadding,
+      toolbarHeight: 48,
+      collapsedHeight: _isSearching ? 114 : 48,
+      expandedHeight: _isSearching ? 114 : 48,
       stretch: false,
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
@@ -490,7 +491,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           child: SafeArea(
             bottom: false,
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 12, 0),
+              padding: const EdgeInsets.fromLTRB(16, 4, 12, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -747,7 +748,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 }).toList(),
               ),
             ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
         ],
       ),
     );
@@ -756,45 +757,33 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Widget _buildFilterTabs() {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final double maxWidth = constraints.maxWidth.isFinite
-                ? constraints.maxWidth
-                : MediaQuery.of(context).size.width - 32;
-            const gap = 10.0;
-            final chipWidth = (maxWidth - (gap * 2)) / 3;
-            return Row(
-              children: [
-                SizedBox(
-                  width: chipWidth,
-                  child: _FilterChipX(
-                    text: "All Restaurants",
-                    active: _activeFilter == HomeFilter.offers,
-                    onTap: () => _toggleFilter(HomeFilter.offers),
-                  ),
-                ),
-                const SizedBox(width: gap),
-                SizedBox(
-                  width: chipWidth,
-                  child: _FilterChipX(
-                    text: "Best Near You",
-                    active: _activeFilter == HomeFilter.nearest,
-                    onTap: () => _toggleFilter(HomeFilter.nearest),
-                  ),
-                ),
-                const SizedBox(width: gap),
-                SizedBox(
-                  width: chipWidth,
-                  child: _FilterChipX(
-                    text: "Top Rated",
-                    active: _activeFilter == HomeFilter.rating,
-                    onTap: () => _toggleFilter(HomeFilter.rating),
-                  ),
-                ),
-              ],
-            );
-          },
+        padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
+        child: Row(
+          children: [
+            Expanded(
+              child: _FilterChipX(
+                text: "All",
+                active: _activeFilter == HomeFilter.offers,
+                onTap: () => _toggleFilter(HomeFilter.offers),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _FilterChipX(
+                text: "Nearest",
+                active: _activeFilter == HomeFilter.nearest,
+                onTap: () => _toggleFilter(HomeFilter.nearest),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _FilterChipX(
+                text: "Top Rated",
+                active: _activeFilter == HomeFilter.rating,
+                onTap: () => _toggleFilter(HomeFilter.rating),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -803,7 +792,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Widget _buildSectionTitle() {
     return SliverToBoxAdapter(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
         child: Text(
           _activeFilter == HomeFilter.offers
               ? "All Restaurants"
@@ -939,44 +928,43 @@ class _FilterChipX extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Center(
-        child: Container(
-          height: 42,
-          alignment: Alignment.center,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            gradient: active ? AppColors.purpleGradient : null,
-            color: active ? null : AppColors.surface,
-            border: active ? null : Border.all(color: AppColors.cardBorder),
-            boxShadow: [
-              if (active)
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.3),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                )
-              else
-                ...AppShadows.card,
-            ],
+      child: Container(
+        height: 38,
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          gradient: active ? AppColors.purpleGradient : null,
+          color: active ? null : Colors.white,
+          border: Border.all(
+            color: active ? Colors.transparent : const Color(0xFFE5E7EB),
+            width: 1.2,
           ),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  text,
-                  style: AppTypography.body.copyWith(
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.bold,
-                    color: active ? Colors.white : const Color(0xFF4B5563),
-                  ),
-                ),
-              ],
-            ),
+          boxShadow: [
+            if (active)
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.2),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              )
+            else
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 2,
+                offset: const Offset(0, 1),
+              ),
+          ],
+        ),
+        child: Text(
+          text,
+          style: AppTypography.body.copyWith(
+            fontSize: 12,
+            fontWeight: active ? FontWeight.w700 : FontWeight.w600,
+            color: active ? Colors.white : const Color(0xFF6B7280),
+            letterSpacing: -0.3,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ),
     );
@@ -1218,7 +1206,7 @@ class _FeedTile extends StatelessWidget {
       },
       child: Container(
         width: double.infinity,
-        height: 230,
+        height: 188,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
@@ -1241,7 +1229,7 @@ class _FeedTile extends StatelessWidget {
                 // Full-width image
                 SizedBox(
                   width: double.infinity,
-                  height: 140, // Taller image based on design
+                  height: 110, // Reduced so 2.5 cards fit in first view
                   child: hasImage
                       ? CachedNetworkImage(
                           imageUrl: restaurant.imageUrl,
@@ -1432,27 +1420,24 @@ class _FeedTile extends StatelessWidget {
               ],
             ),
 
-            // --- Bottom: Details Area (Strictly Fits in 90px) ---
+            // --- Bottom: Details Area ---
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.fromLTRB(10, 3, 8, 3),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     // --- Left Side: Texts ---
                     Expanded(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Title
+                          // Restaurant Name
                           Text(
                             restaurant.name,
                             style: AppTypography.title.copyWith(
-                              fontSize: 15,
+                              fontSize: 14,
                               fontWeight: FontWeight.w800,
                               color: AppColors.textPrimary,
                               height: 1.1,
@@ -1460,49 +1445,39 @@ class _FeedTile extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 4),
                           
-                          // Rating, Distance, Cuisine
-                          Row(
-                            children: [
-                              const Icon(Icons.star_rounded, color: Color(0xFFFBBF24), size: 12),
-                              const SizedBox(width: 2),
-                              Text(
-                                restaurant.rating.toStringAsFixed(1),
-                                style: AppTypography.bodySmall.copyWith(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF4B5563),
-                                ),
+                          // Description below name
+                          if (restaurant.description.trim().isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              restaurant.description.trim(),
+                              style: AppTypography.bodySmall.copyWith(
+                                fontSize: 10,
+                                color: const Color(0xFF6B7280),
+                                height: 1.2,
                               ),
-                              const Text("  •  ", style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 10)),
-                              const Icon(Icons.location_on, color: Color(0xFF8B5CF6), size: 10),
-                              const SizedBox(width: 2),
-                              Text(
-                                '${miles?.toStringAsFixed(1) ?? '—'} mi',
-                                style: AppTypography.bodySmall.copyWith(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF6B7280),
-                                ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+
+                          // Cuisines below description
+                          if (restaurant.cuisine.isNotEmpty) ...[
+                            const SizedBox(height: 1),
+                            Text(
+                              restaurant.cuisine,
+                              style: AppTypography.bodySmall.copyWith(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                                color: const Color(0xFF9CA3AF),
                               ),
-                              if (restaurant.cuisine.isNotEmpty) ...[
-                                const Text("  •  ", style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 10)),
-                                Text(
-                                  restaurant.cuisine,
-                                  style: AppTypography.bodySmall.copyWith(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w500,
-                                    color: const Color(0xFF6B7280),
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ],
-                          ),
-                          const SizedBox(height: 5),
-                          
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+
+                          const SizedBox(height: 3),
+
                           // Value Tag
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
@@ -1528,42 +1503,66 @@ class _FeedTile extends StatelessWidget {
                           ),
                         ],
                       ),
-                      ),
                     ),
                     const SizedBox(width: 8),
                     
-                    // --- Right Side: Reserve Button ---
-                    AppGradientButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => RestaurantDetailsPage(
-                              slug: restaurant.id,
-                              latitude: userLat,
-                              longitude: userLon,
+                    // --- Right Side: Distance & Reserve Button ---
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        if (miles != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.location_on, color: Color(0xFF8B5CF6), size: 10),
+                                const SizedBox(width: 2),
+                                Text(
+                                  '${miles.toStringAsFixed(1)} mi',
+                                  style: AppTypography.bodySmall.copyWith(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF6B7280),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        );
-                      },
-                      height: 32,
-                      width: 80,
-                      borderRadius: BorderRadius.circular(8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.calendar_today_rounded, color: Colors.white, size: 10),
-                          const SizedBox(width: 3),
-                          Text(
-                            'Reserve',
-                            style: AppTypography.button.copyWith(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
+                        AppGradientButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => RestaurantDetailsPage(
+                                  slug: restaurant.id,
+                                  latitude: userLat,
+                                  longitude: userLon,
+                                ),
+                              ),
+                            );
+                          },
+                          height: 32,
+                          width: 80,
+                          borderRadius: BorderRadius.circular(8),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.calendar_today_rounded, color: Colors.white, size: 10),
+                              const SizedBox(width: 3),
+                              Text(
+                                'Reserve',
+                                style: AppTypography.button.copyWith(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

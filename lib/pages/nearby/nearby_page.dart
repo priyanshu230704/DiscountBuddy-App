@@ -82,12 +82,12 @@ class _NearbyPageState extends State<NearbyPage>
   bool _isUserMovingMap = false;
   bool _isMapReady = false;
 
-  static const int _pinNormalSize = 500;
-  static const int _pinSelectedSize = 620;
-  static const int _pinPopSize = 750;
+  static const int _pinNormalSize = 640;
+  static const int _pinSelectedSize = 780;
+  static const int _pinPopSize = 900;
 
-  static const double _pinNormalIconSize = 0.52;
-  static const double _pinSelectedIconSize = 0.60;
+  static const double _pinNormalIconSize = 0.72;
+  static const double _pinSelectedIconSize = 0.86;
 
   static const double _normalSortKey = 1;
   static const double _selectedSortKey = 9999;
@@ -559,8 +559,8 @@ class _NearbyPageState extends State<NearbyPage>
       final TextSpan span = TextSpan(
         text: dealText,
         style: AppTypography.title.copyWith(
-          fontSize: selected ? scaledS * 0.13 : scaledS * 0.11,
-          fontWeight: FontWeight.w700,
+          fontSize: selected ? scaledS * 0.20 : scaledS * 0.17,
+          fontWeight: FontWeight.w800,
           color: Colors.white,
         ),
       );
@@ -613,7 +613,7 @@ class _NearbyPageState extends State<NearbyPage>
       final TextSpan span = TextSpan(
         text: restaurantName,
         style: AppTypography.title.copyWith(
-          fontSize: selected ? scaledS * 0.12 : scaledS * 0.10,
+          fontSize: selected ? scaledS * 0.18 : scaledS * 0.15,
           fontWeight: FontWeight.w700,
           color: Colors.black87,
         ),
@@ -1497,40 +1497,79 @@ class _NearbyPageState extends State<NearbyPage>
         ),
         child: Row(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(14),
-              child: restaurant.imageUrl.isNotEmpty
-                  ? CachedNetworkImage(
-                      imageUrl: restaurant.imageUrl,
-                      width: 90,
-                      height: 90,
-                      fit: BoxFit.cover,
-                      placeholder: (_, _) => Container(
-                        width: 90,
-                        height: 90,
-                        color: Colors.grey.shade200,
-                        child: const Center(
-                          child: CircularProgressIndicator(strokeWidth: 2),
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: restaurant.imageUrl.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: restaurant.imageUrl,
+                          width: 90,
+                          height: 90,
+                          fit: BoxFit.cover,
+                          placeholder: (_, _) => Container(
+                            width: 90,
+                            height: 90,
+                            color: Colors.grey.shade200,
+                            child: const Center(
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          ),
+                          errorWidget: (_, _, _) => Container(
+                            width: 90,
+                            height: 90,
+                            color: Colors.grey.shade200,
+                            child: const Icon(Icons.restaurant),
+                          ),
+                        )
+                      : Container(
+                          width: 90,
+                          height: 90,
+                          color: Colors.grey.shade200,
+                          child: const Icon(Icons.restaurant),
                         ),
+                ),
+                if (restaurant.rating > 0)
+                  Positioned(
+                    bottom: 6,
+                    left: 6,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                      errorWidget: (_, _, _) => Container(
-                        width: 90,
-                        height: 90,
-                        color: Colors.grey.shade200,
-                        child: const Icon(Icons.restaurant),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.star_rounded, color: Color(0xFFFBBF24), size: 12),
+                          const SizedBox(width: 2),
+                          Text(
+                            restaurant.rating.toStringAsFixed(1),
+                            style: AppTypography.bodySmall.copyWith(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
                       ),
-                    )
-                  : Container(
-                      width: 90,
-                      height: 90,
-                      color: Colors.grey.shade200,
-                      child: const Icon(Icons.restaurant),
                     ),
+                  ),
+              ],
             ),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1539,9 +1578,10 @@ class _NearbyPageState extends State<NearbyPage>
                         child: Text(
                           restaurant.name,
                           style: AppTypography.title.copyWith(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
                             color: Colors.black,
+                            height: 1.1,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -1554,98 +1594,72 @@ class _NearbyPageState extends State<NearbyPage>
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.star,
-                        size: 16,
-                        color: AppColors.primaryPurple,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        "${restaurant.rating.toStringAsFixed(1)} (${restaurant.reviewCount} reviews)",
-                        style: AppTypography.bodySmall.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        "•",
-                        style: AppTypography.bodySmall.copyWith(
-                          color: Colors.black26,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        "${miles?.toStringAsFixed(1) ?? '—'} miles",
-                        style: AppTypography.bodySmall.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black54,
-                        ),
-                      ),
-                      if (restaurant.cuisine.isNotEmpty && restaurant.cuisine != 'Restaurant') ...[
-                        const SizedBox(width: 8),
-                        Text(
-                          "•",
-                          style: AppTypography.bodySmall.copyWith(
-                            color: Colors.black26,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        const Icon(Icons.restaurant_menu_rounded,
-                            color: Colors.black45, size: 14),
-                        const SizedBox(width: 3),
-                        Expanded(
-                          child: Text(
-                            restaurant.cuisine,
-                            style: AppTypography.bodySmall.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black54,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-
-                  // Restaurant Description
+                  const SizedBox(height: 4),
+                  
+                  // Description below name
                   if (restaurant.description.trim().isNotEmpty) ...[
-                    const SizedBox(height: 10),
                     Text(
                       restaurant.description.trim(),
                       style: AppTypography.bodySmall.copyWith(
-                        color: Colors.black45,
-                        height: 1.3,
+                        color: Colors.black54,
+                        fontSize: 10,
+                        height: 1.2,
                         fontWeight: FontWeight.w500,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
+                    const SizedBox(height: 2),
                   ],
-                  const SizedBox(height: 10),
+
+                  // Cuisine and distance
+                  Row(
+                    children: [
+                      if (restaurant.cuisine.isNotEmpty) ...[
+                        Text(
+                          restaurant.cuisine,
+                          style: AppTypography.bodySmall.copyWith(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black38,
+                          ),
+                        ),
+                        const Text("  •  ", style: TextStyle(color: Colors.black12, fontSize: 10)),
+                      ],
+                      const Icon(Icons.location_on, color: Color(0xFF8B5CF6), size: 10),
+                      const SizedBox(width: 2),
+                      Text(
+                        "${miles?.toStringAsFixed(1) ?? '—'} mi",
+                        style: AppTypography.bodySmall.copyWith(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 6),
+                  
+                  // Wrap with tags (discounts)
                   Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
+                    spacing: 6,
+                    runSpacing: 4,
                     children: tags.map((t) {
                       return Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 8,
+                          horizontal: 8,
+                          vertical: 4,
                         ),
                         decoration: BoxDecoration(
                           color: AppColors.primaryPurple,
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           t,
                           style: AppTypography.bodySmall.copyWith(
-                            fontWeight: FontWeight.w700,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
                             color: Colors.white,
                           ),
                         ),

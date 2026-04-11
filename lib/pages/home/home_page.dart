@@ -456,7 +456,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             slivers: [
               _buildHeader(),
-              const SliverToBoxAdapter(child: SizedBox(height: 5)),
+              const SliverToBoxAdapter(child: SizedBox(height: 10)),
               if (!_isSearching) _buildBanners(),
               if (!_isSearching) _buildFilterTabs(),
               if (!_isSearching) _buildSectionTitle(),

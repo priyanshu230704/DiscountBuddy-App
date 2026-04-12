@@ -1171,7 +1171,7 @@ class _FeedTile extends StatelessWidget {
       case 'moderately_busy':
         return 'Moderate';
       default:
-        return 'Available';
+        return 'Less Busy';
     }
   }
 
@@ -1330,8 +1330,8 @@ class _FeedTile extends StatelessWidget {
                           ),
                           const SizedBox(height: 1),
                           Text(
-                            deals.first.description.isNotEmpty 
-                                ? deals.first.description
+                            (deals.first.shortDescription != null && deals.first.shortDescription!.isNotEmpty)
+                                ? deals.first.shortDescription!
                                 : "Save today",
                             style: AppTypography.bodySmall.copyWith(
                               fontSize: 9,
@@ -1346,7 +1346,7 @@ class _FeedTile extends StatelessWidget {
                     ),
                   ),
 
-                // --- Top-Right Limited Time Pill ---
+                // --- Top-Right Occupancy Pill ---
                 Positioned(
                   top: 10,
                   right: 10,
@@ -1366,14 +1366,14 @@ class _FeedTile extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
-                          Icons.schedule,
-                          color: Colors.black87,
-                          size: 11,
+                        Icon(
+                          Icons.circle,
+                          color: _occupancyColor(restaurant.occupancy),
+                          size: 8,
                         ),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: 5),
                         Text(
-                          "Limited time",
+                          _occupancyLabel(restaurant.occupancy),
                           style: AppTypography.bodySmall.copyWith(
                             fontSize: 10,
                             fontWeight: FontWeight.bold,

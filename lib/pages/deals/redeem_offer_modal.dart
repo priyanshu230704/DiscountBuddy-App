@@ -213,8 +213,13 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                                         Text(
                                           '• Discount: £${deal.fixedAmount!.toStringAsFixed(2)} off',
                                           style: AppTypography.caption,
+                                        )
+                                      else if (deal.type == 'combo' && deal.comboPrice != null)
+                                        Text(
+                                          '• Combo Price: £${deal.comboPrice!.toStringAsFixed(2)}',
+                                          style: AppTypography.caption,
                                         ),
-                                      if (deal.minimumSpendAmount != null && deal.minimumSpendAmount! > 0)
+                                      if (deal.type != 'combo' && deal.minimumSpendAmount != null && deal.minimumSpendAmount! > 0)
                                         Text(
                                           '• Minimum spend: £${deal.minimumSpendAmount!.toStringAsFixed(2)}',
                                           style: AppTypography.caption,

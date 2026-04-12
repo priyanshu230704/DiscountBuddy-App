@@ -448,7 +448,9 @@ class Discount {
   final String type; // '2for1', 'percentage', 'fixed'
   final double? percentage;
   final double? fixedAmount;
+  final double? comboPrice;
   final String description;
+  final String? shortDescription;
   final String? title;
   final List<String> validDays;
   final String? validTime;
@@ -461,7 +463,9 @@ class Discount {
     required this.type,
     this.percentage,
     this.fixedAmount,
+    this.comboPrice,
     required this.description,
+    this.shortDescription,
     this.title,
     this.validDays = const [],
     this.validTime,
@@ -482,6 +486,8 @@ class Discount {
         return '${percentage?.toInt()}% OFF';
       case 'fixed':
         return '£${fixedAmount?.toStringAsFixed(0)} OFF';
+      case 'combo':
+        return '£${comboPrice?.toStringAsFixed(0)} COMBO';
       default:
         return description;
     }
@@ -497,8 +503,10 @@ class Discount {
     final fixedAmount =
         _parseDouble(json['fixedAmount']) ??
         _parseDouble(json['discount_amount']);
+    final comboPrice = _parseDouble(json['combo_price']);
     final title = json['title'] as String?;
     final description = json['description'] as String? ?? '';
+    final shortDescription = json['short_description'] as String?;
     final minimumSpendAmount = 
         _parseDouble(json['minimumSpendAmount']) ??
         _parseDouble(json['minimum_spend_amount']) ??
@@ -508,7 +516,9 @@ class Discount {
       type: type,
       percentage: percentage,
       fixedAmount: fixedAmount,
+      comboPrice: comboPrice,
       description: description,
+      shortDescription: shortDescription,
       title: title,
       validDays:
           (json['validDays'] as List<dynamic>?)
@@ -528,7 +538,9 @@ class Discount {
       'type': type,
       'percentage': percentage,
       'fixedAmount': fixedAmount,
+      'combo_price': comboPrice,
       'description': description,
+      'short_description': shortDescription,
       'title': title,
       'validDays': validDays,
       'validTime': validTime,

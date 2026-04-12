@@ -432,11 +432,18 @@ class _QRScannerPageState extends State<QRScannerPage> {
                         'Total Bill',
                         '£${dealRedemption.price?.toStringAsFixed(2) ?? '0.00'}',
                       ),
-                      _buildInfoRow(
-                        'Discount Saved',
-                        '-£${dealRedemption.discountAmountSaved?.toStringAsFixed(2) ?? '0.00'}',
-                        valueColor: AppColors.success,
-                      ),
+                      if (dealRedemption.deal.dealType == 'combo')
+                        _buildInfoRow(
+                          'Combo Price',
+                          '£${dealRedemption.deal.comboPrice ?? '0.00'}',
+                          valueColor: AppColors.merchantIndigo,
+                        )
+                      else
+                        _buildInfoRow(
+                          'Discount Saved',
+                          '-£${dealRedemption.discountAmountSaved?.toStringAsFixed(2) ?? '0.00'}',
+                          valueColor: AppColors.success,
+                        ),
                       const Padding(
                         padding: EdgeInsets.symmetric(vertical: 8),
                         child: Divider(height: 1),

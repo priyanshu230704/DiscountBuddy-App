@@ -21,8 +21,10 @@ class _AddDealPageState extends State<AddDealPage> {
   final _formKey = GlobalKey<FormState>();
 
   final _titleController = TextEditingController();
+  final _shortDescriptionController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _discountController = TextEditingController();
+  final _comboPriceController = TextEditingController();
   final _minSpendController = TextEditingController();
   final _maxUsesController = TextEditingController();
   final _maxPerUserController = TextEditingController();
@@ -73,12 +75,14 @@ class _AddDealPageState extends State<AddDealPage> {
   void _loadDealData() {
     final deal = widget.deal!;
     _titleController.text = deal['title'] ?? '';
+    _shortDescriptionController.text = deal['short_description'] ?? '';
     _descriptionController.text = deal['description'] ?? '';
     _dealType = deal['deal_type'] ?? 'percentage';
     _discountController.text =
         deal['discount_percentage']?.toString() ??
         deal['discount_amount']?.toString() ??
         '';
+    _comboPriceController.text = deal['combo_price']?.toString() ?? '';
     _minSpendController.text = deal['minimum_spend']?.toString() ?? '';
     _maxUsesController.text = deal['max_uses']?.toString() ?? '';
     _maxPerUserController.text = deal['max_per_user']?.toString() ?? '';
@@ -143,13 +147,16 @@ class _AddDealPageState extends State<AddDealPage> {
       final dealData = {
         'restaurant': _selectedRestaurantId,
         'title': _titleController.text.trim(),
+        'short_description': _shortDescriptionController.text.trim(),
         'description': _descriptionController.text.trim(),
         'deal_type': _dealType,
         if (_dealType == 'percentage')
           'discount_percentage': double.tryParse(_discountController.text),
         if (_dealType == 'fixed')
           'discount_amount': double.tryParse(_discountController.text),
-        'minimum_spend': _minSpendController.text.trim(),
+        if (_dealType == 'combo')
+          'combo_price': double.tryParse(_comboPriceController.text),
+        'minimum_spend': _dealType == 'combo' ? '' : _minSpendController.text.trim(),
         'start_date': _startDate?.toIso8601String(),
         'end_date': _endDate?.toIso8601String(),
         'max_uses': int.tryParse(_maxUsesController.text),
@@ -241,6 +248,13 @@ class _AddDealPageState extends State<AddDealPage> {
                           hintText: 'Explain the details of this deal to your customers...',
                           maxLines: 3,
                         ),
+                        const SizedBox(height: AppSpacing.lg),
+                        AppTextField(
+                          controller: _shortDescriptionController,
+                          label: 'Short Description (Two Words) *',
+                          hintText: 'e.g. Save Today',
+                          validator: (v) => v!.isEmpty ? 'Short description required' : null,
+                        ),
                       ],
                     ),
 
@@ -250,19 +264,26 @@ class _AddDealPageState extends State<AddDealPage> {
                     _buildFormSection(
                       children: [
                         _buildLabel('Deal Type *'),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Row(
-                            children: [
-                              _buildTypeChip('percentage', 'Percentage', Icons.percent_rounded),
-                              const SizedBox(width: AppSpacing.sm),
-                              _buildTypeChip('fixed', 'Fixed Amount', Icons.currency_pound_rounded),
-                              const SizedBox(width: AppSpacing.sm),
-                              _buildTypeChip('two_for_one', '2-for-1', Icons.people_alt_rounded),
-                            ],
-                          ),
+                        Column(
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(child: _buildTypeChip('percentage', 'Percentage', Icons.percent_rounded)),
+                                const SizedBox(width: AppSpacing.sm),
+                                Expanded(child: _buildTypeChip('fixed', 'Fixed Amount', Icons.currency_pound_rounded)),
+                              ],
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            Row(
+                              children: [
+                                Expanded(child: _buildTypeChip('combo', 'Combo Deal', Icons.fastfood_rounded)),
+                                const SizedBox(width: AppSpacing.sm),
+                                Expanded(child: _buildTypeChip('two_for_one', '2-for-1', Icons.people_alt_rounded)),
+                              ],
+                            ),
+                          ],
                         ),
-                        if (_dealType != 'two_for_one') ...[
+                        if (_dealType == 'percentage' || _dealType == 'fixed') ...[
                           const SizedBox(height: AppSpacing.lg),
                           AppTextField(
                             controller: _discountController,
@@ -270,18 +291,31 @@ class _AddDealPageState extends State<AddDealPage> {
                                 ? 'Discount Percentage (%) *'
                                 : 'Discount Amount (£)',
                             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                            validator: (v) => _dealType != 'two_for_one' && v!.isEmpty 
+                            validator: (v) => v!.isEmpty 
                                 ? 'Value required' 
                                 : null,
                           ),
                         ],
-                        const SizedBox(height: AppSpacing.lg),
-                        AppTextField(
-                          controller: _minSpendController,
-                          label: 'Minimum Spend required (Optional)',
-                          hintText: 'e.g. 30.00',
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        ),
+                        if (_dealType == 'combo') ...[
+                          const SizedBox(height: AppSpacing.lg),
+                          AppTextField(
+                            controller: _comboPriceController,
+                            label: 'Combo Price (£) *',
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            validator: (v) => _dealType == 'combo' && v!.isEmpty 
+                                ? 'Combo price required' 
+                                : null,
+                          ),
+                        ],
+                        if (_dealType != 'combo') ...[
+                          const SizedBox(height: AppSpacing.lg),
+                          AppTextField(
+                            controller: _minSpendController,
+                            label: 'Minimum Spend required (Optional)',
+                            hintText: 'e.g. 30.00',
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          ),
+                        ],
                       ],
                     ),
 
@@ -418,32 +452,49 @@ class _AddDealPageState extends State<AddDealPage> {
 
   Widget _buildTypeChip(String type, String label, IconData icon) {
     final selected = _dealType == type;
-    return ChoiceChip(
-      label: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon, 
-            size: 16, 
-            color: selected ? AppColors.white : AppColors.textSecondary,
+    return GestureDetector(
+      onTap: () => setState(() => _dealType = type),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.merchantIndigo : AppColors.background,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected ? AppColors.merchantIndigo : AppColors.cardBorder,
+            width: 1,
           ),
-          const SizedBox(width: 6),
-          Text(label),
-        ],
-      ),
-      selected: selected,
-      onSelected: (s) => setState(() => _dealType = type),
-      showCheckmark: false,
-      backgroundColor: AppColors.background,
-      selectedColor: AppColors.merchantIndigo,
-      side: BorderSide(
-        color: selected ? AppColors.merchantIndigo : AppColors.cardBorder,
-      ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      labelPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      labelStyle: AppTypography.bodySmall.copyWith(
-        color: selected ? AppColors.white : AppColors.textPrimary,
-        fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+          boxShadow: selected ? [
+            BoxShadow(
+              color: AppColors.merchantIndigo.withValues(alpha: 0.2),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            )
+          ] : [],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon, 
+              size: 16, 
+              color: selected ? AppColors.white : AppColors.textSecondary,
+            ),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                label,
+                style: AppTypography.bodySmall.copyWith(
+                  color: selected ? AppColors.white : AppColors.textPrimary,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+                  fontSize: 12,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

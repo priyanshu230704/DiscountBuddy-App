@@ -72,6 +72,7 @@ class RedeemedDeal {
   final String cityName;
   final double? discountPercentage;
   final String? discountAmount;
+  final String? comboPrice;
   final String? minimumSpend;
   final DateTime? startDate;
   final DateTime? endDate;
@@ -91,6 +92,7 @@ class RedeemedDeal {
     required this.cityName,
     this.discountPercentage,
     this.discountAmount,
+    this.comboPrice,
     this.minimumSpend,
     this.startDate,
     this.endDate,
@@ -115,6 +117,7 @@ class RedeemedDeal {
       cityName: json['city_name'] as String? ?? '',
       discountPercentage: _parseDouble(json['discount_percentage']),
       discountAmount: json['discount_amount'] as String?,
+      comboPrice: json['combo_price']?.toString(),
       minimumSpend: json['minimum_spend'] as String?,
       startDate: json['start_date'] != null
           ? DateTime.tryParse(json['start_date'])

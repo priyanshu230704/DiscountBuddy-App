@@ -404,7 +404,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
       child: Row(
         children: [
           _OccupancySegment(
-            label: 'Available',
+            label: 'Less Busy',
             value: 'available',
             selectedValue: _currentOccupancy,
             onSelected: (val) => _updateOccupancy(val),
@@ -442,7 +442,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Status updated to ${newOccupancy.replaceAll('_', ' ')}'),
+            content: Text('Status updated to ${newOccupancy == 'available' ? 'Less Busy' : newOccupancy.replaceAll('_', ' ')}'),
             behavior: SnackBarBehavior.floating,
             backgroundColor: AppColors.merchantIndigo,
           ),

@@ -219,12 +219,11 @@ class _FilterModalState extends State<FilterModal> {
                                 });
                               },
                               selectedColor: AppColors.primaryPurple,
-                              backgroundColor: AppColors.textDisabled
-                                  .withValues(alpha: 0.2),
+                              backgroundColor: AppColors.white,
                               labelStyle: AppTypography.bodySmall.copyWith(
                                 color: isSelected
                                     ? Colors.white
-                                    : AppColors.textSecondary,
+                                    : AppColors.textPrimary,
                                 fontWeight: FontWeight.w600,
                               ),
                               padding: const EdgeInsets.symmetric(
@@ -232,6 +231,12 @@ class _FilterModalState extends State<FilterModal> {
                               ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14),
+                                side: BorderSide(
+                                  color: isSelected
+                                      ? Colors.transparent
+                                      : AppColors.cardBorder,
+                                  width: 1,
+                                ),
                               ),
                             ),
                           );
@@ -278,12 +283,11 @@ class _FilterModalState extends State<FilterModal> {
                                 });
                               },
                               selectedColor: AppColors.primaryPurple,
-                              backgroundColor: AppColors.textDisabled
-                                  .withValues(alpha: 0.2),
+                              backgroundColor: AppColors.white,
                               labelStyle: AppTypography.bodySmall.copyWith(
                                 color: isSelected
                                     ? Colors.white
-                                    : AppColors.textSecondary,
+                                    : AppColors.textPrimary,
                                 fontWeight: FontWeight.w600,
                               ),
                               padding: const EdgeInsets.symmetric(
@@ -291,6 +295,12 @@ class _FilterModalState extends State<FilterModal> {
                               ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14),
+                                side: BorderSide(
+                                  color: isSelected
+                                      ? Colors.transparent
+                                      : AppColors.cardBorder,
+                                  width: 1,
+                                ),
                               ),
                             ),
                           );
@@ -335,9 +345,7 @@ class _FilterModalState extends State<FilterModal> {
                               });
                             },
                             selectedColor: AppColors.primaryPurple,
-                            backgroundColor: AppColors.textDisabled.withValues(
-                              alpha: 0.2,
-                            ),
+                            backgroundColor: AppColors.white,
                             labelStyle: AppTypography.bodySmall.copyWith(
                               color: _selectedCuisineId == null
                                   ? Colors.white
@@ -350,6 +358,12 @@ class _FilterModalState extends State<FilterModal> {
                             ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(14),
+                              side: BorderSide(
+                                color: _selectedCuisineId == null
+                                    ? Colors.transparent
+                                    : AppColors.cardBorder,
+                                width: 1,
+                              ),
                             ),
                           ),
                           ..._cuisines.map((cuisine) {
@@ -368,8 +382,7 @@ class _FilterModalState extends State<FilterModal> {
                                 });
                               },
                               selectedColor: AppColors.primaryPurple,
-                              backgroundColor: AppColors.textDisabled
-                                  .withValues(alpha: 0.2),
+                              backgroundColor: AppColors.white,
                               labelStyle: AppTypography.bodySmall.copyWith(
                                 color: isSelected
                                     ? Colors.white
@@ -382,6 +395,12 @@ class _FilterModalState extends State<FilterModal> {
                               ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(14),
+                                side: BorderSide(
+                                  color: isSelected
+                                      ? Colors.transparent
+                                      : AppColors.cardBorder,
+                                  width: 1,
+                                ),
                               ),
                             );
                           }),

@@ -225,13 +225,9 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                                           style: AppTypography.caption,
                                         ),
                                       if (deal.termsAndConditions.isNotEmpty)
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                              top: AppSpacing.xs),
-                                          child: Text(
-                                            '• ${deal.termsAndConditions}',
-                                            style: AppTypography.caption,
-                                          ),
+                                        Text(
+                                          '• ${deal.termsAndConditions}',
+                                          style: AppTypography.caption,
                                         ),
                                     ],
                                   ),

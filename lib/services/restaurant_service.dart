@@ -679,6 +679,13 @@ class RestaurantService {
         .map((e) => RestaurantImage.fromJson(e as Map<String, dynamic>))
         .toList();
 
+    // Sort images: primary goes first, then by order
+    restaurantImages.sort((a, b) {
+      if (a.isPrimary && !b.isPrimary) return -1;
+      if (!a.isPrimary && b.isPrimary) return 1;
+      return a.order.compareTo(b.order);
+    });
+
     // Image URL logic: find primary gallery image, fallback to first gallery image, then any image
     String imageUrl = '';
     final galleryImages =

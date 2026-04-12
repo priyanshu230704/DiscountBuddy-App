@@ -86,8 +86,8 @@ class _NearbyPageState extends State<NearbyPage>
   static const int _pinSelectedSize = 780;
   static const int _pinPopSize = 900;
 
-  static const double _pinNormalIconSize = 0.72;
-  static const double _pinSelectedIconSize = 0.86;
+  static const double _pinNormalIconSize = 0.52;
+  static const double _pinSelectedIconSize = 0.65;
 
   static const double _normalSortKey = 1;
   static const double _selectedSortKey = 9999;
@@ -559,7 +559,7 @@ class _NearbyPageState extends State<NearbyPage>
       final TextSpan span = TextSpan(
         text: dealText,
         style: AppTypography.title.copyWith(
-          fontSize: selected ? scaledS * 0.20 : scaledS * 0.17,
+          fontSize: selected ? scaledS * 0.17 : scaledS * 0.15,
           fontWeight: FontWeight.w800,
           color: Colors.white,
         ),
@@ -571,8 +571,8 @@ class _NearbyPageState extends State<NearbyPage>
       );
       tp.layout();
 
-      final double padH = scaledS * 0.10;
-      final double padV = scaledS * 0.05;
+      final double padH = scaledS * 0.08;
+      final double padV = scaledS * 0.04;
       final double pillWidth = tp.width + padH * 2;
       final double pillHeight = tp.height + padV * 2;
 
@@ -613,7 +613,7 @@ class _NearbyPageState extends State<NearbyPage>
       final TextSpan span = TextSpan(
         text: restaurantName,
         style: AppTypography.title.copyWith(
-          fontSize: selected ? scaledS * 0.18 : scaledS * 0.15,
+          fontSize: selected ? scaledS * 0.15 : scaledS * 0.13,
           fontWeight: FontWeight.w700,
           color: Colors.black87,
         ),
@@ -625,8 +625,8 @@ class _NearbyPageState extends State<NearbyPage>
       );
       tp.layout();
 
-      final double padH = scaledS * 0.10;
-      final double padV = scaledS * 0.05;
+      final double padH = scaledS * 0.08;
+      final double padV = scaledS * 0.04;
       final double pillWidth = tp.width + padH * 2;
       final double pillHeight = tp.height + padV * 2;
 
@@ -844,32 +844,25 @@ class _NearbyPageState extends State<NearbyPage>
     _isMarkerAnimating = true;
 
     try {
-      ann.image = await _getMarkerBytes(dealText, r.name, true, true);
-      ann.iconSize = 0.75;
-      ann.iconAnchor = IconAnchor.CENTER;
-      ann.iconOffset = [0.0, 0.0];
+      ann.image = await _getMarkerBytes(dealText, r.name, true, false);
       ann.symbolSortKey = _selectedSortKey;
-      await _pointManager!.update(ann);
-      await Future.delayed(const Duration(milliseconds: 120));
+      
+      const int steps = 24;
+      const int durationMs = 600;
+      final int stepDurationMs = durationMs ~/ steps;
 
-      ann.image = await _getMarkerBytes(dealText, r.name, true, false);
+      for (int i = 0; i <= steps; i++) {
+        final double t = i / steps;
+        final double curve = Curves.elasticOut.transform(t);
+        
+        final double scale = _pinNormalIconSize + (_pinSelectedIconSize - _pinNormalIconSize) * curve;
+        ann.iconSize = scale;
+        
+        await _pointManager!.update(ann);
+        await Future.delayed(Duration(milliseconds: stepDurationMs));
+      }
+      
       ann.iconSize = _pinSelectedIconSize;
-      ann.iconAnchor = IconAnchor.CENTER;
-      ann.iconOffset = [0.0, 0.0];
-      await _pointManager!.update(ann);
-      await Future.delayed(const Duration(milliseconds: 90));
-
-      ann.image = await _getMarkerBytes(dealText, r.name, true, true);
-      ann.iconSize = 0.75;
-      ann.iconAnchor = IconAnchor.CENTER;
-      ann.iconOffset = [0.0, 0.0];
-      await _pointManager!.update(ann);
-      await Future.delayed(const Duration(milliseconds: 85));
-
-      ann.image = await _getMarkerBytes(dealText, r.name, true, false);
-      ann.iconSize = _pinSelectedIconSize;
-      ann.iconAnchor = IconAnchor.CENTER;
-      ann.iconOffset = [0.0, 0.0];
       await _pointManager!.update(ann);
     } catch (e) {
       _restaurantPins.remove(id);

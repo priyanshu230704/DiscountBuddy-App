@@ -291,11 +291,20 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               json['cuisines'] as List<dynamic>? ?? [];
           final List<dynamic> dealIds = json['deals'] as List<dynamic>? ?? [];
 
-          // Resolve first cuisine name
+          // Resolve ALL cuisine names
+          List<String> cuisineNameList = [];
+          for (final cId in cuisineIds) {
+            final name = cuisineMap[cId as int];
+            if (name != null) cuisineNameList.add(name);
+          }
           String resolvedCuisine = 'Restaurant';
-          if (cuisineIds.isNotEmpty) {
-            resolvedCuisine =
-                cuisineMap[cuisineIds.first as int] ?? 'Restaurant';
+          if (cuisineNameList.isNotEmpty) {
+            if (cuisineNameList.length > 3) {
+              resolvedCuisine =
+                  '${cuisineNameList.take(3).join(' • ')} & many more';
+            } else {
+              resolvedCuisine = cuisineNameList.join(' • ');
+            }
           }
 
           // Resolve deals
@@ -1463,13 +1472,14 @@ class _FeedTile extends StatelessWidget {
 
                           // Cuisines below description
                           if (restaurant.cuisine.isNotEmpty) ...[
-                            const SizedBox(height: 1),
+                            const SizedBox(height: 2),
                             Text(
                               restaurant.cuisine,
                               style: AppTypography.bodySmall.copyWith(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w500,
                                 color: const Color(0xFF9CA3AF),
+                                letterSpacing: 0.1,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,

@@ -371,11 +371,6 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     );
   }
 
-  // Convert km to miles
-  double _kmToMiles(double km) {
-    return km * 0.621371;
-  }
-
   // Get opening hours (using restaurant opening hours or default)
   String _getOpeningHours(Restaurant restaurant) {
     if (restaurant.openingHours.isNotEmpty) {
@@ -393,47 +388,6 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
   }
 
   // Get price range widget
-  Widget _buildPriceIndicator(Restaurant restaurant) {
-    final value = restaurant.priceRange ?? 2;
-    final labels = {
-      1: 'Budget',
-      2: 'Moderate',
-      3: 'Mid-range',
-      4: 'Premium',
-    };
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: List.generate(4, (index) {
-            final isActive = index < value;
-            return Text(
-              '£',
-              style: AppTypography.bodySmall.copyWith(
-                fontSize: 14,
-                height: 1,
-                fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
-                color: isActive
-                    ? AppColors.textPrimary
-                    : AppColors.textDisabled.withValues(alpha: 0.4),
-              ),
-            );
-          }),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          labels[value] ?? 'Moderate',
-          style: AppTypography.bodySmall.copyWith(
-            fontSize: 14,
-            color: AppColors.textSecondary,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
 
   // Toggle favorite status
   Future<void> _toggleFavorite() async {
@@ -794,28 +748,19 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Row 1: Cuisine and Location
+                      // Row 1: Cuisine
+                      Text(
+                        restaurant.cuisine,
+                        style: AppTypography.bodySmall.copyWith(
+                          fontSize: 14,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      // Row 2: Address, Price, and Timing
                       Row(
                         children: [
-                          Text(
-                            restaurant.cuisine,
-                            style: AppTypography.bodySmall.copyWith(
-                              fontSize: 14,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          Container(
-                            width: 1,
-                            height: 14,
-                            margin: const EdgeInsets.symmetric(horizontal: 8),
-                            color: AppColors.textDisabled,
-                          ),
-                          const Icon(
-                            Icons.location_on,
-                            size: 14,
-                            color: AppColors.textPrimary,
-                          ),
-                          const SizedBox(width: 4),
+                          // Address & Distance
                           Flexible(
                             child: Text(
                               () {
@@ -828,36 +773,47 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                   distanceKmFromApi: restaurant.distance,
                                 );
                                 final milesStr = miles != null
-                                    ? '${miles.toStringAsFixed(2)} miles'
-                                    : '— miles';
-                                return '${restaurant.address.split(',').first} ($milesStr)';
+                                    ? '${miles.toStringAsFixed(1)} mi'
+                                    : '-- mi';
+                                return '${restaurant.address.split(',').first} • $milesStr';
                               }(),
                               style: AppTypography.bodySmall.copyWith(
-                                fontSize: 14,
-                                color: AppColors.textPrimary,
+                                fontSize: 13,
+                                color: AppColors.textSecondary,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      // Row 2: Price and Timing
-                      Row(
-                        children: [
-                          _buildPriceIndicator(restaurant),
-                          const SizedBox(width: 12),
-                          const Icon(
-                            Icons.circle,
-                            size: 4,
-                            color: AppColors.textDisabled,
+                          const SizedBox(width: 6),
+                          const Icon(Icons.circle, size: 3, color: AppColors.textDisabled),
+                          const SizedBox(width: 6),
+                          // Specific Price logic inline for compactness
+                          RichText(
+                            text: TextSpan(
+                              children: List.generate(4, (i) {
+                                final isActive = i < (restaurant.priceRange ?? 2);
+                                return TextSpan(
+                                  text: '£',
+                                  style: AppTypography.bodySmall.copyWith(
+                                    fontSize: 13,
+                                    color: isActive
+                                        ? AppColors.textPrimary
+                                        : AppColors.textDisabled.withValues(alpha: 0.4),
+                                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
+                                  ),
+                                );
+                              }),
+                            ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 6),
+                          const Icon(Icons.circle, size: 3, color: AppColors.textDisabled),
+                          const SizedBox(width: 6),
+                          // Opening Hours
                           Text(
                             _getOpeningHours(restaurant),
                             style: AppTypography.bodySmall.copyWith(
-                              fontSize: 14,
-                              color: AppColors.textPrimary,
+                              fontSize: 13,
+                              color: AppColors.textSecondary,
                             ),
                           ),
                         ],

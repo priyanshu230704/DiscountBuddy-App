@@ -711,12 +711,17 @@ class RestaurantService {
         .map((img) => (img as Map<String, dynamic>)['image_url'] as String)
         .toList();
 
-    // Get cuisine from cuisines array
+    // Get all cuisines from cuisines array and join them
     String cuisine = 'Restaurant';
-    final cuisines = json['cuisines'] as List<dynamic>? ?? [];
-    if (cuisines.isNotEmpty) {
-      final firstCuisine = cuisines.first as Map<String, dynamic>?;
-      cuisine = firstCuisine?['name'] as String? ?? cuisine;
+    final cuisinesList = json['cuisines'] as List<dynamic>? ?? [];
+    if (cuisinesList.isNotEmpty) {
+      final names = cuisinesList
+          .map((c) => (c as Map<String, dynamic>?)?['name'] as String? ?? '')
+          .where((name) => name.isNotEmpty)
+          .toList();
+      if (names.isNotEmpty) {
+        cuisine = names.join(' • ');
+      }
     }
 
     // Get rating and review count

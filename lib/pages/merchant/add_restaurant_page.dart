@@ -325,27 +325,27 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
     }
 
     // Load categories
-    if (restaurant['categories'] != null) {
-      final categories = restaurant['categories'] as List;
-      _selectedCategoryIds = categories.map((c) {
+    final categoriesData = restaurant['categories'] ?? restaurant['category_ids'];
+    if (categoriesData != null && categoriesData is List) {
+      _selectedCategoryIds = categoriesData.map((c) {
         if (c is Map) return c['id'] as int;
         return c as int;
       }).toList();
     }
 
     // Load cuisines
-    if (restaurant['cuisines'] != null) {
-      final cuisines = restaurant['cuisines'] as List;
-      _selectedCuisineIds = cuisines.map((c) {
+    final cuisinesData = restaurant['cuisines'] ?? restaurant['cuisine_ids'];
+    if (cuisinesData != null && cuisinesData is List) {
+      _selectedCuisineIds = cuisinesData.map((c) {
         if (c is Map) return c['id'] as int;
         return c as int;
       }).toList();
     }
 
     // Load facilities
-    if (restaurant['facilities'] != null) {
-      final facilities = restaurant['facilities'] as List;
-      _selectedFacilityIds = facilities.map((f) {
+    final facilitiesData = restaurant['facilities'] ?? restaurant['facility_ids'];
+    if (facilitiesData != null && facilitiesData is List) {
+      _selectedFacilityIds = facilitiesData.map((f) {
         if (f is Map) return f['id'] as int;
         return f as int;
       }).toList();
@@ -402,27 +402,32 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
         'city_id': _selectedCityId,
         'address': _addressController.text.trim(),
         'postcode': _postcodeController.text.trim(),
-        'latitude': double.tryParse(_latitudeController.text.trim())?.toStringAsFixed(6),
-        'longitude': double.tryParse(_longitudeController.text.trim())?.toStringAsFixed(6),
+        'latitude': _latitudeController.text.trim(),
+        'longitude': _longitudeController.text.trim(),
         'phone': _phoneController.text.trim(),
         'email': _emailController.text.trim(),
-        'website': _websiteController.text.trim(),
-        'categories': _selectedCategoryIds,
+        'category_ids': _selectedCategoryIds,
         'cuisine_ids': _selectedCuisineIds,
-        'facilities': _selectedFacilityIds,
+        'facility_ids': _selectedFacilityIds,
         'price_range': _priceRange,
         'menu_type': _menuType,
         if (openingHours.isNotEmpty) 'opening_hours': openingHours,
       };
 
-      // Remove empty optional fields
+      if (_websiteController.text.trim().isNotEmpty) {
+        restaurantData['website'] = _websiteController.text.trim();
+      }
+
+      // Remove empty optional fields but keep IDs and lists that might be empty if intended
       restaurantData.removeWhere(
         (key, value) =>
             (value == null ||
                 value == '' ||
                 (value is List && value.isEmpty)) &&
             key != 'city_id' &&
-            key != 'categories' &&
+            key != 'category_ids' &&
+            key != 'facility_ids' &&
+            key != 'cuisine_ids' &&
             key != 'price_range',
       );
 

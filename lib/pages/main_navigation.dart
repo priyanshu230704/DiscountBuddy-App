@@ -25,10 +25,19 @@ class MainNavigation extends StatefulWidget {
   });
 
   @override
-  State<MainNavigation> createState() => _MainNavigationState();
+  State<MainNavigation> createState() => MainNavigationState();
 }
 
-class _MainNavigationState extends State<MainNavigation> {
+class MainNavigationState extends State<MainNavigation> {
+  static MainNavigationState? of(BuildContext context) {
+    return context.findAncestorStateOfType<MainNavigationState>();
+  }
+
+  void changeIndex(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
   late int _currentIndex;
   final AuthProvider _authProvider = AuthProvider();
   final Map<int, Widget> _pageCache = {};

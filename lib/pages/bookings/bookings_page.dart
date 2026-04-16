@@ -1,3 +1,5 @@
+import 'package:discount_buddy/pages/home/home_page.dart';
+import 'package:discount_buddy/pages/main_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
@@ -409,7 +411,9 @@ class _ReservationEmptyTab extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.xxl),
                 AppGradientButton(
-                  onPressed: onExplorePressed,
+                  onPressed: () {
+                    MainNavigationState.of(context)?.changeIndex(0);
+                  },
                   width: double.infinity,
                   height: 54,
                   child: const Text('Explore restaurants'),

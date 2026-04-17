@@ -31,6 +31,39 @@ class Cuisine {
   }
 }
 
+/// Restaurant Category model
+class RestaurantCategory {
+  final int id;
+  final String name;
+  final String slug;
+  final String? icon;
+
+  RestaurantCategory({
+    required this.id,
+    required this.name,
+    required this.slug,
+    this.icon,
+  });
+
+  factory RestaurantCategory.fromJson(Map<String, dynamic> json) {
+    return RestaurantCategory(
+      id: json['id'] as int? ?? 0,
+      name: json['name'] as String? ?? '',
+      slug: json['slug'] as String? ?? '',
+      icon: json['icon'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'slug': slug,
+      'icon': icon,
+    };
+  }
+}
+
 /// Opening Slot model
 class OpeningSlot {
   final String dayName;
@@ -197,6 +230,9 @@ class Restaurant {
   final String menuType; // structured, image
   final List<RestaurantImage> restaurantImages;
   final List<Cuisine> cuisines;
+  final List<RestaurantCategory> categories;
+  final bool verified;
+  final bool isFeatured;
 
   Restaurant({
     required this.id,
@@ -232,6 +268,9 @@ class Restaurant {
     this.menuType = 'structured',
     this.restaurantImages = const [],
     this.cuisines = const [],
+    this.categories = const [],
+    this.verified = false,
+    this.isFeatured = false,
   });
 
   factory Restaurant.fromJson(Map<String, dynamic> json) {
@@ -244,6 +283,11 @@ class Restaurant {
             ?.map((e) => Cuisine.fromJson(e as Map<String, dynamic>))
             .toList() ??
         <Cuisine>[];
+        
+    final List<RestaurantCategory> categories = (json['categories'] as List<dynamic>?)
+            ?.map((e) => RestaurantCategory.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        <RestaurantCategory>[];
         
     final List<dynamic> rawImagesList = json['images'] as List<dynamic>? ?? [];
     List<RestaurantImage> parsedRestaurantImages = [];
@@ -290,7 +334,7 @@ class Restaurant {
       address: json['address'] as String? ?? '',
       latitude: _parseDouble(json['latitude']) ?? 0.0,
       longitude: _parseDouble(json['longitude']) ?? 0.0,
-      cuisine: json['cuisine'] as String? ?? '',
+      cuisine: json['cuisine'] as String? ?? (cuisines.isNotEmpty ? cuisines.map((e) => e.name).join(' • ') : ''),
       occupancy: json['occupancy'] as String?,
       rating:
           _parseDouble(json['average_rating']) ??
@@ -337,6 +381,9 @@ class Restaurant {
       leaderboardScore: _parseDouble(json['leaderboard_score']) ?? 0.0,
       menuType: json['menu_type'] as String? ?? 'structured',
       restaurantImages: parsedRestaurantImages,
+      categories: categories,
+      verified: json['verified'] as bool? ?? false,
+      isFeatured: json['is_featured'] as bool? ?? false,
     );
   }
 
@@ -365,8 +412,11 @@ class Restaurant {
       'hasUserReviewed': hasUserReviewed,
       'leaderboard_score': leaderboardScore,
       'facilities': facilities.map((e) => e.toJson()).toList(),
+      'categories': categories.map((e) => e.toJson()).toList(),
       'menu_type': menuType,
       'images': restaurantImages.map((e) => e.toJson()).toList(),
+      'verified': verified,
+      'is_featured': isFeatured,
       if (slug != null) 'slug': slug,
     };
   }
@@ -401,9 +451,11 @@ class Restaurant {
     bool? hasUserReviewed,
     List<OpeningSlot>? openingSlots,
     List<Discount>? activeDeals,
-    List<Facility>? facilities,
+    List<RestaurantCategory>? categories,
     String? menuType,
     List<RestaurantImage>? restaurantImages,
+    bool? verified,
+    bool? isFeatured,
   }) {
     return Restaurant(
       id: id ?? this.id,
@@ -435,10 +487,13 @@ class Restaurant {
       hasUserReviewed: hasUserReviewed ?? this.hasUserReviewed,
       openingSlots: openingSlots ?? this.openingSlots,
       activeDeals: activeDeals ?? this.activeDeals,
-      facilities: facilities ?? this.facilities,
+      facilities: facilities,
+      categories: categories ?? this.categories,
       menuType: menuType ?? this.menuType,
       restaurantImages: restaurantImages ?? this.restaurantImages,
       cuisines: cuisines,
+      verified: verified ?? this.verified,
+      isFeatured: isFeatured ?? this.isFeatured,
     );
   }
 }

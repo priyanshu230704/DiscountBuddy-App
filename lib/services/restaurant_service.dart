@@ -1,3 +1,5 @@
+import 'package:discount_buddy/config/environment.dart';
+
 import '../models/restaurant.dart';
 import '../models/restaurant_detail.dart';
 import '../models/review.dart';
@@ -72,9 +74,7 @@ class RestaurantService {
     double? longitude,
   }) async {
     try {
-      final queryParams = <String, String>{
-        'q': query,
-      };
+      final queryParams = <String, String>{'q': query};
       if (latitude != null) queryParams['latitude'] = latitude.toString();
       if (longitude != null) queryParams['longitude'] = longitude.toString();
 
@@ -146,7 +146,8 @@ class RestaurantService {
   }) async {
     try {
       final body = <String, dynamic>{};
-      if (bookingDate != null) body['booking_date'] = bookingDate.toIso8601String();
+      if (bookingDate != null)
+        body['booking_date'] = bookingDate.toIso8601String();
       if (numberOfGuests != null) body['number_of_guests'] = numberOfGuests;
       if (specialRequests != null) body['special_requests'] = specialRequests;
       if (contactName != null) body['contact_name'] = contactName;
@@ -322,9 +323,21 @@ class RestaurantService {
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
 
-      // The ApiService wraps lists in a 'data' key for consistency
-      final List<dynamic> results =
-          (response['data'] ?? response['results'] ?? []) as List<dynamic>;
+      // Handle different response structures: 'data', 'results', or 'restaurants' map
+      List<dynamic> results = [];
+      if (response['data'] is List) {
+        results = response['data'] as List<dynamic>;
+      } else if (response['results'] is List) {
+        results = response['results'] as List<dynamic>;
+      } else if (response['restaurants'] is Map) {
+        // If it's a map of ID -> Restaurant (like in response.json), extract the values
+        final Map<String, dynamic> restaurantsMap = Map<String, dynamic>.from(
+          response['restaurants'],
+        );
+        results = restaurantsMap.values.toList();
+      } else if (response is List) {
+        results = response as List<dynamic>;
+      }
 
       return results
           .map(
@@ -422,8 +435,6 @@ class RestaurantService {
     }
   }
 
-
-
   /// Get restaurant by ID
   Future<Restaurant> getRestaurantById(String id) async {
     try {
@@ -465,25 +476,44 @@ class RestaurantService {
     final restaurantId = json['id'] as int? ?? 0;
 
     // Build address from city_name and country_name
-    final cityName = json['city_name'] as String? ?? '';
-    final countryName = json['country_name'] as String? ?? '';
+    String cityName = json['city_name'] as String? ?? '';
+    String countryName = json['country_name'] as String? ?? '';
+
+    if (cityName.isEmpty &&
+        json['location'] != null &&
+        json['location'] is Map) {
+      cityName = json['location']['city'] as String? ?? '';
+      countryName = json['location']['country'] as String? ?? '';
+    }
+
     final address = cityName.isNotEmpty && countryName.isNotEmpty
         ? '$cityName, $countryName'
         : (cityName.isNotEmpty ? cityName : 'Address not available');
 
     // Parse latitude and longitude
-    final latStr = json['latitude'] as String? ?? '0';
-    final lngStr = json['longitude'] as String? ?? '0';
-    final latitude = double.tryParse(latStr) ?? 0.0;
-    final longitude = double.tryParse(lngStr) ?? 0.0;
+    dynamic latVal = json['latitude'];
+    dynamic lngVal = json['longitude'];
+
+    // Check for nested location object (as seen in some API responses)
+    if (json['location'] != null && json['location'] is Map) {
+      latVal = json['location']['lat'];
+      lngVal = json['location']['lng'];
+    }
+
+    final latitude = _parseDouble(latVal) ?? 0.0;
+    final longitude = _parseDouble(lngVal) ?? 0.0;
 
     // ----- Image URL resolution -----
     // The list endpoint returns `primary_image` (a single absolute URL string).
     // The detail endpoint returns `images` (an array of image objects).
     // Check primary_image first, then fall back to images array.
-    String imageUrl = json['primary_image'] as String? ?? json['image'] as String? ?? json['image_url'] as String? ?? '';
+    String imageUrl =
+        json['primary_image'] as String? ??
+        json['image'] as String? ??
+        json['image_url'] as String? ??
+        '';
     if (imageUrl.isNotEmpty && imageUrl.startsWith('/')) {
-        imageUrl = 'http://10.149.127.15:8000$imageUrl';
+      imageUrl = '${Environment.baseUrl}$imageUrl';
     }
 
     if (imageUrl.isEmpty) {
@@ -494,10 +524,12 @@ class RestaurantService {
           .toList();
 
       if (restaurantImages.isNotEmpty) {
-        final galleryImages =
-            restaurantImages.where((img) => img.imageType == 'gallery').toList();
-        final coverImages =
-            restaurantImages.where((img) => img.imageType == 'cover').toList();
+        final galleryImages = restaurantImages
+            .where((img) => img.imageType == 'gallery')
+            .toList();
+        final coverImages = restaurantImages
+            .where((img) => img.imageType == 'cover')
+            .toList();
 
         RestaurantImage? bestImage;
         if (galleryImages.isNotEmpty) {
@@ -516,7 +548,9 @@ class RestaurantService {
             orElse: () => restaurantImages.first,
           );
         }
-        imageUrl = bestImage.imageUrl.isNotEmpty ? bestImage.imageUrl : bestImage.image;
+        imageUrl = bestImage.imageUrl.isNotEmpty
+            ? bestImage.imageUrl
+            : bestImage.image;
       }
     }
 
@@ -526,19 +560,26 @@ class RestaurantService {
         .map((e) => RestaurantImage.fromJson(e as Map<String, dynamic>))
         .toList();
 
-    // Cuisine
-    final cuisine = cuisineMap?[restaurantId] ?? 'Restaurant';
-    final slug = json['slug'] as String?;
-
     // Rating and Reviews
-    final averageRating =
-        _parseDouble(json['average_rating']) ??
-        _parseDouble(json['rating']) ??
-        0.0;
-    final reviewsCount =
-        _parseInt(json['review_count']) ??
-        _parseInt(json['reviews_count']) ??
-        0;
+    double averageRating = 0.0;
+    if (json['average_rating'] != null) {
+      averageRating = _parseDouble(json['average_rating']) ?? 0.0;
+    } else if (json['rating'] != null) {
+      if (json['rating'] is Map) {
+        averageRating = _parseDouble(json['rating']['average']) ?? 0.0;
+      } else {
+        averageRating = _parseDouble(json['rating']) ?? 0.0;
+      }
+    }
+
+    int reviewsCount = 0;
+    if (json['review_count'] != null) {
+      reviewsCount = _parseInt(json['review_count']) ?? 0;
+    } else if (json['reviews_count'] != null) {
+      reviewsCount = _parseInt(json['reviews_count']) ?? 0;
+    } else if (json['rating'] != null && json['rating'] is Map) {
+      reviewsCount = _parseInt(json['rating']['count']) ?? 0;
+    }
 
     // Discount from active_deals - default to none if not present
     Discount discount = Discount(type: 'none', description: '');
@@ -568,32 +609,78 @@ class RestaurantService {
         .toList();
 
     if (imageUrl.isNotEmpty && imageUrl.startsWith('/')) {
-      imageUrl = 'http://10.149.127.15:8000$imageUrl';
+      imageUrl = '${Environment.baseUrl}$imageUrl';
+    }
+
+    // Cuisine extraction - Show up to 3 and then "many more"
+    final cuisinesList = (json['cuisines'] as List<dynamic>?)
+            ?.map((e) => Cuisine.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        [];
+    
+    String cuisine = '';
+    if (cuisinesList.isNotEmpty) {
+      final names = cuisinesList.map((e) => e.name).toList();
+      if (names.length > 3) {
+        cuisine = '${names.take(3).join(' • ')} +${names.length - 3} more';
+      } else {
+        cuisine = names.join(' • ');
+      }
+    } else {
+      cuisine = cuisineMap?[restaurantId] ?? 'Restaurant';
+    }
+
+    // Description fallback chain
+    String description = (json['description'] != null && json['description'].toString().trim().isNotEmpty)
+        ? json['description'].toString().trim()
+        : (json['short_description'] != null && json['short_description'].toString().trim().isNotEmpty)
+            ? json['short_description'].toString().trim()
+            : (json['about'] != null && json['about'].toString().trim().isNotEmpty)
+                ? json['about'].toString().trim()
+                : '';
+
+    if (description.isEmpty && dealsJson.isNotEmpty) {
+      final firstDeal = dealsJson.first as Map<String, dynamic>;
+      description = firstDeal['description'] as String? ?? '';
+    }
+    
+    if (description.isEmpty) {
+      description = 'Restaurant in $cityName';
     }
 
     return Restaurant(
-      id: restaurantId.toString(),
+      id: json['slug'] as String? ?? restaurantId.toString(),
       name: json['name'] as String? ?? 'Unknown Restaurant',
-      description: json['description'] as String? ?? 'Restaurant in $cityName',
+      description: description,
       imageUrl: imageUrl,
       address: address,
       latitude: latitude,
       longitude: longitude,
       cuisine: cuisine,
+      cuisines: cuisinesList,
+      categories: (json['categories'] as List<dynamic>?)
+              ?.map((e) => RestaurantCategory.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      facilities: (json['facilities'] as List<dynamic>?)
+              ?.map((e) => Facility.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      verified: json['verified'] as bool? ?? false,
+      isFeatured: json['is_featured'] as bool? ?? false,
       occupancy: json['occupancy'] as String?,
       rating: averageRating.toDouble(),
       reviewCount: reviewsCount,
       distance: _parseDouble(json['distance']) ?? 0.0,
       distanceMiles: _parseDouble(json['distance_miles']),
       discount: discount,
-      slug: slug,
+      slug: json['slug'] as String?,
       isFavourite: json['is_favourite'] as bool? ?? false,
       leaderboardScore: _parseDouble(json['leaderboard_score']) ?? 0.0,
       menuType: json['menu_type'] as String? ?? 'structured',
       restaurantImages: restaurantImages,
       activeDeals: activeDeals,
     );
-
   }
 
   /// Get restaurant details by slug
@@ -688,8 +775,9 @@ class RestaurantService {
 
     // Image URL logic: find primary gallery image, fallback to first gallery image, then any image
     String imageUrl = '';
-    final galleryImages =
-        restaurantImages.where((img) => img.imageType == 'gallery').toList();
+    final galleryImages = restaurantImages
+        .where((img) => img.imageType == 'gallery')
+        .toList();
     if (galleryImages.isNotEmpty) {
       final primary = galleryImages.firstWhere(
         (img) => img.isPrimary,
@@ -806,9 +894,24 @@ class RestaurantService {
               .toList() ??
           [],
       activeDeals: activeDeals,
+      facilities:
+          (json['facilities'] as List<dynamic>?)
+              ?.map((e) => Facility.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      categories:
+          (json['categories'] as List<dynamic>?)
+              ?.map(
+                (e) => RestaurantCategory.fromJson(e as Map<String, dynamic>),
+              )
+              .toList() ??
+          [],
+      verified: json['verified'] as bool? ?? false,
+      isFeatured: json['is_featured'] as bool? ?? false,
       leaderboardScore: _parseDouble(json['leaderboard_score']) ?? 0.0,
       menuType: json['menu_type'] as String? ?? 'structured',
       restaurantImages: restaurantImages,
+      cuisines: cuisinesList.map((e) => Cuisine.fromJson(e)).toList(),
     );
   }
 

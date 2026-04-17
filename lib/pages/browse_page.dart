@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:discount_buddy/design/app_typography.dart';
 import '../models/restaurant.dart';
 import '../services/restaurant_service.dart';
 import '../services/location_service.dart';

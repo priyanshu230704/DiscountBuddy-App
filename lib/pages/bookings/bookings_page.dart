@@ -1,7 +1,5 @@
-import 'package:discount_buddy/pages/home/home_page.dart';
 import 'package:discount_buddy/pages/main_navigation.dart';
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import '../../components/app_app_bar.dart';
@@ -17,7 +15,6 @@ import '../../widgets/empty_state_widget.dart';
 import '../../models/restaurant.dart';
 import '../../services/location_service.dart';
 import '../restaurant_details_page.dart';
-import '../../utils/distance_utils.dart';
 
 /// Bookings/Redemptions Screen - Integrated with deal uses API
 class BookingsPage extends StatefulWidget {

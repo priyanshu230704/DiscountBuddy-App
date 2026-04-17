@@ -1015,7 +1015,7 @@ class _RatingBar extends StatelessWidget {
         ),
       ),
       const SizedBox(width: 8),
-      Text('${value.toStringAsFixed(0)}', style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700, color: color)),
+      Text(value.toStringAsFixed(0), style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700, color: color)),
     ]);
   }
 }

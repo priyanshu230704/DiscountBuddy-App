@@ -689,13 +689,20 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
-                        child: Text(
-                          restaurant.name,
-                          style: AppTypography.title.copyWith(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
-                          ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                restaurant.name,
+                                style: AppTypography.title.copyWith(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -748,13 +755,30 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Row 1: Cuisine
-                      Text(
-                        restaurant.cuisine,
-                        style: AppTypography.bodySmall.copyWith(
-                          fontSize: 14,
-                          color: AppColors.textPrimary,
-                        ),
+                      // Row 1: Cuisine & Categories
+                      Wrap(
+                        spacing: 6,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          if (restaurant.cuisine.isNotEmpty)
+                            Text(
+                              restaurant.cuisine,
+                              style: AppTypography.bodySmall.copyWith(
+                                fontSize: 14,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                          if (restaurant.cuisine.isNotEmpty && restaurant.categories.isNotEmpty)
+                            const Icon(Icons.circle, size: 3, color: AppColors.textDisabled),
+                          if (restaurant.categories.isNotEmpty)
+                            Text(
+                              restaurant.categories.map((e) => e.name).join(' • '),
+                              style: AppTypography.bodySmall.copyWith(
+                                fontSize: 13,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                        ],
                       ),
                       const SizedBox(height: 6),
                       // Row 2: Address, Price, and Timing
@@ -1159,10 +1183,34 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              if (fac.icon.isNotEmpty) ...[
-                                Text(fac.icon, style: const TextStyle(fontSize: 14)),
-                                const SizedBox(width: 6),
-                              ],
+                              (() {
+                                String icon = fac.icon;
+                                if (icon.isEmpty) {
+                                  // Fallback icons based on name
+                                  final name = fac.name.toLowerCase();
+                                  if (name.contains('dine-in')) icon = '🪑';
+                                  else if (name.contains('takeaway')) icon = '🥡';
+                                  else if (name.contains('delivery')) icon = '🛵';
+                                  else if (name.contains('outdoor')) icon = '⛱️';
+                                  else if (name.contains('wifi')) icon = '📶';
+                                  else if (name.contains('parking')) icon = '🅿️';
+                                  else if (name.contains('toilet') || name.contains('washroom')) icon = '🚻';
+                                  else if (name.contains('card')) icon = '💳';
+                                  else if (name.contains('alcohol')) icon = '🍺';
+                                  else if (name.contains('music')) icon = '🎵';
+                                  else if (name.contains('child') || name.contains('kid')) icon = '👶';
+                                  else if (name.contains('accessible') || name.contains('wheelchair')) icon = '♿';
+                                }
+                                if (icon.isNotEmpty) {
+                                  return Row(
+                                    children: [
+                                      Text(icon, style: const TextStyle(fontSize: 14)),
+                                      const SizedBox(width: 6),
+                                    ],
+                                  );
+                                }
+                                return const SizedBox.shrink();
+                              })(),
                               Text(
                                 fac.name,
                                 style: AppTypography.body.copyWith(
@@ -1787,109 +1835,141 @@ class _ReviewItem extends StatelessWidget {
 }
 
 /// Offer Card Widget
-class _OfferCard extends StatelessWidget {
+class _OfferCard extends StatefulWidget {
   final Discount discount;
 
   const _OfferCard({required this.discount});
 
+  @override
+  State<_OfferCard> createState() => _OfferCardState();
+}
+
+class _OfferCardState extends State<_OfferCard> {
+  bool _isExpanded = false;
+
   String _getOfferTitle() {
-    if (discount.title != null && discount.title!.isNotEmpty) {
-      return discount.title!;
+    if (widget.discount.title != null && widget.discount.title!.isNotEmpty) {
+      return widget.discount.title!;
     }
-    switch (discount.type) {
+    switch (widget.discount.type) {
       case '2for1':
         return '2for1 Drink';
       case 'percentage':
-        return '${discount.percentage?.toInt()}% Discount';
+        return '${widget.discount.percentage?.toInt()}% Discount';
       case 'fixed':
-        return '£${discount.fixedAmount?.toStringAsFixed(0)} Discount';
+        return '£${widget.discount.fixedAmount?.toStringAsFixed(0)} Discount';
       default:
-        return discount.displayText;
+        return widget.discount.displayText;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppColors.primaryPurple.withValues(alpha: 0.12),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryPurple.withValues(alpha: 0.08),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: AppColors.primaryPurple.withValues(alpha: 0.12),
+            width: 1.5,
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Row with Badge
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  gradient: AppColors.purpleGradient,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.local_offer, color: Colors.white, size: 12),
-                    const SizedBox(width: 5),
-                    Text(
-                      'DEAL',
-                      style: AppTypography.title.copyWith(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                        letterSpacing: 1.1,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // const Icon(
-              //   Icons.arrow_forward_ios,
-              //   size: 14,
-              //   color: AppColors.textDisabled,
-              // ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          // Title
-          Text(
-            _getOfferTitle(),
-            style: AppTypography.body.copyWith(
-              fontSize: 19,
-              fontWeight: FontWeight.w800,
-              color: AppColors.textDarkest,
-              letterSpacing: -0.4,
-            ),
-          ),
-          // Description (Show only if not empty)
-          if (discount.description.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              discount.description,
-              style: AppTypography.bodySmall.copyWith(
-                fontSize: 14,
-                color: AppColors.textSecondary,
-                height: 1.5,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primaryPurple.withValues(alpha: 0.08),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
             ),
           ],
-        ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header Row with Badge
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    gradient: AppColors.purpleGradient,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.local_offer, color: Colors.white, size: 12),
+                      const SizedBox(width: 5),
+                      Text(
+                        'DEAL',
+                        style: AppTypography.title.copyWith(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          letterSpacing: 1.1,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            // Title
+            Text(
+              _getOfferTitle(),
+              style: AppTypography.body.copyWith(
+                fontSize: 19,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textDarkest,
+                letterSpacing: -0.4,
+              ),
+            ),
+            // Description with Expansion Logic
+            if (widget.discount.description.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.discount.description,
+                    style: AppTypography.bodySmall.copyWith(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                      height: 1.5,
+                    ),
+                    maxLines: _isExpanded ? null : 2,
+                    overflow: _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                  ),
+                  // Showing "View More" if potentially long
+                  if (widget.discount.description.length > 50) 
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _isExpanded = !_isExpanded;
+                        });
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Text(
+                          _isExpanded ? 'View Less' : 'View More',
+                          style: AppTypography.bodySmall.copyWith(
+                            fontSize: 13,
+                            color: AppColors.primaryPurple,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

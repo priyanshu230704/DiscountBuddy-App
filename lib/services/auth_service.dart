@@ -520,6 +520,67 @@ class AuthService {
     }
   }
 
+  /// Request password reset OTP
+  Future<void> requestPasswordResetOtp({required String email}) async {
+    try {
+      await _apiService.post(
+        ApiEndpoints.passwordResetRequest,
+        body: {'email': email},
+      );
+    } catch (e) {
+      if (e is ApiException) {
+        throw ApiException(e.message, statusCode: e.statusCode, data: e.data);
+      }
+      rethrow;
+    }
+  }
+
+  /// Verify password reset OTP
+  Future<void> verifyPasswordResetOtp({
+    required String email,
+    required String otp,
+  }) async {
+    try {
+      await _apiService.post(
+        ApiEndpoints.passwordResetVerify,
+        body: {
+          'email': email,
+          'otp': otp,
+        },
+      );
+    } catch (e) {
+      if (e is ApiException) {
+        throw ApiException(e.message, statusCode: e.statusCode, data: e.data);
+      }
+      rethrow;
+    }
+  }
+
+  /// Confirm password reset with OTP
+  Future<void> confirmPasswordReset({
+    required String email,
+    required String otp,
+    required String password,
+    required String confirmPassword,
+  }) async {
+    try {
+      await _apiService.post(
+        ApiEndpoints.passwordResetConfirm,
+        body: {
+          'email': email,
+          'otp': otp,
+          'password': password,
+          'confirm_password': confirmPassword,
+        },
+      );
+    } catch (e) {
+      if (e is ApiException) {
+        throw ApiException(e.message, statusCode: e.statusCode, data: e.data);
+      }
+      rethrow;
+    }
+  }
+
   /// Request password reset
   Future<void> passwordReset({required String email}) async {
     try {

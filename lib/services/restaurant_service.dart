@@ -650,7 +650,7 @@ class RestaurantService {
     }
 
     return Restaurant(
-      id: json['slug'] as String? ?? restaurantId.toString(),
+      id: restaurantId.toString(),
       name: json['name'] as String? ?? 'Unknown Restaurant',
       description: description,
       imageUrl: imageUrl,

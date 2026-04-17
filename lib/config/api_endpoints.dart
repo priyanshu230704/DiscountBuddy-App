@@ -10,6 +10,9 @@ class ApiEndpoints {
   static const String oauthLogin = '/users/oauth';
   static const String currentUser = '/users/me';
   static const String passwordReset = '/users/password-reset';
+  static const String passwordResetRequest = '/users/password-reset/request';
+  static const String passwordResetConfirm = '/users/password-reset/confirm';
+  static const String passwordResetVerify = '/users/password-reset/verify';
   static const String logout = '/users/logout';
   static const String deleteAccount = '/users/account-delete';
   static const String deleteAccountInit = '/users/account-delete/init';

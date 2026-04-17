@@ -7,6 +7,7 @@ import '../../providers/auth_provider.dart';
 import '../../theme/app_colors.dart';
 import 'package:discount_buddy/design/app_typography.dart';
 import '../../widgets/auth/auth_theme.dart';
+import 'forgot_password_page.dart';
 
 /// Login Screen - DiscountBuddy Redesign
 class LoginPage extends StatefulWidget {
@@ -151,33 +152,14 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _handleForgotPassword() async {
     final email = _emailController.text.trim();
-    if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Please enter your email address first',
-            style: AuthTheme.bodyText,
-          ),
-          backgroundColor: AppColors.accent,
-          behavior: SnackBarBehavior.floating,
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ForgotPasswordPage(
+          initialEmail: email.isNotEmpty ? email : null,
         ),
-      );
-      return;
-    }
-
-    final success = await _authProvider?.forgotPassword(email: email);
-    if (success == true && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Password reset link sent to your email',
-            style: AuthTheme.bodyText,
-          ),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
+      ),
+    );
   }
 
   @override

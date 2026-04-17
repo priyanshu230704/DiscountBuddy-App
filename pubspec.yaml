@@ -19,8 +19,8 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 
 
-version: 1.0.4+10 #for android 
-# version: 1.0.2+1 #for ios
+# version: 1.0.4+10 #for android 
+version: 1.0.3+2 #for ios
 
 
 environment:

@@ -280,12 +280,14 @@ class Restaurant {
         <Discount>[];
 
     final List<Cuisine> cuisines = (json['cuisines'] as List<dynamic>?)
-            ?.map((e) => Cuisine.fromJson(e as Map<String, dynamic>))
+            ?.whereType<Map<String, dynamic>>()
+            .map((e) => Cuisine.fromJson(e))
             .toList() ??
         <Cuisine>[];
         
     final List<RestaurantCategory> categories = (json['categories'] as List<dynamic>?)
-            ?.map((e) => RestaurantCategory.fromJson(e as Map<String, dynamic>))
+            ?.whereType<Map<String, dynamic>>()
+            .map((e) => RestaurantCategory.fromJson(e))
             .toList() ??
         <RestaurantCategory>[];
         
@@ -374,7 +376,8 @@ class Restaurant {
           [],
       facilities:
           (json['facilities'] as List<dynamic>?)
-               ?.map((e) => Facility.fromJson(e as Map<String, dynamic>))
+               ?.whereType<Map<String, dynamic>>()
+               .map((e) => Facility.fromJson(e))
                .toList() ??
           [],
       slug: json['slug'] as String?,

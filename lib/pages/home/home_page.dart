@@ -330,7 +330,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
         // Parse sections
         final List<int> allIds = List<int>.from(
-          sections['all_restaurants'] ?? sections['top_10'] ?? [],
+          sections['all_restaurants'] ?? 
+          sections['top_10'] ?? 
+          sections['featured'] ?? 
+          (restaurantsData.keys.map((k) => int.tryParse(k)).whereType<int>().toList())
         );
         final List<int> nearbyIds = List<int>.from(sections['nearby'] ?? []);
 
@@ -369,7 +372,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           _isLoading = false;
         });
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('❌ Error loading restaurants: $e');
       if (mounted) setState(() => _isLoading = false);
     }
   }

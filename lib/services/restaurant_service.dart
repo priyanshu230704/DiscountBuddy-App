@@ -614,7 +614,8 @@ class RestaurantService {
 
     // Cuisine extraction - Show up to 3 and then "many more"
     final cuisinesList = (json['cuisines'] as List<dynamic>?)
-            ?.map((e) => Cuisine.fromJson(e as Map<String, dynamic>))
+            ?.whereType<Map<String, dynamic>>()
+            .map((e) => Cuisine.fromJson(e))
             .toList() ??
         [];
     
@@ -659,11 +660,13 @@ class RestaurantService {
       cuisine: cuisine,
       cuisines: cuisinesList,
       categories: (json['categories'] as List<dynamic>?)
-              ?.map((e) => RestaurantCategory.fromJson(e as Map<String, dynamic>))
+              ?.whereType<Map<String, dynamic>>()
+              .map((e) => RestaurantCategory.fromJson(e))
               .toList() ??
           [],
       facilities: (json['facilities'] as List<dynamic>?)
-              ?.map((e) => Facility.fromJson(e as Map<String, dynamic>))
+              ?.whereType<Map<String, dynamic>>()
+              .map((e) => Facility.fromJson(e))
               .toList() ??
           [],
       verified: json['verified'] as bool? ?? false,

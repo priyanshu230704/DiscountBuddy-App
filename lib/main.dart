@@ -126,6 +126,14 @@ class _DiscountBuddyAppState extends State<DiscountBuddyApp> {
               ? ThemeMode.dark
               : ThemeMode.light,
           home: const SplashScreen(),
+          builder: (context, child) {
+            return MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                textScaler: TextScaler.noScaling,
+              ),
+              child: child!,
+            );
+          },
           routes: {
             '/onboarding-check': (context) => const OnboardingCheckScreen(),
             '/login': (context) => const LoginPage(),

@@ -9,6 +9,25 @@ import '../design/app_avatars.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../config/environment.dart';
 
+String _urlFilename(String pathOrUrl) {
+  return pathOrUrl.split('?').first.split('/').last.toLowerCase();
+}
+
+/// If [profileUrl] is the same image as a preset (asset path, or server URL
+/// with the same `profileN.png` file name), return the asset path. Otherwise
+/// `null` — avoids a duplicate row (preset + uploaded URL) in the carousel.
+String? _presetAssetForProfileUrl(String profileUrl) {
+  for (final preset in AppAvatars.presetAvatars) {
+    if (preset == profileUrl) return preset;
+  }
+  final name = _urlFilename(profileUrl);
+  if (name.isEmpty) return null;
+  for (final preset in AppAvatars.presetAvatars) {
+    if (_urlFilename(preset) == name) return preset;
+  }
+  return null;
+}
+
 /// Edit Profile Screen
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -40,12 +59,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
     int initialPage = _presetAvatars.length ~/ 2;
     
     if (userProfilePic != null && userProfilePic.isNotEmpty) {
-      if (!_presetAvatars.contains(userProfilePic)) {
-        _customAvatars.add(userProfilePic);
+      final matchingPreset = _presetAssetForProfileUrl(userProfilePic);
+      if (matchingPreset != null) {
+        _selectedAvatarUrl = matchingPreset;
+      } else {
+        _selectedAvatarUrl = userProfilePic;
+        if (!_customAvatars.contains(userProfilePic)) {
+          _customAvatars.add(userProfilePic);
+        }
       }
-      _selectedAvatarUrl = userProfilePic;
-      initialPage = _allAvatars.indexOf(userProfilePic);
-      if (initialPage == -1) initialPage = 0;
+      final idx = _allAvatars.indexOf(_selectedAvatarUrl!);
+      initialPage = idx >= 0 ? idx : 0;
     } else if (_presetAvatars.isNotEmpty) {
       _selectedAvatarUrl = _presetAvatars[initialPage];
     }

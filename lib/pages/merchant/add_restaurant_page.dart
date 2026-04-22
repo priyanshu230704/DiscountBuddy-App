@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart' show Geolocator;
 import 'package:discount_buddy/design/app_design.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/app_gradient_button.dart';
@@ -85,12 +86,32 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
           ),
         );
       }
+    } on LocationServiceDisabledException {
+      if (mounted) {
+        _showLocationHelpSnackBar(
+          'Location (GPS) is turned off. Turn it on in system settings, then try again.',
+          isSystemLocationOff: true,
+        );
+      }
+    } on LocationPermissionDeniedException {
+      if (mounted) {
+        _showLocationHelpSnackBar(
+          'Location access is required. Allow it in app settings, then try again.',
+          isSystemLocationOff: false,
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to get location: ${e.toString()}'),
-            backgroundColor: AppColors.error,
+            content: Text(
+              _locationErrorUserMessage(e),
+              style: const TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.black,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(borderRadius: AppRadius.medium),
           ),
         );
       }
@@ -101,6 +122,39 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
         });
       }
     }
+  }
+
+  void _showLocationHelpSnackBar(String message, {required bool isSystemLocationOff}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(color: Colors.white),
+        ),
+        action: SnackBarAction(
+          label: 'Settings',
+          textColor: Colors.white,
+          onPressed: () async {
+            if (isSystemLocationOff) {
+              await Geolocator.openLocationSettings();
+            } else {
+              await Geolocator.openAppSettings();
+            }
+          },
+        ),
+        backgroundColor: Colors.black,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.medium),
+        duration: const Duration(seconds: 6),
+      ),
+    );
+  }
+
+  String _locationErrorUserMessage(Object e) {
+    var s = e.toString();
+    if (s.startsWith('Exception: ')) s = s.substring(11);
+    return "Couldn't get your current location. $s";
   }
 
   @override

@@ -392,9 +392,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         tags.add("${restaurant.discount.percentage?.toInt() ?? 0}% OFF");
         break;
       case 'fixed':
-        tags.add(
-          "£${restaurant.discount.fixedAmount?.toStringAsFixed(0) ?? "0"} OFF",
-        );
+        if (restaurant.discount.fixedAmount != null) {
+          tags.add(
+            "£${restaurant.discount.fixedAmount!.toStringAsFixed(0)} OFF",
+          );
+        } else {
+          tags.add(restaurant.discount.displayText);
+        }
+        break;
+      case 'combo':
+        tags.add(restaurant.discount.displayText);
         break;
     }
 
@@ -483,8 +490,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   Widget _buildHeader() {
-    final double topPadding = MediaQuery.of(context).padding.top;
-
     return SliverAppBar(
       pinned: true,
       floating: false,

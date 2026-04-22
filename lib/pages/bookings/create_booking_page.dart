@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import 'package:discount_buddy/components/app_app_bar.dart';
 import 'package:discount_buddy/components/layout.dart';
+import 'package:discount_buddy/utils/date_time_utils.dart';
 import '../../services/booking_service.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/app_gradient_button.dart';
@@ -78,7 +78,10 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
               primary: AppColors.accent,
             ),
           ),
-          child: child!,
+          child: MediaQuery(
+            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+            child: child!,
+          ),
         );
       },
     );
@@ -173,7 +176,7 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
                       child: _DetailSelector(
                         icon: Icons.calendar_today,
                         label: 'Date',
-                        value: DateFormat('MMM d, yyyy').format(_selectedDate),
+                        value: DateTimeUtils.formatDateOnly(_selectedDate),
                         onTap: () => _selectDate(context),
                       ),
                     ),
@@ -182,7 +185,7 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
                       child: _DetailSelector(
                         icon: Icons.access_time,
                         label: 'Time',
-                        value: _selectedTime.format(context),
+                        value: DateTimeUtils.formatTimeOfDay24h(_selectedTime),
                         onTap: () => _selectTime(context),
                       ),
                     ),

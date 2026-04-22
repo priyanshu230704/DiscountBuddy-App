@@ -1,4 +1,5 @@
 import 'package:discount_buddy/config/environment.dart';
+import 'package:discount_buddy/utils/date_time_utils.dart';
 
 import '../models/restaurant.dart';
 import '../models/restaurant_detail.dart';
@@ -122,7 +123,7 @@ class RestaurantService {
         ApiEndpoints.bookings,
         body: {
           'restaurant': restaurantId,
-          'booking_date': bookingDate.toIso8601String(),
+          'booking_date': DateTimeUtils.toApiUtcIso(bookingDate),
           'number_of_guests': numberOfGuests,
           'special_requests': specialRequests,
           'contact_name': contactName,
@@ -146,8 +147,9 @@ class RestaurantService {
   }) async {
     try {
       final body = <String, dynamic>{};
-      if (bookingDate != null)
-        body['booking_date'] = bookingDate.toIso8601String();
+      if (bookingDate != null) {
+        body['booking_date'] = DateTimeUtils.toApiUtcIso(bookingDate);
+      }
       if (numberOfGuests != null) body['number_of_guests'] = numberOfGuests;
       if (specialRequests != null) body['special_requests'] = specialRequests;
       if (contactName != null) body['contact_name'] = contactName;
@@ -581,25 +583,15 @@ class RestaurantService {
       reviewsCount = _parseInt(json['rating']['count']) ?? 0;
     }
 
-    // Discount from active_deals - default to none if not present
+    // Discount from first active_deals entry — use same parser as [Discount.fromJson]
+    // so combo/fixed/percentage map correctly (combo was wrongly coerced to fixed with
+    // only [discount_amount], producing £null for combo deals with [combo_price] only).
     Discount discount = Discount(type: 'none', description: '');
 
     final dealsJson = json['active_deals'] as List<dynamic>? ?? [];
     if (dealsJson.isNotEmpty) {
-      final firstDeal = dealsJson.first as Map<String, dynamic>;
-      final dealType = firstDeal['deal_type'] as String? ?? 'percentage';
-      final discountPercentage = _parseDouble(firstDeal['discount_percentage']);
-      final discountAmount = _parseDouble(firstDeal['discount_amount']);
-
-      discount = Discount(
-        type: dealType == 'percentage' ? 'percentage' : 'fixed',
-        percentage: discountPercentage,
-        fixedAmount: discountAmount,
-        description: firstDeal['description'] as String? ?? 'Special offer',
-        title: firstDeal['title'] as String?,
-        id: firstDeal['id'] as int?,
-        termsAndConditions: firstDeal['terms_and_conditions'] as String? ?? '',
-        maxPerUser: firstDeal['max_per_user'] as int? ?? 1,
+      discount = Discount.fromJson(
+        dealsJson.first as Map<String, dynamic>,
       );
     }
 

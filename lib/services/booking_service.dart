@@ -1,4 +1,5 @@
 import '../config/api_endpoints.dart';
+import '../utils/date_time_utils.dart';
 import 'api_service.dart';
 
 class BookingService {
@@ -25,7 +26,7 @@ class BookingService {
 
     final data = {
       'restaurant': restaurantId,
-      'booking_date': bookingDate.toIso8601String(),
+      'booking_date': DateTimeUtils.toApiUtcIso(bookingDate),
       'number_of_guests': numberOfGuests,
       'special_requests': ?specialRequests,
       'contact_name': ?contactName,
@@ -76,7 +77,9 @@ class BookingService {
     await _ensureAuthenticated();
 
     final data = <String, dynamic>{};
-    if (bookingDate != null) data['booking_date'] = bookingDate.toIso8601String();
+    if (bookingDate != null) {
+      data['booking_date'] = DateTimeUtils.toApiUtcIso(bookingDate);
+    }
     if (numberOfGuests != null) data['number_of_guests'] = numberOfGuests;
     if (specialRequests != null) data['special_requests'] = specialRequests;
     if (contactName != null) data['contact_name'] = contactName;

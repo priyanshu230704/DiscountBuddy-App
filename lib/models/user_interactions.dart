@@ -116,6 +116,9 @@ class Booking {
   final String restaurantName;
   final String restaurantSlug;
   final String? restaurantCityName;
+  /// `booking_date` from JSON: typically a UTC instant. For UI, use
+  /// [DateTimeUtils] formatters that call [DateTime.toLocal] on API instants; for
+  /// picker values use [DateTimeUtils.formatDateOnly] / [DateTimeUtils.formatTimeOfDay24h] only.
   final DateTime bookingDate;
 
   final int numberOfGuests;

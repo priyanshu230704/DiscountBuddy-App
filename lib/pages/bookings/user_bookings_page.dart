@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:discount_buddy/design/app_design.dart';
+import 'package:discount_buddy/utils/date_time_utils.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../services/booking_service.dart';
@@ -148,7 +148,7 @@ class _UserBookingCard extends StatelessWidget {
               const SizedBox(width: AppSpacing.sm),
               Text(
                 date != null
-                    ? DateFormat('MMM d, yyyy HH:mm').format(date.toLocal())
+                    ? DateTimeUtils.formatDateTime24h(date)
                     : dateStr ?? '',
                 style: AppTypography.bodySmall,
               ),

@@ -1,6 +1,6 @@
 import 'package:discount_buddy/pages/main_navigation.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:discount_buddy/utils/date_time_utils.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import '../../components/app_app_bar.dart';
 import '../../components/layout.dart';
@@ -148,8 +148,9 @@ class _BookingsPageState extends State<BookingsPage>
     final TextEditingController requestController = 
         TextEditingController(text: booking.specialRequests);
     
-    DateTime selectedDate = booking.bookingDate;
-    TimeOfDay selectedTime = TimeOfDay.fromDateTime(booking.bookingDate);
+    final localBooking = booking.bookingDate.toLocal();
+    DateTime selectedDate = localBooking;
+    TimeOfDay selectedTime = TimeOfDay.fromDateTime(localBooking);
     
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
@@ -177,7 +178,9 @@ class _BookingsPageState extends State<BookingsPage>
                     Expanded(
                       child: TextButton.icon(
                         icon: const Icon(Icons.calendar_today, size: 18),
-                        label: Text(DateFormat('MMM d, yyyy').format(selectedDate)),
+                        label: Text(
+                          DateTimeUtils.formatDateOnly(selectedDate),
+                        ),
                         onPressed: () async {
                           final date = await showDatePicker(
                             context: context,
@@ -194,9 +197,11 @@ class _BookingsPageState extends State<BookingsPage>
                     Expanded(
                       child: TextButton.icon(
                         icon: const Icon(Icons.access_time, size: 18),
-                        label: Text(selectedTime.format(context)),
+                        label: Text(
+                          DateTimeUtils.formatTimeOfDay24h(selectedTime),
+                        ),
                         onPressed: () async {
-                          final time = await showTimePicker(
+                          final time = await DateTimeUtils.showTimePicker24h(
                             context: context,
                             initialTime: selectedTime,
                           );
@@ -521,7 +526,7 @@ class _RedemptionCard extends StatelessWidget {
               ),
               const SizedBox(width: AppSpacing.sm),
               Text(
-                'Claimed: ${DateFormat('MMM d, yyyy HH:mm').format(redemption.usedAt)}',
+                'Claimed: ${DateTimeUtils.formatDateTime24h(redemption.usedAt)}',
                 style: AppTypography.bodySmall,
               ),
             ],
@@ -537,7 +542,7 @@ class _RedemptionCard extends StatelessWidget {
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Text(
-                  'Redeemed: ${DateFormat('MMM d, yyyy HH:mm').format(redemption.redeemedAt!)}',
+                  'Redeemed: ${DateTimeUtils.formatDateTime24h(redemption.redeemedAt!)}',
                   style: AppTypography.bodySmall.copyWith(
                     color: AppColors.success,
                     fontWeight: FontWeight.w600,
@@ -745,18 +750,18 @@ class _RedemptionDetailModal extends StatelessWidget {
                       _DetailRow(
                         icon: Icons.calendar_today,
                         label: 'Claimed on',
-                        value: DateFormat(
-                          'EEEE, MMM d, yyyy HH:mm',
-                        ).format(redemption.usedAt),
+                        value: DateTimeUtils.formatDateTime24h(
+                          redemption.usedAt,
+                        ),
                       ),
                       if (redemption.redeemedAt != null) ...[
                         const SizedBox(height: AppSpacing.lg),
                         _DetailRow(
                           icon: Icons.verified_rounded,
                           label: 'Redeemed on',
-                          value: DateFormat(
-                            'EEEE, MMM d, yyyy HH:mm',
-                          ).format(redemption.redeemedAt!),
+                          value: DateTimeUtils.formatDateTime24h(
+                            redemption.redeemedAt!,
+                          ),
                           valueColor: const Color(0xFF10B981),
                         ),
                       ],
@@ -942,8 +947,7 @@ class _BookingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateStr = DateFormat('EEE, MMM d, yyyy').format(booking.bookingDate);
-    final timeStr = DateFormat('HH:mm').format(booking.bookingDate);
+    final whenLabel = DateTimeUtils.formatDateTime24h(booking.bookingDate);
 
     return AppCard(
       margin: const EdgeInsets.only(bottom: AppSpacing.lg),
@@ -981,7 +985,7 @@ class _BookingCard extends StatelessWidget {
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
-                  '$dateStr at $timeStr',
+                  whenLabel,
                   style: AppTypography.bodySmall,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

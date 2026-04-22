@@ -95,6 +95,11 @@ class _NearbyPageState extends State<NearbyPage>
   late AnimationController _cardController;
   late Animation<Offset> _cardSlide;
 
+  /// Serializes marker create/update so two overlapping syncs cannot each pass
+  /// `!_restaurantPins.containsKey(id)` before `create` completes — that orphan
+  /// leaves a duplicate pin on the map (e.g. list tap while another sync runs).
+  Future<void> _pinSyncTail = Future<void>.value();
+
   @override
   bool get wantKeepAlive => true;
 
@@ -415,16 +420,23 @@ class _NearbyPageState extends State<NearbyPage>
         break;
 
       case 'percentage':
-        tags.add("${restaurant.discount.percentage?.toInt()}% Off");
+        tags.add("${restaurant.discount.percentage?.toInt() ?? 0}% Off");
         break;
 
       case 'fixed':
-        tags.add("£${restaurant.discount.fixedAmount?.toStringAsFixed(0)} Off");
+        if (restaurant.discount.fixedAmount != null) {
+          tags.add(
+            "£${restaurant.discount.fixedAmount!.toStringAsFixed(0)} Off",
+          );
+        } else {
+          tags.add(restaurant.discount.displayText);
+        }
+        break;
+
+      case 'combo':
+        tags.add(restaurant.discount.displayText);
         break;
     }
-
-    if (desc.contains("dessert")) tags.add("FREE Dessert");
-    if (desc.contains("drink")) tags.add("FREE Drink");
 
     return tags.take(2).toList();
   }
@@ -733,74 +745,82 @@ class _NearbyPageState extends State<NearbyPage>
     return pngBytes!.buffer.asUint8List();
   }
 
-  Future<void> _syncPinsWithList() async {
+  Future<void> _syncPinsWithList() {
+    return _pinSyncTail = _pinSyncTail.then((_) => _syncPinsWithListBody());
+  }
+
+  Future<void> _syncPinsWithListBody() async {
     if (_pointManager == null) return;
 
-    await _ensureMarkerBytes();
+    try {
+      await _ensureMarkerBytes();
 
-    // Only show user dot if we have a real GPS location
-    if (_userLocation != null) {
-      final userDot = await _createUserDotBytes();
-      if (_userDotAnnotation == null) {
-        _userDotAnnotation = await _pointManager!.create(
+      // Only show user dot if we have a real GPS location
+      if (_userLocation != null) {
+        final userDot = await _createUserDotBytes();
+        if (_userDotAnnotation == null) {
+          _userDotAnnotation = await _pointManager!.create(
+            PointAnnotationOptions(
+              geometry: _userLocation!,
+              image: userDot,
+              iconSize: 1.0,
+            ),
+          );
+        } else {
+          try {
+            _userDotAnnotation!.geometry = _userLocation!;
+            await _pointManager!.update(_userDotAnnotation!);
+          } catch (e) {
+            // If the annotation was removed or lost on the native side
+            _userDotAnnotation = null;
+          }
+        }
+      }
+
+      final existingIds = _restaurantPins.keys.toSet();
+      final requiredIds = _filteredRestaurants.map((e) => e.id).toSet();
+
+      for (final id in existingIds.difference(requiredIds)) {
+        final ann = _restaurantPins[id];
+        if (ann != null) {
+          try {
+            await _pointManager!.delete(ann);
+          } catch (e) {
+            // Ignore if already deleted
+          }
+        }
+        _restaurantPins.remove(id);
+        _annotationIdToRestaurantId.removeWhere((key, value) => value == id);
+      }
+
+      for (final r in _filteredRestaurants) {
+        if (_restaurantPins.containsKey(r.id)) continue;
+
+        final bool isSelected = r.id == _selectedRestaurantId;
+        final dealText = r.activeDeals.isNotEmpty && r.activeDeals.first.title != null && r.activeDeals.first.title!.isNotEmpty
+            ? r.activeDeals.first.title!
+            : r.discount.displayText;
+        final imageBytes = await _getMarkerBytes(dealText, r.name, isSelected, false);
+
+        final ann = await _pointManager!.create(
           PointAnnotationOptions(
-            geometry: _userLocation!,
-            image: userDot,
-            iconSize: 1.0,
+            geometry: Point(coordinates: Position(r.longitude, r.latitude)),
+            image: imageBytes,
+            iconSize: isSelected ? _pinSelectedIconSize : _pinNormalIconSize,
+            iconAnchor: IconAnchor.CENTER,
+            iconOffset: [0.0, 0.0],
+            symbolSortKey: isSelected ? _selectedSortKey : _normalSortKey,
           ),
         );
-      } else {
-        try {
-          _userDotAnnotation!.geometry = _userLocation!;
-          await _pointManager!.update(_userDotAnnotation!);
-        } catch (e) {
-          // If the annotation was removed or lost on the native side
-          _userDotAnnotation = null;
-        }
+
+        _restaurantPins[r.id] = ann;
+        _annotationIdToRestaurantId[ann.id] = r.id;
       }
+
+      await _refreshPinsStateOnly();
+    } catch (e, st) {
+      debugPrint('NearbyPage: _syncPinsWithListBody failed: $e\n$st');
     }
-
-    final existingIds = _restaurantPins.keys.toSet();
-    final requiredIds = _filteredRestaurants.map((e) => e.id).toSet();
-
-    for (final id in existingIds.difference(requiredIds)) {
-      final ann = _restaurantPins[id];
-      if (ann != null) {
-        try {
-          await _pointManager!.delete(ann);
-        } catch (e) {
-          // Ignore if already deleted
-        }
-      }
-      _restaurantPins.remove(id);
-      _annotationIdToRestaurantId.removeWhere((key, value) => value == id);
-    }
-
-    for (final r in _filteredRestaurants) {
-      if (_restaurantPins.containsKey(r.id)) continue;
-
-      final bool isSelected = r.id == _selectedRestaurantId;
-      final dealText = r.activeDeals.isNotEmpty && r.activeDeals.first.title != null && r.activeDeals.first.title!.isNotEmpty
-          ? r.activeDeals.first.title!
-          : r.discount.displayText;
-      final imageBytes = await _getMarkerBytes(dealText, r.name, isSelected, false);
-
-      final ann = await _pointManager!.create(
-        PointAnnotationOptions(
-          geometry: Point(coordinates: Position(r.longitude, r.latitude)),
-          image: imageBytes,
-          iconSize: isSelected ? _pinSelectedIconSize : _pinNormalIconSize,
-          iconAnchor: IconAnchor.CENTER,
-          iconOffset: [0.0, 0.0],
-          symbolSortKey: isSelected ? _selectedSortKey : _normalSortKey,
-        ),
-      );
-
-      _restaurantPins[r.id] = ann;
-      _annotationIdToRestaurantId[ann.id] = r.id;
-    }
-
-    await _refreshPinsStateOnly();
   }
 
   Future<void> _refreshPinsStateOnly() async {
@@ -821,13 +841,14 @@ class _NearbyPageState extends State<NearbyPage>
       ann.iconOffset = [0.0, 0.0];
       ann.symbolSortKey = isSelected ? _selectedSortKey : _normalSortKey;
 
-    try {
-      await _pointManager!.update(ann);
-    } catch (e) {
-      _restaurantPins.remove(r.id);
-      _annotationIdToRestaurantId.remove(ann.id);
+      try {
+        await _pointManager!.update(ann);
+      } catch (e) {
+        _restaurantPins.remove(r.id);
+        _annotationIdToRestaurantId.remove(ann.id);
+      }
     }
-  }}
+  }
 
   Future<void> _bounceSelectedMarker(String id) async {
     if (_pointManager == null) return;
@@ -943,8 +964,8 @@ class _NearbyPageState extends State<NearbyPage>
 
                                   _cardController.forward(from: 0);
 
+                                  // _syncPinsWithList already ends with _refreshPinsStateOnly
                                   await _syncPinsWithList();
-                                  await _refreshPinsStateOnly();
                                   await _bounceSelectedMarker(r.id);
                                   await _moveToRestaurant(r);
                                 },
@@ -1565,7 +1586,6 @@ class _NearbyPageState extends State<NearbyPage>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Expanded(
                         child: Text(
@@ -1580,10 +1600,12 @@ class _NearbyPageState extends State<NearbyPage>
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      OccupancyTag(
-                        occupancy: restaurant.occupancy,
-                        isSmall: true,
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: OccupancyTag(
+                          occupancy: restaurant.occupancy,
+                          isSmall: true,
+                        ),
                       ),
                     ],
                   ),
@@ -1609,12 +1631,16 @@ class _NearbyPageState extends State<NearbyPage>
                   Row(
                     children: [
                       if (restaurant.cuisine.isNotEmpty) ...[
-                        Text(
-                          restaurant.cuisine,
-                          style: AppTypography.bodySmall.copyWith(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black38,
+                        Expanded(
+                          child: Text(
+                            restaurant.cuisine,
+                            style: AppTypography.bodySmall.copyWith(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black38,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         const Text("  •  ", style: TextStyle(color: Colors.black12, fontSize: 10)),

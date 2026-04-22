@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:discount_buddy/design/app_design.dart';
-import 'package:intl/intl.dart';
+import 'package:discount_buddy/utils/date_time_utils.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../components/layout.dart' show AppCard;
 import '../../services/merchant_service.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../components/app_app_bar.dart';
 import '../../widgets/skeleton_loader.dart';
+
+/// Title case for booking status in the details dialog (matches value weight, not all-caps).
+String _formatBookingStatusForDialog(dynamic raw) {
+  final t = (raw ?? 'pending').toString().trim().toLowerCase();
+  if (t.isEmpty) return 'Pending';
+  return '${t[0].toUpperCase()}${t.substring(1)}';
+}
 
 class MerchantBookingsPage extends StatefulWidget {
   final int? restaurantId;
@@ -269,12 +276,13 @@ class _BookingCard extends StatelessWidget {
     final customer = booking['contact_name']?.toString().isNotEmpty == true 
         ? booking['contact_name'] 
         : 'Guest';
-    final phone = booking['contact_phone'] ?? 'No phone provided';
-    final email = booking['contact_email'] ?? 'No email provided';
+    final phoneRaw = booking['contact_phone']?.toString().trim() ?? '';
+    final phone = phoneRaw.isEmpty ? 'Not provided' : phoneRaw;
     final guests = booking['number_of_guests'] ?? 0;
     final dateStr = booking['booking_date'];
     final status = booking['status'] ?? 'pending';
-    final specialRequests = booking['special_requests'] ?? 'None';
+    final srRaw = booking['special_requests']?.toString().trim() ?? '';
+    final specialRequests = srRaw.isEmpty ? 'None' : srRaw;
 
     DateTime? date;
     if (dateStr != null) {
@@ -297,26 +305,31 @@ class _BookingCard extends StatelessWidget {
             children: [
               _DetailRow(label: 'Customer', value: customer),
               const SizedBox(height: 12),
-              _DetailRow(label: 'Phone', value: phone, isLink: true),
-              const SizedBox(height: 12),
-              _DetailRow(label: 'Email', value: email),
+              _DetailRow(
+                label: 'Phone',
+                value: phone,
+                isLink: phone != 'Not provided',
+              ),
               const SizedBox(height: 12),
               _DetailRow(label: 'Restaurant', value: restaurant),
               const SizedBox(height: 12),
               _DetailRow(
                 label: 'Date & Time',
-                value: date != null ? DateFormat('MMM d, yyyy - h:mm a').format(date.toLocal()) : 'N/A',
+                value: date != null
+                    ? DateTimeUtils.formatDateTime24h(date)
+                    : 'N/A',
               ),
               const SizedBox(height: 12),
               _DetailRow(label: 'Guests', value: guests.toString()),
               const SizedBox(height: 12),
-              _DetailRow(label: 'Status', value: status.toUpperCase()),
+              _DetailRow(
+                label: 'Status',
+                value: _formatBookingStatusForDialog(status),
+              ),
               const SizedBox(height: 12),
-              const Text('Special Requests:', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-              const SizedBox(height: 4),
-              Text(
-                specialRequests,
-                style: AppTypography.bodySmall,
+              _DetailRow(
+                label: 'Special requests',
+                value: specialRequests,
               ),
             ],
           ),
@@ -415,7 +428,7 @@ class _BookingCard extends StatelessWidget {
                       child: _InfoChip(
                         icon: Icons.calendar_today_rounded,
                         label: date != null
-                            ? DateFormat('MMM d, h:mm a').format(date.toLocal())
+                            ? DateTimeUtils.formatDateTime24h(date)
                             : 'No date',
                       ),
                     ),

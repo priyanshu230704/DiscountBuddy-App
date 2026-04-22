@@ -541,11 +541,17 @@ class Discount {
       case '2for1':
         return '2 FOR 1';
       case 'percentage':
-        return '${percentage?.toInt()}% OFF';
+        return '${percentage?.toInt() ?? 0}% OFF';
       case 'fixed':
-        return '£${fixedAmount?.toStringAsFixed(0)} OFF';
+        if (fixedAmount != null) {
+          return '£${fixedAmount!.toStringAsFixed(0)} OFF';
+        }
+        return description.isNotEmpty ? description : 'Special offer';
       case 'combo':
-        return '£${comboPrice?.toStringAsFixed(0)} COMBO';
+        if (comboPrice != null) {
+          return '£${comboPrice!.toStringAsFixed(0)} COMBO';
+        }
+        return description.isNotEmpty ? description : 'Combo';
       default:
         return description;
     }

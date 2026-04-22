@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:discount_buddy/utils/date_time_utils.dart';
 import '../../models/restaurant.dart';
 import '../../services/restaurant_service.dart';
 import '../../design/app_colors.dart';
@@ -62,7 +62,11 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
 
       var current = start;
       while (current.isBefore(end)) {
-        times.add(DateFormat('HH:mm').format(current));
+        times.add(
+          DateTimeUtils.formatTimeOfDay24h(
+            TimeOfDay(hour: current.hour, minute: current.minute),
+          ),
+        );
         current = current.add(const Duration(minutes: 30));
       }
     } catch (e) {
@@ -205,7 +209,8 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              DateFormat('E').format(date).toUpperCase(),
+                              DateTimeUtils.formatShortWeekday(date)
+                                  .toUpperCase(),
                               style: AppTypography.caption.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: isSelected

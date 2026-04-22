@@ -634,6 +634,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
       appBar: AppAppBar(
         titleText: 'Scan QR Code',
         backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.keyboard_outlined),

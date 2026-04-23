@@ -49,6 +49,7 @@ class AuthService {
           'role': role,
         },
         type: apiType,
+        withAuth: false,
       );
 
       return RegisterResponse.fromJson(response);
@@ -95,6 +96,7 @@ class AuthService {
         ApiEndpoints.registerInit,
         body: {'email': email, 'role': role},
         type: ApiType.user, // Using user API for registration init as per doc
+        withAuth: false,
       );
     } catch (e) {
       if (e is ApiException) {
@@ -132,6 +134,7 @@ class AuthService {
         ApiEndpoints.verifyOtp,
         body: {'email': email, 'otp': otp},
         type: ApiType.user,
+        withAuth: false,
       );
     } catch (e) {
       if (e is ApiException) {
@@ -175,6 +178,7 @@ class AuthService {
         ApiEndpoints.registerComplete,
         body: {'email': email, 'otp': otp, 'password': password},
         type: ApiType.user,
+        withAuth: false,
       );
 
       return RegisterResponse.fromJson(response);
@@ -210,6 +214,7 @@ class AuthService {
         body: {'email': email, 'password': password},
         type:
             ApiType.user, // Default to user, but we might need a way to switch
+        withAuth: false,
       );
 
       final loginResponse = LoginResponse.fromJson(response);
@@ -275,8 +280,7 @@ class AuthService {
         throw ApiException('Google login cancelled');
       }
 
-      final GoogleSignInAuthentication googleAuth =
-          googleUser.authentication as GoogleSignInAuthentication;
+      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
       final idToken = googleAuth.idToken;
       if (idToken == null || idToken.isEmpty) {
         throw ApiException('Failed to get Google ID token');
@@ -288,6 +292,7 @@ class AuthService {
           'provider': 'google',
           'token': idToken,
         },
+        withAuth: false,
       );
 
       final loginResponse = LoginResponse.fromJson(response);
@@ -345,6 +350,7 @@ class AuthService {
           'provider': 'apple',
           'token': identityToken,
         },
+        withAuth: false,
       );
 
       final loginResponse = LoginResponse.fromJson(response);
@@ -485,12 +491,15 @@ class AuthService {
     try {
       final refreshToken = await getRefreshToken();
       if (refreshToken == null || refreshToken.isEmpty) {
+        // No refresh token available; clear in-memory auth to prevent sending stale Authorization.
+        _apiService.removeAuthToken();
         return false;
       }
 
       final response = await _apiService.post(
         ApiEndpoints.refreshToken,
         body: {'refresh': refreshToken},
+        withAuth: false,
       );
 
       final newAccessToken = response['access'] as String;
@@ -526,6 +535,7 @@ class AuthService {
       await _apiService.post(
         ApiEndpoints.passwordResetRequest,
         body: {'email': email},
+        withAuth: false,
       );
     } catch (e) {
       if (e is ApiException) {
@@ -547,6 +557,7 @@ class AuthService {
           'email': email,
           'otp': otp,
         },
+        withAuth: false,
       );
     } catch (e) {
       if (e is ApiException) {
@@ -572,6 +583,7 @@ class AuthService {
           'password': password,
           'confirm_password': confirmPassword,
         },
+        withAuth: false,
       );
     } catch (e) {
       if (e is ApiException) {
@@ -587,6 +599,7 @@ class AuthService {
       await _apiService.post(
         ApiEndpoints.passwordReset,
         body: {'email': email},
+        withAuth: false,
       );
     } catch (e) {
       if (e is ApiException) {

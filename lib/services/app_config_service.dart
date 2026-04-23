@@ -21,6 +21,7 @@ class AppConfigService {
         '/app/version/check', // Match Django trailing slash pattern
         body: {'platform': platform, 'version': currentVersion},
         type: ApiType.common,
+        withAuth: false,
       );
 
       debugPrint('APP_VERSION_CHECK: Response received: $response');

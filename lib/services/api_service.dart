@@ -71,9 +71,9 @@ class ApiService {
   }
 
   /// Get headers with current auth token if available
-  Map<String, String> get headers {
+  Map<String, String> _buildHeaders({required bool withAuth}) {
     final headers = Map<String, String>.from(_headers);
-    if (_authToken != null && _authToken!.isNotEmpty) {
+    if (withAuth && _authToken != null && _authToken!.isNotEmpty) {
       if (_authToken!.startsWith('Bearer ')) {
         headers['Authorization'] = _authToken!;
       } else {
@@ -82,6 +82,9 @@ class ApiService {
     }
     return headers;
   }
+
+  /// Backwards-compatible headers getter (includes auth when available)
+  Map<String, String> get headers => _buildHeaders(withAuth: true);
 
   /// Normalize endpoint URL - remove trailing slashes except for root paths
   String _normalizeEndpoint(String endpoint) {
@@ -131,6 +134,7 @@ class ApiService {
     String endpoint, {
     Map<String, String>? queryParameters,
     ApiType type = ApiType.user,
+    bool withAuth = true,
   }) async {
     final normalizedEndpoint = _normalizeEndpoint(endpoint);
     final baseUrl = _getBaseUrl(type);
@@ -147,7 +151,7 @@ class ApiService {
       return _pendingRequests[requestKey]!;
     }
 
-    final requestFuture = _performGet(uri);
+    final requestFuture = _performGet(uri, withAuth: withAuth);
     _pendingRequests[requestKey] = requestFuture;
 
     try {
@@ -160,10 +164,10 @@ class ApiService {
   }
 
   /// Internal method to perform the actual GET request
-  Future<Map<String, dynamic>> _performGet(Uri uri) async {
+  Future<Map<String, dynamic>> _performGet(Uri uri, {required bool withAuth}) async {
     return _sendRequest(() async {
       final request = http.Request('GET', uri)
-        ..headers.addAll(headers)
+        ..headers.addAll(_buildHeaders(withAuth: withAuth))
         ..followRedirects = false;
 
       final streamedResponse =
@@ -177,6 +181,7 @@ class ApiService {
     String endpoint, {
     Map<String, dynamic>? body,
     ApiType type = ApiType.user,
+    bool withAuth = true,
   }) async {
     final normalizedEndpoint = _normalizeEndpoint(endpoint);
     final baseUrl = _getBaseUrl(type);
@@ -184,7 +189,7 @@ class ApiService {
 
     return _sendRequest(() async {
       final request = http.Request('POST', uri);
-      request.headers.addAll(headers);
+      request.headers.addAll(_buildHeaders(withAuth: withAuth));
       if (body != null) {
         request.body = jsonEncode(body);
       }
@@ -200,6 +205,7 @@ class ApiService {
     String endpoint, {
     Map<String, dynamic>? body,
     ApiType type = ApiType.user,
+    bool withAuth = true,
   }) async {
     final normalizedEndpoint = _normalizeEndpoint(endpoint);
     final baseUrl = _getBaseUrl(type);
@@ -207,7 +213,7 @@ class ApiService {
 
     return _sendRequest(() async {
       final request = http.Request('PUT', uri)
-        ..headers.addAll(headers)
+        ..headers.addAll(_buildHeaders(withAuth: withAuth))
         ..followRedirects = false;
       if (body != null) {
         request.body = jsonEncode(body);
@@ -224,6 +230,7 @@ class ApiService {
     String endpoint, {
     Map<String, dynamic>? body,
     ApiType type = ApiType.user,
+    bool withAuth = true,
   }) async {
     final normalizedEndpoint = _normalizeEndpoint(endpoint);
     final baseUrl = _getBaseUrl(type);
@@ -231,7 +238,7 @@ class ApiService {
 
     return _sendRequest(() async {
       final request = http.Request('PATCH', uri)
-        ..headers.addAll(headers)
+        ..headers.addAll(_buildHeaders(withAuth: withAuth))
         ..followRedirects = false;
       if (body != null) {
         request.body = jsonEncode(body);
@@ -249,6 +256,7 @@ class ApiService {
     Map<String, String>? fields,
     Map<String, http.MultipartFile>? files,
     ApiType type = ApiType.user,
+    bool withAuth = true,
   }) async {
     final normalizedEndpoint = _normalizeEndpoint(endpoint);
     final baseUrl = _getBaseUrl(type);
@@ -256,7 +264,7 @@ class ApiService {
 
     return _sendRequest(() async {
       final request = http.MultipartRequest('POST', uri);
-      request.headers.addAll(headers);
+      request.headers.addAll(_buildHeaders(withAuth: withAuth));
 
       // Update Content-Type for multipart
       request.headers['Content-Type'] = 'multipart/form-data';
@@ -283,6 +291,7 @@ class ApiService {
     Map<String, String>? fields,
     Map<String, http.MultipartFile>? files,
     ApiType type = ApiType.user,
+    bool withAuth = true,
   }) async {
     final normalizedEndpoint = _normalizeEndpoint(endpoint);
     final baseUrl = _getBaseUrl(type);
@@ -290,7 +299,7 @@ class ApiService {
 
     return _sendRequest(() async {
       final request = http.MultipartRequest('PATCH', uri);
-      request.headers.addAll(headers);
+      request.headers.addAll(_buildHeaders(withAuth: withAuth));
 
       // Update Content-Type for multipart
       request.headers['Content-Type'] = 'multipart/form-data';
@@ -316,6 +325,7 @@ class ApiService {
     String endpoint, {
     Map<String, dynamic>? body,
     ApiType type = ApiType.user,
+    bool withAuth = true,
   }) async {
     final normalizedEndpoint = _normalizeEndpoint(endpoint);
     final baseUrl = _getBaseUrl(type);
@@ -323,7 +333,7 @@ class ApiService {
 
     return _sendRequest(() async {
       final request = http.Request('DELETE', uri)
-        ..headers.addAll(headers)
+        ..headers.addAll(_buildHeaders(withAuth: withAuth))
         ..followRedirects = false;
       if (body != null) {
         request.body = jsonEncode(body);

@@ -120,6 +120,8 @@ class ApiEndpoints {
 
   static const String notifications = '/notifications';
   static const String unreadNotificationCount = '/notifications/unread_count';
+  static const String userUnreadNotificationCount = '/notifications/unread_count';
+  static const String merchantUnreadNotificationCount = '/notifications/unread_count';
   static const String markAllNotificationsRead = '/notifications/read_all';
 
   static String notificationDetail(String notificationId) =>

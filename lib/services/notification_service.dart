@@ -8,6 +8,9 @@ import '../pages/merchant/merchant_redemption_history_page.dart';
 import '../pages/merchant/merchant_analytics_page.dart';
 import '../pages/restaurant_details_page.dart';
 import '../pages/main_navigation.dart';
+import '../widgets/generic_bottom_sheet.dart';
+import '../theme/app_colors.dart';
+import '../design/app_typography.dart';
 
 /// Service for managing notifications and device tokens
 class NotificationService {
@@ -120,16 +123,19 @@ class NotificationService {
   }
 
   /// Get unread notification count
-  Future<int> getUnreadCount() async {
+  Future<int> getUnreadCount({required bool isMerchant}) async {
     try {
       final response = await _apiService.get(
-        ApiEndpoints.unreadNotificationCount,
-        type: ApiType.user,
+        isMerchant
+            ? ApiEndpoints.merchantUnreadNotificationCount
+            : ApiEndpoints.userUnreadNotificationCount,
+        type: isMerchant ? ApiType.merchant : ApiType.user,
       );
 
       return response['count'] as int;
     } catch (e) {
-      throw Exception('Failed to get unread count: $e');
+      debugPrint('❌ Failed to get unread count: $e');
+      return 0;
     }
   }
 
@@ -219,10 +225,89 @@ class NotificationService {
     switch (type) {
       // Merchant specific notifications
       case NotificationType.newBooking:
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const MerchantBookingsPage(),
+        final customerName = data?['customer_name'] ?? 'A customer';
+        final guests = data?['number_of_guests'] ?? 'N/A';
+        final bookingDate = data?['booking_date'] ?? 'N/A';
+
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) => GenericBottomSheet(
+            title: 'New Booking Request',
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.calendar_today, color: AppColors.primary),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Booking Details',
+                                style: AppTypography.caption.copyWith(
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              Text(
+                                bookingDate,
+                                style: AppTypography.body.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildDetailRow(Icons.person_outline, 'Customer', customerName),
+                  const SizedBox(height: 12),
+                  _buildDetailRow(Icons.group_outlined, 'Guests', '$guests Person(s)'),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context); // Close bottom sheet
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const MerchantBookingsPage(),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        'View All Bookings',
+                        style: AppTypography.button,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         );
         break;
@@ -284,5 +369,25 @@ class NotificationService {
         debugPrint('⚠️ Unknown notification type for navigation: $type');
         Navigator.pushReplacementNamed(context, '/home');
     }
+  }
+
+  static Widget _buildDetailRow(IconData icon, String label, String value) {
+    return Row(
+      children: [
+        Icon(icon, size: 20, color: AppColors.textSecondary),
+        const SizedBox(width: 12),
+        Text(
+          '$label: ',
+          style: AppTypography.body.copyWith(color: AppColors.textSecondary),
+        ),
+        Text(
+          value,
+          style: AppTypography.body.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+      ],
+    );
   }
 }

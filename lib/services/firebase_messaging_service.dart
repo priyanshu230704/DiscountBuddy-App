@@ -1,7 +1,10 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'notification_service.dart';
 import 'auth_service.dart';
+import '../models/notification.dart';
+import '../providers/notification_provider.dart';
 import '../utils/navigator_key.dart';
 
 /// Service to handle Firebase Cloud Messaging
@@ -14,13 +17,27 @@ class FirebaseMessagingService {
   FirebaseMessaging get _messaging => FirebaseMessaging.instance;
   final NotificationService _notificationService = NotificationService();
   final AuthService _authService = AuthService();
+  
+  final FlutterLocalNotificationsPlugin _localNotifications = 
+      FlutterLocalNotificationsPlugin();
+
+  // Define the channel for Android 8+
+  static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
+    'high_importance_channel',
+    'High Importance Notifications',
+    description: 'This channel is used for important notifications.',
+    importance: Importance.max,
+  );
 
   String? _fcmToken;
   String? get fcmToken => _fcmToken;
 
   /// Initialize Firebase Messaging and request permissions
   Future<void> initialize() async {
-    // Request permission (mainly for iOS)
+    // 1. Initialize Local Notifications
+    await _initializeLocalNotifications();
+
+    // 2. Request permission (mainly for iOS)
     NotificationSettings settings = await _messaging.requestPermission(
       alert: true,
       badge: true,
@@ -28,7 +45,7 @@ class FirebaseMessagingService {
       provisional: false,
     );
 
-    // Handle foreground notifications (iOS)
+    // 3. Handle foreground notifications (iOS)
     await _messaging.setForegroundNotificationPresentationOptions(
       alert: true,
       badge: true,
@@ -46,7 +63,10 @@ class FirebaseMessagingService {
       debugPrint('❌ User declined notification permission');
     }
 
-    // Listen for token refresh
+    // 4. Listen for foreground messages
+    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+
+    // 5. Listen for token refresh
     _messaging.onTokenRefresh.listen(_onTokenRefresh);
 
     // 📩 Handle notification tapped when app is in BACKGROUND
@@ -59,11 +79,101 @@ class FirebaseMessagingService {
     }
   }
 
+  /// Initialize local notifications for Android
+  Future<void> _initializeLocalNotifications() async {
+    const AndroidInitializationSettings androidSettings =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    const DarwinInitializationSettings iosSettings = DarwinInitializationSettings();
+
+    const InitializationSettings settings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
+
+    await _localNotifications.initialize(
+      settings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        // Handle local notification tap
+        if (response.payload != null) {
+          // You could parse payload and navigate here if needed
+          debugPrint('Local notification tapped with payload: ${response.payload}');
+        }
+      },
+    );
+
+    // Create the high importance channel for Android
+    await _localNotifications
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(_channel);
+  }
+
+  /// Handle messages received while the app is in the FOREGROUND
+  void _handleForegroundMessage(RemoteMessage message) {
+    debugPrint('🔔 Foreground message received!');
+    debugPrint('   Title: ${message.notification?.title}');
+    debugPrint('   Body: ${message.notification?.body}');
+    debugPrint('   Data: ${message.data}');
+
+    final RemoteNotification? notification = message.notification;
+    
+    // Increment unread count globally
+    NotificationProvider().incrementCount();
+
+    // ⚠️ Show notification for ANY message with a notification payload.
+    // Do NOT require android != null — that silently drops valid messages.
+    if (notification != null) {
+      // Use a stable unique ID derived from message ID to avoid duplicates
+      final int notifId = message.messageId?.hashCode ?? DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
+      _localNotifications.show(
+        notifId,
+        notification.title ?? 'New Notification',
+        notification.body ?? '',
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            _channel.id,
+            _channel.name,
+            channelDescription: _channel.description,
+            importance: Importance.max,
+            priority: Priority.high,
+            // Fallback to app icon — smallIcon may be null for data-only messages
+            icon: '@mipmap/ic_launcher',
+            playSound: true,
+            enableVibration: true,
+          ),
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
+        ),
+        // Pass the entire data map as payload for tap-to-navigate
+        payload: message.data.toString(),
+      );
+
+      // 🚀 AUTOMATICALLY OPEN BOTTOM SHEET FOR NEW BOOKINGS
+      // This allows the merchant to see the request immediately without tapping the notification
+      final type = message.data['notification_type'] ?? message.data['type'] ?? '';
+      if (type == NotificationType.newBooking) {
+        final context = navigatorKey.currentContext;
+        if (context != null) {
+          NotificationService.handleNotificationNavigation(context, type, message.data);
+        }
+      }
+    } else {
+      // Data-only message (no notification block) — still log it
+      debugPrint('⚠️ Data-only message received (no notification payload): ${message.data}');
+    }
+  }
+
   /// Handle navigation when a notification is tapped
   void _handleMessageOpen(RemoteMessage message) {
     debugPrint('📩 Notification Tapped: ${message.data}');
     
-    final type = message.data['type'] ?? '';
+    // Backend sends 'notification_type', not 'type'
+    final type = message.data['notification_type'] ?? message.data['type'] ?? '';
     _navigateToCorrectScreen(type, message.data);
   }
 

@@ -14,6 +14,7 @@ import 'services/firebase_messaging_service.dart'; // Import the service
 import 'firebase_options.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'utils/navigator_key.dart';
 
 // Background message handler - must be top-level function
@@ -27,7 +28,16 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     debugPrint('Error initializing Firebase in background handler: $e');
   }
   debugPrint('Handling background message: ${message.messageId}');
-  // You can process the notification here if needed
+  
+  // Increment unread count in background persistent storage
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final currentCount = prefs.getInt('unread_notification_count') ?? 0;
+    await prefs.setInt('unread_notification_count', currentCount + 1);
+    debugPrint('🔄 Background unread count incremented in storage');
+  } catch (e) {
+    debugPrint('Error updating unread count in background: $e');
+  }
 }
 
 void main() async {

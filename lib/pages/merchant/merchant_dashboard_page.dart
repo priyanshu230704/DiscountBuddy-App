@@ -13,6 +13,7 @@ import '../../services/notification_service.dart';
 import '../notifications_page.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'dart:async';
+import '../../providers/notification_provider.dart';
 
 /// Merchant Dashboard Page - Central hub for restaurant owners
 class MerchantDashboardPage extends StatefulWidget {
@@ -22,7 +23,7 @@ class MerchantDashboardPage extends StatefulWidget {
   State<MerchantDashboardPage> createState() => _MerchantDashboardPageState();
 }
 
-class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
+class _MerchantDashboardPageState extends State<MerchantDashboardPage> with WidgetsBindingObserver {
   bool _isLoading = true;
   bool _isFetching = false;
   int _totalBookings = 0;
@@ -33,8 +34,8 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
   int? _primaryRestaurantId;
   String? _currentOccupancy;
   String? _currentAddress;
-  int _notificationCount = 0;
-  StreamSubscription<RemoteMessage>? _notificationSubscription;
+  // Removed local _notificationCount and subscription as it's handled by NotificationProvider
+  final NotificationProvider _notificationProvider = NotificationProvider();
   final NotificationService _notificationService = NotificationService();
   
   // Multi-restaurant support
@@ -48,16 +49,9 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
   @override
   void initState() {
     super.initState();
-    _loadNotificationCount();
+    WidgetsBinding.instance.addObserver(this);
+    _notificationProvider.fetchUnreadCount(true); // Fetch for merchant
     
-    _notificationSubscription = FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      if (mounted) {
-        setState(() {
-          _notificationCount++;
-        });
-      }
-    });
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchDashboardData();
     });
@@ -65,18 +59,19 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
 
   @override
   void dispose() {
-    _notificationSubscription?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
-  Future<void> _loadNotificationCount() async {
-    try {
-      final count = await _notificationService.getUnreadCount();
-      if (mounted) setState(() => _notificationCount = count);
-    } catch (_) {
-      if (mounted) setState(() => _notificationCount = 0);
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Sync unread notification count (captures background updates)
+      _notificationProvider.fetchUnreadCount(true);
     }
   }
+
+  // Removed local _loadNotificationCount as it's now in NotificationProvider
 
   Future<void> _fetchDashboardData() async {
     if (_isFetching) return;
@@ -545,51 +540,71 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> {
                     builder: (context) => const NotificationsPage(),
                   ),
                 );
-                _loadNotificationCount();
+                _notificationProvider.refreshCount(true);
               },
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(9),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
-                      border: Border.all(
-                        color: Colors.black.withValues(alpha: 0.04),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.notifications_none,
-                      size: 21,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  if (_notificationCount > 0)
-                    Positioned(
-                      top: 2,
-                      right: 2,
-                      child: Container(
-                        width: 9,
-                        height: 9,
+              child: ListenableBuilder(
+                listenable: _notificationProvider,
+                builder: (context, child) {
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(9),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEF4444),
                           shape: BoxShape.circle,
+                          color: Colors.white,
                           border: Border.all(
-                            color: Colors.white,
-                            width: 2,
+                            color: Colors.black.withValues(alpha: 0.04),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.04),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.notifications_none,
+                          size: 21,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      if (_notificationProvider.unreadCount > 0)
+                        Positioned(
+                          top: -3,
+                          right: -3,
+                          child: Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEF4444),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 1.5,
+                              ),
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 18,
+                              minHeight: 18,
+                            ),
+                            child: Center(
+                              child: Text(
+                                _notificationProvider.unreadCount > 99
+                                    ? '99+'
+                                    : '${_notificationProvider.unreadCount}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                ],
+                    ],
+                  );
+                },
               ),
             ),
             const SizedBox(width: 12),

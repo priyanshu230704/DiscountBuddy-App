@@ -13,6 +13,7 @@ import '../../services/location_service.dart';
 import '../../services/notification_service.dart';
 import '../../services/app_config_service.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/notification_provider.dart';
 import '../restaurant_details_page.dart';
 import '../notifications_page.dart';
 import '../../widgets/city_selector_modal.dart';
@@ -48,9 +49,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   bool _isSearching = false;
 
   String _cityName = 'Detecting...';
-  int _notificationCount = 0;
   int _currentBannerIndex = 0;
-  StreamSubscription<RemoteMessage>? _notificationSubscription;
+  // Removed local _notificationCount and _notificationSubscription as it's now handled by NotificationProvider and FirebaseMessagingService
+  final NotificationProvider _notificationProvider = NotificationProvider();
 
   double? _userLatitude;
   double? _userLongitude;
@@ -62,34 +63,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initLocationAndLoadData();
-    _loadNotificationCount();
+    _notificationProvider.fetchUnreadCount(false); // Fetch unread count for user
     _searchController.addListener(_onSearchChanged);
-
-    debugPrint("🔔 Setting up FCM listener in HomePage");
-    _notificationSubscription = FirebaseMessaging.onMessage.listen((
-      RemoteMessage message,
-    ) {
-      debugPrint("🔔 FCM Message Received: ${message.messageId}");
-      if (message.notification != null) {
-        debugPrint("   Title: ${message.notification?.title}");
-        debugPrint("   Body: ${message.notification?.body}");
-      }
-
-      if (mounted) {
-        debugPrint(
-          "   Updating notification count: $_notificationCount -> ${_notificationCount + 1}",
-        );
-        setState(() {
-          _notificationCount++;
-        });
-      }
-    });
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _notificationSubscription?.cancel();
     _searchController.dispose();
     _searchFocusNode.dispose();
     super.dispose();
@@ -98,6 +78,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      // Sync unread notification count (captures background updates)
+      _notificationProvider.fetchUnreadCount(false);
+      
       // If we are currently on fallback or no location, try to get real location
       if (_userLatitude == null || _userLongitude == null) {
         _onReturnedFromSettings();
@@ -224,15 +207,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     );
   }
 
-  Future<void> _loadNotificationCount() async {
-    try {
-      final count = await _notificationService.getUnreadCount();
-      if (mounted) setState(() => _notificationCount = count);
-    } catch (_) {
-      // Silently fail - notification count is not critical
-      if (mounted) setState(() => _notificationCount = 0);
-    }
-  }
+  // Removed local _loadNotificationCount as it's now in NotificationProvider
 
   Future<void> _loadRestaurants() async {
     if (!mounted) return;
@@ -648,51 +623,71 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                               builder: (context) => const NotificationsPage(),
                             ),
                           );
-                          _loadNotificationCount();
+                          _notificationProvider.refreshCount(false);
                         },
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(9),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white,
-                                border: Border.all(
-                                  color: Colors.black.withValues(alpha: 0.04),
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.04),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                ],
-                              ),
-                              child: const Icon(
-                                Icons.notifications_none,
-                                size: 21,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            if (_notificationCount > 0)
-                              Positioned(
-                                top: 2,
-                                right: 2,
-                                child: Container(
-                                  width: 9,
-                                  height: 9,
+                        child: ListenableBuilder(
+                          listenable: _notificationProvider,
+                          builder: (context, child) {
+                            return Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(9),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFEF4444),
                                     shape: BoxShape.circle,
+                                    color: Colors.white,
                                     border: Border.all(
-                                      color: Colors.white,
-                                      width: 2,
+                                      color: Colors.black.withValues(alpha: 0.04),
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(alpha: 0.04),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 3),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(
+                                    Icons.notifications_none,
+                                    size: 21,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                                if (_notificationProvider.unreadCount > 0)
+                                  Positioned(
+                                    top: -3,
+                                    right: -3,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(2),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFEF4444),
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: Colors.white,
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      constraints: const BoxConstraints(
+                                        minWidth: 18,
+                                        minHeight: 18,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          _notificationProvider.unreadCount > 99
+                                              ? '99+'
+                                              : '${_notificationProvider.unreadCount}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ),
-                          ],
+                              ],
+                            );
+                          },
                         ),
                       ),
                     ],

@@ -6,6 +6,8 @@ import '../../services/notification_service.dart';
 import '../widgets/app_scaffold.dart';
 import '../components/app_app_bar.dart';
 import '../widgets/empty_state_widget.dart';
+import '../providers/notification_provider.dart';
+import '../providers/auth_provider.dart';
 
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
@@ -14,28 +16,39 @@ class NotificationsPage extends StatefulWidget {
   State<NotificationsPage> createState() => _NotificationsPageState();
 }
 
-class _NotificationsPageState extends State<NotificationsPage> {
+class _NotificationsPageState extends State<NotificationsPage> with WidgetsBindingObserver {
   final NotificationService _notificationService = NotificationService();
   final ScrollController _scrollController = ScrollController();
+  final NotificationProvider _notificationProvider = NotificationProvider();
+  final AuthProvider _authProvider = AuthProvider();
 
   List<NotificationModel> _notifications = [];
   bool _isLoading = true;
   bool _isLoadingMore = false;
   int _currentPage = 1;
   bool _hasMore = true;
-  int _unreadCount = 0;
+  // Removed local _unreadCount as it's now managed by NotificationProvider
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initPage();
     _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _scrollController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _initPage();
+    }
   }
 
   void _onScroll() {
@@ -50,7 +63,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
   Future<void> _initPage() async {
     await _loadNotifications();
     await _loadUnreadCount();
-    if (_unreadCount > 0) {
+    if (_notificationProvider.unreadCount > 0) {
       await _markAllAsRead(silent: true);
     }
   }
@@ -109,10 +122,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
   Future<void> _loadUnreadCount() async {
     try {
-      final count = await _notificationService.getUnreadCount();
-      if (mounted) {
-        setState(() => _unreadCount = count);
-      }
+      await _notificationProvider.fetchUnreadCount(_authProvider.isMerchant);
     } catch (e) {
       // Silently fail
     }
@@ -127,8 +137,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
           _notifications = _notifications
               .map((n) => n.copyWith(isRead: true))
               .toList();
-          _unreadCount = 0;
         });
+        _notificationProvider.resetCount();
 
         if (!silent) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -182,17 +192,24 @@ class _NotificationsPageState extends State<NotificationsPage> {
         titleText: 'Notifications',
         backgroundColor: Colors.transparent,
         actions: [
-          if (_unreadCount > 0)
-            TextButton(
-              onPressed: () => _markAllAsRead(),
-              child: Text(
-                'Mark all read',
-                style: AppTypography.bodySmall.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.primary,
-                ),
-              ),
-            ),
+          ListenableBuilder(
+            listenable: _notificationProvider,
+            builder: (context, child) {
+              if (_notificationProvider.unreadCount > 0) {
+                return TextButton(
+                  onPressed: () => _markAllAsRead(),
+                  child: Text(
+                    'Mark all read',
+                    style: AppTypography.bodySmall.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
         ],
       ),
       body: RefreshIndicator(

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -31,6 +33,13 @@ class FirebaseMessagingService {
 
   String? _fcmToken;
   String? get fcmToken => _fcmToken;
+
+  /// FCM string last successfully sent to the backend; avoids double POST
+  /// when [onTokenRefresh] and [registerTokenAfterLogin] race.
+  String? _fcmSyncedWithBackend;
+
+  /// Only one [register*] can run at a time so in-flight work serializes.
+  Completer<void>? _registerInFlight;
 
   /// Initialize Firebase Messaging and request permissions
   Future<void> initialize() async {
@@ -157,10 +166,8 @@ class FirebaseMessagingService {
       // This allows the merchant to see the request immediately without tapping the notification
       final type = message.data['notification_type'] ?? message.data['type'] ?? '';
       if (type == NotificationType.newBooking) {
-        final context = navigatorKey.currentContext;
-        if (context != null) {
-          NotificationService.handleNotificationNavigation(context, type, message.data);
-        }
+        // Defer to async so we can retry waiting for context
+        unawaited(NotificationService.showNewBookingSheet(message.data));
       }
     } else {
       // Data-only message (no notification block) — still log it
@@ -205,24 +212,87 @@ class FirebaseMessagingService {
     }
   }
 
-  /// Register FCM token with backend
-  Future<void> _registerTokenWithBackend(String token) async {
+  static const int _maxDeviceRegistrationAttempts = 2;
+
+  /// Register FCM token with backend. If the backend rejects the token as a global
+  /// duplicate (e.g. still tied to another user's row), we rotate the FCM token
+  /// and register once more — listing devices for the new user will not see it.
+  ///
+  /// Concurrency: [onTokenRefresh] and [registerTokenAfterLogin] can run back-to-back
+  /// with the same string; the mutex and [_fcmSyncedWithBackend] avoid duplicate POSTs
+  /// and the noisy "already exists" follow-up.
+  Future<void> _registerTokenWithBackend(String initialToken) async {
+    while (_registerInFlight != null) {
+      await _registerInFlight!.future;
+    }
+    if (initialToken == _fcmSyncedWithBackend) {
+      debugPrint('ℹ️ FCM token already synced with backend, skipping');
+      return;
+    }
+
+    _registerInFlight = Completer<void>();
     try {
-      // Only register if user is logged in
-      final isLoggedIn = await _authService.isLoggedIn();
-      if (isLoggedIn) {
-        await _notificationService.registerDeviceToken(
-          token: token,
-          deviceType: defaultTargetPlatform == TargetPlatform.iOS
-              ? 'ios'
-              : 'android',
-        );
-        debugPrint('✅ FCM token registered with backend');
-      } else {
-        debugPrint('⚠️ User not logged in, skipping token registration');
+      var tokenToRegister = initialToken;
+      for (var attempt = 0; attempt < _maxDeviceRegistrationAttempts; attempt++) {
+        try {
+          final isLoggedIn = await _authService.isLoggedIn();
+          if (!isLoggedIn) {
+            debugPrint('⚠️ User not logged in, skipping token registration');
+            return;
+          }
+          final response = await _notificationService.registerDeviceToken(
+            token: tokenToRegister,
+            deviceType: defaultTargetPlatform == TargetPlatform.iOS
+                ? 'ios'
+                : 'android',
+          );
+
+          await _authService.setDeviceTokenId(response.id);
+          _fcmToken = tokenToRegister;
+          _fcmSyncedWithBackend = tokenToRegister;
+          debugPrint('✅ FCM token registered with backend (ID: ${response.id})');
+          return;
+        } catch (e) {
+          final message = e.toString().toLowerCase();
+          final isDuplicate = message.contains('already exists') ||
+              message.contains('unique') ||
+              message.contains('duplicate');
+          if (isDuplicate) {
+            // Benign: another registration just completed with this exact token.
+            if (tokenToRegister == _fcmSyncedWithBackend) {
+              debugPrint('ℹ️ FCM token already on server (deduplicated)');
+              return;
+            }
+            if (attempt < _maxDeviceRegistrationAttempts - 1) {
+              debugPrint(
+                '⚠️ FCM token rejected as duplicate; rotating and retrying...',
+              );
+              try {
+                await _messaging.deleteToken();
+                if (defaultTargetPlatform == TargetPlatform.iOS) {
+                  await _messaging.getAPNSToken();
+                }
+                final newToken = await _messaging.getToken();
+                if (newToken == null || newToken.isEmpty) {
+                  debugPrint('❌ No FCM token after rotation');
+                  return;
+                }
+                tokenToRegister = newToken;
+                _fcmToken = newToken;
+                continue;
+              } catch (rotateError) {
+                debugPrint('❌ FCM token rotation failed: $rotateError');
+                return;
+              }
+            }
+          }
+          debugPrint('❌ Error registering FCM token with backend: $e');
+          return;
+        }
       }
-    } catch (e) {
-      debugPrint('❌ Error registering FCM token with backend: $e');
+    } finally {
+      _registerInFlight?.complete();
+      _registerInFlight = null;
     }
   }
 
@@ -249,6 +319,35 @@ class FirebaseMessagingService {
       debugPrint('✅ FCM token deactivated on logout');
     } catch (e) {
       debugPrint('❌ Error deactivating FCM token: $e');
+    }
+  }
+
+  Future<void> _deleteFcmTokenSafely() async {
+    try {
+      await _messaging.deleteToken();
+      debugPrint('✅ Firebase token deleted');
+    } catch (e) {
+      debugPrint('❌ Error deleting FCM token: $e');
+    }
+  }
+
+  /// Deactivate push device on the server and delete the FCM token in parallel
+  /// so logout is not serialized on two network calls.
+  Future<void> deactivateCurrentDevice() async {
+    try {
+      final tokenId = await _authService.getDeviceTokenId();
+      final patch = (tokenId != null && tokenId.isNotEmpty)
+          ? deactivateTokenOnLogout(tokenId)
+          : Future<void>.value();
+      final del = _deleteFcmTokenSafely();
+      await Future.wait<void>([patch, del]);
+      if (tokenId == null || tokenId.isEmpty) {
+        debugPrint('⚠️ No device token ID found for deactivation');
+      }
+    } catch (e) {
+      debugPrint('❌ Error in deactivateCurrentDevice: $e');
+    } finally {
+      _fcmSyncedWithBackend = null;
     }
   }
 

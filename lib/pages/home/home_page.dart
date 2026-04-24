@@ -63,7 +63,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initLocationAndLoadData();
-    _notificationProvider.fetchUnreadCount(false); // Fetch unread count for user
+    // Defer: fetchUnreadCount() notifies listeners; cannot run during build.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _notificationProvider.fetchUnreadCount(false);
+    });
     _searchController.addListener(_onSearchChanged);
   }
 

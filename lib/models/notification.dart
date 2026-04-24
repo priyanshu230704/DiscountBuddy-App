@@ -103,6 +103,8 @@ class DeviceToken {
   final String id;
   final String token;
   final String deviceType;
+  /// Server-side unique hardware / install id (may be absent in older API responses).
+  final String? deviceId;
   final bool isActive;
   final DateTime createdAt;
 
@@ -110,6 +112,7 @@ class DeviceToken {
     required this.id,
     required this.token,
     required this.deviceType,
+    this.deviceId,
     required this.isActive,
     required this.createdAt,
   });
@@ -119,6 +122,7 @@ class DeviceToken {
       id: json['id'] as String,
       token: json['token'] as String,
       deviceType: json['device_type'] as String,
+      deviceId: json['device_id'] as String?,
       isActive: json['is_active'] as bool,
       createdAt: DateTime.parse(json['created_at'] as String),
     );
@@ -129,6 +133,7 @@ class DeviceToken {
       'id': id,
       'token': token,
       'device_type': deviceType,
+      if (deviceId != null) 'device_id': deviceId,
       'is_active': isActive,
       'created_at': createdAt.toIso8601String(),
     };

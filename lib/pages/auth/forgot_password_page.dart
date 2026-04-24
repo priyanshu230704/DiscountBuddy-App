@@ -28,7 +28,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   bool _isLoading = false;
   bool _isFormValid = false;
 
-  AuthProvider? _authProvider;
+  final AuthProvider _authProvider = AuthProvider();
 
   @override
   void initState() {
@@ -36,24 +36,19 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     if (widget.initialEmail != null) {
       _emailController.text = widget.initialEmail!;
     }
+    _authProvider.addListener(_authListener);
     _emailController.addListener(_validateForm);
     _otpController.addListener(_validateForm);
   }
 
   @override
   void dispose() {
+    _authProvider.removeListener(_authListener);
     _emailController.dispose();
     _otpController.dispose();
     _emailFocusNode.dispose();
     _otpFocusNode.dispose();
     super.dispose();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _authProvider ??= AuthProvider();
-    _authProvider!.addListener(_authListener);
   }
 
   void _validateForm() {
@@ -77,25 +72,25 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   void _authListener() {
     if (!mounted) return;
-    final newIsLoading = _authProvider?.isLoading ?? false;
+    final newIsLoading = _authProvider.isLoading;
     if (newIsLoading != _isLoading) {
       setState(() {
         _isLoading = newIsLoading;
       });
     }
 
-    if (_authProvider?.errorMessage != null) {
+    if (_authProvider.errorMessage != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_authProvider!.errorMessage!),
+            content: Text(_authProvider.errorMessage!),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: AppRadius.medium),
           ),
         );
-        _authProvider?.clearError();
+        _authProvider.clearError();
       });
     }
   }
@@ -104,7 +99,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_currentStep == 0) {
-      final success = await _authProvider!.requestPasswordResetOtp(
+      final success = await _authProvider.requestPasswordResetOtp(
         email: _emailController.text.trim(),
       );
       if (success) {
@@ -123,7 +118,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       }
     } else {
       // Step 2: Verify OTP Only
-      final success = await _authProvider!.verifyPasswordResetOtp(
+      final success = await _authProvider.verifyPasswordResetOtp(
         email: _emailController.text.trim(),
         otp: _otpController.text.trim(),
       );

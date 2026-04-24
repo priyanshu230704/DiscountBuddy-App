@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:discount_buddy/services/api_service.dart';
 import '../services/auth_service.dart';
 import '../config/api_endpoints.dart';
@@ -546,6 +547,21 @@ class MerchantService {
       return [];
     } catch (e) {
       throw Exception('Failed to load reviews: ${e.toString()}');
+    }
+  }
+
+  /// Single booking (same [booking_date] source as the list — canonical UTC ISO for display).
+  Future<Map<String, dynamic>?> getMerchantBooking(int bookingId) async {
+    try {
+      await _ensureAuthenticated();
+      final response = await _apiService.get(
+        ApiEndpoints.merchantBookingDetail(bookingId),
+        type: ApiType.merchant,
+      );
+      return response;
+    } catch (e) {
+      debugPrint('getMerchantBooking failed: $e');
+      return null;
     }
   }
 

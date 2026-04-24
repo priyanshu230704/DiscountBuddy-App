@@ -11,6 +11,19 @@ import '../pages/main_navigation.dart';
 import '../widgets/generic_bottom_sheet.dart';
 import '../theme/app_colors.dart';
 import '../design/app_typography.dart';
+import '../utils/date_time_utils.dart';
+import '../utils/navigator_key.dart';
+import 'device_id_service.dart';
+
+/// API / FCM [booking_date] is UTC ISO-8601; show in the user's local zone.
+String _formatNotificationBookingDate(Object? value) {
+  if (value == null) return 'N/A';
+  final s = value.toString().trim();
+  if (s.isEmpty || s == 'N/A') return 'N/A';
+  final parsed = DateTimeUtils.tryParseBookingInstant(s);
+  if (parsed == null) return s;
+  return DateTimeUtils.formatDateTime24h(parsed);
+}
 
 /// Service for managing notifications and device tokens
 class NotificationService {
@@ -23,17 +36,18 @@ class NotificationService {
     required String token,
     required String deviceType, // 'android', 'ios', or 'web'
   }) async {
-    try {
-      final response = await _apiService.post(
-        ApiEndpoints.registerDeviceToken,
-        body: {'token': token, 'device_type': deviceType},
-        type: ApiType.user,
-      );
+    final deviceId = await DeviceIdService.getOrCreate();
+    final response = await _apiService.post(
+      ApiEndpoints.registerDeviceToken,
+      body: {
+        'token': token,
+        'device_type': deviceType,
+        'device_id': deviceId,
+      },
+      type: ApiType.user,
+    );
 
-      return DeviceToken.fromJson(response);
-    } catch (e) {
-      throw Exception('Failed to register device token: $e');
-    }
+    return DeviceToken.fromJson(response);
   }
 
   /// Get all device tokens for the authenticated user
@@ -45,12 +59,14 @@ class NotificationService {
       );
 
       // Handle both array response and wrapped response
-      List<dynamic> tokensJson;
-      if (response['data'] != null) {
+      List<dynamic> tokensJson = [];
+      
+      if (response['results'] is List<dynamic>) {
+        // Paginated response with 'results' key
+        tokensJson = response['results'] as List<dynamic>;
+      } else if (response['data'] is List<dynamic>) {
+        // Wrapped in 'data' key
         tokensJson = response['data'] as List<dynamic>;
-      } else {
-        // If response is already a list wrapped in 'data' key, or direct list
-        tokensJson = [];
       }
 
       return tokensJson
@@ -216,6 +232,119 @@ class NotificationService {
   }
   // ==================== Navigation Handling ====================
 
+  /// Show the NEW_BOOKING bottom sheet; if context is not ready, retry up to 3s.
+  /// Called from [FirebaseMessagingService] when a NEW_BOOKING arrives in foreground.
+  static Future<void> showNewBookingSheet(
+    Map<String, dynamic>? data,
+  ) async {
+    const maxRetries = 30;
+    const retryInterval = Duration(milliseconds: 100);
+
+    for (var i = 0; i < maxRetries; i++) {
+      final context = navigatorKey.currentContext;
+      if (context != null && context.mounted) {
+        _buildAndShowNewBookingSheet(context, data);
+        return;
+      }
+      await Future.delayed(retryInterval);
+    }
+    debugPrint('❌ Failed to show new booking sheet; context unavailable after 3s');
+  }
+
+  /// Build and show the NEW_BOOKING bottom sheet.
+  static void _buildAndShowNewBookingSheet(
+    BuildContext context,
+    Map<String, dynamic>? data,
+  ) {
+    final customerName = data?['customer_name'] ?? 'A customer';
+    final guests = data?['number_of_guests'] ?? 'N/A';
+    final bookingDate = _formatNotificationBookingDate(
+      data?['booking_date'] ?? data?['booking_datetime'],
+    );
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => GenericBottomSheet(
+        title: 'New Booking Request',
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.calendar_today, color: AppColors.primary),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Booking Details',
+                            style: AppTypography.caption.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          Text(
+                            bookingDate,
+                            style: AppTypography.body.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              _buildDetailRow(Icons.person_outline, 'Customer', customerName),
+              const SizedBox(height: 12),
+              _buildDetailRow(Icons.group_outlined, 'Guests', '$guests Person(s)'),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Close bottom sheet
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const MerchantBookingsPage(),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    'View All Bookings',
+                    style: AppTypography.button,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   /// Navigates to the appropriate screen based on notification type
   static void handleNotificationNavigation(
     BuildContext context,
@@ -225,91 +354,11 @@ class NotificationService {
     switch (type) {
       // Merchant specific notifications
       case NotificationType.newBooking:
-        final customerName = data?['customer_name'] ?? 'A customer';
-        final guests = data?['number_of_guests'] ?? 'N/A';
-        final bookingDate = data?['booking_date'] ?? 'N/A';
-
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (context) => GenericBottomSheet(
-            title: 'New Booking Request',
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.calendar_today, color: AppColors.primary),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Booking Details',
-                                style: AppTypography.caption.copyWith(
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                              Text(
-                                bookingDate,
-                                style: AppTypography.body.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  _buildDetailRow(Icons.person_outline, 'Customer', customerName),
-                  const SizedBox(height: 12),
-                  _buildDetailRow(Icons.group_outlined, 'Guests', '$guests Person(s)'),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context); // Close bottom sheet
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const MerchantBookingsPage(),
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: AppColors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        'View All Bookings',
-                        style: AppTypography.button,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
+        if (context.mounted) {
+          _buildAndShowNewBookingSheet(context, data);
+        } else {
+          showNewBookingSheet(data);
+        }
         break;
 
       case NotificationType.newReview:

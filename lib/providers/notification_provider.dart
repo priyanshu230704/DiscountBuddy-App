@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import '../services/notification_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -18,6 +19,17 @@ class NotificationProvider extends ChangeNotifier {
 
   final NotificationService _notificationService = NotificationService();
 
+  /// Avoids "setState/markNeedsBuild during build" when callers run from [initState].
+  void _safeNotifyListeners() {
+    if (SchedulerBinding.instance.schedulerPhase == SchedulerPhase.idle) {
+      notifyListeners();
+    } else {
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (hasListeners) notifyListeners();
+      });
+    }
+  }
+
   Future<void> fetchUnreadCount(bool isMerchant) async {
     // Prevent multiple initial fetches unless forcing a refresh
     if (_hasFetched && !isLoading) {
@@ -27,14 +39,14 @@ class NotificationProvider extends ChangeNotifier {
         final storedCount = prefs.getInt('unread_notification_count') ?? _unreadCount;
         if (storedCount != _unreadCount) {
           _unreadCount = storedCount;
-          notifyListeners();
+          _safeNotifyListeners();
         }
       } catch (_) {}
       return;
     }
 
     _isLoading = true;
-    notifyListeners();
+    _safeNotifyListeners();
 
     try {
       final count = await _notificationService.getUnreadCount(isMerchant: isMerchant);
@@ -48,7 +60,7 @@ class NotificationProvider extends ChangeNotifier {
       debugPrint('Error fetching unread count: $e');
     } finally {
       _isLoading = false;
-      notifyListeners();
+      _safeNotifyListeners();
     }
   }
 
@@ -59,7 +71,7 @@ class NotificationProvider extends ChangeNotifier {
 
   void incrementCount() async {
     _unreadCount++;
-    notifyListeners();
+    _safeNotifyListeners();
     
     // Sync to persistent storage
     try {
@@ -70,7 +82,7 @@ class NotificationProvider extends ChangeNotifier {
 
   void resetCount() async {
     _unreadCount = 0;
-    notifyListeners();
+    _safeNotifyListeners();
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt('unread_notification_count', 0);
@@ -79,6 +91,6 @@ class NotificationProvider extends ChangeNotifier {
   
   void setCount(int count) {
     _unreadCount = count;
-    notifyListeners();
+    _safeNotifyListeners();
   }
 }

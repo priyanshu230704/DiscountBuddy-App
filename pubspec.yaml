@@ -69,6 +69,9 @@ dependencies:
   google_fonts: ^6.2.1
   path_provider: ^2.1.5
   carousel_slider: ^5.1.2
+  device_info_plus: ^12.4.0
+  uuid: ^4.5.3
+  android_id: ^0.5.1
 
 dev_dependencies:
   flutter_test:

@@ -34,29 +34,24 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   bool _obscureConfirmPassword = true;
   bool _isFormValid = false;
 
-  AuthProvider? _authProvider;
+  final AuthProvider _authProvider = AuthProvider();
 
   @override
   void initState() {
     super.initState();
+    _authProvider.addListener(_authListener);
     _passwordController.addListener(_validateForm);
     _confirmPasswordController.addListener(_validateForm);
   }
 
   @override
   void dispose() {
+    _authProvider.removeListener(_authListener);
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _passwordFocusNode.dispose();
     _confirmPasswordFocusNode.dispose();
     super.dispose();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _authProvider ??= AuthProvider();
-    _authProvider!.addListener(_authListener);
   }
 
   void _validateForm() {
@@ -74,25 +69,25 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
 
   void _authListener() {
     if (!mounted) return;
-    final newIsLoading = _authProvider?.isLoading ?? false;
+    final newIsLoading = _authProvider.isLoading;
     if (newIsLoading != _isLoading) {
       setState(() {
         _isLoading = newIsLoading;
       });
     }
 
-    if (_authProvider?.errorMessage != null) {
+    if (_authProvider.errorMessage != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_authProvider!.errorMessage!),
+            content: Text(_authProvider.errorMessage!),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: AppRadius.medium),
           ),
         );
-        _authProvider?.clearError();
+        _authProvider.clearError();
       });
     }
   }
@@ -100,7 +95,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final success = await _authProvider!.confirmPasswordReset(
+    final success = await _authProvider.confirmPasswordReset(
       email: widget.email.trim(),
       otp: widget.otp.trim(),
       password: _passwordController.text,

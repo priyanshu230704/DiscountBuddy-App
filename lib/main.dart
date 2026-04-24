@@ -15,6 +15,7 @@ import 'firebase_options.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'utils/navigator_key.dart';
 
 // Background message handler - must be top-level function
@@ -44,9 +45,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize essential services in parallel
-  final List<Future> initializations = [
+  // intl: DateFormat(…, 'en_US') in [DateTimeUtils] requires this before first use
+  final List<Future<dynamic>> initializations = [
     dotenv.load(fileName: ".env"),
     Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),
+    initializeDateFormatting('en_US'),
   ];
 
   try {

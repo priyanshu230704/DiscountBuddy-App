@@ -42,11 +42,12 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _isLoading = false;
   bool _isFormValid = false;
 
-  AuthProvider? _authProvider;
+  final AuthProvider _authProvider = AuthProvider();
 
   @override
   void initState() {
     super.initState();
+    _authProvider.addListener(_authListener);
     _emailController.addListener(_validateForm);
     _otpController.addListener(_validateForm);
     _passwordController.addListener(_validateForm);
@@ -55,7 +56,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   void dispose() {
-    _authProvider?.removeListener(_authListener);
+    _authProvider.removeListener(_authListener);
     _emailController.dispose();
     _otpController.dispose();
     _passwordController.dispose();
@@ -65,13 +66,6 @@ class _RegisterPageState extends State<RegisterPage> {
     _passwordFocusNode.dispose();
     _confirmPasswordFocusNode.dispose();
     super.dispose();
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _authProvider ??= AuthProvider();
-    _authProvider!.addListener(_authListener);
   }
 
   void _validateForm() {
@@ -117,16 +111,16 @@ class _RegisterPageState extends State<RegisterPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
 
-      if (_authProvider?.isAuthenticated ?? false) {
+      if (_authProvider.isAuthenticated) {
         Navigator.of(context).pushReplacementNamed('/home');
         return; // Exit after navigation
       }
 
-      if (_authProvider?.errorMessage != null) {
+      if (_authProvider.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              _authProvider!.errorMessage!,
+              _authProvider.errorMessage!,
               style: AuthTheme.bodyText,
             ),
             backgroundColor: AppColors.error,
@@ -136,11 +130,11 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
           ),
         );
-        _authProvider?.clearError();
+        _authProvider.clearError();
       }
     });
 
-    final newIsLoading = _authProvider?.isLoading ?? false;
+    final newIsLoading = _authProvider.isLoading;
     if (newIsLoading != _isLoading) {
       setState(() {
         _isLoading = newIsLoading;
@@ -176,10 +170,10 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _handleSubmit() async {
-    if (_formKey.currentState!.validate() && _authProvider != null) {
+    if (_formKey.currentState!.validate()) {
       if (_currentStep == 0) {
         // Request OTP
-        final success = await _authProvider!.registerInit(
+        final success = await _authProvider.registerInit(
           email: _emailController.text.trim(),
           role: _selectedRole,
         );
@@ -209,7 +203,7 @@ class _RegisterPageState extends State<RegisterPage> {
         }
       } else if (_currentStep == 1) {
         // Verify OTP via Stage 2 Endpoint
-        final success = await _authProvider!.verifyOtp(
+        final success = await _authProvider.verifyOtp(
           email: _emailController.text.trim(),
           otp: _otpController.text.trim(),
         );
@@ -225,7 +219,7 @@ class _RegisterPageState extends State<RegisterPage> {
         }
       } else {
         // Verify & Complete
-        await _authProvider!.registerComplete(
+        await _authProvider.registerComplete(
           email: _emailController.text.trim(),
           otp: _otpController.text.trim(),
           password: _passwordController.text,
@@ -235,15 +229,11 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _handleGoogleLogin() async {
-    if (_authProvider != null) {
-      await _authProvider!.loginWithGoogle();
-    }
+    await _authProvider.loginWithGoogle();
   }
 
   Future<void> _handleAppleLogin() async {
-    if (_authProvider != null) {
-      await _authProvider!.loginWithApple();
-    }
+    await _authProvider.loginWithApple();
   }
 
   @override
@@ -279,32 +269,40 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                 ),
               ),
-              // Decorative Glow Bubbles (Mesh effect - Animated)
-              AnimatedPositioned(
-                duration: const Duration(milliseconds: 1000),
-                curve: Curves.easeInOutBack,
-                top: isKeyboardOpen ? -150 : -100,
-                right: isKeyboardOpen ? -100 : -50,
-                child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 600),
-                  opacity: isKeyboardOpen ? 0.6 : 1.0,
-                  child: _GlowBubble(
-                    size: 450,
-                    color: AppColors.primary.withValues(alpha: 0.35),
-                  ),
-                ),
-              ),
-              AnimatedPositioned(
-                duration: const Duration(milliseconds: 1000),
-                curve: Curves.easeInOutBack,
-                bottom: isKeyboardOpen ? -150 : -80,
-                left: isKeyboardOpen ? -120 : -60,
-                child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 600),
-                  opacity: isKeyboardOpen ? 0.4 : 1.0,
-                  child: _GlowBubble(
-                    size: 500,
-                    color: AppColors.secondary.withValues(alpha: 0.25),
+              Positioned.fill(
+                child: RepaintBoundary(
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 1000),
+                        curve: Curves.easeInOutBack,
+                        top: isKeyboardOpen ? -150 : -100,
+                        right: isKeyboardOpen ? -100 : -50,
+                        child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 600),
+                          opacity: isKeyboardOpen ? 0.6 : 1.0,
+                          child: _StaticGlowBubble(
+                            size: 450,
+                            color: AppColors.primary.withValues(alpha: 0.35),
+                          ),
+                        ),
+                      ),
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 1000),
+                        curve: Curves.easeInOutBack,
+                        bottom: isKeyboardOpen ? -150 : -80,
+                        left: isKeyboardOpen ? -120 : -60,
+                        child: AnimatedOpacity(
+                          duration: const Duration(milliseconds: 600),
+                          opacity: isKeyboardOpen ? 0.4 : 1.0,
+                          child: _StaticGlowBubble(
+                            size: 500,
+                            color: AppColors.secondary.withValues(alpha: 0.25),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -1038,23 +1036,18 @@ class _AnimatedIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TweenAnimationBuilder<double>(
-      duration: const Duration(seconds: 3),
-      tween: Tween<double>(begin: 0, end: 1),
-      builder: (context, value, child) {
-        return Transform.translate(
-          offset: Offset(0, 8 * (value > 0.5 ? (1 - value) * 2 : value * 2)),
-          child: child,
-        );
-      },
-      child: child,
+    return RepaintBoundary(
+      child: Transform.translate(
+        offset: const Offset(0, 4),
+        child: child,
+      ),
     );
   }
 }
 
-class _GlowBubble extends StatefulWidget {
-  const _GlowBubble({
-    required this.size, 
+class _StaticGlowBubble extends StatelessWidget {
+  const _StaticGlowBubble({
+    required this.size,
     required this.color,
   });
 
@@ -1062,63 +1055,18 @@ class _GlowBubble extends StatefulWidget {
   final Color color;
 
   @override
-  State<_GlowBubble> createState() => _GlowBubbleState();
-}
-
-class _GlowBubbleState extends State<_GlowBubble> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-  late Animation<Offset> _driftAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(seconds: 8),
-      vsync: this,
-    )..repeat(reverse: true);
-
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine),
-    );
-
-    _driftAnimation = Tween<Offset>(
-      begin: const Offset(-20, -20),
-      end: const Offset(20, 20),
-    ).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Transform.translate(
-          offset: _driftAnimation.value,
-          child: Transform.scale(
-            scale: _scaleAnimation.value,
-            child: child,
-          ),
-        );
-      },
+    return RepaintBoundary(
       child: IgnorePointer(
         child: Container(
-          width: widget.size,
-          height: widget.size,
+          width: size,
+          height: size,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             gradient: RadialGradient(
               colors: [
-                widget.color,
-                widget.color.withValues(alpha: 0.3),
+                color,
+                color.withValues(alpha: 0.3),
                 Colors.transparent,
               ],
             ),

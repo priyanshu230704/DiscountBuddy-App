@@ -77,8 +77,8 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
         if (statusA == 'pending' && statusB != 'pending') return -1;
         if (statusA != 'pending' && statusB == 'pending') return 1;
 
-        final dateA = DateTime.tryParse(a['booking_date'] ?? '') ?? DateTime(0);
-        final dateB = DateTime.tryParse(b['booking_date'] ?? '') ?? DateTime(0);
+        final dateA = DateTimeUtils.tryParseBookingInstant(a['booking_date']) ?? DateTime(0);
+        final dateB = DateTimeUtils.tryParseBookingInstant(b['booking_date']) ?? DateTime(0);
         return dateB.compareTo(dateA);
       });
       if (mounted) {
@@ -286,7 +286,7 @@ class _BookingCard extends StatelessWidget {
 
     DateTime? date;
     if (dateStr != null) {
-      date = DateTime.tryParse(dateStr);
+      date = DateTimeUtils.tryParseBookingInstant(dateStr);
     }
 
     showDialog(
@@ -356,7 +356,7 @@ class _BookingCard extends StatelessWidget {
 
     DateTime? date;
     if (dateStr != null) {
-      date = DateTime.tryParse(dateStr);
+      date = DateTimeUtils.tryParseBookingInstant(dateStr);
     }
 
     final isPending = status.toLowerCase() == 'pending';

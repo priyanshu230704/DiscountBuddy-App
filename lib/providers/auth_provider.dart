@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'dart:io';
 import '../services/auth_service.dart';
+import '../services/firebase_messaging_service.dart';
 import '../models/api_user.dart';
 
 /// Authentication provider for managing auth state (Singleton)
@@ -224,6 +225,14 @@ class AuthProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
 
+      // Register FCM token with backend after successful login
+      try {
+        final firebaseService = FirebaseMessagingService();
+        await firebaseService.registerTokenAfterLogin();
+      } catch (e) {
+        debugPrint('DEBUG AuthProvider.login: Error registering FCM token: $e');
+      }
+
       // Refresh user data to get full profile (including email)
       await refreshUser();
 
@@ -255,6 +264,14 @@ class AuthProvider extends ChangeNotifier {
         'DEBUG: AuthProvider.loginWithGoogle -> Success: authenticated as ${_user?.email}',
       );
       notifyListeners();
+
+      // Register FCM token with backend after successful login
+      try {
+        final firebaseService = FirebaseMessagingService();
+        await firebaseService.registerTokenAfterLogin();
+      } catch (e) {
+        debugPrint('DEBUG AuthProvider.loginWithGoogle: Error registering FCM token: $e');
+      }
 
       // Refresh user data to get full profile (including email)
       await refreshUser();
@@ -297,6 +314,14 @@ class AuthProvider extends ChangeNotifier {
       );
       notifyListeners();
 
+      // Register FCM token with backend after successful login
+      try {
+        final firebaseService = FirebaseMessagingService();
+        await firebaseService.registerTokenAfterLogin();
+      } catch (e) {
+        debugPrint('DEBUG AuthProvider.loginWithApple: Error registering FCM token: $e');
+      }
+
       // Refresh user data to get full profile (including email)
       await refreshUser();
 
@@ -319,11 +344,20 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      await _authService.logout();
+      // Run FCM deactivation and refresh-token revoke together; then clear storage.
+      // Google Sign-In is not awaited in wipe so the UI is not blocked on Play Services.
+      await Future.wait<void>([
+        FirebaseMessagingService().deactivateCurrentDevice(),
+        _authService.postLogoutToServer(),
+      ]);
     } catch (e) {
-      debugPrint('DEBUG AuthProvider.logout: Error during server logout: $e');
-      // Silently proceed with local logout even if server-side fails
+      debugPrint('DEBUG AuthProvider.logout: $e');
     } finally {
+      try {
+        await _authService.wipeLocalSessionAfterLogout();
+      } catch (e) {
+        debugPrint('DEBUG AuthProvider.logout: local wipe: $e');
+      }
       _user = null;
       _isAuthenticated = false;
       _isGuestMode = false;

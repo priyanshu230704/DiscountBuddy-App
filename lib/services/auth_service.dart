@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
@@ -30,6 +31,7 @@ class AuthService {
   static const String _accessTokenKey = 'access_token';
   static const String _refreshTokenKey = 'refresh_token';
   static const String _userKey = 'user_data';
+  static const String _deviceTokenIdKey = 'device_token_id';
 
   /// Register a new user
   Future<RegisterResponse> register({
@@ -389,32 +391,42 @@ class AuthService {
     }
   }
 
-  /// Logout user
-  Future<void> logout() async {
+  /// Blacklist refresh token on the server (call while credentials still exist).
+  Future<void> postLogoutToServer() async {
     try {
       final refreshToken = await getRefreshToken();
       if (refreshToken != null && refreshToken.isNotEmpty) {
-        // Attempt to blacklist the refresh token on the server
         await _apiService.post(
           ApiEndpoints.logout,
           body: {'refresh': refreshToken},
         );
       }
     } catch (e) {
-      // Server logout failed, just log it and proceed with local cleanup
       if (Environment.enableLogging) {
         debugPrint('Server logout failed, cleaning up local state... Error: $e');
       }
-    } finally {
-      // Wipe all secure storage
-      await _storage.deleteAll();
-
-      // Remove auth token from API service
-      _apiService.removeAuthToken();
-
-      // Sign out from Google
-      await _googleSignIn.signOut();
     }
+  }
+
+  /// Clear secure storage and in-memory auth. Google sign-out runs in the
+  /// background so logout does not wait on Play Services (often 1–2s).
+  Future<void> wipeLocalSessionAfterLogout() async {
+    await _storage.deleteAll();
+    _apiService.removeAuthToken();
+    unawaited(
+      _googleSignIn.signOut().catchError((Object e) {
+        if (Environment.enableLogging) {
+          debugPrint('Google signOut: $e');
+        }
+      }),
+    );
+  }
+
+  /// Logout user (refresh-token revoke + local wipe). Used when FCM cleanup
+  /// is not needed (e.g. token refresh failure).
+  Future<void> logout() async {
+    await postLogoutToServer();
+    await wipeLocalSessionAfterLogout();
   }
 
 
@@ -694,5 +706,15 @@ class AuthService {
       }
       rethrow;
     }
+  }
+
+  /// Get stored device token ID
+  Future<String?> getDeviceTokenId() async {
+    return await _storage.read(key: _deviceTokenIdKey);
+  }
+
+  /// Store device token ID after registration
+  Future<void> setDeviceTokenId(String tokenId) async {
+    await _storage.write(key: _deviceTokenIdKey, value: tokenId);
   }
 }

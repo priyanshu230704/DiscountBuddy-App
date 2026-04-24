@@ -31,8 +31,8 @@ class _UserBookingsViewState extends State<UserBookingsView> {
       final bookings = await _bookingService.getUserBookings();
       // Sort by date desc
       bookings.sort((a, b) {
-        final dateA = DateTime.tryParse(a['booking_date'] ?? '') ?? DateTime(0);
-        final dateB = DateTime.tryParse(b['booking_date'] ?? '') ?? DateTime(0);
+        final dateA = DateTimeUtils.tryParseBookingInstant(a['booking_date']) ?? DateTime(0);
+        final dateB = DateTimeUtils.tryParseBookingInstant(b['booking_date']) ?? DateTime(0);
         return dateB.compareTo(dateA);
       });
 
@@ -113,7 +113,7 @@ class _UserBookingCard extends StatelessWidget {
     final status = booking['status'] ?? 'pending';
     final isCancellable = status == 'pending' || status == 'confirmed';
     final dateStr = booking['booking_date'];
-    final date = dateStr != null ? DateTime.tryParse(dateStr) : null;
+    final date = dateStr != null ? DateTimeUtils.tryParseBookingInstant(dateStr) : null;
 
     // Determine restaurant name
     String restaurantName = 'Restaurant';

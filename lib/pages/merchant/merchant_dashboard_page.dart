@@ -50,9 +50,10 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _notificationProvider.fetchUnreadCount(true); // Fetch for merchant
-    
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      // Defer: fetchUnreadCount() notifies listeners; cannot run during build.
+      _notificationProvider.fetchUnreadCount(true);
       _fetchDashboardData();
     });
   }

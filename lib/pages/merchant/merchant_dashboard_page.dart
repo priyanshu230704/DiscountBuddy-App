@@ -11,7 +11,6 @@ import 'qr_scanner_page.dart';
 import '../../services/merchant_service.dart';
 import '../../services/notification_service.dart';
 import '../notifications_page.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'dart:async';
 import '../../providers/notification_provider.dart';
 

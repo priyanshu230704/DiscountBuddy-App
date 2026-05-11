@@ -60,10 +60,20 @@ void main() async {
     debugPrint('⚠️ Initial initialization error: $e');
   }
 
-  // Set up background message handler immediately if Firebase is initialized
+  // Set up background message handler immediate0ly if Firebase is initialized
   if (Firebase.apps.isNotEmpty) {
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   }
+
+  // Opt in to edge-to-edge for Android compatibility across SDK levels.
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+      systemNavigationBarIconBrightness: Brightness.dark,
+    ),
+  );
 
   // Lock app to portrait orientation
   SystemChrome.setPreferredOrientations([

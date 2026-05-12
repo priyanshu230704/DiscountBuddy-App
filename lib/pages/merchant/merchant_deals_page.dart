@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import '../../services/merchant_service.dart';
+import '../../services/api_service.dart';
 import '../../widgets/empty_state_widget.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../components/layout.dart';
@@ -88,36 +89,57 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
     }
   }
 
-  Future<void> _toggleDealStatus(int dealId) async {
-    // Find the deal to update locally (Optimistic Update)
+  Future<void> _toggleDealStatus(int dealId, {String? startDate, String? endDate}) async {
+    // Find the deal to update locally (Optimistic Update if no dates provided)
     final dealIndex = _deals.indexWhere((d) => d['id'] == dealId);
     if (dealIndex == -1) return;
 
-    final originalStatus = _deals[dealIndex]['is_active'] ?? false;
+    final deal = _deals[dealIndex];
+    final originalStatus = deal['is_active'] ?? false;
     
-    setState(() {
-      _deals[dealIndex]['is_active'] = !originalStatus;
-    });
+    // Only do optimistic update if we are doing a simple toggle without dates
+    if (startDate == null && endDate == null) {
+      setState(() {
+        _deals[dealIndex]['is_active'] = !originalStatus;
+      });
+    }
 
     try {
-      final response = await _merchantService.toggleDealStatus(dealId);
+      final response = await _merchantService.toggleDealStatus(
+        dealId, 
+        startDate: startDate, 
+        endDate: endDate
+      );
       
       if (mounted) {
         if (response['success'] == true) {
+          // Update local deal with returned deal object
+          if (response['deal'] != null) {
+            setState(() {
+              _deals[dealIndex] = response['deal'];
+            });
+          }
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(response['detail'] ?? 'Status updated'),
               behavior: SnackBarBehavior.floating,
               backgroundColor: AppColors.success,
-              duration: const Duration(seconds: 2),
+              duration: const Duration(seconds: 3),
             ),
           );
-          // No need to call _loadDeals() if we've already updated the state locally
+
+          // Show warnings if any
+          if (response['warnings'] != null && (response['warnings'] as List).isNotEmpty) {
+            _showWarningsDialog(response['warnings'].cast<String>());
+          }
         } else {
-          // Revert on failure
-          setState(() {
-            _deals[dealIndex]['is_active'] = originalStatus;
-          });
+          // Handle explicit failure if success is false but no exception thrown
+          if (startDate == null && endDate == null) {
+            setState(() {
+              _deals[dealIndex]['is_active'] = originalStatus;
+            });
+          }
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(response['detail'] ?? 'Failed to update status'),
@@ -128,17 +150,89 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
       }
     } catch (e) {
       if (mounted) {
-        // Revert on error
-        setState(() {
-          _deals[dealIndex]['is_active'] = originalStatus;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to update status: ${e.toString()}'),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        // Revert on error if we did optimistic update
+        if (startDate == null && endDate == null) {
+          setState(() {
+            _deals[dealIndex]['is_active'] = originalStatus;
+          });
+        }
+
+        if (e is ApiException && e.data != null && e.data['error_code'] == 'EXPIRED_DEAL') {
+          _showRenewDealDialog(dealId);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(e.toString()),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
       }
+    }
+  }
+
+  void _showWarningsDialog(List<String> warnings) {
+    // Filter out confusing/incorrect warnings from backend if they contradict the successful toggle
+    final filteredWarnings = warnings.where((w) {
+      final lowercaseW = w.toLowerCase();
+      // Remove warnings that say it's still inactive when we just toggled it on
+      if (lowercaseW.contains('inactive') && (lowercaseW.contains('toggled on') || lowercaseW.contains('toggle on'))) {
+        return false;
+      }
+      return true;
+    }).toList();
+
+    if (filteredWarnings.isEmpty) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: AppColors.merchantAmber),
+            SizedBox(width: 8),
+            Text('Important Note'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: filteredWarnings.map((w) => Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Text('• $w', style: AppTypography.bodySmall),
+          )).toList(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Got it'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showRenewDealDialog(int dealId) async {
+    final dealIndex = _deals.indexWhere((d) => d['id'] == dealId);
+    if (dealIndex == -1) return;
+    
+    DateTime now = DateTime.now();
+    // Default to starting now and ending in 30 days
+    DateTime initialStart = now;
+    DateTime initialEnd = now.add(const Duration(days: 30));
+
+    final result = await showDialog<Map<String, DateTime>>(
+      context: context,
+      builder: (context) => _RenewDealDialog(
+        initialStartDate: initialStart,
+        initialEndDate: initialEnd,
+      ),
+    );
+
+    if (result != null) {
+      final startDateStr = result['startDate']!.toUtc().toIso8601String();
+      final endDateStr = result['endDate']!.toUtc().toIso8601String();
+      _toggleDealStatus(dealId, startDate: startDateStr, endDate: endDateStr);
     }
   }
 
@@ -365,6 +459,10 @@ class _DealCard extends StatelessWidget {
     final usedCount = deal['used_count'] as int? ?? 0;
     final maxUses = deal['max_uses'] as int?;
 
+    final endDateStr = deal['end_date'] as String?;
+    final endDate = endDateStr != null ? DateTime.tryParse(endDateStr) : null;
+    final isExpired = endDate != null && endDate.isBefore(DateTime.now());
+
     final iconColor = _getDealColor(dealType);
     final iconData = _getDealIcon(dealType);
 
@@ -409,11 +507,33 @@ class _DealCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      restaurantName,
-                      style: AppTypography.subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            restaurantName,
+                            style: AppTypography.subtitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (isExpired)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.error.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              'EXPIRED',
+                              style: AppTypography.caption.copyWith(
+                                color: AppColors.error,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ),
@@ -499,6 +619,143 @@ class _InfoTag extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _RenewDealDialog extends StatefulWidget {
+  final DateTime initialStartDate;
+  final DateTime initialEndDate;
+
+  const _RenewDealDialog({
+    required this.initialStartDate,
+    required this.initialEndDate,
+  });
+
+  @override
+  State<_RenewDealDialog> createState() => _RenewDealDialogState();
+}
+
+class _RenewDealDialogState extends State<_RenewDealDialog> {
+  late DateTime _startDate;
+  late DateTime _endDate;
+
+  @override
+  void initState() {
+    super.initState();
+    _startDate = widget.initialStartDate;
+    _endDate = widget.initialEndDate;
+  }
+
+  Future<void> _selectDate(bool isStart) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: isStart ? _startDate : _endDate,
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.primaryOrange,
+              onPrimary: Colors.white,
+              onSurface: AppColors.textPrimary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        if (isStart) {
+          _startDate = picked;
+          // Ensure end date is after start date
+          if (_endDate.isBefore(_startDate)) {
+            _endDate = _startDate.add(const Duration(days: 30));
+          }
+        } else {
+          _endDate = picked;
+        }
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Renew Expired Deal'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'This deal has expired. Please set a new date range to reactivate it.',
+            style: AppTypography.bodySmall,
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          _buildDateTile('Start Date', _startDate, () => _selectDate(true)),
+          const SizedBox(height: AppSpacing.md),
+          _buildDateTile('End Date', _endDate, () => _selectDate(false)),
+          if (_endDate.isBefore(_startDate))
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Text(
+                'End date must be after start date',
+                style: AppTypography.caption.copyWith(color: AppColors.error),
+              ),
+            ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: _endDate.isAfter(_startDate)
+              ? () => Navigator.pop(context, {
+                    'startDate': _startDate,
+                    'endDate': _endDate,
+                  })
+              : null,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primaryOrange,
+            foregroundColor: Colors.white,
+          ),
+          child: const Text('Renew & Activate'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDateTile(String label, DateTime date, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          border: Border.all(color: AppColors.divider),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: AppTypography.caption),
+                Text(
+                  '${date.day}/${date.month}/${date.year}',
+                  style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const Icon(Icons.calendar_today_rounded, size: 18, color: AppColors.primaryOrange),
+          ],
+        ),
       ),
     );
   }

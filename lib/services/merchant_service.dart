@@ -194,17 +194,21 @@ class MerchantService {
   }
 
   /// Toggle deal status
-  Future<Map<String, dynamic>> toggleDealStatus(int dealId) async {
+  Future<Map<String, dynamic>> toggleDealStatus(int dealId, {String? startDate, String? endDate}) async {
     try {
       await _ensureAuthenticated();
+      final body = <String, dynamic>{};
+      if (startDate != null) body['start_date'] = startDate;
+      if (endDate != null) body['end_date'] = endDate;
+
       final response = await _apiService.post(
         ApiEndpoints.toggleDealStatus(dealId),
-        body: {},
+        body: body,
         type: ApiType.merchant,
       );
       return response;
     } catch (e) {
-      throw Exception('Failed to toggle deal status: ${e.toString()}');
+      rethrow;
     }
   }
 

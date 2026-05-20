@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import '../config/environment.dart';
 import '../design/app_colors.dart';
 import '../design/app_typography.dart';
-import '../services/app_config_service.dart';
-import '../widgets/update_dialog.dart';
+import '../services/app_version_checker.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -89,39 +88,15 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Proceed if still mounted
     if (mounted) {
-      Navigator.of(context).pushReplacementNamed('/onboarding-check');
+      await Navigator.of(context).pushReplacementNamed('/onboarding-check');
+      AppVersionChecker.showOptionalUpdateSheetOnce();
     }
   }
 
-  /// Returns true if navigation should be blocked (because of force update)
+  /// Returns true if navigation should be blocked (force update page shown).
   Future<bool> _checkAppVersion() async {
-    try {
-      final configService = AppConfigService();
-      final versionInfo = await configService.checkVersion();
-
-      if (versionInfo != null && versionInfo.isUpdateAvailable) {
-        bool isForce =
-            versionInfo.isForceUpdate || versionInfo.isCriticalUpdate;
-
-        if (mounted) {
-          // If it's a force update, this dialog will stay until the app is updated/closed
-          await showDialog(
-            context: context,
-            barrierDismissible: !isForce,
-            builder: (context) => UpdateDialog(versionInfo: versionInfo),
-          );
-
-          // After dialog closes, check if we should still stop
-          // (if the user clicked "Maybe Later" on an optional update, we proceed)
-          return isForce;
-        }
-      }
-      return false;
-    } catch (e) {
-      debugPrint('Error checking app version: $e');
-      // Continue even if check fails to not brick the app on network issues
-      return false;
-    }
+    if (!mounted) return false;
+    return AppVersionChecker.checkAtStartup();
   }
 
   @override

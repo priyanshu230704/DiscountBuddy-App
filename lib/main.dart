@@ -7,6 +7,9 @@ import 'pages/main_navigation.dart';
 import 'pages/auth/login_page.dart';
 import 'pages/splash_screen.dart';
 import 'pages/onboarding_check_screen.dart';
+import 'pages/app_update_page.dart';
+import 'models/app_version_info.dart';
+import 'services/app_version_checker.dart';
 import 'providers/theme_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/connectivity_provider.dart';
@@ -116,20 +119,34 @@ class DiscountBuddyApp extends StatefulWidget {
   State<DiscountBuddyApp> createState() => _DiscountBuddyAppState();
 }
 
-class _DiscountBuddyAppState extends State<DiscountBuddyApp> {
+class _DiscountBuddyAppState extends State<DiscountBuddyApp>
+    with WidgetsBindingObserver {
   final ThemeProvider _themeProvider = ThemeProvider();
   final AuthProvider _authProvider = AuthProvider();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _authProvider.addListener(_authStateChanged);
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _authProvider.removeListener(_authStateChanged);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        AppVersionChecker.checkOnResume(
+          continueRoute: _authProvider.isAuthenticated ? '/home' : '/login',
+        );
+      });
+    }
   }
 
   void _authStateChanged() {
@@ -167,6 +184,16 @@ class _DiscountBuddyAppState extends State<DiscountBuddyApp> {
               '/home': (context) => MainNavigation(
                 key: ValueKey(_authProvider.isMerchant),
               ),
+              '/app-update': (context) {
+                final args = ModalRoute.of(context)?.settings.arguments;
+                if (args is! AppVersionInfo) {
+                  return const SplashScreen();
+                }
+                return AppUpdatePage(
+                  versionInfo: args,
+                  continueRoute: '/onboarding-check',
+                );
+              },
             },
           );
         },

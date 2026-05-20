@@ -3,20 +3,41 @@ import 'package:geocoding/geocoding.dart';
 
 /// Service for location-related operations
 class LocationService {
-  /// Get current location — checks permission and requests if needed.
-  /// Throws [LocationServiceDisabledException] if GPS/location is turned off and no last known position.
-  /// Throws [LocationPermissionDeniedException] if user denied permission.
-  Future<Position> getCurrentLocation() async {
+  /// Current permission status without prompting the user.
+  Future<LocationPermission> checkPermission() => Geolocator.checkPermission();
+
+  static bool isPermissionGranted(LocationPermission permission) =>
+      permission == LocationPermission.whileInUse ||
+      permission == LocationPermission.always;
+
+  /// Get current location.
+  ///
+  /// Set [requestPermissionIfDenied] to `true` only on first explicit prompt
+  /// (e.g. home screen init). When `false`, denied permission throws immediately
+  /// without re-showing the system dialog.
+  Future<Position> getCurrentLocation({
+    bool requestPermissionIfDenied = false,
+  }) async {
     LocationPermission permission = await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.deniedForever) {
+      throw LocationPermissionDeniedException(isPermanent: true);
+    }
+
     if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
+      if (requestPermissionIfDenied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.deniedForever) {
+        throw LocationPermissionDeniedException(isPermanent: true);
+      }
       if (permission == LocationPermission.denied) {
-        throw LocationPermissionDeniedException();
+        throw LocationPermissionDeniedException(isPermanent: false);
       }
     }
 
-    if (permission == LocationPermission.deniedForever) {
-      throw LocationPermissionDeniedException();
+    if (!isPermissionGranted(permission)) {
+      throw LocationPermissionDeniedException(isPermanent: false);
     }
 
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
@@ -124,8 +145,12 @@ class LocationService {
   /// Get user's full location data (position + city name) in one call.
   /// Returns a record with position and city name.
   /// Throws if location cannot be obtained.
-  Future<({Position position, String cityName})> getUserLocation() async {
-    final position = await getCurrentLocation();
+  Future<({Position position, String cityName})> getUserLocation({
+    bool requestPermissionIfDenied = false,
+  }) async {
+    final position = await getCurrentLocation(
+      requestPermissionIfDenied: requestPermissionIfDenied,
+    );
     final cityName = await getCityName(position.latitude, position.longitude);
 
     final validCity =
@@ -148,7 +173,12 @@ class LocationServiceDisabledException implements Exception {
 
 /// Custom exception for location permissions being denied
 class LocationPermissionDeniedException implements Exception {
+  final bool isPermanent;
+
+  LocationPermissionDeniedException({this.isPermanent = false});
+
   @override
-  String toString() =>
-      'Location permissions are denied. Please grant location access.';
+  String toString() => isPermanent
+      ? 'Location permissions are permanently denied. Enable them in Settings.'
+      : 'Location permissions are denied. Please grant location access.';
 }

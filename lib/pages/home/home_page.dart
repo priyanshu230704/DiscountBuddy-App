@@ -9,7 +9,6 @@ import 'package:geolocator/geolocator.dart'
 import '../../models/restaurant.dart';
 import '../../services/restaurant_service.dart';
 import '../../services/location_service.dart';
-import '../../services/notification_service.dart';
 import '../../services/app_config_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/notification_provider.dart';
@@ -32,7 +31,6 @@ enum HomeFilter { offers, rating, nearest, openNow }
 class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   final RestaurantService _restaurantService = RestaurantService();
   final LocationService _locationService = LocationService();
-  final NotificationService _notificationService = NotificationService();
   final AuthProvider _authProvider = AuthProvider();
   final AppConfigService _appConfigService = AppConfigService();
 
@@ -54,6 +52,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   double? _userLatitude;
   double? _userLongitude;
+
+  bool _locationPermissionDenied = false;
+  bool _isFetchingLocation = false;
+  bool _isLoadingRestaurants = false;
 
   HomeFilter? _activeFilter = HomeFilter.offers;
 
@@ -81,38 +83,50 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // Sync unread notification count (captures background updates)
       _notificationProvider.fetchUnreadCount(false);
-      
-      // If we are currently on fallback or no location, try to get real location
-      if (_userLatitude == null || _userLongitude == null) {
-        _onReturnedFromSettings();
+
+      // Only retry location if permission was not explicitly denied this session.
+      // Avoids API loop when user taps "Don't allow" and the app resumes.
+      if (!_locationPermissionDenied &&
+          (_userLatitude == null || _userLongitude == null)) {
+        _tryRefreshLocationFromSettings();
       }
     }
   }
 
-  /// Called when user returns to the app after visiting settings
-  Future<void> _onReturnedFromSettings() async {
+  /// Re-check permission after user may have changed it in Settings (no auto-prompt).
+  Future<void> _tryRefreshLocationFromSettings() async {
+    if (_isFetchingLocation || !mounted) return;
+
+    final permission = await _locationService.checkPermission();
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      if (mounted) {
+        setState(() {
+          _locationPermissionDenied = true;
+          _cityName = permission == LocationPermission.deniedForever
+              ? 'Permission blocked'
+              : 'No Permission';
+        });
+      }
+      return;
+    }
+
+    _isFetchingLocation = true;
     try {
       final location = await _locationService.getUserLocation();
-      if (mounted) {
-        setState(() {
-          _userLatitude = location.position.latitude;
-          _userLongitude = location.position.longitude;
-          _cityName = location.cityName;
-        });
-        // Reload restaurants with the new coordinates
-        await _loadRestaurants();
-      }
-    } catch (_) {
-      debugPrint('📍 Still no location after settings, proceeding without it');
-      if (mounted) {
-        setState(() {
-          _userLatitude = null;
-          _userLongitude = null;
-        });
-        await _loadRestaurants();
-      }
+      if (!mounted) return;
+      setState(() {
+        _locationPermissionDenied = false;
+        _userLatitude = location.position.latitude;
+        _userLongitude = location.position.longitude;
+        _cityName = location.cityName;
+      });
+      await _loadRestaurants();
+    } catch (e) {
+      debugPrint('📍 Location refresh skipped: $e');
+    } finally {
+      _isFetchingLocation = false;
     }
   }
 
@@ -140,10 +154,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// Fetch user location first (system dialog handles permission prompt),
   /// then load restaurants using the real lat/lon.
   Future<void> _initLocationAndLoadData() async {
+    if (_isFetchingLocation) return;
+    _isFetchingLocation = true;
+
     try {
-      final location = await _locationService.getUserLocation();
+      final location = await _locationService.getUserLocation(
+        requestPermissionIfDenied: true,
+      );
       if (mounted) {
         setState(() {
+          _locationPermissionDenied = false;
           _userLatitude = location.position.latitude;
           _userLongitude = location.position.longitude;
           _cityName = location.cityName;
@@ -162,16 +182,19 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           isServiceOff: true,
         );
       }
-    } on LocationPermissionDeniedException {
-      debugPrint('📍 Location permission denied');
+    } on LocationPermissionDeniedException catch (e) {
+      debugPrint('📍 Location permission denied (permanent: ${e.isPermanent})');
       if (mounted) {
         setState(() {
-          _cityName = 'No Permission';
+          _locationPermissionDenied = true;
+          _cityName = e.isPermanent ? 'Permission blocked' : 'No Permission';
           _userLatitude = null;
           _userLongitude = null;
         });
         _promptToEnableLocation(
-          'Location permission denied.',
+          e.isPermanent
+              ? 'Location access is blocked. Enable it in Settings to see nearby deals.'
+              : 'Location permission denied. Enable it in Settings for nearby deals.',
           isServiceOff: false,
         );
       }
@@ -184,6 +207,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         });
       }
     } finally {
+      _isFetchingLocation = false;
       await _loadRestaurants();
     }
   }
@@ -213,7 +237,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   // Removed local _loadNotificationCount as it's now in NotificationProvider
 
   Future<void> _loadRestaurants() async {
-    if (!mounted) return;
+    if (!mounted || _isLoadingRestaurants) return;
+    _isLoadingRestaurants = true;
     setState(() => _isLoading = true);
 
     try {
@@ -353,6 +378,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     } catch (e) {
       debugPrint('❌ Error loading restaurants: $e');
       if (mounted) setState(() => _isLoading = false);
+    } finally {
+      _isLoadingRestaurants = false;
     }
   }
 

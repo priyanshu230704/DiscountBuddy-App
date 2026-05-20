@@ -8,6 +8,7 @@ import 'package:discount_buddy/design/app_typography.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/auth/auth_theme.dart';
 import '../../widgets/auth/auth_text_field.dart';
+import '../../widgets/connectivity_gate.dart';
 import 'login_page.dart';
 
 /// Register Screen - NeoTaste style
@@ -247,7 +248,8 @@ class _RegisterPageState extends State<RegisterPage> {
       child: Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: AppColors.surface,
-        body: GestureDetector(
+        body: ConnectivityGate(
+          child: GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
           child: Stack(
@@ -904,6 +906,7 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ],
           ),
+        ),
         ),
       ),
     );

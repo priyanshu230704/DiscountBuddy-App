@@ -9,6 +9,7 @@ import 'pages/splash_screen.dart';
 import 'pages/onboarding_check_screen.dart';
 import 'providers/theme_provider.dart';
 import 'providers/auth_provider.dart';
+import 'providers/connectivity_provider.dart';
 import 'services/auth_service.dart';
 import 'services/firebase_messaging_service.dart'; // Import the service
 import 'firebase_options.dart';
@@ -17,6 +18,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'utils/navigator_key.dart';
+import 'package:provider/provider.dart';
 
 // Background message handler - must be top-level function
 @pragma('vm:entry-point')
@@ -136,36 +138,39 @@ class _DiscountBuddyAppState extends State<DiscountBuddyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: _themeProvider,
-      builder: (context, child) {
-        return MaterialApp(
-          navigatorKey: navigatorKey,
-          title: Environment.appName,
-          debugShowCheckedModeBanner: Environment.enableDebugMode,
-          theme: _themeProvider.lightTheme,
-          darkTheme: _themeProvider.darkTheme,
-          themeMode: _themeProvider.isDarkMode
-              ? ThemeMode.dark
-              : ThemeMode.light,
-          home: const SplashScreen(),
-          builder: (context, child) {
-            return MediaQuery(
-              data: MediaQuery.of(context).copyWith(
-                textScaler: TextScaler.noScaling,
+    return ChangeNotifierProvider<ConnectivityProvider>(
+      create: (_) => ConnectivityProvider(),
+      child: ListenableBuilder(
+        listenable: _themeProvider,
+        builder: (context, child) {
+          return MaterialApp(
+            navigatorKey: navigatorKey,
+            title: Environment.appName,
+            debugShowCheckedModeBanner: Environment.enableDebugMode,
+            theme: _themeProvider.lightTheme,
+            darkTheme: _themeProvider.darkTheme,
+            themeMode: _themeProvider.isDarkMode
+                ? ThemeMode.dark
+                : ThemeMode.light,
+            home: const SplashScreen(),
+            builder: (context, child) {
+              return MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                  textScaler: TextScaler.noScaling,
+                ),
+                child: child!,
+              );
+            },
+            routes: {
+              '/onboarding-check': (context) => const OnboardingCheckScreen(),
+              '/login': (context) => const LoginPage(),
+              '/home': (context) => MainNavigation(
+                key: ValueKey(_authProvider.isMerchant),
               ),
-              child: child!,
-            );
-          },
-          routes: {
-            '/onboarding-check': (context) => const OnboardingCheckScreen(),
-            '/login': (context) => const LoginPage(),
-            '/home': (context) => MainNavigation(
-              key: ValueKey(_authProvider.isMerchant),
-            ),
-          },
-        );
-      },
+            },
+          );
+        },
+      ),
     );
   }
 }

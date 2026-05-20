@@ -4,6 +4,7 @@ import '../../design/app_radius.dart';
 import '../../design/app_spacing.dart';
 import '../../design/app_typography.dart';
 import '../../components/buttons.dart';
+import '../../widgets/connectivity_gate.dart';
 import 'login_page.dart';
 import 'register_page.dart';
 
@@ -15,7 +16,8 @@ class EntryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
+      body: ConnectivityGate(
+        child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
           child: Column(
@@ -81,6 +83,7 @@ class EntryScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }

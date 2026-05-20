@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'connectivity_gate.dart';
 import '../design/app_colors.dart';
 
 class AppScaffold extends StatelessWidget {
@@ -11,6 +12,7 @@ class AppScaffold extends StatelessWidget {
   final bool extendBodyBehindAppBar;
   final bool resizeToAvoidBottomInset;
   final Color? backgroundColor;
+  final bool checkConnectivity;
 
   const AppScaffold({
     super.key,
@@ -22,6 +24,7 @@ class AppScaffold extends StatelessWidget {
     this.extendBodyBehindAppBar = false,
     this.resizeToAvoidBottomInset = true,
     this.backgroundColor,
+    this.checkConnectivity = true,
   });
 
   @override
@@ -39,7 +42,10 @@ class AppScaffold extends StatelessWidget {
         child: Scaffold(
           backgroundColor: Colors.transparent,
           appBar: appBar,
-          body: body,
+          body: ConnectivityGate(
+            enabled: checkConnectivity,
+            child: body,
+          ),
           bottomNavigationBar: bottomNavigationBar,
           floatingActionButton: floatingActionButton,
           floatingActionButtonLocation: floatingActionButtonLocation,

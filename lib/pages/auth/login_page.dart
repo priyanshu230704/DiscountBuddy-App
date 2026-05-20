@@ -7,6 +7,7 @@ import '../../providers/auth_provider.dart';
 import '../../theme/app_colors.dart';
 import 'package:discount_buddy/design/app_typography.dart';
 import '../../widgets/auth/auth_theme.dart';
+import '../../widgets/connectivity_gate.dart';
 import 'forgot_password_page.dart';
 
 /// Login Screen - DiscountBuddy Redesign
@@ -161,7 +162,8 @@ class _LoginPageState extends State<LoginPage> {
       canPop: true,
       child: Scaffold(
         resizeToAvoidBottomInset: true,
-        body: Stack(
+        body: ConnectivityGate(
+          child: Stack(
           children: [
             // Premium Mesh Gradient Background
             Positioned.fill(
@@ -597,6 +599,7 @@ class _LoginPageState extends State<LoginPage> {
             ),
 
           ],
+        ),
         ),
       ),
     );

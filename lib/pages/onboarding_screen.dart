@@ -2,6 +2,7 @@ import 'package:discount_buddy/design/app_typography.dart';
 import 'package:flutter/material.dart';
 import '../design/app_colors.dart';
 import '../services/onboarding_service.dart';
+import '../widgets/connectivity_gate.dart';
 import 'auth/login_page.dart';
 import 'auth/register_page.dart';
 
@@ -82,7 +83,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final scale = (size.width / 390).clamp(0.7, 1.05);
 
     return Scaffold(
-      body: Stack(
+      body: ConnectivityGate(
+        child: Stack(
         children: [
           // Premium Mesh Gradient Background
           Positioned.fill(
@@ -320,6 +322,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

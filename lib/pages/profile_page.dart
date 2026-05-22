@@ -105,7 +105,7 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: AppAppBar(
         titleText: 'Profile',
         centerTitle: false,
-        backgroundColor: Colors.transparent,
+        backgroundColor: const Color(0xFFF3E8FF),
         automaticallyImplyLeading: false,
       ),
       body: SingleChildScrollView(
@@ -125,112 +125,93 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   );
                 },
-                child: Container(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 72,
-                        height: 72,
-                        padding: const EdgeInsets.all(3),
-                        decoration: BoxDecoration(
-                          gradient: AppColors.purpleGradient,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primaryPurple.withValues(alpha: 0.3),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Container(
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
+                child: Row(
+                  children: [
+                    Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(36),
+                        border: Border.all(color: AppColors.cardBorder, width: 1),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.2),
+                            blurRadius: 15,
+                            offset: const Offset(0, 8),
                           ),
-                          child: Builder(
-                            builder: (context) {
-                              final profilePic = user?.profilePicture;
-                              if (profilePic == null) {
-                                return Center(
-                                  child: Icon(
-                                    Icons.person,
-                                    size: 40,
-                                    color: AppColors.textDisabled.withValues(alpha: 0.5),
-                                  ),
-                                );
-                              }
-                              
-                              return ClipOval(
-                                child: profilePic.startsWith('assets/')
-                                    ? Image.asset(profilePic, fit: BoxFit.cover)
-                                    : (profilePic.isNotEmpty
-                                        ? CachedNetworkImage(
-                                            imageUrl: profilePic.startsWith('http') 
-                                                ? profilePic 
-                                                : '${Environment.baseUrl}$profilePic',
-                                            fit: BoxFit.cover,
-                                          )
-                                        : Center(
-                                            child: Icon(
-                                              Icons.person,
-                                              size: 40,
-                                              color: AppColors.textDisabled.withValues(alpha: 0.5),
-                                            ),
-                                          )),
-                              );
-                            },
-                          ),
-                        ),
+                        ],
                       ),
-                      const SizedBox(width: 20),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              displayName,
-                              style: AppTypography.title.copyWith(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.textPrimary,
-                                letterSpacing: -0.5,
+                      child: Builder(
+                        builder: (context) {
+                          final profilePic = user?.profilePicture;
+                          if (profilePic == null) {
+                            return Center(
+                              child: Icon(
+                                Icons.person,
+                                size: 40,
+                                color: AppColors.textDisabled.withValues(alpha: 0.5),
                               ),
-                            ),
-                           
-                          ],
-                        ),
+                            );
+                          }
+                          
+                          return ClipOval(
+                            child: profilePic.startsWith('assets/')
+                                ? Image.asset(profilePic, fit: BoxFit.cover)
+                                : (profilePic.isNotEmpty
+                                    ? CachedNetworkImage(
+                                        imageUrl: profilePic.startsWith('http') 
+                                            ? profilePic 
+                                            : '${Environment.baseUrl}$profilePic',
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Center(
+                                        child: Icon(
+                                          Icons.person,
+                                          size: 40,
+                                          color: AppColors.textDisabled.withValues(alpha: 0.5),
+                                        ),
+                                      )),
+                          );
+                        },
                       ),
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              blurRadius: 10,
+                    ),
+                    const SizedBox(width: 20),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            displayName,
+                            style: AppTypography.title.copyWith(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary,
+                              letterSpacing: -0.4,
                             ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.edit_outlined,
-                          color: AppColors.textPrimary,
-                          size: 20,
-                        ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Edit profile',
+                            style: AppTypography.body.copyWith(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                    Icon(
+                      Icons.chevron_right,
+                      color: AppColors.textPrimary,
+                      size: 28,
+                    ),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 32),
 
             // Stats Grid
             if (!_authProvider.isMerchant && _stats != null) ...[
@@ -296,47 +277,13 @@ class _ProfilePageState extends State<ProfilePage> {
               const SizedBox(height: 32),
             ],
 
-            // Menu Sections
+            // Menu Options
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (!_authProvider.isMerchant) ...[
-                    _buildSectionHeader('General'),
-                    _MenuTile(
-                      icon: Icons.account_balance_wallet_outlined,
-                      iconColor: AppColors.merchantBlue,
-                      title: 'Savings History',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SavingsHistoryPage(),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    _MenuTile(
-                      icon: Icons.favorite_border_rounded,
-                      iconColor: AppColors.error,
-                      title: 'Saved Restaurants',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SavedRestaurantsPage(),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 28),
-                  ],
-                  _buildSectionHeader('Support & Partners'),
                   _MenuTile(
-                    icon: Icons.help_outline_rounded,
-                    iconColor: AppColors.merchantAmber,
+                    icon: Icons.help_outline,
                     title: 'Help & Support',
                     onTap: () {
                       Navigator.push(
@@ -348,11 +295,10 @@ class _ProfilePageState extends State<ProfilePage> {
                     },
                   ),
                   if (!_authProvider.isMerchant) ...[
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     _MenuTile(
                       icon: Icons.storefront_outlined,
-                      iconColor: AppColors.merchantIndigo,
-                      title: 'Become a Partner',
+                      title: 'Join as restaurant partner',
                       onTap: () {
                         Navigator.push(
                           context,
@@ -363,10 +309,9 @@ class _ProfilePageState extends State<ProfilePage> {
                       },
                     ),
                   ],
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   _MenuTile(
                     icon: Icons.privacy_tip_outlined,
-                    iconColor: AppColors.success,
                     title: 'Privacy Policy',
                     onTap: () {
                       Navigator.push(
@@ -377,22 +322,23 @@ class _ProfilePageState extends State<ProfilePage> {
                       );
                     },
                   ),
-
-                  const SizedBox(height: 28),
-                  _buildSectionHeader('Account'),
+                  const SizedBox(height: 16),
                   _MenuTile(
                     icon: Icons.logout_rounded,
-                    iconColor: AppColors.textSecondary,
                     title: 'Logout',
-                    onTap: () => _showLogoutConfirmation(),
+                    isDestructive: false,
+                    onTap: () {
+                      _showLogoutConfirmation();
+                    },
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   _MenuTile(
                     icon: Icons.delete_forever_rounded,
-                    iconColor: AppColors.error,
                     title: 'Delete Account',
                     isDestructive: true,
-                    onTap: () => _showDeleteAccountConfirmation(),
+                    onTap: () {
+                      _showDeleteAccountConfirmation();
+                    },
                   ),
                 ],
               ),
@@ -656,32 +602,14 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 }
 
-  Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 8, bottom: 12),
-      child: Text(
-        title.toUpperCase(),
-        style: AppTypography.bodySmall.copyWith(
-          fontSize: 12,
-          fontWeight: FontWeight.w800,
-          color: AppColors.textSecondary.withValues(alpha: 0.7),
-          letterSpacing: 1.2,
-        ),
-      ),
-    );
-  }
-
-
 class _MenuTile extends StatelessWidget {
   final IconData icon;
-  final Color iconColor;
   final String title;
   final VoidCallback onTap;
   final bool isDestructive;
 
   const _MenuTile({
     required this.icon,
-    required this.iconColor,
     required this.title,
     required this.onTap,
     this.isDestructive = false,
@@ -692,48 +620,41 @@ class _MenuTile extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding: const EdgeInsets.all(AppSpacing.xl - 2),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.6),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.8)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.03),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          color: AppColors.surface,
+          borderRadius: AppRadius.xLarge,
+          border: Border.all(color: AppColors.cardBorder),
+          boxShadow: AppShadows.card,
         ),
         child: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(
-                icon,
-                color: iconColor,
-                size: 20,
-              ),
+            Icon(
+              icon,
+              color: isDestructive
+                  ? AppColors.error
+                  : AppColors.textPrimary,
+              size: 22,
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Text(
                 title,
                 style: AppTypography.body.copyWith(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: isDestructive ? AppColors.error : AppColors.textPrimary,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w600,
+                  color: isDestructive
+                      ? AppColors.error
+                      : AppColors.textPrimary,
                 ),
               ),
             ),
             Icon(
-              Icons.chevron_right_rounded,
-              color: AppColors.textDisabled.withValues(alpha: 0.5),
-              size: 24,
+              Icons.chevron_right,
+              color: isDestructive
+                  ? AppColors.error.withValues(alpha: 0.5)
+                  : AppColors.textDisabled,
+              size: 20,
             ),
           ],
         ),
@@ -741,7 +662,6 @@ class _MenuTile extends StatelessWidget {
     );
   }
 }
-
 class _StatCard extends StatelessWidget {
   final IconData icon;
   final String value;
@@ -758,48 +678,34 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.md),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.9)),
-        boxShadow: [
-          BoxShadow(
-            color: iconColor.withValues(alpha: 0.1),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        color: AppColors.surface,
+        borderRadius: AppRadius.xLarge,
+        border: Border.all(color: AppColors.cardBorder),
+        boxShadow: AppShadows.card,
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: iconColor, size: 24),
-          ),
-          const SizedBox(height: 12),
+          Icon(icon, color: iconColor, size: 28),
+          const SizedBox(height: 10),
           Text(
             value,
             style: AppTypography.title.copyWith(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
-              letterSpacing: -0.5,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 4),
           Text(
             label,
-            style: AppTypography.bodySmall.copyWith(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
+            style: AppTypography.body.copyWith(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
               color: AppColors.textSecondary,
             ),
             textAlign: TextAlign.center,

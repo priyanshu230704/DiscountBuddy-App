@@ -12,6 +12,7 @@ import '../../widgets/app_scaffold.dart';
 import '../../widgets/app_gradient_button.dart';
 import '../../widgets/loading_widget.dart';
 import '../../widgets/empty_state_widget.dart';
+import '../../widgets/generic_bottom_sheet.dart';
 import '../../models/restaurant.dart';
 import '../../services/location_service.dart';
 import '../restaurant_details_page.dart';
@@ -581,7 +582,21 @@ class _RedemptionCard extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _RedemptionDetailModal(redemption: redemption),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (context, scrollController) => GenericBottomSheet(
+          title: '',
+          showHandle: true,
+          showCloseButton: true,
+          expandChild: false,
+          child: SingleChildScrollView(
+            controller: scrollController,
+            child: _RedemptionDetailModal(redemption: redemption),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -592,215 +607,195 @@ class _RedemptionDetailModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: AppSpacing.md),
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: AppColors.textDisabled,
-                    borderRadius: BorderRadius.circular(2),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Flexible(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Center(
+                    child: Column(
+                      children: [
+                        Text(
+                          redemption.deal.restaurantName,
+                          style: AppTypography.title.copyWith(
+                            fontSize: 20,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        _StatusBadge(
+                          isConfirmed: redemption.restaurantConfirmed,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              Flexible(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Center(
-                        child: Column(
-                          children: [
-                            Text(
-                              redemption.deal.restaurantName,
-                              style: AppTypography.title.copyWith(
-                                fontSize: 20,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: AppSpacing.sm),
-                            _StatusBadge(
-                              isConfirmed: redemption.restaurantConfirmed,
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.xxxl),
+                  const SizedBox(height: AppSpacing.xxxl),
 
-                      // QR Code Logic
-                      if (redemption.qrCodeUrl != null &&
-                          redemption.qrCodeUrl!.isNotEmpty) ...[
-                        Center(
-                          child: AppCard(
-                            padding:
-                                const EdgeInsets.all(AppSpacing.lg),
-                            child: Image.network(
-                              redemption.qrCodeUrl!
-                                  .replaceAll('localhost', '10.0.2.2')
-                                  .replaceAll('127.0.0.1', '10.0.2.2'),
-                              width: 200,
-                              height: 200,
-                              fit: BoxFit.contain,
-                              errorBuilder: (_, _, _) {
-                                return const Icon(
-                                  Icons.broken_image,
-                                  size: 64,
-                                  color: Colors.grey,
-                                );
-                              },
-                            ),
-                          ),
+                  // QR Code Logic
+                  if (redemption.qrCodeUrl != null &&
+                      redemption.qrCodeUrl!.isNotEmpty) ...[
+                    Center(
+                      child: AppCard(
+                        padding:
+                            const EdgeInsets.all(AppSpacing.lg),
+                        child: Image.network(
+                          redemption.qrCodeUrl!
+                              .replaceAll('localhost', '10.0.2.2')
+                              .replaceAll('127.0.0.1', '10.0.2.2'),
+                          width: 200,
+                          height: 200,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, _, _) {
+                            return const Icon(
+                              Icons.broken_image,
+                              size: 64,
+                              color: Colors.grey,
+                            );
+                          },
                         ),
-                        const SizedBox(height: AppSpacing.xl),
-                      ],
-
-                      if (redemption.redemptionCode != null) ...[
-                        Center(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.xl,
-                              vertical: AppSpacing.md,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppColors.surface,
-                              borderRadius: AppRadius.large,
-                              border: Border.all(color: AppColors.cardBorder),
-                              boxShadow: AppShadows.card,
-                            ),
-                            child: Text(
-                              redemption.redemptionCode!,
-                              style: AppTypography.title.copyWith(
-                                fontSize: 24,
-                                letterSpacing: 4,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.xxxl),
-                      ],
-
-                      _DetailRow(
-                        icon: Icons.local_offer,
-                        label: 'Offer',
-                        value: redemption.deal.title,
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      if (redemption.deal.discountPercentage != null)
-                        _DetailRow(
-                          icon: Icons.percent,
-                          label: 'Discount',
-                          value:
-                              '${redemption.deal.discountPercentage!.toStringAsFixed(0)}% OFF',
-                        ),
-                      if (redemption.deal.discountAmount != null)
-                        _DetailRow(
-                          icon: Icons.attach_money,
-                          label: 'Fixed discount',
-                          value: '£${redemption.deal.discountAmount}',
-                        ),
-
-                      if (redemption.restaurantConfirmed && redemption.finalBillAmount != null) ...[
-                        const SizedBox(height: AppSpacing.lg),
-                        const Divider(),
-                        const SizedBox(height: AppSpacing.lg),
-                        _DetailRow(
-                          icon: Icons.receipt_long,
-                          label: 'Total Bill',
-                          value: '£${redemption.price?.toStringAsFixed(2) ?? '0.00'}',
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        _DetailRow(
-                          icon: Icons.savings,
-                          label: 'Total Saved',
-                          value: '£${redemption.discountAmountSaved?.toStringAsFixed(2) ?? '0.00'}',
-                          valueColor: AppColors.success,
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        _DetailRow(
-                          icon: Icons.payments,
-                          label: 'Final Amount Paid',
-                          value: '£${redemption.finalBillAmount?.toStringAsFixed(2) ?? '0.00'}',
-                          isBold: true,
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        _DetailRow(
-                          icon: Icons.people,
-                          label: 'Number of People',
-                          value: '${redemption.peopleCount ?? 1}',
-                        ),
-                        const SizedBox(height: AppSpacing.lg),
-                        const Divider(),
-                      ],
-
-                      const SizedBox(height: AppSpacing.lg),
-                      _DetailRow(
-                        icon: Icons.calendar_today,
-                        label: 'Claimed on',
-                        value: DateTimeUtils.formatDateTime24h(
-                          redemption.usedAt,
-                        ),
-                      ),
-                      if (redemption.redeemedAt != null) ...[
-                        const SizedBox(height: AppSpacing.lg),
-                        _DetailRow(
-                          icon: Icons.verified_rounded,
-                          label: 'Redeemed on',
-                          value: DateTimeUtils.formatDateTime24h(
-                            redemption.redeemedAt!,
-                          ),
-                          valueColor: const Color(0xFF10B981),
-                        ),
-                      ],
-
-                      if (redemption.notes != null &&
-                          redemption.notes!.isNotEmpty) ...[
-                        const SizedBox(height: AppSpacing.lg),
-                        _DetailRow(
-                          icon: Icons.note,
-                          label: 'Notes',
-                          value: redemption.notes!,
-                        ),
-                      ],
-
-                      const SizedBox(height: AppSpacing.xxxl),
-                    ],
-                  ),
-                ),
-              ),
-              SecondaryButton(
-                label: 'View restaurant',
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => RestaurantDetailsPage(
-                        slug: redemption.restaurantId.toString(),
-                        latitude: null, // We don't have user location in this stateless widget easily, but bestMiles will handle it
-                        longitude: null,
                       ),
                     ),
-                  );
-                },
+                    const SizedBox(height: AppSpacing.xl),
+                  ],
+
+                  if (redemption.redemptionCode != null) ...[
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.xl,
+                          vertical: AppSpacing.md,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: AppRadius.large,
+                          border: Border.all(color: AppColors.cardBorder),
+                          boxShadow: AppShadows.card,
+                        ),
+                        child: Text(
+                          redemption.redemptionCode!,
+                          style: AppTypography.title.copyWith(
+                            fontSize: 24,
+                            letterSpacing: 4,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xxxl),
+                  ],
+
+                  _DetailRow(
+                    icon: Icons.local_offer,
+                    label: 'Offer',
+                    value: redemption.deal.title,
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  if (redemption.deal.discountPercentage != null)
+                    _DetailRow(
+                      icon: Icons.percent,
+                      label: 'Discount',
+                      value:
+                          '${redemption.deal.discountPercentage!.toStringAsFixed(0)}% OFF',
+                    ),
+                  if (redemption.deal.discountAmount != null)
+                    _DetailRow(
+                      icon: Icons.attach_money,
+                      label: 'Fixed discount',
+                      value: '£${redemption.deal.discountAmount}',
+                    ),
+
+                  if (redemption.restaurantConfirmed && redemption.finalBillAmount != null) ...[
+                    const SizedBox(height: AppSpacing.lg),
+                    const Divider(),
+                    const SizedBox(height: AppSpacing.lg),
+                    _DetailRow(
+                      icon: Icons.receipt_long,
+                      label: 'Total Bill',
+                      value: '£${redemption.price?.toStringAsFixed(2) ?? '0.00'}',
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    _DetailRow(
+                      icon: Icons.savings,
+                      label: 'Total Saved',
+                      value: '£${redemption.discountAmountSaved?.toStringAsFixed(2) ?? '0.00'}',
+                      valueColor: AppColors.success,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    _DetailRow(
+                      icon: Icons.payments,
+                      label: 'Final Amount Paid',
+                      value: '£${redemption.finalBillAmount?.toStringAsFixed(2) ?? '0.00'}',
+                      isBold: true,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    _DetailRow(
+                      icon: Icons.people,
+                      label: 'Number of People',
+                      value: '${redemption.peopleCount ?? 1}',
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    const Divider(),
+                  ],
+
+                  const SizedBox(height: AppSpacing.lg),
+                  _DetailRow(
+                    icon: Icons.calendar_today,
+                    label: 'Claimed on',
+                    value: DateTimeUtils.formatDateTime24h(
+                      redemption.usedAt,
+                    ),
+                  ),
+                  if (redemption.redeemedAt != null) ...[
+                    const SizedBox(height: AppSpacing.lg),
+                    _DetailRow(
+                      icon: Icons.verified_rounded,
+                      label: 'Redeemed on',
+                      value: DateTimeUtils.formatDateTime24h(
+                        redemption.redeemedAt!,
+                      ),
+                      valueColor: const Color(0xFF10B981),
+                    ),
+                  ],
+
+                  if (redemption.notes != null &&
+                      redemption.notes!.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.lg),
+                    _DetailRow(
+                      icon: Icons.note,
+                      label: 'Notes',
+                      value: redemption.notes!,
+                    ),
+                  ],
+
+                  const SizedBox(height: AppSpacing.xxxl),
+                ],
               ),
-              const SizedBox(height: AppSpacing.xxl),
-            ],
+            ),
           ),
-        ),
+          SecondaryButton(
+            label: 'View restaurant',
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => RestaurantDetailsPage(
+                    slug: redemption.restaurantId.toString(),
+                    latitude: null,
+                    longitude: null,
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: AppSpacing.xxl),
+        ],
       ),
     );
   }

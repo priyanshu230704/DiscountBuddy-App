@@ -373,18 +373,93 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
 
   // Get opening hours (using restaurant opening hours or default)
   String _getOpeningHours(Restaurant restaurant) {
-    if (restaurant.openingHours.isNotEmpty) {
-      // Extract closing time from first opening hour string
-      final firstHour = restaurant.openingHours[0];
-      if (firstHour.contains('-')) {
+    if (restaurant.openingSlots.isNotEmpty) {
+      final now = DateTime.now();
+      final currentDay = DateFormat('EEEE').format(now);
+      final currentTime = TimeOfDay.now();
+
+      // Find today's slot
+      final todaySlot = restaurant.openingSlots.firstWhere(
+        (slot) => slot.dayName.toLowerCase() == currentDay.toLowerCase(),
+        orElse: () => null as dynamic,
+      );
+
+      if (todaySlot != null) {
+        final slot = todaySlot as OpeningSlot;
+        if (slot.isClosed) {
+          return 'Closed';
+        }
+
+        try {
+          final closingParts = slot.closingTime.split(':');
+          final closingHour = int.parse(closingParts[0]);
+          final closingMinute = closingParts.length > 1 ? int.parse(closingParts[1]) : 0;
+          final closingTime = TimeOfDay(hour: closingHour, minute: closingMinute);
+
+          final isClosed = currentTime.hour > closingTime.hour ||
+              (currentTime.hour == closingTime.hour && currentTime.minute >= closingMinute);
+
+          if (isClosed) {
+            return 'Closed';
+          }
+
+          return 'Open until ${slot.closingTime}';
+        } catch (_) {
+          // Fallback if parsing fails
+        }
+      }
+    }
+
+    // Check if opening_hours is a Map (from API) with day names as keys
+    try {
+      final now = DateTime.now();
+      final currentDay = DateFormat('EEEE').format(now).toLowerCase();
+      final currentTime = TimeOfDay.now();
+
+      // The opening_hours from API is typically a Map<String, String> with day names
+      if (restaurant.openingHours is Map) {
+        final hoursMap = restaurant.openingHours as Map;
+        if (hoursMap.isNotEmpty) {
+          final todayHours = hoursMap[currentDay];
+          
+          if (todayHours != null && todayHours is String && todayHours.contains('-')) {
+            final parts = todayHours.split('-');
+            if (parts.length > 1) {
+              final closingTime = parts[1].trim();
+              final closingParts = closingTime.split(':');
+              final closingHour = int.parse(closingParts[0]);
+              final closingMinute = closingParts.length > 1 ? int.parse(closingParts[1]) : 0;
+              final closing = TimeOfDay(hour: closingHour, minute: closingMinute);
+
+              final isClosed = currentTime.hour > closing.hour ||
+                  (currentTime.hour == closing.hour && currentTime.minute >= closingMinute);
+
+              if (isClosed) {
+                return 'Closed';
+              }
+
+              return 'Open until $closingTime';
+            }
+          }
+        }
+      }
+    } catch (_) {
+      // Continue to fallback
+    }
+
+    // Legacy fallback for List format
+    if ((restaurant.openingHours as List).isNotEmpty) {
+      final firstHour = (restaurant.openingHours as List)[0];
+      if (firstHour is String && firstHour.contains('-')) {
         final parts = firstHour.split('-');
         if (parts.length > 1) {
           return 'Open until ${parts[1].trim()}';
         }
       }
-      return firstHour;
+      return firstHour.toString();
     }
-    return 'Open until 22:00';
+
+    return '';
   }
 
   // Get price range widget
@@ -2291,14 +2366,84 @@ class _VegetarianSymbol extends StatelessWidget {
 }
 
 /// Opening Hours Section Widget
-class _OpeningHoursSection extends StatelessWidget {
+class _OpeningHoursSection extends StatefulWidget {
   final List<OpeningSlot> openingSlots;
 
   const _OpeningHoursSection({required this.openingSlots});
 
   @override
+  State<_OpeningHoursSection> createState() => _OpeningHoursSectionState();
+}
+
+class _OpeningHoursSectionState extends State<_OpeningHoursSection> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToToday());
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToToday() {
+    if (!_scrollController.hasClients) return;
+
+    final currentDay = DateFormat('EEEE').format(DateTime.now());
+    final todayIndex = widget.openingSlots.indexWhere(
+      (slot) => slot.dayName.toLowerCase() == currentDay.toLowerCase(),
+    );
+
+    if (todayIndex < 0) return;
+
+    const itemWidth = 112.0; // 100 width + 12 right margin
+    final targetOffset = (todayIndex * itemWidth).clamp(
+      0.0,
+      _scrollController.position.maxScrollExtent,
+    );
+
+    _scrollController.animateTo(
+      targetOffset,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+    );
+  }
+
+  bool _isRestaurantClosed(List<OpeningSlot> slots) {
+    final now = DateTime.now();
+    final currentDay = DateFormat('EEEE').format(now);
+    final currentTime = TimeOfDay.now();
+
+    // Find today's slot
+    final todaySlot = slots.firstWhere(
+      (slot) => slot.dayName.toLowerCase() == currentDay.toLowerCase(),
+      orElse: () => null as dynamic,
+    );
+
+    if ((todaySlot).isClosed) return true;
+
+    // Parse closing time and compare
+    try {
+      final closingParts = todaySlot.closingTime.split(':');
+      final closingHour = int.parse(closingParts[0]);
+      final closingMinute = closingParts.length > 1 ? int.parse(closingParts[1]) : 0;
+      final closingTime = TimeOfDay(hour: closingHour, minute: closingMinute);
+
+      return currentTime.hour > closingTime.hour ||
+          (currentTime.hour == closingTime.hour && currentTime.minute >= closingMinute);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final currentDay = DateFormat('EEEE').format(DateTime.now());
+    final isClosed = _isRestaurantClosed(widget.openingSlots);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2311,24 +2456,44 @@ class _OpeningHoursSection extends StatelessWidget {
               size: 20,
             ),
             const SizedBox(width: 8),
-            Text(
-              'Opening Hours',
-              style: AppTypography.body.copyWith(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
+            Expanded(
+              child: Text(
+                'Opening Hours',
+                style: AppTypography.body.copyWith(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ),
             ),
+            if (isClosed)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.shade200),
+                ),
+                child: Text(
+                  'Closed',
+                  style: AppTypography.bodySmall.copyWith(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red.shade700,
+                  ),
+                ),
+              ),
           ],
         ),
         const SizedBox(height: 16),
         SizedBox(
           height: 110,
           child: ListView.builder(
+            controller: _scrollController,
             scrollDirection: Axis.horizontal,
-            itemCount: openingSlots.length,
+            itemCount: widget.openingSlots.length,
             itemBuilder: (context, index) {
-              final slot = openingSlots[index];
+              final slot = widget.openingSlots[index];
               final isToday =
                   slot.dayName.toLowerCase() == currentDay.toLowerCase();
 

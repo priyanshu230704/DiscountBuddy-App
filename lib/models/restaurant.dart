@@ -87,6 +87,54 @@ class OpeningSlot {
     );
   }
 
+  static List<OpeningSlot> fromHoursMap(Map<String, dynamic>? hoursMap) {
+    if (hoursMap == null || hoursMap.isEmpty) return [];
+
+    const dayOrder = [
+      'monday',
+      'tuesday',
+      'wednesday',
+      'thursday',
+      'friday',
+      'saturday',
+      'sunday',
+    ];
+
+    return dayOrder.map((dayKey) {
+      final dayName = '${dayKey[0].toUpperCase()}${dayKey.substring(1)}';
+      final value = hoursMap[dayKey]?.toString().trim() ?? '';
+
+      if (value.isEmpty) {
+        return OpeningSlot(
+          dayName: dayName,
+          openingTime: '',
+          closingTime: '',
+          isClosed: true,
+        );
+      }
+
+      if (value.contains('-')) {
+        final parts = value.split('-');
+        final openingTime = parts.first.trim();
+        final closingTime = parts.length > 1 ? parts[1].trim() : '';
+
+        return OpeningSlot(
+          dayName: dayName,
+          openingTime: openingTime,
+          closingTime: closingTime,
+          isClosed: openingTime.isEmpty || closingTime.isEmpty,
+        );
+      }
+
+      return OpeningSlot(
+        dayName: dayName,
+        openingTime: '',
+        closingTime: '',
+        isClosed: true,
+      );
+    }).toList();
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'day_name': dayName,

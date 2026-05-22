@@ -834,28 +834,24 @@ class RestaurantService {
             description: 'Special discount available',
           );
 
-    // Get opening hours from opening_slots
-    final openingSlots = json['opening_slots'] as List<dynamic>? ?? [];
-    final openingHours = <String>[];
-    for (final slot in openingSlots) {
-      if (slot is Map<String, dynamic>) {
-        final dayName = slot['day_name'] as String? ?? '';
-        final openingTime = slot['opening_time'] as String? ?? '';
-        final closingTime = slot['closing_time'] as String? ?? '';
-        final isClosed = slot['is_closed'] as bool? ?? false;
+    var openingSlotsList =
+        (json['opening_slots'] as List<dynamic>?)
+            ?.map((e) => OpeningSlot.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        <OpeningSlot>[];
 
-        if (!isClosed && openingTime.isNotEmpty && closingTime.isNotEmpty) {
-          // Format time (remove seconds if present)
-          final openTime = openingTime.length > 5
-              ? openingTime.substring(0, 5)
-              : openingTime;
-          final closeTime = closingTime.length > 5
-              ? closingTime.substring(0, 5)
-              : closingTime;
-          openingHours.add('$dayName: $openTime - $closeTime');
-        }
-      }
+    if (openingSlotsList.isEmpty) {
+      openingSlotsList = OpeningSlot.fromHoursMap(
+        json['opening_hours'] as Map<String, dynamic>?,
+      );
     }
+
+    final openingHours = openingSlotsList.map((slot) {
+      if (slot.isClosed) {
+        return '${slot.dayName}: Closed';
+      }
+      return '${slot.dayName}: ${slot.openingTime} - ${slot.closingTime}';
+    }).toList();
 
     return Restaurant(
       id: restaurantId.toString(),
@@ -883,11 +879,7 @@ class RestaurantService {
       postcode: json['postcode'] as String?,
       email: json['email'] as String?,
       isFavourite: json['is_favourite'] as bool? ?? false,
-      openingSlots:
-          (json['opening_slots'] as List<dynamic>?)
-              ?.map((e) => OpeningSlot.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
+      openingSlots: openingSlotsList,
       activeDeals: activeDeals,
       facilities:
           (json['facilities'] as List<dynamic>?)

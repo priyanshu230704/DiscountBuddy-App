@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import '../widgets/app_scaffold.dart';
 import '../providers/auth_provider.dart';
@@ -15,7 +17,6 @@ import 'join_partner_page.dart';
 import 'level_progress_page.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../config/environment.dart';
-import '../components/app_app_bar.dart';
 
 /// Profile Screen - NeoTaste style
 class ProfilePage extends StatefulWidget {
@@ -96,268 +97,159 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
 
+  void _navigateToEditProfile() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const EditProfilePage(),
+      ),
+    );
+  }
+
+  List<Widget> _buildMenuItems() {
+    final items = <_ProfileMenuItem>[
+      _ProfileMenuItem(
+        icon: Icons.help_outline,
+        title: 'Help & Support',
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const HelpSupportPage(),
+            ),
+          );
+        },
+      ),
+      if (!_authProvider.isMerchant)
+        _ProfileMenuItem(
+          icon: Icons.storefront_outlined,
+          title: 'Join as restaurant partner',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const JoinPartnerPage(),
+              ),
+            );
+          },
+        ),
+      _ProfileMenuItem(
+        icon: Icons.privacy_tip_outlined,
+        title: 'Privacy Policy',
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const PrivacyPolicyPage(),
+            ),
+          );
+        },
+      ),
+      _ProfileMenuItem(
+        icon: Icons.logout_rounded,
+        title: 'Logout',
+        onTap: _showLogoutConfirmation,
+      ),
+      _ProfileMenuItem(
+        icon: Icons.delete_forever_rounded,
+        title: 'Delete Account',
+        isDestructive: true,
+        onTap: _showDeleteAccountConfirmation,
+      ),
+    ];
+
+    return [
+      for (var i = 0; i < items.length; i++) ...[
+        _MenuTile(
+          icon: items[i].icon,
+          title: items[i].title,
+          isDestructive: items[i].isDestructive,
+          onTap: items[i].onTap,
+        ),
+        if (i < items.length - 1)
+          const Divider(
+            height: 1,
+            thickness: 1,
+            indent: 56,
+            endIndent: AppSpacing.lg,
+            color: AppColors.divider,
+          ),
+      ],
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = _authProvider.user;
     final displayName = user?.username ?? 'User';
 
-    return AppScaffold(
-      appBar: AppAppBar(
-        titleText: 'Profile',
-        centerTitle: false,
-        backgroundColor: const Color(0xFFF3E8FF),
-        automaticallyImplyLeading: false,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: AppSpacing.lg),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
-              child: GestureDetector(
-                onTap: () {
+      child: AppScaffold(
+        backgroundColor: AppColors.background,
+        body: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _ProfileHeader(
+                displayName: displayName,
+                profilePicture: user?.profilePicture,
+                stats: _stats,
+                showStats: !_authProvider.isMerchant,
+                isLoadingStats: !_authProvider.isMerchant && _stats == null,
+                onEditProfile: _navigateToEditProfile,
+                onLevelTap: _navigateToLevelDetails,
+                onSavingsTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const EditProfilePage(),
+                      builder: (context) => const SavingsHistoryPage(),
                     ),
                   );
                 },
-                child: Row(
-                  children: [
-                    Container(
-                      width: 72,
-                      height: 72,
-                      decoration: BoxDecoration(
-                        color: AppColors.surface,
-                        borderRadius: BorderRadius.circular(36),
-                        border: Border.all(color: AppColors.cardBorder, width: 1),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.2),
-                            blurRadius: 15,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: Builder(
-                        builder: (context) {
-                          final profilePic = user?.profilePicture;
-                          if (profilePic == null) {
-                            return Center(
-                              child: Icon(
-                                Icons.person,
-                                size: 40,
-                                color: AppColors.textDisabled.withValues(alpha: 0.5),
-                              ),
-                            );
-                          }
-                          
-                          return ClipOval(
-                            child: profilePic.startsWith('assets/')
-                                ? Image.asset(profilePic, fit: BoxFit.cover)
-                                : (profilePic.isNotEmpty
-                                    ? CachedNetworkImage(
-                                        imageUrl: profilePic.startsWith('http') 
-                                            ? profilePic 
-                                            : '${Environment.baseUrl}$profilePic',
-                                        fit: BoxFit.cover,
-                                      )
-                                    : Center(
-                                        child: Icon(
-                                          Icons.person,
-                                          size: 40,
-                                          color: AppColors.textDisabled.withValues(alpha: 0.5),
-                                        ),
-                                      )),
-                          );
-                        },
-                      ),
+                onFavouritesTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SavedRestaurantsPage(),
                     ),
-                    const SizedBox(width: 20),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            displayName,
-                            style: AppTypography.title.copyWith(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textPrimary,
-                              letterSpacing: -0.4,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Edit profile',
-                            style: AppTypography.body.copyWith(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      Icons.chevron_right,
-                      color: AppColors.textPrimary,
-                      size: 28,
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
-            ),
-            const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.xxl),
 
-            // Stats Grid
-            if (!_authProvider.isMerchant && _stats != null) ...[
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: _navigateToLevelDetails,
-                        child: _StatCard(
-                          icon: Icons.emoji_events,
-                          value: _stats?.progression.tier ?? 'Bronze',
-                          label: _stats?.progression.rank ?? 'Level',
-                          iconColor: AppColors.primary,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SavingsHistoryPage(),
-                            ),
-                          );
-                        },
-                        child: _StatCard(
-                          icon: Icons.account_balance_wallet_rounded,
-                          value: '£${_stats?.moneySaved.toStringAsFixed(0) ?? '0'}',
-                          label: 'Savings',
-                          iconColor: AppColors.primary,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const SavedRestaurantsPage(),
-                            ),
-                          );
-                        },
-                        child: _StatCard(
-                          icon: Icons.favorite,
-                          value: _stats?.favouriteRestaurants.toString() ?? '0',
-                          label: 'Favourites',
-                          iconColor: AppColors.primary,
-                        ),
-                      ),
-                    ),
-                  ],
+              // Menu Options
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: AppRadius.xLarge,
+                  border: Border.all(color: AppColors.cardBorder),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Column(
+                  children: _buildMenuItems(),
                 ),
               ),
-              const SizedBox(height: 32),
-            ] else if (!_authProvider.isMerchant && _stats == null) ...[
-              const Center(child: CircularProgressIndicator()),
-              const SizedBox(height: 32),
+              const SizedBox(height: AppSpacing.xxl),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.xl),
+                  child: Text(
+                    'powered by Markitup Group Ltd.',
+                    style: AppTypography.body.copyWith(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textDisabled,
+                    ),
+                  ),
+                ),
+              ),
             ],
-
-            // Menu Options
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                children: [
-                  _MenuTile(
-                    icon: Icons.help_outline,
-                    title: 'Help & Support',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const HelpSupportPage(),
-                        ),
-                      );
-                    },
-                  ),
-                  if (!_authProvider.isMerchant) ...[
-                    const SizedBox(height: 16),
-                    _MenuTile(
-                      icon: Icons.storefront_outlined,
-                      title: 'Join as restaurant partner',
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const JoinPartnerPage(),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                  const SizedBox(height: 16),
-                  _MenuTile(
-                    icon: Icons.privacy_tip_outlined,
-                    title: 'Privacy Policy',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PrivacyPolicyPage(),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  _MenuTile(
-                    icon: Icons.logout_rounded,
-                    title: 'Logout',
-                    isDestructive: false,
-                    onTap: () {
-                      _showLogoutConfirmation();
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  _MenuTile(
-                    icon: Icons.delete_forever_rounded,
-                    title: 'Delete Account',
-                    isDestructive: true,
-                    onTap: () {
-                      _showDeleteAccountConfirmation();
-                    },
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xxl),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.xl),
-                child: Text(
-                  'powered by Markitup Group Ltd.',
-                  style: AppTypography.body.copyWith(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.textDisabled,
-                  ),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -602,6 +494,248 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 }
 
+class _ProfileHeader extends StatelessWidget {
+  final String displayName;
+  final String? profilePicture;
+  final ProfileStats? stats;
+  final bool showStats;
+  final bool isLoadingStats;
+  final VoidCallback onEditProfile;
+  final VoidCallback onLevelTap;
+  final VoidCallback onSavingsTap;
+  final VoidCallback onFavouritesTap;
+
+  const _ProfileHeader({
+    required this.displayName,
+    required this.profilePicture,
+    required this.stats,
+    required this.showStats,
+    required this.isLoadingStats,
+    required this.onEditProfile,
+    required this.onLevelTap,
+    required this.onSavingsTap,
+    required this.onFavouritesTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: AppColors.purpleGradient,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(40),
+          bottomRight: Radius.circular(40),
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.xxl,
+                AppSpacing.lg,
+                AppSpacing.xxl,
+                AppSpacing.xxl,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Center(child: _buildAvatar()),
+                  const SizedBox(height: AppSpacing.lg),
+                  SizedBox(
+                    width: double.infinity,
+                    child: Text(
+                      displayName.toUpperCase(),
+                      textAlign: TextAlign.center,
+                      style: AppTypography.title.copyWith(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.white,
+                        letterSpacing: 0.6,
+                      ),
+                    ),
+                  ),
+                  if (showStats) ...[
+                    const SizedBox(height: AppSpacing.xl),
+                    if (isLoadingStats)
+                      const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.white,
+                        ),
+                      )
+                    else
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _HeaderStatItem(
+                              value: stats?.progression.tier ?? 'Bronze',
+                              label: stats?.progression.rank ?? 'Level',
+                              onTap: stats == null ? null : onLevelTap,
+                            ),
+                          ),
+                          _headerDivider(),
+                          Expanded(
+                            child: _HeaderStatItem(
+                              value: '£${stats?.moneySaved.toStringAsFixed(0) ?? '0'}',
+                              label: 'Savings',
+                              onTap: onSavingsTap,
+                            ),
+                          ),
+                          _headerDivider(),
+                          Expanded(
+                            child: _HeaderStatItem(
+                              value: stats?.favouriteRestaurants.toString() ?? '0',
+                              label: 'Favourites',
+                              onTap: onFavouritesTap,
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ],
+              ),
+            ),
+            Positioned(
+              top: AppSpacing.sm,
+              right: AppSpacing.sm,
+              child: IconButton(
+                onPressed: onEditProfile,
+                tooltip: 'Edit profile',
+                icon: SvgPicture.asset(
+                  'assets/svg/edit.svg',
+                  width: 22,
+                  height: 22,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatar() {
+    return Container(
+      width: 96,
+      height: 96,
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: ClipOval(
+        child: _buildAvatarImage(profilePicture),
+      ),
+    );
+  }
+
+  Widget _headerDivider() {
+    return Container(
+      width: 1,
+      height: 36,
+      color: AppColors.white.withValues(alpha: 0.25),
+    );
+  }
+
+  Widget _buildAvatarImage(String? profilePic) {
+    if (profilePic == null || profilePic.isEmpty) {
+      return Center(
+        child: Icon(
+          Icons.person,
+          size: 44,
+          color: AppColors.textDisabled.withValues(alpha: 0.5),
+        ),
+      );
+    }
+
+    if (profilePic.startsWith('assets/')) {
+      return Image.asset(profilePic, fit: BoxFit.cover);
+    }
+
+    return CachedNetworkImage(
+      imageUrl: profilePic.startsWith('http')
+          ? profilePic
+          : '${Environment.baseUrl}$profilePic',
+      fit: BoxFit.cover,
+    );
+  }
+}
+
+class _HeaderStatItem extends StatelessWidget {
+  final String value;
+  final String label;
+  final VoidCallback? onTap;
+
+  const _HeaderStatItem({
+    required this.value,
+    required this.label,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: AppTypography.title.copyWith(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppColors.white,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: AppTypography.body.copyWith(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.white.withValues(alpha: 0.8),
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileMenuItem {
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+  final bool isDestructive;
+
+  const _ProfileMenuItem({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.isDestructive = false,
+  });
+}
+
 class _MenuTile extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -617,102 +751,45 @@ class _MenuTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.xl - 2),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: AppRadius.xLarge,
-          border: Border.all(color: AppColors.cardBorder),
-          boxShadow: AppShadows.card,
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color: isDestructive
-                  ? AppColors.error
-                  : AppColors.textPrimary,
-              size: 22,
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Text(
-                title,
-                style: AppTypography.body.copyWith(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w600,
-                  color: isDestructive
-                      ? AppColors.error
-                      : AppColors.textPrimary,
+    final color = isDestructive ? AppColors.error : AppColors.textPrimary;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.lg,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                color: color,
+                size: 22,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  title,
+                  style: AppTypography.body.copyWith(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
                 ),
               ),
-            ),
-            Icon(
-              Icons.chevron_right,
-              color: isDestructive
-                  ? AppColors.error.withValues(alpha: 0.5)
-                  : AppColors.textDisabled,
-              size: 20,
-            ),
-          ],
+              Icon(
+                Icons.chevron_right,
+                color: isDestructive
+                    ? AppColors.error.withValues(alpha: 0.5)
+                    : AppColors.textDisabled,
+                size: 20,
+              ),
+            ],
+          ),
         ),
-      ),
-    );
-  }
-}
-class _StatCard extends StatelessWidget {
-  final IconData icon;
-  final String value;
-  final String label;
-  final Color iconColor;
-
-  const _StatCard({
-    required this.icon,
-    required this.value,
-    required this.label,
-    required this.iconColor,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: AppRadius.xLarge,
-        border: Border.all(color: AppColors.cardBorder),
-        boxShadow: AppShadows.card,
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: iconColor, size: 28),
-          const SizedBox(height: 10),
-          Text(
-            value,
-            style: AppTypography.title.copyWith(
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: AppTypography.body.copyWith(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
       ),
     );
   }

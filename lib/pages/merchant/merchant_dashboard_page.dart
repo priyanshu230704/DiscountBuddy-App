@@ -751,17 +751,6 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
           gradient: isSelected ? AppColors.purpleGradient : null,
           color: isSelected ? null : Colors.white.withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.divider,
-            width: 1.5,
-          ),
-          boxShadow: isSelected ? [
-            BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            )
-          ] : null,
         ),
         child: Text(
           name,

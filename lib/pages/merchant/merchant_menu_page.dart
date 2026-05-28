@@ -618,27 +618,29 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
               icon: const Icon(Icons.add_photo_alternate_rounded, color: Colors.white),
               label: const Text('Add Menu Image', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
             )
-          : Container(
-              decoration: BoxDecoration(
-                gradient: AppColors.purpleGradient,
-                borderRadius: BorderRadius.circular(30),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+          : _categories.isEmpty
+              ? null
+              : Container(
+                  decoration: BoxDecoration(
+                    gradient: AppColors.purpleGradient,
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: FloatingActionButton.extended(
-                onPressed: _addOrUpdateItem,
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                highlightElevation: 0,
-                icon: const Icon(Icons.add_rounded, color: Colors.white),
-                label: const Text('Add Item', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-              ),
-            ),
+                  child: FloatingActionButton.extended(
+                    onPressed: _addOrUpdateItem,
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
+                    highlightElevation: 0,
+                    icon: const Icon(Icons.add_rounded, color: Colors.white),
+                    label: const Text('Add Item', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                  ),
+                ),
     );
   }
 

@@ -77,7 +77,7 @@ class AppPages {
     GetPage(
       name: AppRoutes.home,
       page: () {
-        final authProvider = Get.find<AuthProvider>();
+        final authProvider = AuthProvider();
         return MainNavigation(
           key: ValueKey(authProvider.isMerchant),
         );

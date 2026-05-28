@@ -1,10 +1,9 @@
+import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import '../design/app_colors.dart';
 import '../providers/auth_provider.dart';
+import '../routes/app_routes.dart';
 import '../services/onboarding_service.dart';
-import 'onboarding_screen.dart';
-import 'auth/login_page.dart';
-import 'main_navigation.dart';
 
 /// Screen that checks onboarding status and routes accordingly
 class OnboardingCheckScreen extends StatefulWidget {
@@ -41,22 +40,12 @@ class _OnboardingCheckScreenState extends State<OnboardingCheckScreen> {
     final isAuthenticated = _authProvider.isAuthenticated;
 
     if (mounted) {
-      // Navigate based on onboarding and auth status
       if (!hasCompletedOnboarding) {
-        // Show onboarding if not completed
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const OnboardingScreen()),
-        );
+        Get.offNamed(AppRoutes.onboarding);
       } else if (isAuthenticated) {
-        // User is authenticated, go to home
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const MainNavigation()),
-        );
+        Get.offNamed(AppRoutes.home);
       } else {
-        // User has seen onboarding but not authenticated, go to login
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const LoginPage()),
-        );
+        Get.offNamed(AppRoutes.login);
       }
     }
   }

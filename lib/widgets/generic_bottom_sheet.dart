@@ -13,6 +13,7 @@ class GenericBottomSheet extends StatelessWidget {
   final VoidCallback? onClose;
   final Widget? headerAction;
   final Color backgroundColor;
+  final bool centerTitle;
 
   const GenericBottomSheet({
     super.key,
@@ -25,6 +26,7 @@ class GenericBottomSheet extends StatelessWidget {
     this.onClose,
     this.headerAction,
     this.backgroundColor = AppColors.white,
+    this.centerTitle = false,
   });
 
   @override
@@ -36,12 +38,12 @@ class GenericBottomSheet extends StatelessWidget {
       ),
       child: SafeArea(
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize: expandChild ? MainAxisSize.max : MainAxisSize.min,
           children: [
             // Handle bar
             if (showHandle)
               Container(
-                margin: const EdgeInsets.symmetric(vertical: 12),
+                margin: const EdgeInsets.only(top: 12, bottom: 8),
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
@@ -53,35 +55,101 @@ class GenericBottomSheet extends StatelessWidget {
             // Header (Title + Action + Close Button)
             if (title.isNotEmpty || showCloseButton || headerAction != null)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
-                  children: [
-                    if (title.isNotEmpty)
-                      Expanded(
-                        child: Text(
-                          title,
-                          style: AppTypography.title.copyWith(
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                      )
-                    else
-                      const Spacer(),
-                    if (headerAction != null) headerAction!,
-                    if (showCloseButton)
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: onClose ?? () => Navigator.pop(context),
-                        color: AppColors.textPrimary,
-                      ),
-                  ],
+                padding: EdgeInsets.fromLTRB(
+                  24,
+                  showHandle ? 0 : 12,
+                  16,
+                  title.isNotEmpty ? 4 : 0,
                 ),
+                child: centerTitle && title.isNotEmpty
+                    ? Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.only(
+                              left: showCloseButton ? 40 : 0,
+                              right: showCloseButton ? 40 : 0,
+                            ),
+                            child: Text(
+                              title,
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.title.copyWith(
+                                color: AppColors.textPrimary,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                          if (headerAction != null)
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: Padding(
+                                padding: EdgeInsets.only(
+                                  right: showCloseButton ? 40 : 0,
+                                ),
+                                child: headerAction!,
+                              ),
+                            ),
+                          if (showCloseButton)
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: IconButton(
+                                visualDensity: VisualDensity.compact,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(
+                                  minWidth: 40,
+                                  minHeight: 40,
+                                ),
+                                icon: const Icon(Icons.close),
+                                onPressed: onClose ?? () => Navigator.pop(context),
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                        ],
+                      )
+                    : Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (title.isNotEmpty)
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.only(top: 4, right: 8),
+                                child: Text(
+                                  title,
+                                  style: AppTypography.title.copyWith(
+                                    color: AppColors.textPrimary,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                            )
+                          else
+                            const Spacer(),
+                          if (headerAction != null) headerAction!,
+                          if (showCloseButton)
+                            IconButton(
+                              visualDensity: VisualDensity.compact,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(
+                                minWidth: 40,
+                                minHeight: 40,
+                              ),
+                              icon: const Icon(Icons.close),
+                              onPressed: onClose ?? () => Navigator.pop(context),
+                              color: AppColors.textPrimary,
+                            ),
+                        ],
+                      ),
               ),
 
-            if (title.isNotEmpty || showCloseButton) const SizedBox(height: 8),
-
             // Content
-            if (expandChild) Expanded(child: child) else Flexible(child: child),
+            if (expandChild)
+              Expanded(child: child)
+            else
+              Flexible(child: child),
 
             // Footer
             if (footer != null) footer!,

@@ -358,37 +358,28 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
           final name = isAll ? 'All Restaurants' : restaurant!['name'];
           final isSelected = _selectedRestaurantId == id;
 
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                _selectedRestaurantId = id;
-              });
-              _loadDeals();
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                gradient: isSelected ? AppColors.purpleGradient : null,
-                color: isSelected ? null : Colors.white.withValues(alpha: 0.8),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isSelected ? AppColors.primary : AppColors.divider,
-                  width: 1.5,
+          return Center(
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedRestaurantId = id;
+                });
+                _loadDeals();
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  gradient: isSelected ? AppColors.purpleGradient : null,
+                  color: isSelected ? null : Colors.white.withValues(alpha: 0.8),
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                boxShadow: isSelected ? [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  )
-                ] : null,
-              ),
-              child: Text(
-                name,
-                style: AppTypography.bodySmall.copyWith(
-                  color: isSelected ? Colors.white : AppColors.textPrimary,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                child: Text(
+                  name,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: isSelected ? Colors.white : AppColors.textPrimary,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                  ),
                 ),
               ),
             ),

@@ -274,8 +274,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                               keyboardType: TextInputType.emailAddress,
                               focusNode: _emailFocusNode,
                               validator: (value) {
-                                if (value == null || value.isEmpty)
+                                if (value == null || value.isEmpty) {
                                   return 'Please enter email';
+                                }
                                 return null;
                               },
                             )
@@ -287,8 +288,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                               focusNode: _otpFocusNode,
                               maxLength: 4,
                               validator: (value) {
-                                if (value == null || value.length != 4)
+                                if (value == null || value.length != 4) {
                                   return 'Enter 4-digit code';
+                                }
                                 return null;
                               },
                             ),

@@ -287,8 +287,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         // Helper to convert normalized restaurant to model
         Restaurant parseRestaurant(int id) {
           final json = restaurantsData[id.toString()] as Map<String, dynamic>?;
-          if (json == null)
+          if (json == null) {
             return _restaurantService.convertApiRestaurantToModel({'id': id});
+          }
 
           final List<dynamic> cuisineIds =
               json['cuisines'] as List<dynamic>? ?? [];

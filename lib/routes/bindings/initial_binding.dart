@@ -4,6 +4,6 @@ import '../../providers/auth_provider.dart';
 class InitialBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<AuthProvider>(() => AuthProvider());
+    Get.put<AuthProvider>(AuthProvider(), permanent: true);
   }
 }

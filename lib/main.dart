@@ -3,12 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'config/environment.dart';
-import 'pages/main_navigation.dart';
-import 'pages/auth/login_page.dart';
-import 'pages/splash_screen.dart';
-import 'pages/onboarding_check_screen.dart';
-import 'pages/app_update_page.dart';
-import 'models/app_version_info.dart';
 import 'services/app_version_checker.dart';
 import 'providers/theme_provider.dart';
 import 'providers/auth_provider.dart';
@@ -20,6 +14,10 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:get/get.dart';
+import 'routes/app_routes.dart';
+import 'routes/app_pages.dart';
+import 'routes/bindings/initial_binding.dart';
 import 'utils/navigator_key.dart';
 import 'package:provider/provider.dart';
 
@@ -160,7 +158,7 @@ class _DiscountBuddyAppState extends State<DiscountBuddyApp>
       child: ListenableBuilder(
         listenable: _themeProvider,
         builder: (context, child) {
-          return MaterialApp(
+          return GetMaterialApp(
             navigatorKey: navigatorKey,
             title: Environment.appName,
             debugShowCheckedModeBanner: Environment.enableDebugMode,
@@ -169,7 +167,9 @@ class _DiscountBuddyAppState extends State<DiscountBuddyApp>
             themeMode: _themeProvider.isDarkMode
                 ? ThemeMode.dark
                 : ThemeMode.light,
-            home: const SplashScreen(),
+            initialRoute: AppRoutes.splash,
+            getPages: AppPages.pages,
+            initialBinding: InitialBinding(),
             builder: (context, child) {
               return MediaQuery(
                 data: MediaQuery.of(context).copyWith(
@@ -177,23 +177,6 @@ class _DiscountBuddyAppState extends State<DiscountBuddyApp>
                 ),
                 child: child!,
               );
-            },
-            routes: {
-              '/onboarding-check': (context) => const OnboardingCheckScreen(),
-              '/login': (context) => const LoginPage(),
-              '/home': (context) => MainNavigation(
-                key: ValueKey(_authProvider.isMerchant),
-              ),
-              '/app-update': (context) {
-                final args = ModalRoute.of(context)?.settings.arguments;
-                if (args is! AppVersionInfo) {
-                  return const SplashScreen();
-                }
-                return AppUpdatePage(
-                  versionInfo: args,
-                  continueRoute: '/onboarding-check',
-                );
-              },
             },
           );
         },

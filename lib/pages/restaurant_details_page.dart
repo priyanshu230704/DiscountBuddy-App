@@ -371,6 +371,24 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     );
   }
 
+  String _formatTimeWithoutSeconds(String timeStr) {
+    timeStr = timeStr.trim();
+    // Check if there is an AM/PM designator
+    final amPmMatch = RegExp(r'\s*(AM|PM|am|pm)\s*$').firstMatch(timeStr);
+    String suffix = '';
+    String timePart = timeStr;
+    if (amPmMatch != null) {
+      suffix = ' ${amPmMatch.group(1)}';
+      timePart = timeStr.substring(0, amPmMatch.start).trim();
+    }
+    
+    final parts = timePart.split(':');
+    if (parts.length >= 2) {
+      return '${parts[0]}:${parts[1]}$suffix';
+    }
+    return timeStr;
+  }
+
   // Get opening hours (using restaurant opening hours or default)
   String _getOpeningHours(Restaurant restaurant) {
     if (restaurant.openingSlots.isNotEmpty) {
@@ -403,7 +421,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
             return 'Closed';
           }
 
-          return 'Open until ${slot.closingTime}';
+          return 'Open until ${_formatTimeWithoutSeconds(slot.closingTime)}';
         } catch (_) {
           // Fallback if parsing fails
         }
@@ -438,7 +456,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                 return 'Closed';
               }
 
-              return 'Open until $closingTime';
+              return 'Open until ${_formatTimeWithoutSeconds(closingTime)}';
             }
           }
         }
@@ -453,7 +471,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
       if (firstHour is String && firstHour.contains('-')) {
         final parts = firstHour.split('-');
         if (parts.length > 1) {
-          return 'Open until ${parts[1].trim()}';
+          return 'Open until ${_formatTimeWithoutSeconds(parts[1].trim())}';
         }
       }
       return firstHour.toString();

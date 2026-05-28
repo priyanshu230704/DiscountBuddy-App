@@ -1,3 +1,4 @@
+import 'package:get/get.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
 import '../services/auth_service.dart';
@@ -14,27 +15,27 @@ class AuthProvider extends ChangeNotifier {
 
   final AuthService _authService = AuthService();
 
-  ApiUser? _user;
-  bool _isLoading = false;
-  bool _isAuthenticated = false;
-  String? _errorMessage;
-  String _userRole = 'customer'; // 'customer' or 'merchant'
-  bool _isGuestMode = false;
+  final Rxn<ApiUser> _user = Rxn<ApiUser>();
+  final RxBool _isLoading = false.obs;
+  final RxBool _isAuthenticated = false.obs;
+  final RxnString _errorMessage = RxnString();
+  final RxString _userRole = 'customer'.obs; // 'customer' or 'merchant'
+  final RxBool _isGuestMode = false.obs;
 
-  ApiUser? get user => _user;
-  bool get isLoading => _isLoading;
-  bool get isAuthenticated => _isAuthenticated;
-  String? get errorMessage => _errorMessage;
-  String get userRole => _userRole;
-  bool get isGuestMode => _isGuestMode;
-  bool get isMerchant => _userRole == 'merchant';
+  ApiUser? get user => _user.value;
+  bool get isLoading => _isLoading.value;
+  bool get isAuthenticated => _isAuthenticated.value;
+  String? get errorMessage => _errorMessage.value;
+  String get userRole => _userRole.value;
+  bool get isGuestMode => _isGuestMode.value;
+  bool get isMerchant => _userRole.value == 'merchant';
   bool get isCustomer =>
-      _userRole == 'customer' || _userRole == 'mystery_guest';
-  bool get isMysteryGuest => _userRole == 'mystery_guest';
+      _userRole.value == 'customer' || _userRole.value == 'mystery_guest';
+  bool get isMysteryGuest => _userRole.value == 'mystery_guest';
 
   /// Initialize authentication state
   Future<void> _initializeAuth() async {
-    _isLoading = true;
+    _isLoading.value = true;
     notifyListeners();
 
     try {
@@ -74,31 +75,31 @@ class AuthProvider extends ChangeNotifier {
         }
 
         if (user != null) {
-          _user = user;
-          _userRole = user.profile?.role ?? (user.isMerchant ? 'merchant' : 'customer');
-          _isAuthenticated = true;
+          _user.value = user;
+          _userRole.value = user.profile?.role ?? (user.isMerchant ? 'merchant' : 'customer');
+          _isAuthenticated.value = true;
           debugPrint(
-            'DEBUG AuthProvider._initializeAuth: Logged in as user=${user.email}, _userRole=$_userRole',
+            'DEBUG AuthProvider._initializeAuth: Logged in as user=${user.email}, _userRole=${_userRole.value}',
           );
         } else {
           await _authService.logout();
-          _isAuthenticated = false;
-          _userRole = 'customer';
+          _isAuthenticated.value = false;
+          _userRole.value = 'customer';
           debugPrint(
             'DEBUG AuthProvider._initializeAuth: login failed after fallback attempts, logging out',
           );
         }
       } else {
-        _isAuthenticated = false;
-        _userRole = 'customer';
+        _isAuthenticated.value = false;
+        _userRole.value = 'customer';
         debugPrint('DEBUG AuthProvider._initializeAuth: not logged in');
       }
     } catch (e) {
-      _errorMessage = 'Failed to initialize authentication';
-      _isAuthenticated = false;
+      _errorMessage.value = 'Failed to initialize authentication';
+      _isAuthenticated.value = false;
       debugPrint('DEBUG AuthProvider._initializeAuth: ERROR: $e');
     } finally {
-      _isLoading = false;
+      _isLoading.value = false;
       notifyListeners();
     }
   }
@@ -110,8 +111,8 @@ class AuthProvider extends ChangeNotifier {
     required String password,
     required String role,
   }) async {
-    _isLoading = true;
-    _errorMessage = null;
+    _isLoading.value = true;
+    _errorMessage.value = null;
     notifyListeners();
 
     try {
@@ -125,8 +126,8 @@ class AuthProvider extends ChangeNotifier {
       // After successful registration, login the user
       return await login(email: email, password: password);
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
+      _errorMessage.value = e.toString().replaceAll('Exception: ', '');
+      _isLoading.value = false;
       notifyListeners();
       return false;
     }
@@ -137,18 +138,18 @@ class AuthProvider extends ChangeNotifier {
     required String email,
     required String role,
   }) async {
-    _isLoading = true;
-    _errorMessage = null;
+    _isLoading.value = true;
+    _errorMessage.value = null;
     notifyListeners();
 
     try {
       await _authService.registerInit(email: email, role: role);
-      _isLoading = false;
+      _isLoading.value = false;
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
+      _errorMessage.value = e.toString().replaceAll('Exception: ', '');
+      _isLoading.value = false;
       notifyListeners();
       return false;
     }
@@ -159,18 +160,18 @@ class AuthProvider extends ChangeNotifier {
     required String email,
     required String otp,
   }) async {
-    _isLoading = true;
-    _errorMessage = null;
+    _isLoading.value = true;
+    _errorMessage.value = null;
     notifyListeners();
 
     try {
       await _authService.verifyOtp(email: email, otp: otp);
-      _isLoading = false;
+      _isLoading.value = false;
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
+      _errorMessage.value = e.toString().replaceAll('Exception: ', '');
+      _isLoading.value = false;
       notifyListeners();
       return false;
     }
@@ -182,8 +183,8 @@ class AuthProvider extends ChangeNotifier {
     required String otp,
     required String password,
   }) async {
-    _isLoading = true;
-    _errorMessage = null;
+    _isLoading.value = true;
+    _errorMessage.value = null;
     notifyListeners();
 
     try {
@@ -196,8 +197,8 @@ class AuthProvider extends ChangeNotifier {
       // After successful registration, login the user
       return await login(email: email, password: password);
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
+      _errorMessage.value = e.toString().replaceAll('Exception: ', '');
+      _isLoading.value = false;
       notifyListeners();
       return false;
     }
@@ -205,8 +206,8 @@ class AuthProvider extends ChangeNotifier {
 
   /// Login with email and password
   Future<bool> login({required String email, required String password}) async {
-    _isLoading = true;
-    _errorMessage = null;
+    _isLoading.value = true;
+    _errorMessage.value = null;
     notifyListeners();
 
     try {
@@ -215,14 +216,14 @@ class AuthProvider extends ChangeNotifier {
         password: password,
       );
 
-      _user = loginResponse.user;
-      _userRole = loginResponse.role; // Store role from login response
+      _user.value = loginResponse.user;
+      _userRole.value = loginResponse.role; // Store role from login response
       debugPrint(
-        'DEBUG AuthProvider.login: loginResponse.role="${loginResponse.role}", _userRole="$_userRole", isMysteryGuest=$isMysteryGuest',
+        'DEBUG AuthProvider.login: loginResponse.role="${loginResponse.role}", _userRole="${_userRole.value}", isMysteryGuest=$isMysteryGuest',
       );
-      _isAuthenticated = true;
-      _isGuestMode = false;
-      _isLoading = false;
+      _isAuthenticated.value = true;
+      _isGuestMode.value = false;
+      _isLoading.value = false;
       notifyListeners();
 
       // Register FCM token with backend after successful login
@@ -238,9 +239,9 @@ class AuthProvider extends ChangeNotifier {
 
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
-      _isAuthenticated = false;
-      _isLoading = false;
+      _errorMessage.value = e.toString().replaceAll('Exception: ', '');
+      _isAuthenticated.value = false;
+      _isLoading.value = false;
       notifyListeners();
       return false;
     }
@@ -249,19 +250,19 @@ class AuthProvider extends ChangeNotifier {
   /// Login with Google
   Future<bool> loginWithGoogle() async {
     debugPrint('DEBUG: AuthProvider.loginWithGoogle -> Triggered');
-    _isLoading = true;
-    _errorMessage = null;
+    _isLoading.value = true;
+    _errorMessage.value = null;
     notifyListeners();
 
     try {
       final loginResponse = await _authService.loginWithGoogle();
 
-      _user = loginResponse.user;
-      _userRole = loginResponse.role;
-      _isAuthenticated = true;
-      _isLoading = false;
+      _user.value = loginResponse.user;
+      _userRole.value = loginResponse.role;
+      _isAuthenticated.value = true;
+      _isLoading.value = false;
       debugPrint(
-        'DEBUG: AuthProvider.loginWithGoogle -> Success: authenticated as ${_user?.email}',
+        'DEBUG: AuthProvider.loginWithGoogle -> Success: authenticated as ${_user.value?.email}',
       );
       notifyListeners();
 
@@ -287,9 +288,9 @@ class AuthProvider extends ChangeNotifier {
 
       debugPrint('DEBUG: AuthProvider.loginWithGoogle -> Catching error: $message');
       // Cancel flow should silently stop loading without showing an error snackbar.
-      _errorMessage = isUserCancelled ? null : message;
-      _isAuthenticated = false;
-      _isLoading = false;
+      _errorMessage.value = isUserCancelled ? null : message;
+      _isAuthenticated.value = false;
+      _isLoading.value = false;
       notifyListeners();
       return false;
     }
@@ -298,19 +299,19 @@ class AuthProvider extends ChangeNotifier {
   /// Login with Apple
   Future<bool> loginWithApple() async {
     debugPrint('DEBUG: AuthProvider.loginWithApple -> Triggered');
-    _isLoading = true;
-    _errorMessage = null;
+    _isLoading.value = true;
+    _errorMessage.value = null;
     notifyListeners();
 
     try {
       final loginResponse = await _authService.loginWithApple();
 
-      _user = loginResponse.user;
-      _userRole = loginResponse.role;
-      _isAuthenticated = true;
-      _isLoading = false;
+      _user.value = loginResponse.user;
+      _userRole.value = loginResponse.role;
+      _isAuthenticated.value = true;
+      _isLoading.value = false;
       debugPrint(
-        'DEBUG: AuthProvider.loginWithApple -> Success: authenticated as ${_user?.email}',
+        'DEBUG: AuthProvider.loginWithApple -> Success: authenticated as ${_user.value?.email}',
       );
       notifyListeners();
 
@@ -330,9 +331,9 @@ class AuthProvider extends ChangeNotifier {
       final message = e.toString().replaceAll('Exception: ', '');
       debugPrint('DEBUG: AuthProvider.loginWithApple -> Catching error: $message');
 
-      _errorMessage = message.contains('Apple login cancelled') ? null : message;
-      _isAuthenticated = false;
-      _isLoading = false;
+      _errorMessage.value = message.contains('Apple login cancelled') ? null : message;
+      _isAuthenticated.value = false;
+      _isLoading.value = false;
       notifyListeners();
       return false;
     }
@@ -340,7 +341,7 @@ class AuthProvider extends ChangeNotifier {
 
   /// Logout user
   Future<void> logout() async {
-    _isLoading = true;
+    _isLoading.value = true;
     notifyListeners();
 
     try {
@@ -358,28 +359,28 @@ class AuthProvider extends ChangeNotifier {
       } catch (e) {
         debugPrint('DEBUG AuthProvider.logout: local wipe: $e');
       }
-      _user = null;
-      _isAuthenticated = false;
-      _isGuestMode = false;
-      _userRole = 'customer';
-      _errorMessage = null;
-      _isLoading = false;
+      _user.value = null;
+      _isAuthenticated.value = false;
+      _isGuestMode.value = false;
+      _userRole.value = 'customer';
+      _errorMessage.value = null;
+      _isLoading.value = false;
       notifyListeners();
     }
   }
 
   /// Clear error message
   void clearError() {
-    _errorMessage = null;
+    _errorMessage.value = null;
     notifyListeners();
   }
 
   /// Skip login and enter guest mode
   void skipLogin() {
-    _isGuestMode = true;
-    _isAuthenticated = false;
-    _user = null;
-    _userRole = 'customer';
+    _isGuestMode.value = true;
+    _isAuthenticated.value = false;
+    _user.value = null;
+    _userRole.value = 'customer';
     notifyListeners();
   }
 
@@ -388,14 +389,14 @@ class AuthProvider extends ChangeNotifier {
     try {
       final user = await _authService.getCurrentUser();
       if (user != null) {
-        _user = user;
+        _user.value = user;
         notifyListeners();
       } else {
         // If getting user from network failed but didn't throw an auth error,
         // we might be offline. Let's see if we have them cached.
         final cachedUser = await _authService.getStoredUser();
         if (cachedUser != null) {
-          _user = cachedUser;
+          _user.value = cachedUser;
           notifyListeners();
         }
       }
@@ -413,18 +414,18 @@ class AuthProvider extends ChangeNotifier {
 
   /// Request password reset OTP
   Future<bool> requestPasswordResetOtp({required String email}) async {
-    _isLoading = true;
-    _errorMessage = null;
+    _isLoading.value = true;
+    _errorMessage.value = null;
     notifyListeners();
 
     try {
       await _authService.requestPasswordResetOtp(email: email);
-      _isLoading = false;
+      _isLoading.value = false;
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
+      _errorMessage.value = e.toString().replaceAll('Exception: ', '');
+      _isLoading.value = false;
       notifyListeners();
       return false;
     }
@@ -435,18 +436,18 @@ class AuthProvider extends ChangeNotifier {
     required String email,
     required String otp,
   }) async {
-    _isLoading = true;
-    _errorMessage = null;
+    _isLoading.value = true;
+    _errorMessage.value = null;
     notifyListeners();
 
     try {
       await _authService.verifyPasswordResetOtp(email: email, otp: otp);
-      _isLoading = false;
+      _isLoading.value = false;
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
+      _errorMessage.value = e.toString().replaceAll('Exception: ', '');
+      _isLoading.value = false;
       notifyListeners();
       return false;
     }
@@ -459,8 +460,8 @@ class AuthProvider extends ChangeNotifier {
     required String password,
     required String confirmPassword,
   }) async {
-    _isLoading = true;
-    _errorMessage = null;
+    _isLoading.value = true;
+    _errorMessage.value = null;
     notifyListeners();
 
     try {
@@ -470,12 +471,12 @@ class AuthProvider extends ChangeNotifier {
         password: password,
         confirmPassword: confirmPassword,
       );
-      _isLoading = false;
+      _isLoading.value = false;
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
+      _errorMessage.value = e.toString().replaceAll('Exception: ', '');
+      _isLoading.value = false;
       notifyListeners();
       return false;
     }
@@ -483,18 +484,18 @@ class AuthProvider extends ChangeNotifier {
 
   /// Request forgot password email
   Future<bool> forgotPassword({required String email}) async {
-    _isLoading = true;
-    _errorMessage = null;
+    _isLoading.value = true;
+    _errorMessage.value = null;
     notifyListeners();
 
     try {
       await _authService.passwordReset(email: email);
-      _isLoading = false;
+      _isLoading.value = false;
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
+      _errorMessage.value = e.toString().replaceAll('Exception: ', '');
+      _isLoading.value = false;
       notifyListeners();
       return false;
     }
@@ -509,8 +510,8 @@ class AuthProvider extends ChangeNotifier {
     File? imageFile,
     String? avatarUrl,
   }) async {
-    _isLoading = true;
-    _errorMessage = null;
+    _isLoading.value = true;
+    _errorMessage.value = null;
     notifyListeners();
 
     try {
@@ -526,38 +527,39 @@ class AuthProvider extends ChangeNotifier {
       // Update local state with the returned user, 
       // but if the backend hasn't implemented avatarUrl yet, 
       // ensure we keep the local selection.
-      _user = updatedUser;
-      if (avatarUrl != null && _user != null) {
-        _user = _user!.copyWith(
-          profile: _user!.profile?.copyWith(profilePicture: avatarUrl) ?? 
-                  UserProfile(role: _userRole, profilePicture: avatarUrl),
+      _user.value = updatedUser;
+      if (avatarUrl != null && _user.value != null) {
+        _user.value = _user.value!.copyWith(
+          profile: _user.value!.profile?.copyWith(profilePicture: avatarUrl) ?? 
+                  UserProfile(role: _userRole.value, profilePicture: avatarUrl),
         );
       }
       
-      _isLoading = false;
+      _isLoading.value = false;
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
+      _errorMessage.value = e.toString().replaceAll('Exception: ', '');
+      _isLoading.value = false;
       notifyListeners();
       return false;
     }
   }
+
   /// Stage 1: Initialize account deletion (Request OTP)
   Future<bool> deleteAccountInit() async {
-    _isLoading = true;
-    _errorMessage = null;
+    _isLoading.value = true;
+    _errorMessage.value = null;
     notifyListeners();
 
     try {
       await _authService.initDeleteAccount();
-      _isLoading = false;
+      _isLoading.value = false;
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
+      _errorMessage.value = e.toString().replaceAll('Exception: ', '');
+      _isLoading.value = false;
       notifyListeners();
       return false;
     }
@@ -565,21 +567,21 @@ class AuthProvider extends ChangeNotifier {
 
   /// Stage 2: Delete current user account (Verify OTP and Delete)
   Future<bool> deleteAccount({required String otp}) async {
-    _isLoading = true;
-    _errorMessage = null;
+    _isLoading.value = true;
+    _errorMessage.value = null;
     notifyListeners();
 
     try {
       await _authService.deleteAccount(otp: otp);
-      _user = null;
-      _isAuthenticated = false;
-      _userRole = 'customer';
-      _isLoading = false;
+      _user.value = null;
+      _isAuthenticated.value = false;
+      _userRole.value = 'customer';
+      _isLoading.value = false;
       notifyListeners();
       return true;
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
-      _isLoading = false;
+      _errorMessage.value = e.toString().replaceAll('Exception: ', '');
+      _isLoading.value = false;
       notifyListeners();
       return false;
     }

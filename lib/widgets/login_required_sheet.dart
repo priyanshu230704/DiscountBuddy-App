@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:discount_buddy/theme/app_colors.dart';
 import 'package:discount_buddy/design/app_typography.dart';
+import '../routes/app_routes.dart';
 import 'generic_bottom_sheet.dart';
 
 class LoginRequiredSheet extends StatelessWidget {
@@ -78,7 +80,7 @@ class LoginRequiredSheet extends StatelessWidget {
                 height: 56,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+                    Get.offAllNamed(AppRoutes.login);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,

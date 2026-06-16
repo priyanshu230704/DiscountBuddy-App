@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../models/app_version_info.dart';
-import '../pages/app_update_page.dart';
+import '../routes/app_routes.dart';
 import '../utils/navigator_key.dart';
 import '../widgets/optional_update_sheet.dart';
 import 'app_config_service.dart';
@@ -62,7 +63,7 @@ class AppVersionChecker {
   }
 
   /// Re-run on app resume — force/critical only (not optional popup again).
-  static Future<void> checkOnResume({String continueRoute = '/home'}) async {
+  static Future<void> checkOnResume({String continueRoute = AppRoutes.home}) async {
     if (_isShowingUpdatePage) return;
 
     try {
@@ -82,23 +83,19 @@ class AppVersionChecker {
 
   static bool _navigateToForceUpdatePage(
     AppVersionInfo versionInfo, {
-    String continueRoute = '/onboarding-check',
+    String continueRoute = AppRoutes.onboardingCheck,
   }) {
-    final navigator = navigatorKey.currentState;
-    if (navigator == null) return false;
+    if (Get.key.currentState == null) return false;
 
     _isShowingUpdatePage = true;
     _pendingOptionalUpdate = null;
 
-    navigator.pushAndRemoveUntil(
-      MaterialPageRoute(
-        builder: (_) => AppUpdatePage(
-          versionInfo: versionInfo,
-          continueRoute: continueRoute,
-        ),
-        settings: const RouteSettings(name: '/app-update'),
-      ),
-      (_) => false,
+    Get.offAllNamed(
+      AppRoutes.appUpdate,
+      arguments: {
+        'versionInfo': versionInfo,
+        'continueRoute': continueRoute,
+      },
     );
     return true;
   }

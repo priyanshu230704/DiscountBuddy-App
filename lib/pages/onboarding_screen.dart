@@ -1,10 +1,10 @@
 import 'package:discount_buddy/design/app_typography.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../design/app_colors.dart';
+import '../routes/app_routes.dart';
 import '../services/onboarding_service.dart';
 import '../widgets/connectivity_gate.dart';
-import 'auth/login_page.dart';
-import 'auth/register_page.dart';
 
 /// Data class for onboarding page content
 class OnboardingPageData {
@@ -67,9 +67,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
     // Navigate to login page
     if (mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const LoginPage()),
-      );
+      Get.offAllNamed(AppRoutes.login);
     }
   }
 
@@ -291,11 +289,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                           TextButton(
                             onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => const RegisterPage(),
-                                ),
-                              );
+                              Get.toNamed(AppRoutes.register);
                             },
                             style: TextButton.styleFrom(
                               padding: const EdgeInsets.symmetric(

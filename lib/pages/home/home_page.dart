@@ -5,6 +5,7 @@ import 'package:discount_buddy/design/app_design.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:geolocator/geolocator.dart'
     hide LocationServiceDisabledException;
+import 'package:get/get.dart';
 
 import '../../models/restaurant.dart';
 import '../../services/restaurant_service.dart';
@@ -12,8 +13,8 @@ import '../../services/location_service.dart';
 import '../../services/app_config_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/notification_provider.dart';
+import '../../routes/app_routes.dart';
 import '../restaurant_details_page.dart';
-import '../notifications_page.dart';
 import '../../widgets/city_selector_modal.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/app_gradient_button.dart';
@@ -648,12 +649,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                       // Notification Icon
                       GestureDetector(
                         onTap: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const NotificationsPage(),
-                            ),
-                          );
+                          await Get.toNamed(AppRoutes.notifications);
                           _notificationProvider.refreshCount(false);
                         },
                         child: ListenableBuilder(
@@ -1237,15 +1233,13 @@ class _FeedTile extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => RestaurantDetailsPage(
-              slug: restaurant.id,
-              latitude: userLat,
-              longitude: userLon,
-            ),
-          ),
+        Get.toNamed(
+          AppRoutes.restaurantDetails,
+          arguments: {
+            'slug': restaurant.id,
+            'latitude': userLat,
+            'longitude': userLon,
+          },
         );
       },
       child: Container(
@@ -1577,15 +1571,13 @@ class _FeedTile extends StatelessWidget {
                           ),
                         AppGradientButton(
                           onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => RestaurantDetailsPage(
-                                  slug: restaurant.id,
-                                  latitude: userLat,
-                                  longitude: userLon,
-                                ),
-                              ),
+                            Get.toNamed(
+                              AppRoutes.restaurantDetails,
+                              arguments: {
+                                'slug': restaurant.id,
+                                'latitude': userLat,
+                                'longitude': userLon,
+                              },
                             );
                           },
                           height: 32,

@@ -2,8 +2,10 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 import 'register_page.dart';
 import '../../providers/auth_provider.dart';
+import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
 import 'package:discount_buddy/design/app_typography.dart';
 import '../../widgets/auth/auth_theme.dart';
@@ -69,8 +71,8 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
 
       if (_authProvider.isAuthenticated) {
-        Navigator.of(context).pushReplacementNamed('/home');
-        return; // Exit after navigation
+        Get.offAllNamed(AppRoutes.home);
+        return;
       }
 
       if (_authProvider.errorMessage != null) {
@@ -143,13 +145,9 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _handleForgotPassword() async {
     final email = _emailController.text.trim();
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ForgotPasswordPage(
-          initialEmail: email.isNotEmpty ? email : null,
-        ),
-      ),
+    Get.toNamed(
+      AppRoutes.forgotPassword,
+      arguments: email.isNotEmpty ? email : null,
     );
   }
 
@@ -555,10 +553,7 @@ class _LoginPageState extends State<LoginPage> {
                                               ),
                                               TextButton(
                                                 onPressed: () {
-                                                  Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(builder: (context) =>  RegisterPage()),
-                                                  );
+                                                  Get.toNamed(AppRoutes.register);
                                                 },
                                                 style: TextButton.styleFrom(
                                                   padding: const EdgeInsets.symmetric(horizontal: 4),

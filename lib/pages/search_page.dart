@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:discount_buddy/design/app_design.dart';
+import 'package:get/get.dart';
+
 import '../models/restaurant.dart';
 import '../services/restaurant_service.dart';
 import '../services/location_service.dart';
+import '../routes/app_routes.dart';
 import '../widgets/restaurant_card.dart';
-import 'restaurant_details_page.dart';
 import '../widgets/app_scaffold.dart';
 import '../widgets/loading_widget.dart';
 import '../widgets/empty_state_widget.dart';
@@ -290,15 +292,13 @@ class _SearchPageState extends State<SearchPage> {
                     userLon: _userLon,
                     onTap: () {
                       final slug = restaurant.slug ?? restaurant.id;
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => RestaurantDetailsPage(
-                            slug: slug,
-                            latitude: _userLat,
-                            longitude: _userLon,
-                          ),
-                        ),
+                      Get.toNamed(
+                        AppRoutes.restaurantDetails,
+                        arguments: {
+                          'slug': slug,
+                          'latitude': _userLat,
+                          'longitude': _userLon,
+                        },
                       );
                     },
                   );

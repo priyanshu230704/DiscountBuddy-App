@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import 'package:discount_buddy/widgets/app_scaffold.dart';
 import 'package:discount_buddy/widgets/app_gradient_button.dart';
-import 'merchant_reviews_page.dart';
-import 'merchant_redemption_history_page.dart';
-import 'merchant_analytics_page.dart';
-import 'merchant_deals_page.dart';
-import 'merchant_bookings_page.dart';
-import 'qr_scanner_page.dart';
 import '../../services/merchant_service.dart';
 import '../../services/notification_service.dart';
-import '../notifications_page.dart';
+import '../../routes/app_routes.dart';
 import 'dart:async';
 import '../../providers/notification_provider.dart';
 
@@ -211,14 +206,12 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
           const SizedBox(height: AppSpacing.md),
           // Analytics CTA
           GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => MerchantAnalyticsPage(
-                  restaurantId: _selectedRestaurantId,
-                  restaurantName: _selectedRestaurantName,
-                ),
-              ),
+            onTap: () => Get.toNamed(
+              AppRoutes.merchantAnalytics,
+              arguments: {
+                'restaurantId': _selectedRestaurantId,
+                'restaurantName': _selectedRestaurantName,
+              },
             ),
             child: Container(
               width: double.infinity,
@@ -299,14 +292,15 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
                     icon: Icons.confirmation_number_rounded,
                     color: const Color(0xFF8B5CF6), // Violet
                     backgroundColor: const Color(0xFFF5F3FF),
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MerchantRedemptionHistoryPage(
-                          restaurantId: _selectedRestaurantId,
-                        ),
-                      ),
-                    ).then((_) => _fetchDashboardData()),
+                    onTap: () async {
+                      await Get.toNamed(
+                        AppRoutes.merchantRedemptionHistory,
+                        arguments: {
+                          'restaurantId': _selectedRestaurantId,
+                        },
+                      );
+                      _fetchDashboardData();
+                    },
                   ),
                 ),
               ),
@@ -321,14 +315,15 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
                     icon: Icons.local_offer_rounded,
                     color: const Color(0xFFF59E0B), // Amber
                     backgroundColor: const Color(0xFFFEF3C7),
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MerchantDealsPage(
-                          restaurantId: _selectedRestaurantId,
-                        ),
-                      ),
-                    ).then((_) => _fetchDashboardData()),
+                    onTap: () async {
+                      await Get.toNamed(
+                        AppRoutes.merchantDeals,
+                        arguments: {
+                          'restaurantId': _selectedRestaurantId,
+                        },
+                      );
+                      _fetchDashboardData();
+                    },
                   ),
                 ),
               ),
@@ -347,14 +342,15 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
                     icon: Icons.calendar_month_rounded,
                     color: const Color(0xFF6366F1), // Indigo
                     backgroundColor: const Color(0xFFEEF2FF),
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MerchantBookingsPage(
-                          restaurantId: _selectedRestaurantId,
-                        ),
-                      ),
-                    ).then((_) => _fetchDashboardData()),
+                    onTap: () async {
+                      await Get.toNamed(
+                        AppRoutes.merchantBookings,
+                        arguments: {
+                          'restaurantId': _selectedRestaurantId,
+                        },
+                      );
+                      _fetchDashboardData();
+                    },
                   ),
                 ),
               ),
@@ -370,14 +366,15 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
                     color: const Color(0xFFFACC15), // Yellow
                     backgroundColor: const Color(0xFFFEF9C3),
                     suffix: ' / 5.0',
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MerchantReviewsPage(
-                          restaurantId: _selectedRestaurantId,
-                        ),
-                      ),
-                    ).then((_) => _fetchDashboardData()),
+                    onTap: () async {
+                      await Get.toNamed(
+                        AppRoutes.merchantReviews,
+                        arguments: {
+                          'restaurantId': _selectedRestaurantId,
+                        },
+                      );
+                      _fetchDashboardData();
+                    },
                   ),
                 ),
               ),
@@ -534,12 +531,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
             // Notification Icon
             GestureDetector(
               onTap: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const NotificationsPage(),
-                  ),
-                );
+                await Get.toNamed(AppRoutes.notifications);
                 _notificationProvider.refreshCount(true);
               },
               child: ListenableBuilder(
@@ -612,14 +604,15 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
             Material(
               color: Colors.transparent,
               child: AppGradientButton(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => QRScannerPage(
-                      initialRestaurantId: _selectedRestaurantId,
-                    ),
-                  ),
-                ).then((_) => _fetchDashboardData()),
+                onPressed: () async {
+                  await Get.toNamed(
+                    AppRoutes.qrScanner,
+                    arguments: {
+                      'initialRestaurantId': _selectedRestaurantId,
+                    },
+                  );
+                  _fetchDashboardData();
+                },
                 width: 78,
                 height: 38,
                 borderRadius: BorderRadius.circular(12),

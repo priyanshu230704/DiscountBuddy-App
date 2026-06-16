@@ -5,6 +5,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:get/get.dart';
 
 import 'package:discount_buddy/design/app_design.dart';
 import '../../models/restaurant.dart';
@@ -12,7 +13,7 @@ import '../../models/city.dart';
 import '../../services/restaurant_service.dart';
 import '../../services/location_service.dart';
 import '../../services/city_service.dart';
-import '../restaurant_details_page.dart';
+import '../../routes/app_routes.dart';
 import '../../widgets/city_selector_modal.dart';
 import '../../widgets/filter_modal.dart';
 import '../../widgets/generic_bottom_sheet.dart';
@@ -395,12 +396,13 @@ class _NearbyPageState extends State<NearbyPage>
 
     final slug = restaurant.id;
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) =>
-            RestaurantDetailsPage(slug: slug, latitude: userLat, longitude: userLon),
-      ),
+    Get.toNamed(
+      AppRoutes.restaurantDetails,
+      arguments: {
+        'slug': slug,
+        'latitude': userLat,
+        'longitude': userLon,
+      },
     );
   }
 

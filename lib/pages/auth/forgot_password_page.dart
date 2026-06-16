@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../../design/app_colors.dart';
 import '../../design/app_radius.dart';
 import 'package:discount_buddy/design/app_typography.dart';
@@ -6,7 +7,7 @@ import '../../providers/auth_provider.dart';
 import '../../widgets/auth/auth_text_field.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/app_gradient_button.dart';
-import 'reset_password_page.dart';
+import '../../routes/app_routes.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   final String? initialEmail;
@@ -125,19 +126,16 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
       if (success && mounted) {
         // Navigate to the third page for password creation
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ResetPasswordPage(
-              email: _emailController.text.trim(),
-              otp: _otpController.text.trim(),
-            ),
-          ),
-        ).then((wasReset) {
-          if (wasReset == true && mounted) {
-            Navigator.pop(context); // Close the OTP page too
-          }
-        });
+        final wasReset = await Get.toNamed<bool>(
+          AppRoutes.resetPassword,
+          arguments: {
+            'email': _emailController.text.trim(),
+            'otp': _otpController.text.trim(),
+          },
+        );
+        if (wasReset == true && mounted) {
+          Get.back(); // Close the OTP page too
+        }
       }
     }
   }

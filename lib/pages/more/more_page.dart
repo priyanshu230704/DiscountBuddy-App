@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
 import '../../design/app_colors.dart';
 import '../../design/app_spacing.dart';
 import '../../design/app_typography.dart';
@@ -7,8 +9,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/voucher_service.dart';
 import '../../models/voucher.dart';
-import '../profile_page.dart';
-import '../auth/login_page.dart';
+import '../../routes/app_routes.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../config/environment.dart';
 
@@ -108,12 +109,7 @@ class _MorePageState extends State<MorePage> {
                       // Account Section
                       _buildSection('Account', [
                         _buildListTile(Icons.person, 'Edit Profile', () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const ProfilePage(),
-                            ),
-                          );
+                          Get.toNamed(AppRoutes.profile);
                         }),
                         _buildListTile(
                           Icons.card_membership,
@@ -237,12 +233,7 @@ class _MorePageState extends State<MorePage> {
 
                               // Navigate to login page
                               if (context.mounted) {
-                                Navigator.of(context).pushAndRemoveUntil(
-                                  MaterialPageRoute(
-                                    builder: (context) => const LoginPage(),
-                                  ),
-                                  (route) => false,
-                                );
+                                Get.offAllNamed(AppRoutes.login);
                               }
                             }
                           },
@@ -616,10 +607,7 @@ class _MorePageState extends State<MorePage> {
           IconButton(
             icon: const Icon(Icons.chevron_right, color: Colors.grey),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProfilePage()),
-              );
+              Get.toNamed(AppRoutes.profile);
             },
           ),
         ],

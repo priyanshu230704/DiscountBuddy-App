@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import '../models/notification.dart';
+import '../routes/app_routes.dart';
 import 'api_service.dart';
 import '../config/api_endpoints.dart';
-import '../pages/merchant/merchant_bookings_page.dart';
-import '../pages/merchant/merchant_reviews_page.dart';
-import '../pages/merchant/merchant_redemption_history_page.dart';
-import '../pages/merchant/merchant_analytics_page.dart';
-import '../pages/restaurant_details_page.dart';
-import '../pages/main_navigation.dart';
 import '../widgets/generic_bottom_sheet.dart';
 import '../theme/app_colors.dart';
 import '../design/app_typography.dart';
@@ -315,13 +311,8 @@ class NotificationService {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.pop(context); // Close bottom sheet
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const MerchantBookingsPage(),
-                      ),
-                    );
+                    Get.back(); // Close bottom sheet
+                    Get.toNamed(AppRoutes.merchantBookings);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
@@ -362,41 +353,24 @@ class NotificationService {
         break;
 
       case NotificationType.newReview:
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const MerchantReviewsPage(),
-          ),
-        );
+        Get.toNamed(AppRoutes.merchantReviews);
         break;
 
       case NotificationType.milestoneEarnings:
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const MerchantAnalyticsPage(),
-          ),
-        );
+        Get.toNamed(AppRoutes.merchantAnalytics);
         break;
 
       case NotificationType.merchantDealRedeemed:
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const MerchantRedemptionHistoryPage(),
-          ),
-        );
+        Get.toNamed(AppRoutes.merchantRedemptionHistory);
         break;
 
       // Customer specific notifications
       case NotificationType.favDeal:
         final id = data?['restaurant_id'] ?? '';
         if (id.toString().isNotEmpty) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => RestaurantDetailsPage(slug: id.toString()),
-            ),
+          Get.toNamed(
+            AppRoutes.restaurantDetails,
+            arguments: {'slug': id.toString()},
           );
         }
         break;
@@ -404,19 +378,16 @@ class NotificationService {
       case NotificationType.dealRedeemed:
       case NotificationType.bookingConfirmed:
         // Redirect to activity/bookings tab (index 2 in MainNavigation)
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const MainNavigation(initialIndex: 2),
-          ),
-          (route) => false,
+        Get.offAllNamed(
+          AppRoutes.home,
+          arguments: {'initialIndex': 2},
         );
         break;
 
       default:
         // Default to home or just stay on page
         debugPrint('⚠️ Unknown notification type for navigation: $type');
-        Navigator.pushReplacementNamed(context, '/home');
+        Get.offAllNamed(AppRoutes.home);
     }
   }
 

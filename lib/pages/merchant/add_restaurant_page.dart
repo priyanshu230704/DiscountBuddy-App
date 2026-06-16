@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:geolocator/geolocator.dart' show Geolocator;
 import 'package:discount_buddy/design/app_design.dart';
 import '../../widgets/app_scaffold.dart';
@@ -10,7 +11,7 @@ import '../../services/location_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../models/restaurant.dart' as model;
-import 'merchant_menu_page.dart';
+import '../../routes/app_routes.dart';
 
 /// Add/Edit Restaurant Page for Merchants
 class AddRestaurantPage extends StatefulWidget {
@@ -712,14 +713,12 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                     final id = restaurantId is int
                         ? restaurantId
                         : int.parse(restaurantId.toString());
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => MerchantMenuPage(
-                          restaurantId: id,
-                          restaurantName: widget.restaurant!['name'],
-                        ),
-                      ),
+                    Get.toNamed(
+                      AppRoutes.merchantMenu,
+                      arguments: {
+                        'restaurantId': id,
+                        'restaurantName': widget.restaurant!['name'],
+                      },
                     );
                   },
                 ),

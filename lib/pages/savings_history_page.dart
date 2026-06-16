@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import 'package:intl/intl.dart';
 import 'package:discount_buddy/components/layout.dart';
+import 'package:get/get.dart';
+
 import '../components/buttons.dart';
 import '../models/deal_redemption.dart';
 import '../services/restaurant_service.dart';
-import 'restaurant_details_page.dart';
+import '../routes/app_routes.dart';
 import '../widgets/app_scaffold.dart';
 import '../components/app_app_bar.dart';
 import '../widgets/loading_widget.dart';
@@ -220,19 +222,17 @@ class _RedemptionDetailModal extends StatelessWidget {
             const SizedBox(height: AppSpacing.xxxl),
             SizedBox(
               width: double.infinity,
-              child: SecondaryButton(
-                label: 'View Restaurant',
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => RestaurantDetailsPage(
-                        slug: redemption.deal.restaurantSlug,
-                      ),
-                    ),
-                  );
-                },
+            child: SecondaryButton(
+              label: 'View Restaurant',
+              onPressed: () {
+                Navigator.pop(context);
+                Get.toNamed(
+                  AppRoutes.restaurantDetails,
+                  arguments: {
+                    'slug': redemption.deal.restaurantSlug,
+                  },
+                );
+              },
               ),
             ),
             const SizedBox(height: AppSpacing.xl),

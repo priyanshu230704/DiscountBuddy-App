@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -64,9 +65,9 @@ class _AppUpdatePageState extends State<AppUpdatePage> {
     AppVersionChecker.resetShowingFlag();
     final route = widget.continueRoute;
     if (route != null) {
-      Navigator.of(context).pushReplacementNamed(route);
-    } else if (Navigator.of(context).canPop()) {
-      Navigator.of(context).pop();
+      Get.offAllNamed(route);
+    } else if (Get.key.currentState?.canPop() ?? false) {
+      Get.back();
     }
   }
 

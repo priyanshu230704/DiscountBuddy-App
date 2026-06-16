@@ -2,19 +2,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 import 'package:discount_buddy/design/app_design.dart';
+import '../routes/app_routes.dart';
 import '../widgets/app_scaffold.dart';
 import '../providers/auth_provider.dart';
 import '../services/wallet_service.dart';
 import '../services/restaurant_service.dart';
 import '../models/user_interactions.dart';
-import 'edit_profile_page.dart';
-import 'help_support_page.dart';
-import 'privacy_policy_page.dart';
-import 'saved_restaurants_page.dart';
-import 'savings_history_page.dart';
-import 'join_partner_page.dart';
-import 'level_progress_page.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../config/environment.dart';
 
@@ -88,22 +83,15 @@ class _ProfilePageState extends State<ProfilePage> {
 
   void _navigateToLevelDetails() {
     if (_stats == null) return;
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => LevelProgressPage(stats: _stats!),
-      ),
+    Get.toNamed(
+      AppRoutes.levelProgress,
+      arguments: _stats!,
     );
   }
 
 
   void _navigateToEditProfile() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const EditProfilePage(),
-      ),
-    );
+    Get.toNamed(AppRoutes.editProfile);
   }
 
   List<Widget> _buildMenuItems() {
@@ -112,12 +100,7 @@ class _ProfilePageState extends State<ProfilePage> {
         icon: Icons.help_outline,
         title: 'Help & Support',
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const HelpSupportPage(),
-            ),
-          );
+          Get.toNamed(AppRoutes.helpSupport);
         },
       ),
       if (!_authProvider.isMerchant)
@@ -125,24 +108,14 @@ class _ProfilePageState extends State<ProfilePage> {
           icon: Icons.storefront_outlined,
           title: 'Join as restaurant partner',
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const JoinPartnerPage(),
-              ),
-            );
+            Get.toNamed(AppRoutes.joinPartner);
           },
         ),
       _ProfileMenuItem(
         icon: Icons.privacy_tip_outlined,
         title: 'Privacy Policy',
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const PrivacyPolicyPage(),
-            ),
-          );
+          Get.toNamed(AppRoutes.privacyPolicy);
         },
       ),
       _ProfileMenuItem(
@@ -203,20 +176,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 onEditProfile: _navigateToEditProfile,
                 onLevelTap: _navigateToLevelDetails,
                 onSavingsTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const SavingsHistoryPage(),
-                    ),
-                  );
+                  Get.toNamed(AppRoutes.savingsHistory);
                 },
                 onFavouritesTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const SavedRestaurantsPage(),
-                    ),
-                  );
+                  Get.toNamed(AppRoutes.savedRestaurants);
                 },
               ),
               const SizedBox(height: AppSpacing.xxl),
@@ -284,8 +247,7 @@ class _ProfilePageState extends State<ProfilePage> {
               Navigator.pop(context);
               await _authProvider.logout();
               if (context.mounted) {
-                // Use rootNavigator: true to ensure we pop everything and go to login
-                Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil('/login', (route) => false);
+                Get.offAllNamed(AppRoutes.login);
               }
             },
             child: Text(
@@ -469,9 +431,8 @@ class _ProfilePageState extends State<ProfilePage> {
     try {
       final success = await _authProvider.deleteAccount(otp: otp);
       if (success && mounted) {
-        Navigator.pop(context); // Close loading
-        // Use rootNavigator: true to ensure we pop everything and go to login
-        Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil('/login', (route) => false);
+        Navigator.pop(context);
+        Get.offAllNamed(AppRoutes.login);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Account deleted successfully')),
         );

@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:discount_buddy/design/app_typography.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
@@ -24,10 +25,10 @@ import 'package:share_plus/share_plus.dart';
 import '../widgets/generic_bottom_sheet.dart';
 import 'deals/redeem_offer_modal.dart';
 import 'bookings/booking_selection_modal.dart';
-import 'bookings/create_booking_page.dart';
 import '../models/mystery_visit.dart';
 import '../services/mystery_guest_service.dart';
 import '../providers/auth_provider.dart';
+import '../routes/app_routes.dart';
 import 'mystery_guest/mystery_audit_modal.dart';
 import '../widgets/occupancy_tag.dart';
 import '../widgets/login_required_sheet.dart';
@@ -139,7 +140,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     if (!_authProvider.isAuthenticated && !_authProvider.isGuestMode) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+          Get.offAllNamed(AppRoutes.login);
         }
       });
     }
@@ -402,31 +403,29 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
         orElse: () => null as dynamic,
       );
 
-      if (todaySlot != null) {
-        final slot = todaySlot as OpeningSlot;
-        if (slot.isClosed) {
+      final slot = todaySlot;
+      if (slot.isClosed) {
+        return 'Closed';
+      }
+
+      try {
+        final closingParts = slot.closingTime.split(':');
+        final closingHour = int.parse(closingParts[0]);
+        final closingMinute = closingParts.length > 1 ? int.parse(closingParts[1]) : 0;
+        final closingTime = TimeOfDay(hour: closingHour, minute: closingMinute);
+
+        final isClosed = currentTime.hour > closingTime.hour ||
+            (currentTime.hour == closingTime.hour && currentTime.minute >= closingMinute);
+
+        if (isClosed) {
           return 'Closed';
         }
 
-        try {
-          final closingParts = slot.closingTime.split(':');
-          final closingHour = int.parse(closingParts[0]);
-          final closingMinute = closingParts.length > 1 ? int.parse(closingParts[1]) : 0;
-          final closingTime = TimeOfDay(hour: closingHour, minute: closingMinute);
-
-          final isClosed = currentTime.hour > closingTime.hour ||
-              (currentTime.hour == closingTime.hour && currentTime.minute >= closingMinute);
-
-          if (isClosed) {
-            return 'Closed';
-          }
-
-          return 'Open until ${_formatTimeWithoutSeconds(slot.closingTime)}';
-        } catch (_) {
-          // Fallback if parsing fails
-        }
+        return 'Open until ${_formatTimeWithoutSeconds(slot.closingTime)}';
+      } catch (_) {
+        // Fallback if parsing fails
       }
-    }
+        }
 
     // Check if opening_hours is a Map (from API) with day names as keys
     try {
@@ -1703,14 +1702,12 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                       LoginRequiredSheet.show(context);
                       return;
                     }
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => CreateBookingPage(
-                          restaurantId: int.parse(restaurant.id),
-                          restaurantName: restaurant.name,
-                        ),
-                      ),
+                    Get.toNamed(
+                      AppRoutes.createBooking,
+                      arguments: {
+                        'restaurantId': int.parse(restaurant.id),
+                        'restaurantName': restaurant.name,
+                      },
                     );
                   },
                   height: 52,

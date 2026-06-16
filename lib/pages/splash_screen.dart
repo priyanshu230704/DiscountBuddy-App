@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../config/environment.dart';
 import '../design/app_colors.dart';
 import '../design/app_typography.dart';
+import '../routes/app_routes.dart';
 import '../services/app_version_checker.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -88,8 +90,11 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Proceed if still mounted
     if (mounted) {
-      await Navigator.of(context).pushReplacementNamed('/onboarding-check');
-      AppVersionChecker.showOptionalUpdateSheetOnce();
+      Get.offNamed(AppRoutes.onboardingCheck);
+      // Show optional update sheet after navigation completes
+      Future.delayed(const Duration(milliseconds: 500), () {
+        AppVersionChecker.showOptionalUpdateSheetOnce();
+      });
     }
   }
 

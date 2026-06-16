@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'dart:math' as math;
 
 import 'package:discount_buddy/theme/app_colors.dart';
 import '../providers/auth_provider.dart';
+import '../routes/app_routes.dart';
 import 'home/home_page.dart';
 import 'nearby/nearby_page.dart';
 import 'bookings/bookings_page.dart';
-import 'profile_page.dart';
+import 'profile_page.dart' show ProfilePage;
 import 'merchant/merchant_restaurants_page.dart';
 import 'merchant/merchant_dashboard_page.dart';
 import '../widgets/login_required_sheet.dart';
@@ -70,7 +72,7 @@ class MainNavigationState extends State<MainNavigation> {
       // User logged out or session expired, forcibly return to login
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil('/login', (route) => false);
+          Get.offAllNamed(AppRoutes.login);
         }
       });
     }
@@ -214,9 +216,9 @@ class MainNavigationState extends State<MainNavigation> {
                         context,
                         isClosable: false,
                         onBackToHome: () {
-                          Navigator.pop(context); // Close the sheet if needed
+                          Navigator.pop(context);
                           setState(() {
-                            _currentIndex = 0; // Return to Home
+                            _currentIndex = 0;
                           });
                         },
                       );

@@ -2,6 +2,8 @@ import 'package:discount_buddy/pages/main_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:discount_buddy/utils/date_time_utils.dart';
 import 'package:discount_buddy/design/app_design.dart';
+import 'package:get/get.dart';
+
 import '../../components/app_app_bar.dart';
 import '../../components/layout.dart';
 import '../../components/buttons.dart';
@@ -606,16 +608,13 @@ class _RedemptionCard extends StatelessWidget {
               label: 'View restaurant',
               onPressed: () {
                 Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    settings: RouteSettings(name: AppRoutes.restaurantDetails),
-                    builder: (context) => RestaurantDetailsPage(
-                      slug: redemption.restaurantId.toString(),
-                      latitude: null,
-                      longitude: null,
-                    ),
-                  ),
+                Get.toNamed(
+                  AppRoutes.restaurantDetails,
+                  arguments: {
+                    'slug': redemption.restaurantId.toString(),
+                    'latitude': null,
+                    'longitude': null,
+                  },
                 );
               },
             ),

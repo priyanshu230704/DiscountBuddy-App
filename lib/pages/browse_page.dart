@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:get/get.dart';
+
 import '../models/restaurant.dart';
 import '../services/restaurant_service.dart';
 import '../services/location_service.dart';
+import '../routes/app_routes.dart';
 import '../widgets/restaurant_card.dart';
 import '../widgets/loading_widget.dart';
 import '../widgets/blurred_ellipse_background.dart';
 import '../widgets/common_search_bar.dart';
 import '../widgets/border_gradient.dart';
-import 'restaurant_details_page.dart';
 import '../widgets/app_scaffold.dart';
 
 /// Browse page with list and map view toggle
@@ -107,15 +109,13 @@ class _BrowsePageState extends State<BrowsePage> {
             snippet: restaurant.discount.displayText,
           ),
           onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => RestaurantDetailsPage(
-                  slug: restaurant.slug ?? restaurant.id,
-                  latitude: _userLat,
-                  longitude: _userLon,
-                ),
-              ),
+            Get.toNamed(
+              AppRoutes.restaurantDetails,
+              arguments: {
+                'slug': restaurant.slug ?? restaurant.id,
+                'latitude': _userLat,
+                'longitude': _userLon,
+              },
             );
           },
         );
@@ -248,15 +248,13 @@ class _BrowsePageState extends State<BrowsePage> {
           userLon: _userLon,
           onTap: () {
             final slug = restaurant.slug ?? restaurant.id;
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => RestaurantDetailsPage(
-                  slug: slug,
-                  latitude: _userLat,
-                  longitude: _userLon,
-                ),
-              ),
+            Get.toNamed(
+              AppRoutes.restaurantDetails,
+              arguments: {
+                'slug': slug,
+                'latitude': _userLat,
+                'longitude': _userLon,
+              },
             );
           },
         );
@@ -302,15 +300,13 @@ class _BrowsePageState extends State<BrowsePage> {
                   onTap: () {
                     final restaurant = _filteredRestaurants[0];
                     final slug = restaurant.slug ?? restaurant.id;
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => RestaurantDetailsPage(
-                          slug: slug,
-                          latitude: _userLat,
-                          longitude: _userLon,
-                        ),
-                      ),
+                    Get.toNamed(
+                      AppRoutes.restaurantDetails,
+                      arguments: {
+                        'slug': slug,
+                        'latitude': _userLat,
+                        'longitude': _userLon,
+                      },
                     );
                   },
                   child: Row(

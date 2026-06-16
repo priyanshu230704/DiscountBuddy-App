@@ -1,15 +1,16 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../models/restaurant.dart';
 import '../services/location_service.dart';
 import '../services/restaurant_service.dart';
+import '../routes/app_routes.dart';
 import '../utils/distance_utils.dart';
 import '../widgets/app_gradient_button.dart';
 import '../widgets/app_scaffold.dart';
 import '../widgets/loading_widget.dart';
-import 'restaurant_details_page.dart';
 import '../components/app_app_bar.dart';
 
 class SavedRestaurantsPage extends StatefulWidget {
@@ -167,15 +168,13 @@ class _SavedRestaurantTile extends StatelessWidget {
 
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => RestaurantDetailsPage(
-              slug: restaurant.id,
-              latitude: userLat,
-              longitude: userLon,
-            ),
-          ),
+        Get.toNamed(
+          AppRoutes.restaurantDetails,
+          arguments: {
+            'slug': restaurant.id,
+            'latitude': userLat,
+            'longitude': userLon,
+          },
         );
       },
       child: Container(
@@ -490,15 +489,13 @@ class _SavedRestaurantTile extends StatelessWidget {
                       children: [
                         AppGradientButton(
                           onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => RestaurantDetailsPage(
-                                  slug: restaurant.id,
-                                  latitude: userLat,
-                                  longitude: userLon,
-                                ),
-                              ),
+                            Get.toNamed(
+                              AppRoutes.restaurantDetails,
+                              arguments: {
+                                'slug': restaurant.id,
+                                'latitude': userLat,
+                                'longitude': userLon,
+                              },
                             );
                           },
                           height: 32,

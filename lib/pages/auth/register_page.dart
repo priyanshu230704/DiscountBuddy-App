@@ -2,10 +2,12 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 import '../../design/app_colors.dart';
 import '../../design/app_radius.dart';
 import 'package:discount_buddy/design/app_typography.dart';
 import '../../providers/auth_provider.dart';
+import '../../routes/app_routes.dart';
 import '../../widgets/auth/auth_theme.dart';
 import '../../widgets/auth/auth_text_field.dart';
 import '../../widgets/connectivity_gate.dart';
@@ -113,8 +115,8 @@ class _RegisterPageState extends State<RegisterPage> {
       if (!mounted) return;
 
       if (_authProvider.isAuthenticated) {
-        Navigator.of(context).pushReplacementNamed('/home');
-        return; // Exit after navigation
+        Get.offAllNamed(AppRoutes.home);
+        return;
       }
 
       if (_authProvider.errorMessage != null) {

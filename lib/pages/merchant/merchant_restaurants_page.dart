@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import '../../services/merchant_service.dart';
 import '../../widgets/loading_widget.dart';
@@ -6,8 +7,7 @@ import '../../widgets/empty_state_widget.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../components/layout.dart';
 import '../../components/app_app_bar.dart';
-import 'add_restaurant_page.dart';
-import 'merchant_menu_page.dart';
+import '../../routes/app_routes.dart';
 
 class MerchantRestaurantsPage extends StatefulWidget {
   final bool selectMenuMode;
@@ -97,13 +97,9 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
                     Icons.add_circle_outline_rounded,
                     color: AppColors.merchantIndigo,
                   ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AddRestaurantPage(),
-                      ),
-                    ).then((_) => _loadRestaurants());
+                  onPressed: () async {
+                    await Get.toNamed(AppRoutes.addRestaurant);
+                    _loadRestaurants();
                   },
                 ),
               ],
@@ -191,30 +187,24 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
     if (id == null) return;
 
     if (widget.selectMenuMode) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => MerchantMenuPage(
-            restaurantId: id,
-            restaurantName: restaurant['name'] ?? 'Restaurant',
-          ),
-        ),
+      Get.toNamed(
+        AppRoutes.merchantMenu,
+        arguments: {
+          'restaurantId': id,
+          'restaurantName': restaurant['name'] ?? 'Restaurant',
+        },
       );
     } else {
       try {
         final fullRestaurant = await _merchantService.getRestaurantDetail(id);
         if (mounted) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) =>
-                  AddRestaurantPage(restaurant: fullRestaurant),
-            ),
-          ).then((refresh) {
-            if (refresh == true) {
-              _loadRestaurants();
-            }
-          });
+          final refresh = await Get.toNamed(
+            AppRoutes.addRestaurant,
+            arguments: fullRestaurant,
+          );
+          if (refresh == true) {
+            _loadRestaurants();
+          }
         }
       } catch (e) {
         if (mounted) {
@@ -239,13 +229,9 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
       primaryActionLabel: widget.selectMenuMode || _searchController.text.isNotEmpty ? null : 'Add restaurant',
       onPrimaryAction: widget.selectMenuMode || _searchController.text.isNotEmpty
           ? null
-          : () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const AddRestaurantPage(),
-                ),
-              ).then((_) => _loadRestaurants());
+          : () async {
+              await Get.toNamed(AppRoutes.addRestaurant);
+              _loadRestaurants();
             },
     );
   }

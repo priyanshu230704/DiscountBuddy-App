@@ -141,7 +141,9 @@ class _DiscountBuddyAppState extends State<DiscountBuddyApp>
     if (state == AppLifecycleState.resumed) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         AppVersionChecker.checkOnResume(
-          continueRoute: _authProvider.isAuthenticated ? '/home' : '/login',
+          continueRoute: _authProvider.isAuthenticated
+              ? AppRoutes.home
+              : AppRoutes.login,
         );
       });
     }
@@ -167,8 +169,8 @@ class _DiscountBuddyAppState extends State<DiscountBuddyApp>
             themeMode: _themeProvider.isDarkMode
                 ? ThemeMode.dark
                 : ThemeMode.light,
-            initialRoute: AppRoutes.splash,
-            getPages: AppPages.pages,
+            initialRoute: AppPages.initial,
+            getPages: AppPages.routes,
             initialBinding: InitialBinding(),
             builder: (context, child) {
               return MediaQuery(

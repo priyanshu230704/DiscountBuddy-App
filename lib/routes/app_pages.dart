@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-// Import all application page screens
 import '../pages/splash_screen.dart';
 import '../pages/onboarding_check_screen.dart';
 import '../pages/onboarding_screen.dart';
@@ -24,14 +23,35 @@ import '../pages/help_support_page.dart';
 import '../pages/privacy_policy_page.dart';
 import '../pages/restaurant_details_page.dart';
 
+// Merchant Pages
+import '../pages/merchant/merchant_dashboard_page.dart';
+import '../pages/merchant/merchant_restaurants_page.dart';
+import '../pages/merchant/merchant_menu_page.dart';
+import '../pages/merchant/merchant_deals_page.dart';
+import '../pages/merchant/add_deal_page.dart';
+import '../pages/merchant/add_restaurant_page.dart';
+import '../pages/merchant/merchant_bookings_page.dart';
+import '../pages/merchant/merchant_reviews_page.dart';
+import '../pages/merchant/merchant_analytics_page.dart';
+import '../pages/merchant/merchant_redemption_history_page.dart';
+import '../pages/merchant/qr_scanner_page.dart';
+
+// User Bookings
+import '../pages/bookings/bookings_page.dart';
+import '../pages/bookings/create_booking_page.dart';
+
 import '../models/app_version_info.dart';
 import '../models/user_interactions.dart';
 import '../providers/auth_provider.dart';
 import 'app_routes.dart';
+import 'bindings/home_binding.dart';
 
 class AppPages {
-  static final pages = [
-    // Core Navigation & Startup Flow
+  AppPages._();
+
+  static const initial = AppRoutes.splash;
+
+  static final routes = [
     GetPage(
       name: AppRoutes.splash,
       page: () => const SplashScreen(),
@@ -77,29 +97,59 @@ class AppPages {
     GetPage(
       name: AppRoutes.home,
       page: () {
-        final authProvider = AuthProvider();
+        final authProvider = Get.find<AuthProvider>();
+        final args = Get.arguments;
+
+        var initialIndex = 0;
+        double? initialLatitude;
+        double? initialLongitude;
+
+        if (args is Map) {
+          final index = args['initialIndex'];
+          if (index is int) {
+            initialIndex = index;
+          }
+          initialLatitude = args['latitude'] as double?;
+          initialLongitude = args['longitude'] as double?;
+        } else if (args is int) {
+          initialIndex = args;
+        }
+
         return MainNavigation(
           key: ValueKey(authProvider.isMerchant),
+          initialIndex: initialIndex,
+          initialLatitude: initialLatitude,
+          initialLongitude: initialLongitude,
         );
       },
+      binding: HomeBinding(),
       transition: Transition.fadeIn,
     ),
     GetPage(
       name: AppRoutes.appUpdate,
       page: () {
         final args = Get.arguments;
-        if (args is! AppVersionInfo) {
-          return const SplashScreen();
+        if (args is Map<String, dynamic>) {
+          final versionInfo = args['versionInfo'];
+          if (versionInfo is! AppVersionInfo) {
+            return const SplashScreen();
+          }
+          return AppUpdatePage(
+            versionInfo: versionInfo,
+            continueRoute: args['continueRoute'] as String? ??
+                AppRoutes.onboardingCheck,
+          );
         }
-        return AppUpdatePage(
-          versionInfo: args,
-          continueRoute: AppRoutes.onboardingCheck,
-        );
+        if (args is AppVersionInfo) {
+          return AppUpdatePage(
+            versionInfo: args,
+            continueRoute: AppRoutes.onboardingCheck,
+          );
+        }
+        return const SplashScreen();
       },
       transition: Transition.downToUp,
     ),
-
-    // Subpages & Feature Pages
     GetPage(
       name: AppRoutes.profile,
       page: () => const ProfilePage(),
@@ -169,6 +219,137 @@ class AppPages {
           slug: args['slug'] ?? '',
           latitude: args['latitude'],
           longitude: args['longitude'],
+        );
+      },
+      transition: Transition.rightToLeft,
+    ),
+    // User Bookings
+    GetPage(
+      name: AppRoutes.bookings,
+      page: () => const BookingsPage(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.createBooking,
+      page: () {
+        final Map<String, dynamic> args = Get.arguments ?? {};
+        return CreateBookingPage(
+          restaurantId: args['restaurantId'] ?? '',
+          restaurantName: args['restaurantName'] ?? '',
+        );
+      },
+      transition: Transition.rightToLeft,
+    ),
+    // Merchant Routes - Dashboard
+    GetPage(
+      name: AppRoutes.merchantDashboard,
+      page: () => const MerchantDashboardPage(),
+      transition: Transition.fadeIn,
+    ),
+    GetPage(
+      name: AppRoutes.merchantRestaurants,
+      page: () {
+        final selectMenuMode = Get.arguments as bool?;
+        return MerchantRestaurantsPage(
+          selectMenuMode: selectMenuMode ?? false,
+        );
+      },
+      transition: Transition.rightToLeft,
+    ),
+    // Merchant Routes - Menu & Restaurant Management
+    GetPage(
+      name: AppRoutes.merchantMenu,
+      page: () {
+        final Map<String, dynamic> args = Get.arguments ?? {};
+        final restaurantId = args['restaurantId'];
+        return MerchantMenuPage(
+          restaurantId: restaurantId is int ? restaurantId : int.tryParse(restaurantId.toString()) ?? 0,
+          restaurantName: args['restaurantName'] ?? '',
+        );
+      },
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.addRestaurant,
+      page: () {
+        final args = Get.arguments;
+        return AddRestaurantPage(restaurant: args as Map<String, dynamic>?);
+      },
+      transition: Transition.rightToLeft,
+    ),
+    // Merchant Routes - Deals
+    GetPage(
+      name: AppRoutes.merchantDeals,
+      page: () {
+        final Map<String, dynamic> args = Get.arguments ?? {};
+        final restaurantId = args['restaurantId'];
+        return MerchantDealsPage(
+          restaurantId: restaurantId is int ? restaurantId : int.tryParse(restaurantId.toString()),
+        );
+      },
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.addDeal,
+      page: () {
+        final args = Get.arguments;
+        return AddDealPage(deal: args as Map<String, dynamic>?);
+      },
+      transition: Transition.rightToLeft,
+    ),
+    // Merchant Routes - Bookings, Reviews, Analytics
+    GetPage(
+      name: AppRoutes.merchantBookings,
+      page: () {
+        final Map<String, dynamic> args = Get.arguments ?? {};
+        final restaurantId = args['restaurantId'];
+        return MerchantBookingsPage(
+          restaurantId: restaurantId is int ? restaurantId : int.tryParse(restaurantId.toString()),
+        );
+      },
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.merchantReviews,
+      page: () {
+        final Map<String, dynamic> args = Get.arguments ?? {};
+        final restaurantId = args['restaurantId'];
+        return MerchantReviewsPage(
+          restaurantId: restaurantId is int ? restaurantId : int.tryParse(restaurantId.toString()),
+        );
+      },
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.merchantAnalytics,
+      page: () {
+        final Map<String, dynamic> args = Get.arguments ?? {};
+        final restaurantId = args['restaurantId'];
+        return MerchantAnalyticsPage(
+          restaurantId: restaurantId is int ? restaurantId : int.tryParse(restaurantId.toString()),
+          restaurantName: args['restaurantName'] ?? '',
+        );
+      },
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.merchantRedemptionHistory,
+      page: () {
+        final Map<String, dynamic> args = Get.arguments ?? {};
+        final restaurantId = args['restaurantId'];
+        return MerchantRedemptionHistoryPage(
+          restaurantId: restaurantId is int ? restaurantId : int.tryParse(restaurantId.toString()),
+        );
+      },
+      transition: Transition.rightToLeft,
+    ),
+    // Merchant Routes - QR Scanner
+    GetPage(
+      name: AppRoutes.qrScanner,
+      page: () {
+        final Map<String, dynamic> args = Get.arguments ?? {};
+        return QRScannerPage(
+          initialRestaurantId: args['initialRestaurantId'],
         );
       },
       transition: Transition.rightToLeft,

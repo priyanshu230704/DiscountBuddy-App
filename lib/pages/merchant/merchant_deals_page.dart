@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import '../../services/merchant_service.dart';
 import '../../services/api_service.dart';
@@ -7,7 +8,7 @@ import '../../widgets/app_scaffold.dart';
 import '../../components/layout.dart';
 import '../../components/app_app_bar.dart';
 import '../../widgets/skeleton_loader.dart';
-import 'add_deal_page.dart';
+import '../../routes/app_routes.dart';
 
 /// Merchant Deals Management Page
 class MerchantDealsPage extends StatefulWidget {
@@ -245,11 +246,9 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add_circle_outline_rounded, color: AppColors.primaryOrange),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const AddDealPage()),
-              ).then((_) => _loadDeals());
+            onPressed: () async {
+              await Get.toNamed(AppRoutes.addDeal);
+              _loadDeals();
             },
           ),
         ],
@@ -288,13 +287,12 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
                       itemBuilder: (context, index) {
                         return _DealCard(
                           deal: _deals[index],
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => AddDealPage(deal: _deals[index]),
-                              ),
-                            ).then((_) => _loadDeals());
+                          onTap: () async {
+                            await Get.toNamed(
+                              AppRoutes.addDeal,
+                              arguments: _deals[index],
+                            );
+                            _loadDeals();
                           },
                           onToggle: (isActive) {
                             _toggleDealStatus(_deals[index]['id']);
@@ -329,11 +327,9 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
       title: 'No active deals',
       message: 'Create a deal to attract more customers.',
       primaryActionLabel: 'Create deal',
-      onPrimaryAction: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const AddDealPage()),
-        ).then((_) => _loadDeals());
+      onPrimaryAction: () async {
+        await Get.toNamed(AppRoutes.addDeal);
+        _loadDeals();
       },
     );
   }

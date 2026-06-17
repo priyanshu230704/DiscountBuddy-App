@@ -3,14 +3,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-import 'register_page.dart';
 import '../../providers/auth_provider.dart';
 import '../../routes/app_routes.dart';
 import '../../theme/app_colors.dart';
 import 'package:discount_buddy/design/app_typography.dart';
 import '../../widgets/auth/auth_theme.dart';
 import '../../widgets/connectivity_gate.dart';
-import 'forgot_password_page.dart';
 
 /// Login Screen - DiscountBuddy Redesign
 class LoginPage extends StatefulWidget {

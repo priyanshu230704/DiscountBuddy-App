@@ -86,6 +86,10 @@ class ApiEndpoints {
   static const String merchantBookings = '/restaurants/restaurant/bookings';
   static String merchantBookingDetail(int id) =>
       '/restaurants/restaurant/bookings/$id';
+  static String merchantBookingArrive(int id) =>
+      '/restaurants/restaurant/bookings/$id/arrive';
+  static String merchantBookingNoShow(int id) =>
+      '/restaurants/restaurant/bookings/$id/no-show';
   static const String merchantRedeemDeal = '/restaurants/deals/redeem';
   static const String merchantRedemptionHistory = '/restaurants/deals/redemption-history';
   static const String merchantAnalytics = '/restaurants/analytics';

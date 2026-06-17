@@ -148,6 +148,11 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
           slivers: [
             _buildHeader(),
             
+            // Manager Reminders Banner
+            SliverToBoxAdapter(
+              child: _buildRemindersBanner(),
+            ),
+            
             if (_restaurants.length > 1) 
               SliverToBoxAdapter(
                 child: Padding(
@@ -600,6 +605,36 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
               ),
             ),
             const SizedBox(width: 12),
+            // Calendar Icon
+            GestureDetector(
+              onTap: () => Get.toNamed(
+                AppRoutes.merchantCalendar,
+                arguments: {'restaurantId': _selectedRestaurantId},
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(9),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                  border: Border.all(
+                    color: Colors.black.withValues(alpha: 0.04),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.calendar_month_rounded,
+                  size: 21,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
             // Scanner Button - Refined Design
             Material(
               color: Colors.transparent,
@@ -728,6 +763,75 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
             _buildOccupancyToggle(),
           ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildRemindersBanner() {
+    return GestureDetector(
+      onTap: () => Get.toNamed(AppRoutes.merchantReminders),
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.md, AppSpacing.xl, 0),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF6366F1).withValues(alpha: 0.25),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.notifications_active_rounded,
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Manager Reminder (1 Hour Before)',
+                    style: AppTypography.bodyLarge.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'View upcoming countdown alerts for bookings.',
+                    style: AppTypography.caption.copyWith(
+                      color: Colors.white.withValues(alpha: 0.85),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: Colors.white,
+              size: 24,
+            ),
+          ],
+        ),
       ),
     );
   }

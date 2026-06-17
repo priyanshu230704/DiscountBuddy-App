@@ -14,7 +14,6 @@ import '../../services/app_config_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../routes/app_routes.dart';
-import '../restaurant_details_page.dart';
 import '../../widgets/city_selector_modal.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/app_gradient_button.dart';

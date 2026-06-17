@@ -46,4 +46,6 @@ class AppRoutes {
   static const String merchantAnalytics = '/merchant-analytics';
   static const String merchantRedemptionHistory = '/merchant-redemption-history';
   static const String qrScanner = '/qr-scanner';
+  static const String merchantCalendar = '/merchant-calendar';
+  static const String merchantReminders = '/merchant-reminders';
 }

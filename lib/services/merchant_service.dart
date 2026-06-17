@@ -573,14 +573,16 @@ class MerchantService {
   Future<List<Map<String, dynamic>>> getMerchantBookings({
     int? restaurantId,
     String? status,
+    String? startDate,
+    String? endDate,
   }) async {
     try {
       await _ensureAuthenticated();
       final queryParams = <String, String>{};
-      if (restaurantId != null) {
-        queryParams['restaurant_id'] = restaurantId.toString();
-      }
+      if (restaurantId != null) queryParams['restaurant_id'] = restaurantId.toString();
       if (status != null) queryParams['status'] = status;
+      if (startDate != null) queryParams['start_date'] = startDate;
+      if (endDate != null) queryParams['end_date'] = endDate;
 
       final response = await _apiService.get(
         ApiEndpoints.merchantBookings,
@@ -589,11 +591,11 @@ class MerchantService {
       );
 
       if (response['results'] != null && response['results'] is List) {
-        return (response['results'] as List).map((e) => e as Map<String, dynamic>).toList();
+        return (response['results'] as List).cast<Map<String, dynamic>>();
       }
       return [];
     } catch (e) {
-      throw Exception('Failed to load bookings: ${e.toString()}');
+      throw Exception('Failed to load merchant bookings: ${e.toString()}');
     }
   }
 
@@ -610,7 +612,60 @@ class MerchantService {
         type: ApiType.merchant,
       );
     } catch (e) {
-      throw Exception('Failed to update booking: ${e.toString()}');
+      throw Exception('Failed to review booking: ${e.toString()}');
+    }
+  }
+
+  Future<Map<String, dynamic>> markBookingArrived(int bookingId, String arrivalTime) async {
+    try {
+      await _ensureAuthenticated();
+      return await _apiService.post(
+        ApiEndpoints.merchantBookingArrive(bookingId),
+        body: {'arrival_time': arrivalTime},
+        type: ApiType.merchant,
+      );
+    } catch (e) {
+      throw Exception('Failed to mark booking arrived: ${e.toString()}');
+    }
+  }
+
+  Future<Map<String, dynamic>> markBookingNoShow(int bookingId, String reason, String notes) async {
+    try {
+      await _ensureAuthenticated();
+      return await _apiService.post(
+        ApiEndpoints.merchantBookingNoShow(bookingId),
+        body: {
+          'no_show_reason': reason,
+          'no_show_notes': notes,
+        },
+        type: ApiType.merchant,
+      );
+    } catch (e) {
+      throw Exception('Failed to mark booking no-show: ${e.toString()}');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getUpcomingReminders() async {
+    try {
+      final now = DateTime.now();
+      final tomorrow = now.add(const Duration(days: 1));
+      
+      final bookings = await getMerchantBookings(
+        status: 'confirmed',
+        startDate: now.toIso8601String().split('T').first,
+        endDate: tomorrow.toIso8601String().split('T').first,
+      );
+      
+      return bookings.where((b) {
+        final dateStr = b['booking_date'];
+        if (dateStr == null) return false;
+        final date = DateTime.tryParse(dateStr);
+        if (date == null) return false;
+        return date.isAfter(now) && date.isBefore(tomorrow);
+      }).toList();
+    } catch (e) {
+      debugPrint('Failed to fetch reminders: $e');
+      return [];
     }
   }
 

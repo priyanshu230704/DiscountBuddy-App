@@ -35,6 +35,8 @@ import '../pages/merchant/merchant_reviews_page.dart';
 import '../pages/merchant/merchant_analytics_page.dart';
 import '../pages/merchant/merchant_redemption_history_page.dart';
 import '../pages/merchant/qr_scanner_page.dart';
+import '../pages/merchant/merchant_calendar_page.dart';
+import '../pages/merchant/merchant_reminders_page.dart';
 
 // User Bookings
 import '../pages/bookings/bookings_page.dart';
@@ -352,6 +354,22 @@ class AppPages {
           initialRestaurantId: args['initialRestaurantId'],
         );
       },
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.merchantCalendar,
+      page: () {
+        final Map<String, dynamic> args = Get.arguments ?? {};
+        final restaurantId = args['restaurantId'];
+        return MerchantCalendarPage(
+          restaurantId: restaurantId is int ? restaurantId : int.tryParse(restaurantId.toString()),
+        );
+      },
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.merchantReminders,
+      page: () => const MerchantRemindersPage(),
       transition: Transition.rightToLeft,
     ),
   ];

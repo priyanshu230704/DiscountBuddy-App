@@ -152,4 +152,5 @@ class NotificationType {
   static const String newReview = 'NEW_REVIEW';
   static const String milestoneEarnings = 'MILESTONE_EARNINGS';
   static const String merchantDealRedeemed = 'MERCHANT_DEAL_REDEEMED';
+  static const String merchantReminder = 'BOOKING_REMINDER';
 }

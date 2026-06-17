@@ -19,7 +19,6 @@ import '../../models/restaurant.dart';
 import '../../routes/app_routes.dart';
 import '../../services/location_service.dart';
 import '../../utils/media_url_utils.dart';
-import '../restaurant_details_page.dart';
 
 /// Bookings/Redemptions Screen - Integrated with deal uses API
 class BookingsPage extends StatefulWidget {

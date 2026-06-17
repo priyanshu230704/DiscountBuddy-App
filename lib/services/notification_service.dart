@@ -364,6 +364,10 @@ class NotificationService {
         Get.toNamed(AppRoutes.merchantRedemptionHistory);
         break;
 
+      case NotificationType.merchantReminder:
+        Get.toNamed(AppRoutes.merchantBookings);
+        break;
+
       // Customer specific notifications
       case NotificationType.favDeal:
         final id = data?['restaurant_id'] ?? '';

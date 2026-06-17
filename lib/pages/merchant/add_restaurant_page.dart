@@ -697,6 +697,78 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
     }
   }
 
+  Future<void> _selectTimeRange(String day) async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    FocusScope.of(context).requestFocus(FocusNode());
+    final TimeOfDay? pickedStart = await showTimePicker(
+      context: context,
+      initialTime: const TimeOfDay(hour: 9, minute: 0),
+      helpText: 'Opening Time for ${day[0].toUpperCase()}${day.substring(1)}',
+    );
+    if (pickedStart == null) return;
+    
+    if (!mounted) return;
+    
+    final TimeOfDay? pickedEnd = await showTimePicker(
+      context: context,
+      initialTime: const TimeOfDay(hour: 22, minute: 0),
+      helpText: 'Closing Time for ${day[0].toUpperCase()}${day.substring(1)}',
+    );
+    if (pickedEnd == null) return;
+    
+    setState(() {
+      final startStr = '${pickedStart.hour.toString().padLeft(2, '0')}:${pickedStart.minute.toString().padLeft(2, '0')}';
+      final endStr = '${pickedEnd.hour.toString().padLeft(2, '0')}:${pickedEnd.minute.toString().padLeft(2, '0')}';
+      final timeString = '$startStr-$endStr';
+      _openingHours[day] = timeString;
+
+      // Autofill other days if monday is selected and others are empty
+      if (day == 'monday') {
+        final allOtherEmpty = _openingHours.entries
+            .where((e) => e.key != 'monday')
+            .every((e) => e.value.isEmpty);
+        if (allOtherEmpty) {
+          _openingHours.forEach((key, value) {
+            if (key != 'monday' && value.isEmpty) {
+              _openingHours[key] = timeString;
+            }
+          });
+        }
+      }
+    });
+  }
+
+  Future<void> _selectTime(String day, bool isStart) async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    FocusScope.of(context).requestFocus(FocusNode());
+    final currentVal = _openingHours[day] ?? '';
+    if (currentVal.isEmpty) return;
+    
+    final parts = currentVal.split('-');
+    if (parts.length != 2) return;
+    
+    final timeString = isStart ? parts[0] : parts[1];
+    final timeParts = timeString.split(':');
+    final initialTime = TimeOfDay(hour: int.parse(timeParts[0]), minute: int.parse(timeParts[1]));
+    
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+      helpText: isStart ? 'Opening Time for ${day[0].toUpperCase()}${day.substring(1)}' : 'Closing Time for ${day[0].toUpperCase()}${day.substring(1)}',
+    );
+    
+    if (picked == null) return;
+    
+    setState(() {
+      final pickedStr = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+      if (isStart) {
+        _openingHours[day] = '$pickedStr-${parts[1]}';
+      } else {
+        _openingHours[day] = '${parts[0]}-$pickedStr';
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
@@ -1158,101 +1230,91 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                       padding: const EdgeInsets.only(top: 8, bottom: 8, left: 24, right: 24),
                       children: _openingHours.entries.map((entry) {
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: AppSpacing.md, top: AppSpacing.sm),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
                           child: Row(
                             children: [
                               SizedBox(
-                                width: 85,
+                                width: 90,
                                 child: Text(
                                   entry.key[0].toUpperCase() + entry.key.substring(1),
                                   style: AppTypography.bodySmall.copyWith(
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: FontWeight.w600,
                                     color: AppColors.textPrimary,
                                   ),
                                 ),
-                               ),
-                              Expanded(
-                                child: InkWell(
-                                  onTap: () async {
-                                    final currentVal = entry.value;
-                                    TimeOfDay? start;
-                                    TimeOfDay? end;
-                                    
-                                    if (currentVal.contains('-')) {
-                                      final parts = currentVal.split('-');
-                                      final startParts = parts[0].split(':');
-                                      final endParts = parts[1].split(':');
-                                      if (startParts.length == 2) {
-                                        start = TimeOfDay(hour: int.parse(startParts[0]), minute: int.parse(startParts[1]));
-                                      }
-                                      if (endParts.length == 2) {
-                                        end = TimeOfDay(hour: int.parse(endParts[0]), minute: int.parse(endParts[1]));
-                                      }
-                                    }
-
-                                    final TimeOfDay? pickedStart = await showTimePicker(
-                                      context: context,
-                                      initialTime: start ?? const TimeOfDay(hour: 9, minute: 0),
-                                      helpText: 'Opening Time for ${entry.key}',
-                                    );
-
-                                    if (pickedStart != null) {
-                                      if (context.mounted) {
-                                        final TimeOfDay? pickedEnd = await showTimePicker(
-                                          context: context,
-                                          initialTime: end ?? const TimeOfDay(hour: 22, minute: 0),
-                                          helpText: 'Closing Time for ${entry.key}',
-                                        );
-                                        
-                                        if (pickedEnd != null) {
-                                          setState(() {
-                                            final startStr = '${pickedStart.hour.toString().padLeft(2, '0')}:${pickedStart.minute.toString().padLeft(2, '0')}';
-                                            final endStr = '${pickedEnd.hour.toString().padLeft(2, '0')}:${pickedEnd.minute.toString().padLeft(2, '0')}';
-                                            _openingHours[entry.key] = '$startStr-$endStr';
-                                          });
-                                        }
-                                      }
-                                    }
-                                  },
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.background,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: AppColors.cardBorder),
+                              ),
+                              if (entry.value.isEmpty)
+                                Expanded(
+                                  child: InkWell(
+                                    onTap: () => _selectTimeRange(entry.key),
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 10),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.background,
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(color: AppColors.cardBorder),
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: Text('Closed', style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary)),
                                     ),
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.access_time_rounded,
-                                          size: 16,
-                                          color: entry.value.isEmpty ? AppColors.textDisabled : AppColors.merchantIndigo,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: Text(
-                                            entry.value.isEmpty ? 'Closed' : entry.value,
-                                            style: AppTypography.bodySmall.copyWith(
-                                              color: entry.value.isEmpty ? AppColors.textSecondary : AppColors.textPrimary,
-                                              fontSize: 13,
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                        if (entry.value.isNotEmpty)
-                                          GestureDetector(
-                                            onTap: () {
-                                              setState(() {
-                                                _openingHours[entry.key] = '';
-                                              });
-                                            },
-                                            child: const Icon(Icons.close, size: 16, color: AppColors.error),
-                                          ),
-                                      ],
+                                  ),
+                                )
+                              else ...[
+                                Expanded(
+                                  child: InkWell(
+                                    onTap: () => _selectTime(entry.key, true),
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 10),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.merchantIndigo.withValues(alpha: 0.05),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(color: AppColors.merchantIndigo.withValues(alpha: 0.3)),
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        entry.value.split('-')[0],
+                                        style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600, color: AppColors.merchantIndigo),
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 12),
+                                  child: Text('-', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
+                                ),
+                                Expanded(
+                                  child: InkWell(
+                                    onTap: () => _selectTime(entry.key, false),
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 10),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.merchantIndigo.withValues(alpha: 0.05),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(color: AppColors.merchantIndigo.withValues(alpha: 0.3)),
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        entry.value.split('-').length > 1 ? entry.value.split('-')[1] : '',
+                                        style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600, color: AppColors.merchantIndigo),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  icon: const Icon(Icons.close_rounded, size: 20, color: AppColors.textSecondary),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                                  onPressed: () {
+                                    setState(() {
+                                      _openingHours[entry.key] = '';
+                                    });
+                                  },
+                                ),
+                              ],
                             ],
                           ),
                         );

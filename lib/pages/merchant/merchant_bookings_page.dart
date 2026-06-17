@@ -7,6 +7,10 @@ import '../../services/merchant_service.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../components/app_app_bar.dart';
 import '../../widgets/skeleton_loader.dart';
+import 'arrived_dialog.dart';
+import 'noshow_dialog.dart';
+import 'package:get/get.dart';
+import '../../routes/app_routes.dart';
 
 /// Title case for booking status in the details dialog (matches value weight, not all-caps).
 String _formatBookingStatusForDialog(dynamic raw) {
@@ -31,6 +35,14 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
   bool _isLoading = true;
   bool _isFetching = false;
   bool _isLoadingRestaurants = true;
+  String _selectedStatus = 'pending';
+
+  List<Map<String, dynamic>> get _filteredBookings {
+    return _bookings.where((b) {
+      final s = (b['status'] ?? 'pending').toString().toLowerCase();
+      return s == _selectedStatus;
+    }).toList();
+  }
 
   @override
   void initState() {
@@ -130,29 +142,211 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
     }
   }
 
+  Future<void> _markBookingArrived(int id, String arrivalTime) async {
+    try {
+      await _merchantService.markBookingArrived(id, arrivalTime);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Guest marked as arrived successfully'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        _loadBookings();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to mark arrived: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _markBookingNoShow(int id, String reason, String notes) async {
+    try {
+      await _merchantService.markBookingNoShow(id, reason, notes);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Guest marked as No-Show successfully'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        _loadBookings();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to mark no-show: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showArrivedDialog(int bookingId) {
+    final booking = _bookings.firstWhere((b) => (b['booking_id'] ?? b['id']) == bookingId);
+    showDialog(
+      context: context,
+      builder: (context) => ArrivedDialog(
+        booking: booking,
+        onConfirm: (arrivalTime) {
+          _markBookingArrived(bookingId, arrivalTime);
+        },
+      ),
+    );
+  }
+
+  void _showNoShowDialog(int bookingId) {
+    final booking = _bookings.firstWhere((b) => (b['booking_id'] ?? b['id']) == bookingId);
+    showDialog(
+      context: context,
+      builder: (context) => NoShowDialog(
+        booking: booking,
+        onConfirm: (reason, notes) {
+          _markBookingNoShow(bookingId, reason, notes);
+        },
+      ),
+    );
+  }
+
+  Widget _buildStatusTabs() {
+    final pendingCount = _bookings.where((b) => (b['status'] ?? 'pending').toString().toLowerCase() == 'pending').length;
+    final confirmedCount = _bookings.where((b) => (b['status'] ?? '').toString().toLowerCase() == 'confirmed').length;
+    final arrivedCount = _bookings.where((b) => (b['status'] ?? '').toString().toLowerCase() == 'arrived').length;
+    final noShowCount = _bookings.where((b) => (b['status'] ?? '').toString().toLowerCase() == 'no_show').length;
+
+    return Container(
+      height: 48,
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+        children: [
+          _buildStatusTab('pending', 'Pending', pendingCount),
+          const SizedBox(width: 10),
+          _buildStatusTab('confirmed', 'Confirmed', confirmedCount),
+          const SizedBox(width: 10),
+          _buildStatusTab('arrived', 'Arrived', arrivedCount),
+          const SizedBox(width: 10),
+          _buildStatusTab('no_show', 'No-Show', noShowCount),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusTab(String status, String label, int count) {
+    final isSelected = _selectedStatus == status;
+    Color activeBg;
+    Color activeText;
+    
+    switch (status) {
+      case 'confirmed':
+        activeBg = AppColors.merchantBlue.withValues(alpha: 0.15);
+        activeText = AppColors.merchantBlue;
+        break;
+      case 'arrived':
+        activeBg = AppColors.merchantTeal.withValues(alpha: 0.15);
+        activeText = AppColors.merchantTeal;
+        break;
+      case 'no_show':
+        activeBg = AppColors.error.withValues(alpha: 0.15);
+        activeText = AppColors.error;
+        break;
+      default:
+        activeBg = AppColors.primaryPurple.withValues(alpha: 0.15);
+        activeText = AppColors.primaryPurple;
+    }
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedStatus = status;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? activeBg : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? activeText.withValues(alpha: 0.3) : AppColors.cardBorder,
+          ),
+        ),
+        child: Row(
+          children: [
+            Text(
+              label,
+              style: AppTypography.bodySmall.copyWith(
+                color: isSelected ? activeText : AppColors.textSecondary,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: isSelected ? activeText : AppColors.background,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                count.toString(),
+                style: TextStyle(
+                  color: isSelected ? Colors.white : AppColors.textSecondary,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final filtered = _filteredBookings;
     return AppScaffold(
       appBar: AppAppBar(
         titleText: 'Bookings',
         backgroundColor: Colors.transparent,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.calendar_month_rounded, color: AppColors.merchantBlue),
+            onPressed: () => Get.toNamed(
+              AppRoutes.merchantCalendar,
+              arguments: {'restaurantId': _selectedRestaurantId},
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildRestaurantFilter(),
-          if (!_isLoading && _bookings.isNotEmpty)
+          const SizedBox(height: 6),
+          if (!_isLoading) _buildStatusTabs(),
+          if (!_isLoading && filtered.isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.sm, AppSpacing.xl, AppSpacing.sm),
               child: Text(
-                '${_bookings.length} Booking${_bookings.length == 1 ? '' : 's'}',
+                '${filtered.length} Booking${filtered.length == 1 ? '' : 's'}',
                 style: AppTypography.title.copyWith(fontSize: 18),
               ),
             ),
           Expanded(
             child: _isLoading
                 ? _buildLoadingState()
-                : _bookings.isEmpty
+                : filtered.isEmpty
                 ? _buildEmptyState()
                 : RefreshIndicator(
                     onRefresh: _loadBookings,
@@ -165,13 +359,15 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
                         AppSpacing.xxxl,
                       ),
                       physics: const AlwaysScrollableScrollPhysics(),
-                      itemCount: _bookings.length,
+                      itemCount: filtered.length,
                       separatorBuilder: (context, index) =>
                           const SizedBox(height: AppSpacing.lg),
                       itemBuilder: (context, index) {
                         return _BookingCard(
-                          booking: _bookings[index],
+                          booking: filtered[index],
                           onReview: _reviewBooking,
+                          onArrived: _showArrivedDialog,
+                          onNoShow: _showNoShowDialog,
                         );
                       },
                     ),
@@ -259,8 +455,15 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
 class _BookingCard extends StatelessWidget {
   final Map<String, dynamic> booking;
   final Function(int, String) onReview;
+  final Function(int) onArrived;
+  final Function(int) onNoShow;
 
-  const _BookingCard({required this.booking, required this.onReview});
+  const _BookingCard({
+    required this.booking,
+    required this.onReview,
+    required this.onArrived,
+    required this.onNoShow,
+  });
 
   void _showBookingDetails(BuildContext context) {
     final restaurant = booking['restaurant_name'] ?? 'Restaurant';
@@ -317,6 +520,18 @@ class _BookingCard extends StatelessWidget {
                 label: 'Status',
                 value: _formatBookingStatusForDialog(status),
               ),
+              if (status.toLowerCase() == 'arrived' && booking['arrived_time'] != null) ...[
+                const SizedBox(height: 12),
+                _DetailRow(label: 'Arrival Time', value: booking['arrived_time'].toString()),
+              ],
+              if (status.toLowerCase() == 'no_show') ...[
+                const SizedBox(height: 12),
+                _DetailRow(label: 'No-Show Reason', value: booking['no_show_reason'] ?? 'Not specified'),
+                if (booking['no_show_notes']?.toString().isNotEmpty == true) ...[
+                  const SizedBox(height: 12),
+                  _DetailRow(label: 'Notes', value: booking['no_show_notes'].toString()),
+                ],
+              ],
               const SizedBox(height: 12),
               _DetailRow(
                 label: 'Special requests',
@@ -351,6 +566,7 @@ class _BookingCard extends StatelessWidget {
     }
 
     final isPending = status.toLowerCase() == 'pending';
+    final isConfirmed = status.toLowerCase() == 'confirmed';
     final initial = customer.toString().substring(0, 1).toUpperCase();
 
     return GestureDetector(
@@ -528,6 +744,101 @@ class _BookingCard extends StatelessWidget {
               ),
             ),
           ],
+          if (isConfirmed) ...[
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.background,
+                border: Border(
+                  top: BorderSide(
+                    color: AppColors.textDisabled.withValues(alpha: 0.15),
+                  ),
+                ),
+                borderRadius: const BorderRadius.vertical(
+                  bottom: Radius.circular(24),
+                ),
+              ),
+              child: IntrinsicHeight(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            final id = (booking['booking_id'] ?? booking['id']);
+                            if (id != null) {
+                              onNoShow(id as int);
+                            }
+                          },
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(24),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.person_off_rounded, size: 18, color: AppColors.error),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Mark No-Show',
+                                  style: AppTypography.body.copyWith(
+                                    color: AppColors.error,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: 1,
+                      color: AppColors.textDisabled.withValues(alpha: 0.15),
+                    ),
+                    Expanded(
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            final id = (booking['booking_id'] ?? booking['id']);
+                            if (id != null) {
+                              onArrived(id as int);
+                            }
+                          },
+                          borderRadius: const BorderRadius.only(
+                            bottomRight: Radius.circular(24),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.check_rounded, size: 18, color: AppColors.success),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Mark Arrived',
+                                  style: AppTypography.body.copyWith(
+                                    color: AppColors.success,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
       ),
       ),
@@ -588,10 +899,22 @@ class _StatusBadge extends StatelessWidget {
 
     switch (status.toLowerCase()) {
       case 'confirmed':
-        color = AppColors.success;
-        bg = AppColors.success.withValues(alpha: 0.1);
+        color = AppColors.merchantBlue;
+        bg = AppColors.merchantBlue.withValues(alpha: 0.1);
         icon = Icons.check_circle_rounded;
         label = 'Confirmed';
+        break;
+      case 'arrived':
+        color = AppColors.merchantTeal;
+        bg = AppColors.merchantTeal.withValues(alpha: 0.1);
+        icon = Icons.check_circle_rounded;
+        label = 'Arrived';
+        break;
+      case 'no_show':
+        color = AppColors.error;
+        bg = AppColors.error.withValues(alpha: 0.1);
+        icon = Icons.cancel_rounded;
+        label = 'No-Show';
         break;
       case 'cancelled':
         color = AppColors.error;

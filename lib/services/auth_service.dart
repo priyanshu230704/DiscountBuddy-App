@@ -422,11 +422,19 @@ class AuthService {
     );
   }
 
+  bool _isLoggingOut = false;
+
   /// Logout user (refresh-token revoke + local wipe). Used when FCM cleanup
   /// is not needed (e.g. token refresh failure).
   Future<void> logout() async {
-    await postLogoutToServer();
-    await wipeLocalSessionAfterLogout();
+    if (_isLoggingOut) return;
+    _isLoggingOut = true;
+    try {
+      await postLogoutToServer();
+      await wipeLocalSessionAfterLogout();
+    } finally {
+      _isLoggingOut = false;
+    }
   }
 
 

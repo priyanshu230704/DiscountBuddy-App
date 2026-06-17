@@ -53,7 +53,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _onAuthStateChanged() {
-    if (mounted) {
+    if (mounted && _authProvider.isAuthenticated) {
       setState(() {});
       _loadWallet();
       _loadStats();
@@ -258,9 +258,7 @@ class _ProfilePageState extends State<ProfilePage> {
             onPressed: () async {
               Navigator.pop(context);
               await _authProvider.logout();
-              if (context.mounted) {
-                Get.offAllNamed(AppRoutes.login);
-              }
+              // MainNavigation handles routing to login screen when auth state changes
             },
             child: Text(
               'Logout',
@@ -443,8 +441,8 @@ class _ProfilePageState extends State<ProfilePage> {
     try {
       final success = await _authProvider.deleteAccount(otp: otp);
       if (success && mounted) {
-        Navigator.pop(context);
-        Get.offAllNamed(AppRoutes.login);
+        Navigator.pop(context); // Close loading dialog
+        // MainNavigation handles routing to login screen when auth state changes
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Account deleted successfully')),
         );

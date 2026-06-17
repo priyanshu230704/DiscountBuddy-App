@@ -95,7 +95,7 @@ class PrivacyPolicyPage extends StatelessWidget {
             
             _buildSection(
               '15. Contact Information',
-              'MarkitUp Group Limited\n24h, Riverside Court\nBeaufort Park Way\nChepstow\nNP16 5UW\nUnited Kingdom\n\nEmail: discountbuddy@markitupgroup.com',
+              'MarkitUp Group Limited\n24h, Riverside Court\nBeaufort Park Way\nChepstow NP16 5UH\nUnited Kingdom\n\nEmail: discountbuddy@markitupgroup.com',
             ),
             
             const SizedBox(height: AppSpacing.xxxl),

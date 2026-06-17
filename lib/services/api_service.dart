@@ -173,7 +173,7 @@ class ApiService {
       final streamedResponse =
           await _client.send(request).timeout(Environment.apiTimeout);
       return http.Response.fromStream(streamedResponse);
-    });
+    }, checkAuth: withAuth);
   }
 
   /// POST request
@@ -197,7 +197,7 @@ class ApiService {
       final streamedResponse =
           await _client.send(request).timeout(Environment.apiTimeout);
       return http.Response.fromStream(streamedResponse);
-    });
+    }, checkAuth: withAuth);
   }
 
   /// PUT request
@@ -222,7 +222,7 @@ class ApiService {
       final streamedResponse =
           await _client.send(request).timeout(Environment.apiTimeout);
       return http.Response.fromStream(streamedResponse);
-    });
+    }, checkAuth: withAuth);
   }
 
   /// PATCH request
@@ -247,7 +247,7 @@ class ApiService {
       final streamedResponse =
           await _client.send(request).timeout(Environment.apiTimeout);
       return http.Response.fromStream(streamedResponse);
-    });
+    }, checkAuth: withAuth);
   }
 
   /// POST request with multipart/form-data (for file uploads)
@@ -282,7 +282,7 @@ class ApiService {
       final streamedResponse =
           await _client.send(request).timeout(Environment.apiTimeout);
       return http.Response.fromStream(streamedResponse);
-    });
+    }, checkAuth: withAuth);
   }
 
   /// PATCH request with multipart/form-data (for file uploads)
@@ -317,7 +317,7 @@ class ApiService {
       final streamedResponse =
           await _client.send(request).timeout(Environment.apiTimeout);
       return http.Response.fromStream(streamedResponse);
-    });
+    }, checkAuth: withAuth);
   }
 
   /// DELETE request
@@ -342,18 +342,20 @@ class ApiService {
       final streamedResponse =
           await _client.send(request).timeout(Environment.apiTimeout);
       return http.Response.fromStream(streamedResponse);
-    });
+    }, checkAuth: withAuth);
   }
 
   /// Generic request sender with error handling and token refresh logic
   Future<Map<String, dynamic>> _sendRequest(
-    Future<http.Response> Function() requestSender,
-  ) async {
+    Future<http.Response> Function() requestSender, {
+    bool checkAuth = true,
+  }) async {
     try {
       final response = await requestSender();
 
       // Check for 401 Unauthorized errors to trigger token refresh
-      if (response.statusCode == 401 &&
+      if (checkAuth &&
+          response.statusCode == 401 &&
           onUnauthorized != null &&
           _authToken != null) {
         if (Environment.enableLogging) {

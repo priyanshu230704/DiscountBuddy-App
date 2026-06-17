@@ -227,6 +227,9 @@ class MainNavigationState extends State<MainNavigation> {
                     setState(() {
                       _currentIndex = index;
                     });
+                    if (index == 3) {
+                      ProfilePage.onTabActivated.add(null);
+                    }
                   },
                   items: isMerchant
                       ? const [

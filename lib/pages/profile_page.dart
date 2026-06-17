@@ -15,6 +15,8 @@ import '../config/environment.dart';
 
 /// Profile Screen - NeoTaste style
 class ProfilePage extends StatefulWidget {
+  static final StreamController<void> onTabActivated = StreamController<void>.broadcast();
+
   const ProfilePage({super.key});
 
   @override
@@ -26,6 +28,7 @@ class _ProfilePageState extends State<ProfilePage> {
   final RestaurantService _restaurantService = RestaurantService();
   final AuthProvider _authProvider = AuthProvider();
   ProfileStats? _stats;
+  StreamSubscription<void>? _tabSub;
 
   @override
   void initState() {
@@ -33,10 +36,18 @@ class _ProfilePageState extends State<ProfilePage> {
     _authProvider.addListener(_onAuthStateChanged);
     _loadWallet();
     _loadStats();
+    
+    _tabSub = ProfilePage.onTabActivated.stream.listen((_) {
+      if (mounted) {
+        _loadWallet();
+        _loadStats();
+      }
+    });
   }
 
   @override
   void dispose() {
+    _tabSub?.cancel();
     _authProvider.removeListener(_onAuthStateChanged);
     super.dispose();
   }
@@ -164,6 +175,7 @@ class _ProfilePageState extends State<ProfilePage> {
       child: AppScaffold(
         backgroundColor: AppColors.background,
         body: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

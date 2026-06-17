@@ -14,11 +14,13 @@ class AppVersionChecker {
   static bool _isShowingUpdatePage = false;
   static bool _optionalUpdateShownThisSession = false;
   static AppVersionInfo? _pendingOptionalUpdate;
+  static bool _isChecking = false;
 
   /// Startup check from splash. Returns `true` if force update blocks navigation.
   static Future<bool> checkAtStartup() async {
-    if (_isShowingUpdatePage) return true;
-
+    if (_isShowingUpdatePage || _isChecking) return true;
+    
+    _isChecking = true;
     try {
       final versionInfo = await AppConfigService().checkVersion();
       if (versionInfo == null || !versionInfo.isUpdateAvailable) {
@@ -37,6 +39,8 @@ class AppVersionChecker {
       debugPrint('APP_VERSION_CHECK: Startup error: $e');
       _isShowingUpdatePage = false;
       return false;
+    } finally {
+      _isChecking = false;
     }
   }
 
@@ -64,8 +68,9 @@ class AppVersionChecker {
 
   /// Re-run on app resume — force/critical only (not optional popup again).
   static Future<void> checkOnResume({String continueRoute = AppRoutes.home}) async {
-    if (_isShowingUpdatePage) return;
+    if (_isShowingUpdatePage || _isChecking) return;
 
+    _isChecking = true;
     try {
       final versionInfo = await AppConfigService().checkVersion();
       if (versionInfo == null || !versionInfo.isUpdateAvailable) return;
@@ -75,6 +80,8 @@ class AppVersionChecker {
     } catch (e) {
       debugPrint('APP_VERSION_CHECK: Resume error: $e');
       _isShowingUpdatePage = false;
+    } finally {
+      _isChecking = false;
     }
   }
 

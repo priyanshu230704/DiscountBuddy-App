@@ -7,7 +7,6 @@ import 'package:discount_buddy/design/app_design.dart';
 import '../routes/app_routes.dart';
 import '../widgets/app_scaffold.dart';
 import '../providers/auth_provider.dart';
-import '../services/wallet_service.dart';
 import '../services/restaurant_service.dart';
 import '../models/user_interactions.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -24,7 +23,6 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  final WalletService _walletService = WalletService();
   final RestaurantService _restaurantService = RestaurantService();
   final AuthProvider _authProvider = AuthProvider();
   ProfileStats? _stats;
@@ -34,12 +32,10 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
     _authProvider.addListener(_onAuthStateChanged);
-    _loadWallet();
     _loadStats();
     
     _tabSub = ProfilePage.onTabActivated.stream.listen((_) {
       if (mounted) {
-        _loadWallet();
         _loadStats();
       }
     });
@@ -55,23 +51,7 @@ class _ProfilePageState extends State<ProfilePage> {
   void _onAuthStateChanged() {
     if (mounted && _authProvider.isAuthenticated) {
       setState(() {});
-      _loadWallet();
       _loadStats();
-    }
-  }
-
-  Future<void> _loadWallet() async {
-    if (!_authProvider.isAuthenticated || _authProvider.isMerchant) {
-      return;
-    }
-
-    try {
-      await _walletService.getWallet();
-      if (mounted) {
-        setState(() {});
-      }
-    } catch (e) {
-      // Silently fail
     }
   }
 

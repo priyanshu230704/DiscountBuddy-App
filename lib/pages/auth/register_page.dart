@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -40,6 +41,23 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
+  // Username Fields
+  bool _useEmailAsUsername = true;
+  final _usernameController = TextEditingController();
+  final _usernameFocusNode = FocusNode();
+  bool _isCheckingUsername = false;
+  bool? _usernameAvailable;
+  String _usernameMessage = '';
+  Timer? _debounce;
+
+  // Resend OTP Fields
+  bool _canResendOTP = true;
+  int _resendCountdown = 0;
+  bool _isResendingOTP = false;
+  String _resendMessage = '';
+  String _resendError = '';
+  Timer? _countdownTimer;
+
   // State
   int _currentStep = 0; // 0: Request OTP, 1: Verify OTP, 2: Create Password
   bool _isLoading = false;
@@ -55,6 +73,7 @@ class _RegisterPageState extends State<RegisterPage> {
     _otpController.addListener(_validateForm);
     _passwordController.addListener(_validateForm);
     _confirmPasswordController.addListener(_validateForm);
+    _usernameController.addListener(_onUsernameChanged);
   }
 
   @override
@@ -68,7 +87,119 @@ class _RegisterPageState extends State<RegisterPage> {
     _otpFocusNode.dispose();
     _passwordFocusNode.dispose();
     _confirmPasswordFocusNode.dispose();
+    _usernameController.dispose();
+    _usernameFocusNode.dispose();
+    _debounce?.cancel();
+    _countdownTimer?.cancel();
     super.dispose();
+  }
+
+  void _onUsernameChanged() {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    
+    final username = _usernameController.text;
+    
+    if (username.length < 3) {
+      setState(() {
+        if (username.isEmpty) {
+          _usernameMessage = '';
+          _usernameAvailable = null;
+        } else {
+          _usernameMessage = 'Username must be at least 3 characters';
+          _usernameAvailable = false;
+        }
+      });
+      _validateForm();
+      return;
+    }
+
+    setState(() {
+      _isCheckingUsername = true;
+      _usernameMessage = 'Checking availability...';
+      _usernameAvailable = null;
+    });
+    _validateForm();
+
+    _debounce = Timer(const Duration(milliseconds: 500), () async {
+      final result = await _authProvider.checkUsernameAvailability(username);
+      if (mounted) {
+        setState(() {
+          _isCheckingUsername = false;
+          _usernameAvailable = result['available'] == true;
+          _usernameMessage = result['message'] ?? result['error'] ?? '';
+        });
+        _validateForm();
+      }
+    });
+  }
+
+  void _startCountdown(int seconds) {
+    setState(() {
+      _resendCountdown = seconds;
+      _canResendOTP = false;
+    });
+    _countdownTimer?.cancel();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_resendCountdown > 0) {
+        setState(() {
+          _resendCountdown--;
+        });
+      } else {
+        setState(() {
+          _canResendOTP = true;
+        });
+        timer.cancel();
+      }
+    });
+  }
+
+  String _formatCountdown(int seconds) {
+    final minutes = seconds ~/ 60;
+    final secs = seconds % 60;
+    return '$minutes:${secs.toString().padLeft(2, '0')}';
+  }
+
+  Future<void> _handleResendOTP() async {
+    setState(() {
+      _isResendingOTP = true;
+      _resendError = '';
+      _resendMessage = '';
+    });
+
+    try {
+      final result = await _authProvider.resendOtp(email: _emailController.text.trim());
+      if (!mounted) return;
+
+      if (result['success'] == true) {
+        setState(() {
+          _resendMessage = '✓ New OTP sent to your email!';
+        });
+        _startCountdown(600); // 10 minutes
+      } else {
+        if (result['remaining_minutes'] != null) {
+          final remainingMins = result['remaining_minutes'] as int;
+          _startCountdown((remainingMins * 60) + 59); // Add 59 seconds for visual clarity
+        }
+        setState(() {
+          _resendError = result['detail'] ?? 'Failed to resend OTP';
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _resendError = 'Network error. Please try again.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isResendingOTP = false;
+        });
+      }
+    }
   }
 
   void _validateForm() {
@@ -93,11 +224,15 @@ class _RegisterPageState extends State<RegisterPage> {
       final hasDigits = password.contains(RegExp(r'[0-9]'));
       final hasMinLength = password.length >= 8;
 
-      isValid = hasMinLength &&
+      final isPasswordValid = hasMinLength &&
           hasUppercase &&
           hasLowercase &&
           hasDigits &&
           confirmPassword == password;
+          
+      final isUsernameValid = _useEmailAsUsername || (_usernameAvailable == true && _usernameController.text.length >= 3);
+
+      isValid = isPasswordValid && isUsernameValid;
     }
 
     if (isValid != _isFormValid) {
@@ -222,11 +357,27 @@ class _RegisterPageState extends State<RegisterPage> {
         }
       } else {
         // Verify & Complete
-        await _authProvider.registerComplete(
+        final success = await _authProvider.registerComplete(
           email: _emailController.text.trim(),
           otp: _otpController.text.trim(),
           password: _passwordController.text,
+          username: _useEmailAsUsername ? null : _usernameController.text.trim(),
         );
+
+        if (!success && mounted) {
+          final errorMsg = _authProvider.errorMessage ?? '';
+          if (errorMsg.toLowerCase().contains('user with that username already exists')) {
+            setState(() {
+              _useEmailAsUsername = false;
+              _usernameMessage = errorMsg;
+              _usernameAvailable = false;
+            });
+            _authProvider.clearError(); // Prevent duplicate generic snackbar
+            Future.delayed(const Duration(milliseconds: 100), () {
+              if (mounted) _usernameFocusNode.requestFocus();
+            });
+          }
+        }
       }
     }
   }
@@ -646,6 +797,44 @@ class _RegisterPageState extends State<RegisterPage> {
                                         return null;
                                       },
                                     ),
+                                    const SizedBox(height: 16),
+                                    Column(
+                                      children: [
+                                        TextButton(
+                                          onPressed: (!_canResendOTP || _isResendingOTP) ? null : _handleResendOTP,
+                                          style: TextButton.styleFrom(
+                                            foregroundColor: AppColors.primaryPurple,
+                                            disabledForegroundColor: AppColors.textDisabled,
+                                          ),
+                                          child: Text(
+                                            _isResendingOTP 
+                                                ? 'Sending...' 
+                                                : _canResendOTP 
+                                                    ? 'Resend OTP' 
+                                                    : 'Resend in ${_formatCountdown(_resendCountdown)}',
+                                            style: AppTypography.bodySmall.copyWith(
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
+                                        if (_resendMessage.isNotEmpty)
+                                          Text(
+                                            _resendMessage,
+                                            style: AppTypography.bodySmall.copyWith(
+                                              color: AppColors.success,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        if (_resendError.isNotEmpty)
+                                          Text(
+                                            _resendError,
+                                            style: AppTypography.bodySmall.copyWith(
+                                              color: AppColors.error,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
                                   ] else if (_currentStep == 2) ...[
                                     AuthTextField(
                                       controller: _passwordController,
@@ -700,6 +889,91 @@ class _RegisterPageState extends State<RegisterPage> {
                                         return null;
                                       },
                                     ),
+                                    const SizedBox(height: 18),
+                                    // Username Selection
+                                    Row(
+                                      children: [
+                                        SizedBox(
+                                          width: 24,
+                                          height: 24,
+                                          child: Checkbox(
+                                            value: _useEmailAsUsername,
+                                            onChanged: (value) {
+                                              setState(() {
+                                                _useEmailAsUsername = value ?? true;
+                                                if (_useEmailAsUsername) {
+                                                  _usernameController.clear();
+                                                  _usernameMessage = '';
+                                                  _usernameAvailable = null;
+                                                }
+                                                _validateForm();
+                                              });
+                                            },
+                                            activeColor: AppColors.primaryPurple,
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                            side: BorderSide(color: AppColors.textDisabled, width: 1.5),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: Text(
+                                            'Use email prefix as username',
+                                            style: AppTypography.bodySmall.copyWith(
+                                              color: AppColors.textPrimary,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    if (!_useEmailAsUsername) ...[
+                                      const SizedBox(height: 14),
+                                      AuthTextField(
+                                        controller: _usernameController,
+                                        placeholder: 'Choose a custom username',
+                                        focusNode: _usernameFocusNode,
+                                        onChanged: (value) {
+                                          _sanitizeField(
+                                            _usernameController,
+                                            RegExp(r'[a-zA-Z0-9_-]'),
+                                            maxLength: 30,
+                                          );
+                                        },
+                                      ),
+                                      if (_usernameMessage.isNotEmpty || _isCheckingUsername)
+                                        Padding(
+                                          padding: const EdgeInsets.only(top: 8, left: 4),
+                                          child: Row(
+                                            children: [
+                                              if (_isCheckingUsername) ...[
+                                                const SizedBox(
+                                                  width: 12,
+                                                  height: 12,
+                                                  child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryPurple),
+                                                ),
+                                                const SizedBox(width: 8),
+                                              ] else if (_usernameAvailable == true) ...[
+                                                const Icon(Icons.check_circle, color: AppColors.success, size: 14),
+                                                const SizedBox(width: 8),
+                                              ] else if (_usernameAvailable == false) ...[
+                                                const Icon(Icons.error, color: AppColors.error, size: 14),
+                                                const SizedBox(width: 8),
+                                              ],
+                                              Expanded(
+                                                child: Text(
+                                                  _usernameMessage,
+                                                  style: AppTypography.bodySmall.copyWith(
+                                                    fontSize: 12,
+                                                    color: _isCheckingUsername
+                                                        ? AppColors.textSecondary
+                                                        : (_usernameAvailable == true ? AppColors.success : AppColors.error),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                    ],
                                   ],
                                   const SizedBox(height: 24),
                                   Opacity(

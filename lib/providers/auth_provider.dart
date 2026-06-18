@@ -177,11 +177,19 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  /// Stage 1.5: Resend OTP
+  Future<Map<String, dynamic>> resendOtp({
+    required String email,
+  }) async {
+    return await _authService.resendOtp(email: email);
+  }
+
   /// Stage 3: Complete registration and create account (with password)
   Future<bool> registerComplete({
     required String email,
     required String otp,
     required String password,
+    String? username,
   }) async {
     _isLoading.value = true;
     _errorMessage.value = null;
@@ -192,6 +200,7 @@ class AuthProvider extends ChangeNotifier {
         email: email,
         otp: otp,
         password: password,
+        username: username,
       );
 
       // After successful registration, login the user
@@ -202,6 +211,11 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  /// Check username availability
+  Future<Map<String, dynamic>> checkUsernameAvailability(String username) async {
+    return await _authService.checkUsernameAvailability(username);
   }
 
   /// Login with email and password

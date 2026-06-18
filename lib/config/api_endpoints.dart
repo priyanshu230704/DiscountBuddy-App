@@ -3,7 +3,9 @@ class ApiEndpoints {
   static const String register = '/users/register';
   static const String registerInit = '/users/register/init';
   static const String verifyOtp = '/users/register/verify-otp';
+  static const String resendOtp = '/users/register/resend-otp';
   static const String registerComplete = '/users/register/complete';
+  static const String checkUsername = '/users/check-username';
   static const String login = '/users/token';
   static const String refreshToken = '/users/token/refresh';
   // Unified social login endpoint
@@ -108,9 +110,8 @@ class ApiEndpoints {
   // Core
   static const String banners = '/core/banners';
 
-  // Wallet & Vouchers
+  // Vouchers
   static const String userVouchers = '/vouchers/me';
-  static const String wallet = '/wallet';
 
   // Notifications
   static const String registerDeviceToken = '/notifications/devices';

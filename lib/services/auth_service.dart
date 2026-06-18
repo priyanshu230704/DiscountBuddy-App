@@ -169,16 +169,51 @@ class AuthService {
     }
   }
 
+  /// Stage 1.5: Resend OTP
+  Future<Map<String, dynamic>> resendOtp({
+    required String email,
+  }) async {
+    try {
+      final response = await _apiService.post(
+        ApiEndpoints.resendOtp,
+        body: {'email': email},
+        type: ApiType.user,
+        withAuth: false,
+      );
+      // Let's ensure it returns success on 200/OK
+      return {'success': true, 'data': response};
+    } catch (e) {
+      if (e is ApiException) {
+        if (e.data != null && e.data is Map<String, dynamic>) {
+          final data = e.data as Map<String, dynamic>;
+          return {
+            'success': false,
+            'detail': data['detail'] ?? 'Failed to resend OTP',
+            'remaining_minutes': data['remaining_minutes']
+          };
+        }
+        return {'success': false, 'detail': e.message};
+      }
+      return {'success': false, 'detail': 'Network error. Please try again.'};
+    }
+  }
+
   /// Stage 3: Verify OTP and create account
   Future<RegisterResponse> registerComplete({
     required String email,
     required String otp,
     required String password,
+    String? username,
   }) async {
     try {
+      final body = {'email': email, 'otp': otp, 'password': password};
+      if (username != null && username.isNotEmpty) {
+        body['username'] = username;
+      }
+      
       final response = await _apiService.post(
         ApiEndpoints.registerComplete,
-        body: {'email': email, 'otp': otp, 'password': password},
+        body: body,
         type: ApiType.user,
         withAuth: false,
       );
@@ -191,6 +226,18 @@ class AuthService {
           final data = e.data as Map<String, dynamic>;
           if (data.containsKey('detail')) {
             errorMessage = data['detail'].toString();
+          } else {
+            final errors = <String>[];
+            data.forEach((key, value) {
+              if (value is List) {
+                errors.addAll(value.map((e) => e.toString()));
+              } else {
+                errors.add(value.toString());
+              }
+            });
+            if (errors.isNotEmpty) {
+              errorMessage = errors.join(', ');
+            }
           }
         }
         throw ApiException(
@@ -200,6 +247,26 @@ class AuthService {
         );
       }
       rethrow;
+    }
+  }
+
+  /// Check username availability
+  Future<Map<String, dynamic>> checkUsernameAvailability(String username) async {
+    try {
+      final response = await _apiService.get(
+        '${ApiEndpoints.checkUsername}?username=${Uri.encodeQueryComponent(username)}',
+        type: ApiType.user,
+        withAuth: false,
+      );
+      return response;
+    } catch (e) {
+      if (e is ApiException) {
+        if (e.data != null && e.data is Map<String, dynamic>) {
+          return e.data as Map<String, dynamic>;
+        }
+        return {'available': false, 'error': e.message};
+      }
+      return {'available': false, 'error': 'Network error checking username'};
     }
   }
 

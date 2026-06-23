@@ -39,18 +39,32 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
   /// Index of the menu item in the current category list whose details are expanded (null = all collapsed).
   int? _expandedItemIndex;
 
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  bool _isSearching = false;
+  String _searchQuery = '';
+
   @override
   void initState() {
     super.initState();
     _loadMenu();
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadMenu() async {
     setState(() => _isLoading = true);
     try {
       // Fetch restaurant details first to get menu_type
-      final restaurant = await _merchantService.getRestaurantDetail(widget.restaurantId);
-      
+      final restaurant = await _merchantService.getRestaurantDetail(
+        widget.restaurantId,
+      );
+
       if (mounted) {
         setState(() {
           _menuType = restaurant['menu_type'] ?? 'structured';
@@ -73,13 +87,15 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
             _categories = categories;
             _isLoading = false;
           });
-          
+
           if (categories.isNotEmpty) {
             if (_selectedCategoryId == null) {
               _selectCategory(categories.first['id']);
             } else {
               // Check if selected category still exists
-              final exists = categories.any((c) => c['id'] == _selectedCategoryId);
+              final exists = categories.any(
+                (c) => c['id'] == _selectedCategoryId,
+              );
               if (exists) {
                 _fetchCategoryItems(_selectedCategoryId!);
               } else {
@@ -164,9 +180,15 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.merchantIndigo, width: 2),
+            borderSide: const BorderSide(
+              color: AppColors.merchantIndigo,
+              width: 2,
+            ),
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
+          ),
         ),
       ),
     );
@@ -181,14 +203,23 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text('Add Menu Category', style: AppTypography.title.copyWith(fontSize: 18)),
+        title: Text(
+          'Add Menu Category',
+          style: AppTypography.title.copyWith(fontSize: 18),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: AppSpacing.sm),
-            _buildTextField(controller: nameController, label: 'Category Name *'),
-            _buildTextField(controller: descriptionController, label: 'Description (Optional)'),
+            _buildTextField(
+              controller: nameController,
+              label: 'Category Name *',
+            ),
+            _buildTextField(
+              controller: descriptionController,
+              label: 'Description (Optional)',
+            ),
           ],
         ),
         actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -197,7 +228,10 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
             onPressed: () => Navigator.pop(context, false),
             child: Text(
               'Cancel',
-              style: AppTypography.body.copyWith(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+              style: AppTypography.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
+              ),
             ),
           ),
           AppGradientButton(
@@ -207,7 +241,10 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
             },
             width: 150,
             height: 48,
-            child: const Text('Add Category', style: TextStyle(fontWeight: FontWeight.w700)),
+            child: const Text(
+              'Add Category',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
           ),
         ],
       ),
@@ -236,25 +273,34 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
     }
   }
 
-
-
   Future<void> _editCategory(Map<String, dynamic> category) async {
     final nameController = TextEditingController(text: category['name']);
-    final descriptionController = TextEditingController(text: category['description']);
+    final descriptionController = TextEditingController(
+      text: category['description'],
+    );
 
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text('Edit Category', style: AppTypography.title.copyWith(fontSize: 18)),
+        title: Text(
+          'Edit Category',
+          style: AppTypography.title.copyWith(fontSize: 18),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: AppSpacing.sm),
-            _buildTextField(controller: nameController, label: 'Category Name *'),
-            _buildTextField(controller: descriptionController, label: 'Description (Optional)'),
+            _buildTextField(
+              controller: nameController,
+              label: 'Category Name *',
+            ),
+            _buildTextField(
+              controller: descriptionController,
+              label: 'Description (Optional)',
+            ),
           ],
         ),
         actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
@@ -263,7 +309,10 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
             onPressed: () => Navigator.pop(context, false),
             child: Text(
               'Cancel',
-              style: AppTypography.body.copyWith(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+              style: AppTypography.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
+              ),
             ),
           ),
           AppGradientButton(
@@ -273,7 +322,10 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
             },
             width: 150,
             height: 48,
-            child: const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.w700)),
+            child: const Text(
+              'Save Changes',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
           ),
         ],
       ),
@@ -305,7 +357,10 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text('Delete Category?', style: AppTypography.title.copyWith(fontSize: 18)),
+        title: Text(
+          'Delete Category?',
+          style: AppTypography.title.copyWith(fontSize: 18),
+        ),
         content: Text(
           'Are you sure you want to delete this category and all its items? This action cannot be undone.',
           style: AppTypography.body,
@@ -316,15 +371,23 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
             onPressed: () => Navigator.pop(context, false),
             child: Text(
               'Cancel',
-              style: AppTypography.body.copyWith(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+              style: AppTypography.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
+              ),
             ),
           ),
           AppGradientButton(
             onPressed: () => Navigator.pop(context, true),
             width: 120,
             height: 48,
-            gradient: LinearGradient(colors: [AppColors.error, AppColors.error.withValues(alpha: 0.8)]),
-            child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.bold)),
+            gradient: LinearGradient(
+              colors: [AppColors.error, AppColors.error.withValues(alpha: 0.8)],
+            ),
+            child: const Text(
+              'Delete',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),
@@ -354,9 +417,15 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
   Future<void> _addOrUpdateItem({Map<String, dynamic>? existingItem}) async {
     if (_selectedCategoryId == null) return;
 
-    final nameController = TextEditingController(text: existingItem?['name'] ?? '');
-    final descriptionController = TextEditingController(text: existingItem?['description'] ?? '');
-    final priceController = TextEditingController(text: existingItem?['price']?.toString() ?? '');
+    final nameController = TextEditingController(
+      text: existingItem?['name'] ?? '',
+    );
+    final descriptionController = TextEditingController(
+      text: existingItem?['description'] ?? '',
+    );
+    final priceController = TextEditingController(
+      text: existingItem?['price']?.toString() ?? '',
+    );
 
     bool isVegetarian = existingItem?['is_vegetarian'] ?? false;
     bool isVegan = existingItem?['is_vegan'] ?? false;
@@ -369,8 +438,13 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
         builder: (context, setState) {
           return AlertDialog(
             backgroundColor: AppColors.surface,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-            title: Text(existingItem == null ? 'Add Item' : 'Edit Item', style: AppTypography.title.copyWith(fontSize: 18)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+            title: Text(
+              existingItem == null ? 'Add Item' : 'Edit Item',
+              style: AppTypography.title.copyWith(fontSize: 18),
+            ),
             content: SizedBox(
               width: double.maxFinite,
               child: SingleChildScrollView(
@@ -379,11 +453,16 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SizedBox(height: AppSpacing.sm),
-                    _buildTextField(controller: nameController, label: 'Item Name *'),
+                    _buildTextField(
+                      controller: nameController,
+                      label: 'Item Name *',
+                    ),
                     _buildTextField(
                       controller: priceController,
                       label: 'Price (£) *',
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                     ),
                     _buildTextField(
                       controller: descriptionController,
@@ -391,7 +470,12 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
                       maxLines: 3,
                     ),
                     const Divider(height: 32),
-                    Text('Dietary Tags', style: AppTypography.subtitle.copyWith(color: AppColors.textPrimary)),
+                    Text(
+                      'Dietary Tags',
+                      style: AppTypography.subtitle.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
                     const SizedBox(height: AppSpacing.sm),
                     SwitchListTile(
                       title: Text('Vegetarian', style: AppTypography.bodySmall),
@@ -408,7 +492,10 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
                       onChanged: (v) => setState(() => isVegan = v),
                     ),
                     SwitchListTile(
-                      title: Text('Gluten Free', style: AppTypography.bodySmall),
+                      title: Text(
+                        'Gluten Free',
+                        style: AppTypography.bodySmall,
+                      ),
                       value: isGlutenFree,
                       activeThumbColor: AppColors.merchantAmber,
                       contentPadding: EdgeInsets.zero,
@@ -416,7 +503,12 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
                     ),
                     const Divider(height: 32),
                     SwitchListTile(
-                      title: Text('Available', style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700)),
+                      title: Text(
+                        'Available',
+                        style: AppTypography.bodySmall.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                       value: isAvailable,
                       activeThumbColor: AppColors.merchantIndigo,
                       contentPadding: EdgeInsets.zero,
@@ -432,12 +524,17 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
                 onPressed: () => Navigator.pop(context),
                 child: Text(
                   'Cancel',
-                  style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700, color: AppColors.textSecondary),
+                  style: AppTypography.bodySmall.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ),
               AppGradientButton(
                 onPressed: () {
-                  if (nameController.text.trim().isEmpty || priceController.text.trim().isEmpty) return;
+                  if (nameController.text.trim().isEmpty ||
+                      priceController.text.trim().isEmpty)
+                    return;
                   Navigator.pop(context, {
                     if (existingItem != null && existingItem.containsKey('id'))
                       'id': existingItem['id'],
@@ -514,7 +611,10 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text('Delete Item?', style: AppTypography.title.copyWith(fontSize: 18)),
+        title: Text(
+          'Delete Item?',
+          style: AppTypography.title.copyWith(fontSize: 18),
+        ),
         content: Text(
           'Are you sure you want to delete "${item['name']}"? This action cannot be undone.',
           style: AppTypography.body,
@@ -525,15 +625,23 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
             onPressed: () => Navigator.pop(context, false),
             child: Text(
               'Cancel',
-              style: AppTypography.body.copyWith(fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+              style: AppTypography.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
+              ),
             ),
           ),
           AppGradientButton(
             onPressed: () => Navigator.pop(context, true),
             width: 120,
             height: 48,
-            gradient: LinearGradient(colors: [AppColors.error, AppColors.error.withValues(alpha: 0.8)]),
-            child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.bold)),
+            gradient: LinearGradient(
+              colors: [AppColors.error, AppColors.error.withValues(alpha: 0.8)],
+            ),
+            child: const Text(
+              'Delete',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),
@@ -560,87 +668,206 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
 
   @override
   Widget build(BuildContext context) {
-    return AppScaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
-          onPressed: () => Navigator.of(context).maybePop(),
-          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              widget.restaurantName,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTypography.title.copyWith(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: AppColors.textPrimary,
-                height: 1.2,
+    return PopScope(
+      canPop: !_isSearching,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop && _isSearching) {
+          _searchController.clear();
+          _searchFocusNode.unfocus();
+          setState(() {
+            _searchQuery = '';
+            _isSearching = false;
+          });
+        }
+      },
+      child: AppScaffold(
+      appBar: _isSearching
+          ? AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              surfaceTintColor: Colors.transparent,
+              automaticallyImplyLeading: false,
+              titleSpacing: AppSpacing.lg,
+              toolbarHeight: 76,
+              title: Container(
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.cardBorder),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.03),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    const SizedBox(width: 12),
+                    const Icon(
+                      Icons.search,
+                      size: 20,
+                      color: AppColors.textSecondary,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        focusNode: _searchFocusNode,
+                        onChanged: (val) {
+                          setState(() {
+                            _searchQuery = val;
+                          });
+                        },
+                        decoration: const InputDecoration(
+                          hintText: "Search menu items...",
+                          hintStyle: TextStyle(
+                            color: AppColors.textDisabled,
+                            fontSize: 14,
+                          ),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          disabledBorder: InputBorder.none,
+                          filled: false,
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        style: AppTypography.body.copyWith(fontSize: 14),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.close,
+                        size: 18,
+                        color: AppColors.textSecondary,
+                      ),
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() {
+                          _searchQuery = '';
+                          _isSearching = false;
+                        });
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Manage categories & menu items',
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: AppTypography.bodySmall.copyWith(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textSecondary,
-                height: 1.2,
+            )
+          : AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_rounded),
+                onPressed: () => Navigator.of(context).maybePop(),
+                tooltip: MaterialLocalizations.of(context).backButtonTooltip,
               ),
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    widget.restaurantName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.title.copyWith(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary,
+                      height: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Manage categories & menu items',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.bodySmall.copyWith(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                      height: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+              centerTitle: false,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              surfaceTintColor: Colors.transparent,
+              titleSpacing: 8,
+              toolbarHeight: 76,
+              iconTheme: const IconThemeData(color: AppColors.textPrimary),
+              actions: [
+                if (!_isSearching &&
+                    _menuType == 'structured' &&
+                    _categories.isNotEmpty)
+                  IconButton(
+                    icon: const Icon(
+                      Icons.search_rounded,
+                      color: AppColors.textPrimary,
+                    ),
+                    onPressed: () {
+                      setState(() => _isSearching = true);
+                      _searchFocusNode.requestFocus();
+                    },
+                  ),
+              ],
             ),
-          ],
-        ),
-        centerTitle: false,
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        surfaceTintColor: Colors.transparent,
-        titleSpacing: 8,
-        toolbarHeight: 76,
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
-      ),
       body: _isLoading
           ? _buildLoadingState()
           : _menuType == 'image'
-              ? _buildImageMenu()
-              : _buildStructuredMenu(),
+          ? _buildImageMenu()
+          : _buildStructuredMenu(),
       floatingActionButton: _menuType == 'image'
           ? FloatingActionButton.extended(
               onPressed: _pickAndUploadMenuPhoto,
               backgroundColor: AppColors.primary,
-              icon: const Icon(Icons.add_photo_alternate_rounded, color: Colors.white),
-              label: const Text('Add Menu Image', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+              icon: const Icon(
+                Icons.add_photo_alternate_rounded,
+                color: Colors.white,
+              ),
+              label: const Text(
+                'Add Menu Image',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             )
           : _categories.isEmpty
-              ? null
-              : Container(
-                  decoration: BoxDecoration(
-                    gradient: AppColors.purpleGradient,
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.3),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+          ? null
+          : Container(
+              decoration: BoxDecoration(
+                gradient: AppColors.purpleGradient,
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
-                  child: FloatingActionButton.extended(
-                    onPressed: _addOrUpdateItem,
-                    backgroundColor: Colors.transparent,
-                    elevation: 0,
-                    highlightElevation: 0,
-                    icon: const Icon(Icons.add_rounded, color: Colors.white),
-                    label: const Text('Add Item', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                ],
+              ),
+              child: FloatingActionButton.extended(
+                onPressed: _addOrUpdateItem,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                highlightElevation: 0,
+                icon: const Icon(Icons.add_rounded, color: Colors.white),
+                label: const Text(
+                  'Add Item',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
+              ),
+            ),
+      ),
     );
   }
 
@@ -663,17 +890,16 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
               ),
             ),
             const SizedBox(height: AppSpacing.xl),
-            Text(
-              'No menu images yet',
-              style: AppTypography.title,
-            ),
+            Text('No menu images yet', style: AppTypography.title),
             const SizedBox(height: AppSpacing.md),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
               child: Text(
                 'Upload photos of your physical menu so customers can see your full offerings.',
                 textAlign: TextAlign.center,
-                style: AppTypography.body.copyWith(color: AppColors.textSecondary),
+                style: AppTypography.body.copyWith(
+                  color: AppColors.textSecondary,
+                ),
               ),
             ),
             const SizedBox(height: AppSpacing.xl),
@@ -712,16 +938,24 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
                         height: double.infinity,
                         placeholder: (context, url) => Container(
                           color: AppColors.shimmer,
-                          child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                          child: const Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
                         ),
                         errorWidget: (context, url, error) => Container(
                           color: AppColors.shimmer,
-                          child: const Icon(Icons.error_outline, color: AppColors.error),
+                          child: const Icon(
+                            Icons.error_outline,
+                            color: AppColors.error,
+                          ),
                         ),
                       )
                     : Container(
                         color: AppColors.shimmer,
-                        child: const Icon(Icons.image_not_supported_outlined, color: AppColors.textDisabled),
+                        child: const Icon(
+                          Icons.image_not_supported_outlined,
+                          color: AppColors.textDisabled,
+                        ),
                       ),
               ),
               Positioned(
@@ -758,8 +992,8 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
           child: _categories.isEmpty
               ? _buildEmptyState()
               : _isItemsLoading
-                  ? _buildItemsLoadingState()
-                  : _buildItemsList(),
+              ? _buildItemsLoadingState()
+              : _buildItemsList(),
         ),
       ],
     );
@@ -795,7 +1029,11 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(color: AppColors.cardBorder),
                       ),
-                      child: const Icon(Icons.add, color: AppColors.textPrimary, size: 20),
+                      child: const Icon(
+                        Icons.add,
+                        color: AppColors.textPrimary,
+                        size: 20,
+                      ),
                     ),
                   ),
                 );
@@ -817,20 +1055,28 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
                       gradient: isSelected ? AppColors.purpleGradient : null,
                       color: isSelected ? null : AppColors.background,
                       borderRadius: BorderRadius.circular(24),
-                      boxShadow: isSelected ? [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.2),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        )
-                      ] : null,
-                      border: isSelected ? null : Border.all(color: AppColors.cardBorder),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: AppColors.primary.withValues(alpha: 0.2),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ]
+                          : null,
+                      border: isSelected
+                          ? null
+                          : Border.all(color: AppColors.cardBorder),
                     ),
                     child: Text(
                       category['name'],
                       style: AppTypography.bodySmall.copyWith(
-                        color: isSelected ? Colors.white : AppColors.textSecondary,
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                        color: isSelected
+                            ? Colors.white
+                            : AppColors.textSecondary,
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.w600,
                       ),
                     ),
                   ),
@@ -844,9 +1090,19 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
   }
 
   Widget _buildItemsList() {
-    if (_selectedCategoryData == null) return const Center(child: CircularProgressIndicator());
-    
-    final items = _selectedCategoryData!['items'] as List<dynamic>? ?? [];
+    if (_selectedCategoryData == null)
+      return const Center(child: CircularProgressIndicator());
+
+    final allItems = _selectedCategoryData!['items'] as List<dynamic>? ?? [];
+    final items = _searchQuery.isEmpty
+        ? allItems
+        : allItems.where((item) {
+            final name = (item['name'] as String?)?.toLowerCase() ?? '';
+            final description =
+                (item['description'] as String?)?.toLowerCase() ?? '';
+            final query = _searchQuery.toLowerCase();
+            return name.contains(query) || description.contains(query);
+          }).toList();
 
     if (items.isEmpty) {
       return RefreshIndicator(
@@ -855,13 +1111,19 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
           physics: const AlwaysScrollableScrollPhysics(),
           child: SizedBox(
             height: 400,
-            child: EmptyStateWidget(
-              icon: Icons.fastfood_rounded,
-              title: 'No items in ${_selectedCategoryData!['name']}',
-              message: 'Add your first item to this category.',
-              primaryActionLabel: 'Add Item',
-              onPrimaryAction: _addOrUpdateItem,
-            ),
+            child: _searchQuery.isNotEmpty
+                ? EmptyStateWidget(
+                    icon: Icons.search_off_rounded,
+                    title: 'No matching items',
+                    message: 'Try adjusting your search query.',
+                  )
+                : EmptyStateWidget(
+                    icon: Icons.fastfood_rounded,
+                    title: 'No items in ${_selectedCategoryData!['name']}',
+                    message: 'Add your first item to this category.',
+                    primaryActionLabel: 'Add Item',
+                    onPrimaryAction: _addOrUpdateItem,
+                  ),
           ),
         ),
       );
@@ -871,13 +1133,20 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
       onRefresh: () => _fetchCategoryItems(_selectedCategoryId!),
       color: AppColors.merchantIndigo,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(AppSpacing.lg, 0, AppSpacing.lg, 100),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          0,
+          AppSpacing.lg,
+          100,
+        ),
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
           _buildCategorySectionHeader(),
           const SizedBox(height: 10),
           ...items.asMap().entries.map((e) {
-            final item = Map<String, dynamic>.from(e.value as Map<dynamic, dynamic>);
+            final item = Map<String, dynamic>.from(
+              e.value as Map<dynamic, dynamic>,
+            );
             return Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.md),
               child: _buildLightMenuItemCard(item, listIndex: e.key),
@@ -895,7 +1164,10 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
         Flexible(
           child: Text(
             _selectedCategoryData!['name'] as String? ?? 'Category',
-            style: AppTypography.title.copyWith(fontSize: 20, fontWeight: FontWeight.w800),
+            style: AppTypography.title.copyWith(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -905,12 +1177,20 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
           children: [
             IconButton(
               style: IconButton.styleFrom(visualDensity: VisualDensity.compact),
-              icon: const Icon(Icons.edit_rounded, color: AppColors.merchantBlue, size: 22),
+              icon: const Icon(
+                Icons.edit_rounded,
+                color: AppColors.merchantBlue,
+                size: 22,
+              ),
               onPressed: () => _editCategory(_selectedCategoryData!),
             ),
             IconButton(
               style: IconButton.styleFrom(visualDensity: VisualDensity.compact),
-              icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error, size: 22),
+              icon: const Icon(
+                Icons.delete_outline_rounded,
+                color: AppColors.error,
+                size: 22,
+              ),
               onPressed: () => _deleteCategory(_selectedCategoryId!),
             ),
           ],
@@ -919,14 +1199,19 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
     );
   }
 
-  Widget _buildLightMenuItemCard(Map<String, dynamic> item, {required int listIndex}) {
+  Widget _buildLightMenuItemCard(
+    Map<String, dynamic> item, {
+    required int listIndex,
+  }) {
     final isAvailable = item['is_available'] as bool? ?? true;
     final name = item['name'] as String? ?? 'Item';
     final desc = item['description']?.toString().trim() ?? '';
     final priceStr = _formatMenuItemPrice(item['price']);
     final imageUrl = _menuItemImageUrl(item);
     final hasDietTag =
-        item['is_vegetarian'] == true || item['is_vegan'] == true || item['is_gluten_free'] == true;
+        item['is_vegetarian'] == true ||
+        item['is_vegan'] == true ||
+        item['is_gluten_free'] == true;
     final hasExpandable = desc.isNotEmpty || hasDietTag || !isAvailable;
     final hasAnyTagPill = hasDietTag || !isAvailable;
     final isOpen = hasExpandable && _expandedItemIndex == listIndex;
@@ -954,7 +1239,9 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
             fontSize: 15,
             fontWeight: FontWeight.w700,
             height: 1.2,
-            color: isAvailable ? AppColors.merchantIndigo : AppColors.textDisabled,
+            color: isAvailable
+                ? AppColors.merchantIndigo
+                : AppColors.textDisabled,
           ),
         ),
       ],
@@ -1043,7 +1330,12 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
               ),
             ),
             const SizedBox(height: 4),
-            Text(desc, style: AppTypography.bodySmall.copyWith(color: AppColors.textPrimary)),
+            Text(
+              desc,
+              style: AppTypography.bodySmall.copyWith(
+                color: AppColors.textPrimary,
+              ),
+            ),
             if (hasAnyTagPill) const SizedBox(height: 12),
           ],
           if (hasAnyTagPill) ...[
@@ -1059,10 +1351,14 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
               spacing: 6,
               runSpacing: 6,
               children: [
-                if (item['is_vegetarian'] == true) _buildMenuTag('Veg', AppColors.success),
-                if (item['is_vegan'] == true) _buildMenuTag('Vegan', AppColors.success),
-                if (item['is_gluten_free'] == true) _buildMenuTag('GF', AppColors.merchantAmber),
-                if (!isAvailable) _buildMenuTag('Off menu', AppColors.textSecondary),
+                if (item['is_vegetarian'] == true)
+                  _buildMenuTag('Veg', AppColors.success),
+                if (item['is_vegan'] == true)
+                  _buildMenuTag('Vegan', AppColors.success),
+                if (item['is_gluten_free'] == true)
+                  _buildMenuTag('GF', AppColors.merchantAmber),
+                if (!isAvailable)
+                  _buildMenuTag('Off menu', AppColors.textSecondary),
               ],
             ),
           ],
@@ -1079,7 +1375,11 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
   }
 
   String? _menuItemImageUrl(Map<String, dynamic> item) {
-    final v = item['image'] ?? item['image_url'] ?? item['thumbnail_url'] ?? item['photo'];
+    final v =
+        item['image'] ??
+        item['image_url'] ??
+        item['thumbnail_url'] ??
+        item['photo'];
     if (v == null || v.toString().isEmpty) return null;
     return v.toString();
   }
@@ -1094,12 +1394,19 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
       ),
       child: Text(
         label,
-        style: AppTypography.caption.copyWith(color: color, fontWeight: FontWeight.w700, fontSize: 10),
+        style: AppTypography.caption.copyWith(
+          color: color,
+          fontWeight: FontWeight.w700,
+          fontSize: 10,
+        ),
       ),
     );
   }
 
-  Widget _buildItemActionMenuButton(Map<String, dynamic> item, {required bool light}) {
+  Widget _buildItemActionMenuButton(
+    Map<String, dynamic> item, {
+    required bool light,
+  }) {
     return PopupMenuButton<String>(
       padding: EdgeInsets.zero,
       constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
@@ -1124,12 +1431,19 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
           value: 'edit',
           child: Row(
             children: [
-              const Icon(Icons.edit_rounded, size: 18, color: AppColors.merchantBlue),
+              const Icon(
+                Icons.edit_rounded,
+                size: 18,
+                color: AppColors.merchantBlue,
+              ),
               const SizedBox(width: 10),
-              Text('Edit', style: AppTypography.body.copyWith(
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.w600,
-              )),
+              Text(
+                'Edit',
+                style: AppTypography.body.copyWith(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
         ),
@@ -1137,12 +1451,19 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
           value: 'delete',
           child: Row(
             children: [
-              const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.error),
-              const SizedBox(width: 10),
-              Text('Delete', style: AppTypography.body.copyWith(
+              const Icon(
+                Icons.delete_outline_rounded,
+                size: 18,
                 color: AppColors.error,
-                fontWeight: FontWeight.w600,
-              )),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                'Delete',
+                style: AppTypography.body.copyWith(
+                  color: AppColors.error,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
         ),
@@ -1182,11 +1503,15 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
     return EmptyStateWidget(
       icon: Icons.menu_book_rounded,
       title: _menuType == 'image' ? 'No menu images' : 'No menu categories',
-      message: _menuType == 'image' 
+      message: _menuType == 'image'
           ? 'Upload photos of your physical menu for customers to view.'
           : 'Organize your dishes into categories like "Starters" or "Mains".',
-      primaryActionLabel: _menuType == 'image' ? 'Upload photo' : 'Add category',
-      onPrimaryAction: _menuType == 'image' ? _pickAndUploadMenuPhoto : _addCategory,
+      primaryActionLabel: _menuType == 'image'
+          ? 'Upload photo'
+          : 'Add category',
+      onPrimaryAction: _menuType == 'image'
+          ? _pickAndUploadMenuPhoto
+          : _addCategory,
     );
   }
 
@@ -1209,7 +1534,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
       );
 
       _loadMenu();
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -1238,7 +1563,10 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         title: Text('Delete Image?', style: AppTypography.title),
-        content: Text('Are you sure you want to delete this menu image?', style: AppTypography.body),
+        content: Text(
+          'Are you sure you want to delete this menu image?',
+          style: AppTypography.body,
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -1248,7 +1576,9 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
             onPressed: () => Navigator.pop(context, true),
             width: 120,
             height: 48,
-            gradient: LinearGradient(colors: [AppColors.error, AppColors.error.withValues(alpha: 0.8)]),
+            gradient: LinearGradient(
+              colors: [AppColors.error, AppColors.error.withValues(alpha: 0.8)],
+            ),
             child: const Text('Delete'),
           ),
         ],
@@ -1288,10 +1618,7 @@ class _MenuItemThumb extends StatelessWidget {
   final String? imageUrl;
   final bool isAvailable;
 
-  const _MenuItemThumb({
-    required this.imageUrl,
-    required this.isAvailable,
-  });
+  const _MenuItemThumb({required this.imageUrl, required this.isAvailable});
 
   @override
   Widget build(BuildContext context) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'dart:math' as math;
 
@@ -232,47 +233,127 @@ class MainNavigationState extends State<MainNavigation> {
                     }
                   },
                   items: isMerchant
-                      ? const [
+                      ? [
                           BottomNavigationBarItem(
-                            icon: Icon(Icons.dashboard_outlined),
-                            activeIcon: Icon(Icons.dashboard),
+                            icon: SvgPicture.asset(
+                              'assets/svg/dashboard.svg',
+                              width: 24,
+                              height: 24,
+                              colorFilter: const ColorFilter.mode(
+                                Color(0xFF9CA3AF),
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                            activeIcon: SvgPicture.asset(
+                              'assets/svg/dashboard.svg',
+                              width: 24,
+                              height: 24,
+                              colorFilter: const ColorFilter.mode(
+                                AppColors.primary,
+                                BlendMode.srcIn,
+                              ),
+                            ),
                             label: 'Dashboard',
                           ),
                           BottomNavigationBarItem(
-                            icon: Icon(Icons.storefront_outlined),
-                            activeIcon: Icon(Icons.storefront),
+                            icon: SvgPicture.asset(
+                              'assets/svg/restaurant.svg',
+                              width: 24,
+                              height: 24,
+                              colorFilter: const ColorFilter.mode(
+                                Color(0xFF9CA3AF),
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                            activeIcon: SvgPicture.asset(
+                              'assets/svg/restaurant.svg',
+                              width: 24,
+                              height: 24,
+                              colorFilter: const ColorFilter.mode(
+                                AppColors.primary,
+                                BlendMode.srcIn,
+                              ),
+                            ),
                             label: 'Restaurants',
                           ),
                           BottomNavigationBarItem(
-                            icon: Icon(Icons.restaurant_menu_outlined),
-                            activeIcon: Icon(Icons.restaurant_menu),
+                            icon: SvgPicture.asset(
+                              'assets/svg/tray_701965.svg',
+                              width: 24,
+                              height: 24,
+                              colorFilter: const ColorFilter.mode(
+                                Color(0xFF9CA3AF),
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                            activeIcon: SvgPicture.asset(
+                              'assets/svg/tray_701965.svg',
+                              width: 24,
+                              height: 24,
+                              colorFilter: const ColorFilter.mode(
+                                AppColors.primary,
+                                BlendMode.srcIn,
+                              ),
+                            ),
                             label: 'Menu',
                           ),
                           BottomNavigationBarItem(
-                            icon: Icon(Icons.person_outline),
-                            activeIcon: Icon(Icons.person),
+                            icon: SvgPicture.asset(
+                              'assets/svg/profile.svg',
+                              width: 24,
+                              height: 24,
+                              colorFilter: const ColorFilter.mode(
+                                Color(0xFF9CA3AF),
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                            activeIcon: SvgPicture.asset(
+                              'assets/svg/profile.svg',
+                              width: 24,
+                              height: 24,
+                              colorFilter: const ColorFilter.mode(
+                                AppColors.primary,
+                                BlendMode.srcIn,
+                              ),
+                            ),
                             label: 'Profile',
                           ),
                         ]
-                      : const [
-                          BottomNavigationBarItem(
+                      : [
+                          const BottomNavigationBarItem(
                             icon: Icon(Icons.home_outlined),
                             activeIcon: Icon(Icons.home),
                             label: 'Home',
                           ),
-                          BottomNavigationBarItem(
+                          const BottomNavigationBarItem(
                             icon: Icon(Icons.search_outlined),
                             activeIcon: Icon(Icons.search),
                             label: 'Search',
                           ),
-                          BottomNavigationBarItem(
+                          const BottomNavigationBarItem(
                             icon: Icon(Icons.calendar_today_outlined),
                             activeIcon: Icon(Icons.calendar_today),
                             label: 'Bookings',
                           ),
                           BottomNavigationBarItem(
-                            icon: Icon(Icons.person_outline),
-                            activeIcon: Icon(Icons.person),
+                            icon: SvgPicture.asset(
+                              'assets/svg/profile.svg',
+                              width: 24,
+                              height: 24,
+                              colorFilter: const ColorFilter.mode(
+                                Color(0xFF9CA3AF),
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                            activeIcon: SvgPicture.asset(
+                              'assets/svg/profile.svg',
+                              width: 24,
+                              height: 24,
+                              colorFilter: const ColorFilter.mode(
+                                AppColors.primary,
+                                BlendMode.srcIn,
+                              ),
+                            ),
                             label: 'Profile',
                           ),
                         ],

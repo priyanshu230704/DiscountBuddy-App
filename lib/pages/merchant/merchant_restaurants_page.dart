@@ -25,6 +25,8 @@ class MerchantRestaurantsPage extends StatefulWidget {
 class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
   final MerchantService _merchantService = MerchantService();
   final TextEditingController _searchController = TextEditingController();
+  final FocusNode _searchFocusNode = FocusNode();
+  bool _isSearching = false;
 
   List<Map<String, dynamic>> _restaurants = [];
   List<Map<String, dynamic>> _filteredRestaurants = [];
@@ -39,6 +41,7 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
   @override
   void dispose() {
     _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -84,58 +87,107 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return AppScaffold(
-      appBar: AppAppBar(
-        titleText: widget.selectMenuMode ? 'Select Restaurant' : 'Restaurants',
-        backgroundColor: Colors.transparent,
-        automaticallyImplyLeading: false,
-        actions: widget.selectMenuMode
-            ? null
-            : [
-                IconButton(
-                  icon: const Icon(
-                    Icons.add_circle_outline_rounded,
-                    color: AppColors.merchantIndigo,
-                  ),
-                  onPressed: () async {
-                    await Get.toNamed(AppRoutes.addRestaurant);
-                    _loadRestaurants();
-                  },
+    return PopScope(
+      canPop: !_isSearching,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop && _isSearching) {
+          _searchController.clear();
+          _filterRestaurants('');
+          _searchFocusNode.unfocus();
+          setState(() => _isSearching = false);
+        }
+      },
+      child: AppScaffold(
+        appBar: _isSearching
+          ? AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              surfaceTintColor: Colors.transparent,
+              automaticallyImplyLeading: false,
+              titleSpacing: AppSpacing.xl,
+              title: Container(
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.cardBorder),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.03),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
+                child: Row(
+                  children: [
+                    const SizedBox(width: 12),
+                    const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: TextField(
+                        controller: _searchController,
+                        focusNode: _searchFocusNode,
+                        onChanged: _filterRestaurants,
+                        decoration: const InputDecoration(
+                          hintText: "Search restaurants...",
+                          hintStyle: TextStyle(color: AppColors.textDisabled, fontSize: 14),
+                          border: InputBorder.none,
+                          enabledBorder: InputBorder.none,
+                          focusedBorder: InputBorder.none,
+                          disabledBorder: InputBorder.none,
+                          filled: false,
+                          isDense: true,
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                        style: AppTypography.body.copyWith(fontSize: 14),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, size: 18, color: AppColors.textSecondary),
+                      onPressed: () {
+                        _searchController.clear();
+                        _filterRestaurants('');
+                        setState(() => _isSearching = false);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : AppAppBar(
+              titleText: widget.selectMenuMode ? 'Select Restaurant' : 'Restaurants',
+              backgroundColor: Colors.transparent,
+              automaticallyImplyLeading: false,
+              actions: [
+                if (!_isSearching)
+                  IconButton(
+                    icon: const Icon(
+                      Icons.search_rounded,
+                      color: AppColors.merchantIndigo,
+                    ),
+                    onPressed: () {
+                      setState(() => _isSearching = true);
+                      _searchFocusNode.requestFocus();
+                    },
+                  ),
+                if (!widget.selectMenuMode)
+                  IconButton(
+                    icon: const Icon(
+                      Icons.add_circle_outline_rounded,
+                      color: AppColors.merchantIndigo,
+                    ),
+                    onPressed: () async {
+                      await Get.toNamed(AppRoutes.addRestaurant);
+                      _loadRestaurants();
+                    },
+                  ),
               ],
-      ),
+            ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            color: Colors.transparent,
-            padding: const EdgeInsets.fromLTRB(
-                AppSpacing.xl, AppSpacing.sm, AppSpacing.xl, AppSpacing.lg),
-            child: AppCard(
-              padding: EdgeInsets.zero,
-              child: TextField(
-                controller: _searchController,
-                onChanged: _filterRestaurants,
-                decoration: InputDecoration(
-                  hintText: "Search restaurants...",
-                  hintStyle: AppTypography.bodySmall,
-                  prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.close, size: 18, color: AppColors.textSecondary),
-                          onPressed: () {
-                            _searchController.clear();
-                            _filterRestaurants('');
-                          },
-                        )
-                      : null,
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                style: AppTypography.body,
-              ),
-            ),
-          ),
           if (!_isLoading && _filteredRestaurants.isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.xl, AppSpacing.xl, AppSpacing.sm),
@@ -174,6 +226,7 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
                   ),
           ),
         ],
+      ),
       ),
     );
   }

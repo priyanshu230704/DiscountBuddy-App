@@ -11,12 +11,19 @@ class Environment {
   static const String currentEnvironment = production;
 
   // API Base URLs
-  static String get baseUrl => dotenv.env['API_BASE_URL'] ?? 'http://10.238.37.186:8000';
+  static String get baseUrl => dotenv.env['API_BASE_URL'] ?? 'http://192.168.29.221:8000';
 
   // API Timeout
   static const Duration apiTimeout = Duration(seconds: 30);
 
   // API Version
+
+
+
+
+
+
+  
   static const String apiVersion = 'v1';
 
   // Get full API URL

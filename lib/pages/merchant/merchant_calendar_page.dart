@@ -127,23 +127,12 @@ class _MerchantCalendarPageState extends State<MerchantCalendarPage> {
             _selectedTab = tab;
           });
         },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeInOut,
+        child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             gradient: isSelected ? AppColors.purpleGradient : null,
             color: isSelected ? null : Colors.transparent,
             borderRadius: BorderRadius.circular(16),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: AppColors.primaryPurple.withValues(alpha: 0.25),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
           ),
           child: Center(
             child: Text(

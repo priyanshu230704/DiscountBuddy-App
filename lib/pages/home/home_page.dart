@@ -334,10 +334,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
         // Parse sections
         final List<int> allIds = List<int>.from(
-          sections['all_restaurants'] ?? 
-          sections['top_10'] ?? 
-          sections['featured'] ?? 
-          (restaurantsData.keys.map((k) => int.tryParse(k)).whereType<int>().toList())
+          sections['all_restaurants'] ??
+              sections['top_10'] ??
+              sections['featured'] ??
+              (restaurantsData.keys
+                  .map((k) => int.tryParse(k))
+                  .whereType<int>()
+                  .toList()),
         );
         final List<int> nearbyIds = List<int>.from(sections['nearby'] ?? []);
 
@@ -663,11 +666,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                                     shape: BoxShape.circle,
                                     color: Colors.white,
                                     border: Border.all(
-                                      color: Colors.black.withValues(alpha: 0.04),
+                                      color: Colors.black.withValues(
+                                        alpha: 0.04,
+                                      ),
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.04),
+                                        color: Colors.black.withValues(
+                                          alpha: 0.04,
+                                        ),
                                         blurRadius: 8,
                                         offset: const Offset(0, 3),
                                       ),
@@ -881,7 +888,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
           return Padding(
-            padding: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.only(bottom: 10),
             child: _FeedTile(
               restaurant: list[index],
               kmToMiles: _kmToMiles,
@@ -1120,7 +1127,8 @@ class _GradientBanner extends StatelessWidget {
                 bottomLeft: Radius.circular(50),
               ),
               child: Image.network(
-                imageUrl ?? "https://images.unsplash.com/photo-1473093226795-af9932fe5856?q=80&w=400&auto=format&fit=crop",
+                imageUrl ??
+                    "https://images.unsplash.com/photo-1473093226795-af9932fe5856?q=80&w=400&auto=format&fit=crop",
                 width: 130,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => Image.asset(
@@ -1326,7 +1334,10 @@ class _FeedTile extends StatelessWidget {
                     top: 0,
                     left: 0,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF97316),
                         borderRadius: const BorderRadius.only(
@@ -1336,7 +1347,7 @@ class _FeedTile extends StatelessWidget {
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.15),
                             blurRadius: 10,
-                            offset: const Offset(2, 2), 
+                            offset: const Offset(2, 2),
                           ),
                         ],
                       ),
@@ -1367,7 +1378,8 @@ class _FeedTile extends StatelessWidget {
                           ),
                           const SizedBox(height: 1),
                           Text(
-                            (deals.first.shortDescription != null && deals.first.shortDescription!.isNotEmpty)
+                            (deals.first.shortDescription != null &&
+                                    deals.first.shortDescription!.isNotEmpty)
                                 ? deals.first.shortDescription!
                                 : "Save today",
                             style: AppTypography.bodySmall.copyWith(
@@ -1388,7 +1400,10 @@ class _FeedTile extends StatelessWidget {
                   top: 10,
                   right: 10,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
@@ -1428,7 +1443,10 @@ class _FeedTile extends StatelessWidget {
                     bottom: 10,
                     left: 14,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(6),
@@ -1482,7 +1500,7 @@ class _FeedTile extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          
+
                           // Description below name
                           if (restaurant.description.trim().isNotEmpty) ...[
                             const SizedBox(height: 2),
@@ -1518,7 +1536,10 @@ class _FeedTile extends StatelessWidget {
 
                           // Value Tag
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 5,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFD1FAE5),
                               borderRadius: BorderRadius.circular(4),
@@ -1526,7 +1547,11 @@ class _FeedTile extends StatelessWidget {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.local_offer_outlined, color: Color(0xFF059669), size: 9),
+                                const Icon(
+                                  Icons.local_offer_outlined,
+                                  color: Color(0xFF059669),
+                                  size: 9,
+                                ),
                                 const SizedBox(width: 3),
                                 Text(
                                   "££ • Great value",
@@ -1543,7 +1568,7 @@ class _FeedTile extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    
+
                     // --- Right Side: Distance & Reserve Button ---
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -1555,7 +1580,11 @@ class _FeedTile extends StatelessWidget {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.location_on, color: Color(0xFF8B5CF6), size: 10),
+                                const Icon(
+                                  Icons.location_on,
+                                  color: Color(0xFF8B5CF6),
+                                  size: 10,
+                                ),
                                 const SizedBox(width: 2),
                                 Text(
                                   '${miles.toStringAsFixed(1)} mi',
@@ -1585,7 +1614,11 @@ class _FeedTile extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.calendar_today_rounded, color: Colors.white, size: 10),
+                              const Icon(
+                                Icons.calendar_today_rounded,
+                                color: Colors.white,
+                                size: 10,
+                              ),
                               const SizedBox(width: 3),
                               Text(
                                 'Reserve',

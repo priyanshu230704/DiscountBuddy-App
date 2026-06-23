@@ -82,7 +82,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
   void initState() {
     super.initState();
     _authProvider.addListener(_onAuthStateChanged);
-    
+
     // Check multiple sources for mystery_guest role to be safe
     final roleFromProvider = _authProvider.userRole;
     final roleFromProfile = _authProvider.user?.profile?.role;
@@ -116,14 +116,14 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     final images = _restaurantDetail?.restaurant.restaurantImages
         .where((img) => img.imageType == 'gallery')
         .toList();
-    
+
     // Safety check - need at least 2 images to carousel
     if (images == null || images.length <= 1) return;
 
     _carouselTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
       if (!mounted) return;
       if (_isUserInteracting) return; // Guard during periodic fire
-      
+
       if (_imagePageController.hasClients) {
         _currentImageIndex = (_currentImageIndex + 1) % images.length;
         _imagePageController.animateToPage(
@@ -382,7 +382,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
       suffix = ' ${amPmMatch.group(1)}';
       timePart = timeStr.substring(0, amPmMatch.start).trim();
     }
-    
+
     final parts = timePart.split(':');
     if (parts.length >= 2) {
       return '${parts[0]}:${parts[1]}$suffix';
@@ -411,11 +411,15 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
       try {
         final closingParts = slot.closingTime.split(':');
         final closingHour = int.parse(closingParts[0]);
-        final closingMinute = closingParts.length > 1 ? int.parse(closingParts[1]) : 0;
+        final closingMinute = closingParts.length > 1
+            ? int.parse(closingParts[1])
+            : 0;
         final closingTime = TimeOfDay(hour: closingHour, minute: closingMinute);
 
-        final isClosed = currentTime.hour > closingTime.hour ||
-            (currentTime.hour == closingTime.hour && currentTime.minute >= closingMinute);
+        final isClosed =
+            currentTime.hour > closingTime.hour ||
+            (currentTime.hour == closingTime.hour &&
+                currentTime.minute >= closingMinute);
 
         if (isClosed) {
           return 'Closed';
@@ -425,7 +429,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
       } catch (_) {
         // Fallback if parsing fails
       }
-        }
+    }
 
     // Check if opening_hours is a Map (from API) with day names as keys
     try {
@@ -438,18 +442,27 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
         final hoursMap = restaurant.openingHours as Map;
         if (hoursMap.isNotEmpty) {
           final todayHours = hoursMap[currentDay];
-          
-          if (todayHours != null && todayHours is String && todayHours.contains('-')) {
+
+          if (todayHours != null &&
+              todayHours is String &&
+              todayHours.contains('-')) {
             final parts = todayHours.split('-');
             if (parts.length > 1) {
               final closingTime = parts[1].trim();
               final closingParts = closingTime.split(':');
               final closingHour = int.parse(closingParts[0]);
-              final closingMinute = closingParts.length > 1 ? int.parse(closingParts[1]) : 0;
-              final closing = TimeOfDay(hour: closingHour, minute: closingMinute);
+              final closingMinute = closingParts.length > 1
+                  ? int.parse(closingParts[1])
+                  : 0;
+              final closing = TimeOfDay(
+                hour: closingHour,
+                minute: closingMinute,
+              );
 
-              final isClosed = currentTime.hour > closing.hour ||
-                  (currentTime.hour == closing.hour && currentTime.minute >= closingMinute);
+              final isClosed =
+                  currentTime.hour > closing.hour ||
+                  (currentTime.hour == closing.hour &&
+                      currentTime.minute >= closingMinute);
 
               if (isClosed) {
                 return 'Closed';
@@ -572,7 +585,10 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
 
     if (_errorMessage != null || _restaurantDetail == null) {
       return AppScaffold(
-        appBar: AppBar(title: const Text('Restaurant Details'), backgroundColor: Colors.transparent),
+        appBar: AppBar(
+          title: const Text('Restaurant Details'),
+          backgroundColor: Colors.transparent,
+        ),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -610,7 +626,6 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     // final dist = restaurant.distanceMiles ?? _kmToMiles(restaurant.distance);
 
     return AppScaffold(
-
       body: CustomScrollView(
         cacheExtent:
             500, // Limit off-screen rendering to reduce memory pressure
@@ -704,7 +719,9 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                           fit: BoxFit.cover,
                           placeholder: (context, url) => Container(
                             color: AppColors.textDisabled,
-                            child: const Center(child: CircularProgressIndicator()),
+                            child: const Center(
+                              child: CircularProgressIndicator(),
+                            ),
                           ),
                           errorWidget: (context, url, error) => Container(
                             color: AppColors.textDisabled,
@@ -860,11 +877,18 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                 color: AppColors.textPrimary,
                               ),
                             ),
-                          if (restaurant.cuisine.isNotEmpty && restaurant.categories.isNotEmpty)
-                            const Icon(Icons.circle, size: 3, color: AppColors.textDisabled),
+                          if (restaurant.cuisine.isNotEmpty &&
+                              restaurant.categories.isNotEmpty)
+                            const Icon(
+                              Icons.circle,
+                              size: 3,
+                              color: AppColors.textDisabled,
+                            ),
                           if (restaurant.categories.isNotEmpty)
                             Text(
-                              restaurant.categories.map((e) => e.name).join(' • '),
+                              restaurant.categories
+                                  .map((e) => e.name)
+                                  .join(' • '),
                               style: AppTypography.bodySmall.copyWith(
                                 fontSize: 13,
                                 color: AppColors.textSecondary,
@@ -885,7 +909,8 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                   userLon: _resolvedUserLon,
                                   restaurantLat: restaurant.latitude,
                                   restaurantLon: restaurant.longitude,
-                                  distanceMilesFromApi: restaurant.distanceMiles,
+                                  distanceMilesFromApi:
+                                      restaurant.distanceMiles,
                                   distanceKmFromApi: restaurant.distance,
                                 );
                                 final milesStr = miles != null
@@ -901,28 +926,41 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             ),
                           ),
                           const SizedBox(width: 6),
-                          const Icon(Icons.circle, size: 3, color: AppColors.textDisabled),
+                          const Icon(
+                            Icons.circle,
+                            size: 3,
+                            color: AppColors.textDisabled,
+                          ),
                           const SizedBox(width: 6),
                           // Specific Price logic inline for compactness
                           RichText(
                             text: TextSpan(
                               children: List.generate(4, (i) {
-                                final isActive = i < (restaurant.priceRange ?? 2);
+                                final isActive =
+                                    i < (restaurant.priceRange ?? 2);
                                 return TextSpan(
                                   text: '£',
                                   style: AppTypography.bodySmall.copyWith(
                                     fontSize: 13,
                                     color: isActive
                                         ? AppColors.textPrimary
-                                        : AppColors.textDisabled.withValues(alpha: 0.4),
-                                    fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
+                                        : AppColors.textDisabled.withValues(
+                                            alpha: 0.4,
+                                          ),
+                                    fontWeight: isActive
+                                        ? FontWeight.w700
+                                        : FontWeight.w400,
                                   ),
                                 );
                               }),
                             ),
                           ),
                           const SizedBox(width: 6),
-                          const Icon(Icons.circle, size: 3, color: AppColors.textDisabled),
+                          const Icon(
+                            Icons.circle,
+                            size: 3,
+                            color: AppColors.textDisabled,
+                          ),
                           const SizedBox(width: 6),
                           // Opening Hours
                           Text(
@@ -1014,9 +1052,11 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             onTap: () {
                               final dealText = restaurant.discount.displayText;
                               final dealDesc = restaurant.discount.description;
-                              const appStoreLink = 'https://apps.apple.com/in/app/discount-buddy-deals/id6760362068';
-                              const playStoreLink = 'https://play.google.com/store/apps/details?id=com.discountbuddy.app';
-                              
+                              const appStoreLink =
+                                  'https://apps.apple.com/in/app/discount-buddy-deals/id6760362068';
+                              const playStoreLink =
+                                  'https://play.google.com/store/apps/details?id=com.discountbuddy.app';
+
                               final message =
                                   '🔥 Check out this amazing deal at ${restaurant.name}!\n\n'
                                   '✨ $dealText\n'
@@ -1025,7 +1065,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                   'Download the App:\n'
                                   '🍎 iOS: $appStoreLink\n'
                                   '🤖 Android: $playStoreLink';
-                              
+
                               // ignore: deprecated_member_use
                               Share.share(message);
                             },
@@ -1242,7 +1282,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
             ),
 
           const SliverToBoxAdapter(child: SizedBox(height: 17)),
-          
+
           // Facilities Section
           if (restaurant.facilities.isNotEmpty)
             SliverToBoxAdapter(
@@ -1265,7 +1305,10 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                       runSpacing: 8,
                       children: restaurant.facilities.map((fac) {
                         return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
                             color: AppColors.surface,
                             borderRadius: BorderRadius.circular(10),
@@ -1280,23 +1323,42 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                 if (icon.isEmpty) {
                                   // Fallback icons based on name
                                   final name = fac.name.toLowerCase();
-                                  if (name.contains('dine-in')) icon = '🪑';
-                                  else if (name.contains('takeaway')) icon = '🥡';
-                                  else if (name.contains('delivery')) icon = '🛵';
-                                  else if (name.contains('outdoor')) icon = '⛱️';
-                                  else if (name.contains('wifi')) icon = '📶';
-                                  else if (name.contains('parking')) icon = '🅿️';
-                                  else if (name.contains('toilet') || name.contains('washroom')) icon = '🚻';
-                                  else if (name.contains('card')) icon = '💳';
-                                  else if (name.contains('alcohol')) icon = '🍺';
-                                  else if (name.contains('music')) icon = '🎵';
-                                  else if (name.contains('child') || name.contains('kid')) icon = '👶';
-                                  else if (name.contains('accessible') || name.contains('wheelchair')) icon = '♿';
+                                  if (name.contains('dine-in')) {
+                                    icon = '🪑';
+                                  } else if (name.contains('takeaway')) {
+                                    icon = '🥡';
+                                  } else if (name.contains('delivery')) {
+                                    icon = '🛵';
+                                  } else if (name.contains('outdoor')) {
+                                    icon = '⛱️';
+                                  } else if (name.contains('wifi')) {
+                                    icon = '📶';
+                                  } else if (name.contains('parking')) {
+                                    icon = '🅿️';
+                                  } else if (name.contains('toilet') ||
+                                      name.contains('washroom')) {
+                                    icon = '🚻';
+                                  } else if (name.contains('card')) {
+                                    icon = '💳';
+                                  } else if (name.contains('alcohol')) {
+                                    icon = '🍺';
+                                  } else if (name.contains('music')) {
+                                    icon = '🎵';
+                                  } else if (name.contains('child') ||
+                                      name.contains('kid')) {
+                                    icon = '👶';
+                                  } else if (name.contains('accessible') ||
+                                      name.contains('wheelchair')) {
+                                    icon = '♿';
+                                  }
                                 }
                                 if (icon.isNotEmpty) {
                                   return Row(
                                     children: [
-                                      Text(icon, style: const TextStyle(fontSize: 14)),
+                                      Text(
+                                        icon,
+                                        style: const TextStyle(fontSize: 14),
+                                      ),
                                       const SizedBox(width: 6),
                                     ],
                                   );
@@ -1357,7 +1419,11 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.edit, size: 14, color: AppColors.primary),
+                              const Icon(
+                                Icons.edit,
+                                size: 14,
+                                color: AppColors.primary,
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 'Write a review',
@@ -1375,7 +1441,9 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                   const SizedBox(height: 16),
                   // Overall Rating
                   InkWell(
-                    onTap: restaurant.hasUserReviewed ? null : _showAddReviewDialog,
+                    onTap: restaurant.hasUserReviewed
+                        ? null
+                        : _showAddReviewDialog,
                     borderRadius: BorderRadius.circular(8),
                     child: Padding(
                       padding: const EdgeInsets.all(4.0),
@@ -1501,7 +1569,9 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         padding: const EdgeInsets.only(bottom: 12),
                         child: InkWell(
                           onTap: () {
-                            launchUrl(Uri.parse('tel:${restaurant.phoneNumber}'));
+                            launchUrl(
+                              Uri.parse('tel:${restaurant.phoneNumber}'),
+                            );
                           },
                           child: Row(
                             children: [
@@ -1767,12 +1837,17 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
   }
 
   // Show menu popup
-  void _showMenuPopup(BuildContext context, Restaurant restaurant, List<MenuCategory> menuCategories) {
+  void _showMenuPopup(
+    BuildContext context,
+    Restaurant restaurant,
+    List<MenuCategory> menuCategories,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => MenuPopup(restaurant: restaurant, menuCategories: menuCategories),
+      builder: (context) =>
+          MenuPopup(restaurant: restaurant, menuCategories: menuCategories),
     );
   }
 }
@@ -1782,7 +1857,6 @@ class _ReviewItem extends StatelessWidget {
   final Review review;
 
   const _ReviewItem({required this.review});
-
 
   @override
   Widget build(BuildContext context) {
@@ -1798,34 +1872,38 @@ class _ReviewItem extends StatelessWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFFF5F5F5),
                 shape: BoxShape.circle,
-              image: review.userProfilePicture != null && !review.userProfilePicture!.startsWith('assets/')
-                  ? DecorationImage(
-                      image: CachedNetworkImageProvider(review.userProfilePicture!),
-                      fit: BoxFit.cover,
-                    )
-                  : null,
+                image:
+                    review.userProfilePicture != null &&
+                        !review.userProfilePicture!.startsWith('assets/')
+                    ? DecorationImage(
+                        image: CachedNetworkImageProvider(
+                          review.userProfilePicture!,
+                        ),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
+              ),
+              child: Builder(
+                builder: (context) {
+                  final profilePic = review.userProfilePicture;
+                  if (profilePic == null) {
+                    return Center(
+                      child: Icon(
+                        Icons.person,
+                        size: 24,
+                        color: AppColors.textDisabled.withValues(alpha: 0.5),
+                      ),
+                    );
+                  }
+                  if (profilePic.startsWith('assets/')) {
+                    return ClipOval(
+                      child: Image.asset(profilePic, fit: BoxFit.cover),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
             ),
-            child: Builder(
-              builder: (context) {
-                final profilePic = review.userProfilePicture;
-                if (profilePic == null) {
-                  return Center(
-                    child: Icon(
-                      Icons.person,
-                      size: 24,
-                      color: AppColors.textDisabled.withValues(alpha: 0.5),
-                    ),
-                  );
-                }
-                if (profilePic.startsWith('assets/')) {
-                  return ClipOval(
-                    child: Image.asset(profilePic, fit: BoxFit.cover),
-                  );
-                }
-                return const SizedBox.shrink();
-              },
-            ),
-          ),
             const SizedBox(width: 12),
             // Review Content
             Expanded(
@@ -1984,7 +2062,10 @@ class _OfferCardState extends State<_OfferCard> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     gradient: AppColors.purpleGradient,
                     borderRadius: BorderRadius.circular(10),
@@ -1992,7 +2073,11 @@ class _OfferCardState extends State<_OfferCard> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.local_offer, color: Colors.white, size: 12),
+                      const Icon(
+                        Icons.local_offer,
+                        color: Colors.white,
+                        size: 12,
+                      ),
                       const SizedBox(width: 5),
                       Text(
                         'DEAL',
@@ -2033,10 +2118,12 @@ class _OfferCardState extends State<_OfferCard> {
                       height: 1.5,
                     ),
                     maxLines: _isExpanded ? null : 2,
-                    overflow: _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                    overflow: _isExpanded
+                        ? TextOverflow.visible
+                        : TextOverflow.ellipsis,
                   ),
                   // Showing "View More" if potentially long
-                  if (widget.discount.description.length > 50) 
+                  if (widget.discount.description.length > 50)
                     GestureDetector(
                       onTap: () {
                         setState(() {
@@ -2070,12 +2157,18 @@ class MenuPopup extends StatelessWidget {
   final Restaurant restaurant;
   final List<MenuCategory> menuCategories;
 
-  const MenuPopup({super.key, required this.restaurant, required this.menuCategories});
+  const MenuPopup({
+    super.key,
+    required this.restaurant,
+    required this.menuCategories,
+  });
 
   @override
   Widget build(BuildContext context) {
     final bool isImageMenu = restaurant.menuType == 'image';
-    final menuImages = restaurant.restaurantImages.where((img) => img.imageType == 'menu').toList();
+    final menuImages = restaurant.restaurantImages
+        .where((img) => img.imageType == 'menu')
+        .toList();
 
     return DraggableScrollableSheet(
       initialChildSize: 0.9,
@@ -2085,13 +2178,23 @@ class MenuPopup extends StatelessWidget {
         return GenericBottomSheet(
           title: 'Menu',
           expandChild: true,
-          child: _buildMenuContent(context, scrollController, isImageMenu, menuImages),
+          child: _buildMenuContent(
+            context,
+            scrollController,
+            isImageMenu,
+            menuImages,
+          ),
         );
       },
     );
   }
 
-  Widget _buildMenuContent(BuildContext context, ScrollController scrollController, bool isImageMenu, List<RestaurantImage> menuImages) {
+  Widget _buildMenuContent(
+    BuildContext context,
+    ScrollController scrollController,
+    bool isImageMenu,
+    List<RestaurantImage> menuImages,
+  ) {
     if (isImageMenu) {
       if (menuImages.isEmpty) {
         return _buildEmptyState();
@@ -2120,7 +2223,12 @@ class MenuPopup extends StatelessWidget {
                   return Container(
                     height: 200,
                     color: AppColors.cardBackground,
-                    child: const Center(child: Icon(Icons.broken_image, color: AppColors.textSecondary)),
+                    child: const Center(
+                      child: Icon(
+                        Icons.broken_image,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
                   );
                 },
               ),
@@ -2174,9 +2282,7 @@ class MenuPopup extends StatelessWidget {
               ),
             ),
             // Menu Items
-            ...category.items.map(
-              (item) => _MenuItemCard(item: item),
-            ),
+            ...category.items.map((item) => _MenuItemCard(item: item)),
           ],
         );
       },
@@ -2445,11 +2551,14 @@ class _OpeningHoursSectionState extends State<_OpeningHoursSection> {
     try {
       final closingParts = todaySlot.closingTime.split(':');
       final closingHour = int.parse(closingParts[0]);
-      final closingMinute = closingParts.length > 1 ? int.parse(closingParts[1]) : 0;
+      final closingMinute = closingParts.length > 1
+          ? int.parse(closingParts[1])
+          : 0;
       final closingTime = TimeOfDay(hour: closingHour, minute: closingMinute);
 
       return currentTime.hour > closingTime.hour ||
-          (currentTime.hour == closingTime.hour && currentTime.minute >= closingMinute);
+          (currentTime.hour == closingTime.hour &&
+              currentTime.minute >= closingMinute);
     } catch (_) {
       return false;
     }
@@ -2483,7 +2592,10 @@ class _OpeningHoursSectionState extends State<_OpeningHoursSection> {
             ),
             if (isClosed)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.red.shade50,
                   borderRadius: BorderRadius.circular(8),
@@ -2686,7 +2798,10 @@ class _AddReviewDialogState extends State<_AddReviewDialog> {
       actions: [
         TextButton(
           onPressed: _isSubmitting ? null : () => Navigator.pop(context),
-          child: Text('Cancel', style: AppTypography.bodySmall.copyWith(color: Colors.grey)),
+          child: Text(
+            'Cancel',
+            style: AppTypography.bodySmall.copyWith(color: Colors.grey),
+          ),
         ),
         AppGradientButton(
           onPressed: _isSubmitting ? null : _handleSubmit,

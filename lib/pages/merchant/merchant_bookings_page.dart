@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import 'package:discount_buddy/utils/date_time_utils.dart';
 import '../../widgets/empty_state_widget.dart';
@@ -85,12 +86,16 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
       bookings.sort((a, b) {
         final statusA = (a['status'] ?? '').toString().toLowerCase();
         final statusB = (b['status'] ?? '').toString().toLowerCase();
-        
+
         if (statusA == 'pending' && statusB != 'pending') return -1;
         if (statusA != 'pending' && statusB == 'pending') return 1;
 
-        final dateA = DateTimeUtils.tryParseBookingInstant(a['booking_date']) ?? DateTime(0);
-        final dateB = DateTimeUtils.tryParseBookingInstant(b['booking_date']) ?? DateTime(0);
+        final dateA =
+            DateTimeUtils.tryParseBookingInstant(a['booking_date']) ??
+            DateTime(0);
+        final dateB =
+            DateTimeUtils.tryParseBookingInstant(b['booking_date']) ??
+            DateTime(0);
         return dateB.compareTo(dateA);
       });
       if (mounted) {
@@ -191,7 +196,9 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
   }
 
   void _showArrivedDialog(int bookingId) {
-    final booking = _bookings.firstWhere((b) => (b['booking_id'] ?? b['id']) == bookingId);
+    final booking = _bookings.firstWhere(
+      (b) => (b['booking_id'] ?? b['id']) == bookingId,
+    );
     showDialog(
       context: context,
       builder: (context) => ArrivedDialog(
@@ -204,7 +211,9 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
   }
 
   void _showNoShowDialog(int bookingId) {
-    final booking = _bookings.firstWhere((b) => (b['booking_id'] ?? b['id']) == bookingId);
+    final booking = _bookings.firstWhere(
+      (b) => (b['booking_id'] ?? b['id']) == bookingId,
+    );
     showDialog(
       context: context,
       builder: (context) => NoShowDialog(
@@ -217,10 +226,23 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
   }
 
   Widget _buildStatusTabs() {
-    final pendingCount = _bookings.where((b) => (b['status'] ?? 'pending').toString().toLowerCase() == 'pending').length;
-    final confirmedCount = _bookings.where((b) => (b['status'] ?? '').toString().toLowerCase() == 'confirmed').length;
-    final arrivedCount = _bookings.where((b) => (b['status'] ?? '').toString().toLowerCase() == 'arrived').length;
-    final noShowCount = _bookings.where((b) => (b['status'] ?? '').toString().toLowerCase() == 'no_show').length;
+    final pendingCount = _bookings
+        .where(
+          (b) =>
+              (b['status'] ?? 'pending').toString().toLowerCase() == 'pending',
+        )
+        .length;
+    final confirmedCount = _bookings
+        .where(
+          (b) => (b['status'] ?? '').toString().toLowerCase() == 'confirmed',
+        )
+        .length;
+    final arrivedCount = _bookings
+        .where((b) => (b['status'] ?? '').toString().toLowerCase() == 'arrived')
+        .length;
+    final noShowCount = _bookings
+        .where((b) => (b['status'] ?? '').toString().toLowerCase() == 'no_show')
+        .length;
 
     return Container(
       height: 48,
@@ -245,7 +267,7 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
     final isSelected = _selectedStatus == status;
     Color activeBg;
     Color activeText;
-    
+
     switch (status) {
       case 'confirmed':
         activeBg = AppColors.merchantBlue.withValues(alpha: 0.15);
@@ -277,7 +299,9 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
           color: isSelected ? activeBg : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? activeText.withValues(alpha: 0.3) : AppColors.cardBorder,
+            color: isSelected
+                ? activeText.withValues(alpha: 0.3)
+                : AppColors.cardBorder,
           ),
         ),
         child: Row(
@@ -319,14 +343,16 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
         titleText: 'Bookings',
         backgroundColor: Colors.transparent,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.calendar_month_rounded, color: AppColors.merchantBlue),
-            onPressed: () => Get.toNamed(
-              AppRoutes.merchantCalendar,
-              arguments: {'restaurantId': _selectedRestaurantId},
+          Center(
+            child: GestureDetector(
+              onTap: () => Get.toNamed(
+                AppRoutes.merchantCalendar,
+                arguments: {'restaurantId': _selectedRestaurantId},
+              ),
+              child: _buildCalendarIcon(),
             ),
           ),
-          const SizedBox(width: AppSpacing.md),
+          const SizedBox(width: AppSpacing.xl),
         ],
       ),
       body: Column(
@@ -337,7 +363,12 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
           if (!_isLoading) _buildStatusTabs(),
           if (!_isLoading && filtered.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.sm, AppSpacing.xl, AppSpacing.sm),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.xl,
+                AppSpacing.sm,
+                AppSpacing.xl,
+                AppSpacing.sm,
+              ),
               child: Text(
                 '${filtered.length} Booking${filtered.length == 1 ? '' : 's'}',
                 style: AppTypography.title.copyWith(fontSize: 18),
@@ -412,7 +443,8 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
         scrollDirection: Axis.horizontal,
         itemCount: _restaurants.length + 1,
-        separatorBuilder: (context, index) => const SizedBox(width: AppSpacing.sm),
+        separatorBuilder: (context, index) =>
+            const SizedBox(width: AppSpacing.sm),
         itemBuilder: (context, index) {
           final isAll = index == 0;
           final restaurant = isAll ? null : _restaurants[index - 1];
@@ -430,10 +462,15 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   gradient: isSelected ? AppColors.purpleGradient : null,
-                  color: isSelected ? null : Colors.white.withValues(alpha: 0.8),
+                  color: isSelected
+                      ? null
+                      : Colors.white.withValues(alpha: 0.8),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -447,6 +484,36 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildCalendarIcon() {
+    final dayStr = DateTime.now().day.toString();
+    const svgString = '''
+<svg viewBox="0 0 497 497" xmlns="http://www.w3.org/2000/svg"><g><g><path d="m16.567 397.6v66.267c0 18.299 14.834 33.133 33.133 33.133h397.6c18.299 0 33.132-14.834 33.132-33.133v-66.267z" fill="#b5dbff"/><path d="m457.433 397.6v66.268c0 18.298-14.834 33.132-33.132 33.132h23c18.299 0 33.132-14.834 33.132-33.132v-66.268z" fill="#97d0ff"/><path d="m16.567 132.533v298.2c0 18.298 14.834 33.132 33.132 33.132h397.601c18.299 0 33.132-14.834 33.132-33.132v-298.2z" fill="#edf5ff"/><path d="m457.433 132.533v298.2c0 18.298-14.834 33.132-33.132 33.132h23c18.299 0 33.132-14.834 33.132-33.132v-298.2z" fill="#d5e8fe"/><path d="m480.433 149.1v-82.834c0-18.299-14.834-33.132-33.132-33.132h-397.601c-18.299 0-33.132 14.834-33.132 33.132v82.834z" fill="#ff435b"/><g><path d="m115.967 73.767h-16.567c-4.142 0-7.5-3.358-7.5-7.5s3.358-7.5 7.5-7.5h16.567c4.142 0 7.5 3.358 7.5 7.5s-3.358 7.5-7.5 7.5z" fill="#e3374e"/></g><g><path d="m165.667 73.767h-16.567c-4.142 0-7.5-3.358-7.5-7.5s3.358-7.5 7.5-7.5h16.566c4.142 0 7.5 3.358 7.5 7.5s-3.357 7.5-7.499 7.5z" fill="#e3374e"/></g><g><path d="m347.9 73.767h-16.566c-4.142 0-7.5-3.358-7.5-7.5s3.358-7.5 7.5-7.5h16.566c4.142 0 7.5 3.358 7.5 7.5s-3.358 7.5-7.5 7.5z" fill="#e3374e"/></g><g><path d="m397.6 73.767h-16.567c-4.142 0-7.5-3.358-7.5-7.5s3.358-7.5 7.5-7.5h16.567c4.142 0 7.5 3.358 7.5 7.5s-3.358 7.5-7.5 7.5z" fill="#e3374e"/></g><path d="m115.967 66.267c0 9.149 7.417 16.567 16.567 16.567s16.567-7.417 16.567-16.567v-49.7c-.001-9.15-7.418-16.567-16.568-16.567-9.149 0-16.567 7.417-16.567 16.567v49.7z" fill="#596c76"/><path d="m347.9 66.267c0 9.149 7.417 16.567 16.567 16.567s16.567-7.417 16.567-16.567v-49.7c0-9.15-7.417-16.567-16.567-16.567s-16.567 7.417-16.567 16.567z" fill="#596c76"/><g fill="#e3374e"><path d="m447.3 33.133h-23c18.299 0 33.132 14.834 33.132 33.132v82.835h23v-82.834c.001-18.299-14.833-33.133-33.132-33.133z"/><path d="m16.567 108.467h463.866v15h-463.866z"/></g></g></g></svg>
+''';
+
+    return SizedBox(
+      width: 28,
+      height: 28,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          SvgPicture.string(svgString, width: 28, height: 28),
+          Padding(
+            padding: const EdgeInsets.only(top: 3.5),
+            child: Text(
+              dayStr,
+              style: const TextStyle(
+                color: Color(0xFF596C76),
+                fontSize: 9.5,
+                fontWeight: FontWeight.w800,
+                height: 1.0,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -467,8 +534,8 @@ class _BookingCard extends StatelessWidget {
 
   void _showBookingDetails(BuildContext context) {
     final restaurant = booking['restaurant_name'] ?? 'Restaurant';
-    final customer = booking['contact_name']?.toString().isNotEmpty == true 
-        ? booking['contact_name'] 
+    final customer = booking['contact_name']?.toString().isNotEmpty == true
+        ? booking['contact_name']
         : 'Guest';
     final phoneRaw = booking['contact_phone']?.toString().trim() ?? '';
     final phone = phoneRaw.isEmpty ? 'Not provided' : phoneRaw;
@@ -520,23 +587,31 @@ class _BookingCard extends StatelessWidget {
                 label: 'Status',
                 value: _formatBookingStatusForDialog(status),
               ),
-              if (status.toLowerCase() == 'arrived' && booking['arrived_time'] != null) ...[
+              if (status.toLowerCase() == 'arrived' &&
+                  booking['arrived_time'] != null) ...[
                 const SizedBox(height: 12),
-                _DetailRow(label: 'Arrival Time', value: booking['arrived_time'].toString()),
+                _DetailRow(
+                  label: 'Arrival Time',
+                  value: booking['arrived_time'].toString(),
+                ),
               ],
               if (status.toLowerCase() == 'no_show') ...[
                 const SizedBox(height: 12),
-                _DetailRow(label: 'No-Show Reason', value: booking['no_show_reason'] ?? 'Not specified'),
-                if (booking['no_show_notes']?.toString().isNotEmpty == true) ...[
+                _DetailRow(
+                  label: 'No-Show Reason',
+                  value: booking['no_show_reason'] ?? 'Not specified',
+                ),
+                if (booking['no_show_notes']?.toString().isNotEmpty ==
+                    true) ...[
                   const SizedBox(height: 12),
-                  _DetailRow(label: 'Notes', value: booking['no_show_notes'].toString()),
+                  _DetailRow(
+                    label: 'Notes',
+                    value: booking['no_show_notes'].toString(),
+                  ),
                 ],
               ],
               const SizedBox(height: 12),
-              _DetailRow(
-                label: 'Special requests',
-                value: specialRequests,
-              ),
+              _DetailRow(label: 'Special requests', value: specialRequests),
             ],
           ),
         ),
@@ -553,8 +628,8 @@ class _BookingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final restaurant = booking['restaurant_name'] ?? 'Restaurant';
-    final customer = booking['contact_name']?.toString().isNotEmpty == true 
-        ? booking['contact_name'] 
+    final customer = booking['contact_name']?.toString().isNotEmpty == true
+        ? booking['contact_name']
         : 'Guest';
     final dateStr = booking['booking_date'];
     final guests = booking['number_of_guests'] ?? 0;
@@ -572,275 +647,290 @@ class _BookingCard extends StatelessWidget {
     return GestureDetector(
       onTap: () => _showBookingDetails(context),
       child: AppCard(
-      padding: EdgeInsets.zero, // Padding handled internally for full-width action bar
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: AppColors.merchantBlue.withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: AppColors.merchantBlue.withValues(alpha: 0.2),
-                          width: 2,
+        padding: EdgeInsets
+            .zero, // Padding handled internally for full-width action bar
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.xl),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 44,
+                        height: 44,
+                        decoration: BoxDecoration(
+                          color: AppColors.merchantBlue.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppColors.merchantBlue.withValues(
+                              alpha: 0.2,
+                            ),
+                            width: 2,
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          initial,
+                          style: AppTypography.title.copyWith(
+                            color: AppColors.merchantBlue,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        initial,
-                        style: AppTypography.title.copyWith(
-                          color: AppColors.merchantBlue,
-                          fontSize: 16,
+                      const SizedBox(width: AppSpacing.lg),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              customer,
+                              style: AppTypography.title.copyWith(fontSize: 16),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              restaurant,
+                              style: AppTypography.subtitle,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                    const SizedBox(width: AppSpacing.lg),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            customer,
-                            style: AppTypography.title.copyWith(fontSize: 16),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            restaurant,
-                            style: AppTypography.subtitle,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    _StatusBadge(status: status),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.xl),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _InfoChip(
-                        icon: Icons.calendar_today_rounded,
-                        label: date != null
-                            ? DateTimeUtils.formatDateTime24h(date)
-                            : 'No date',
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    _InfoChip(
-                      icon: Icons.people_outline_rounded,
-                      label: '$guests guests',
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          if (isPending) ...[
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.background,
-                border: Border(
-                  top: BorderSide(
-                    color: AppColors.textDisabled.withValues(alpha: 0.15),
+                      const SizedBox(width: AppSpacing.sm),
+                      _StatusBadge(status: status),
+                    ],
                   ),
-                ),
-                borderRadius: const BorderRadius.vertical(
-                  bottom: Radius.circular(24), // Matches AppRadius.card
-                ),
-              ),
-              child: IntrinsicHeight(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () {
-                            final id = (booking['booking_id'] ?? booking['id']);
-                            if (id != null) {
-                              onReview(id as int, 'cancelled');
-                            }
-                          },
-                          borderRadius: const BorderRadius.only(
-                            bottomLeft: Radius.circular(24),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 16,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.close_rounded, size: 18, color: AppColors.error),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Decline',
-                                  style: AppTypography.body.copyWith(
-                                    color: AppColors.error,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                  const SizedBox(height: AppSpacing.xl),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _InfoChip(
+                          icon: Icons.calendar_today_rounded,
+                          label: date != null
+                              ? DateTimeUtils.formatDateTime24h(date)
+                              : 'No date',
                         ),
                       ),
-                    ),
-                    Container(
-                      width: 1,
+                      const SizedBox(width: AppSpacing.md),
+                      _InfoChip(
+                        icon: Icons.people_outline_rounded,
+                        label: '$guests guests',
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            if (isPending) ...[
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  border: Border(
+                    top: BorderSide(
                       color: AppColors.textDisabled.withValues(alpha: 0.15),
                     ),
-                    Expanded(
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () {
-                            final id = (booking['booking_id'] ?? booking['id']);
-                            if (id != null) {
-                              onReview(id as int, 'confirmed');
-                            }
-                          },
-                          borderRadius: const BorderRadius.only(
-                            bottomRight: Radius.circular(24),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 16,
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.check_rounded, size: 18, color: AppColors.success),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Confirm',
-                                  style: AppTypography.body.copyWith(
-                                    color: AppColors.success,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-          if (isConfirmed) ...[
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.background,
-                border: Border(
-                  top: BorderSide(
-                    color: AppColors.textDisabled.withValues(alpha: 0.15),
+                  ),
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(24), // Matches AppRadius.card
                   ),
                 ),
-                borderRadius: const BorderRadius.vertical(
-                  bottom: Radius.circular(24),
-                ),
-              ),
-              child: IntrinsicHeight(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () {
-                            final id = (booking['booking_id'] ?? booking['id']);
-                            if (id != null) {
-                              onNoShow(id as int);
-                            }
-                          },
-                          borderRadius: const BorderRadius.only(
-                            bottomLeft: Radius.circular(24),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 16,
+                child: IntrinsicHeight(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              final id =
+                                  (booking['booking_id'] ?? booking['id']);
+                              if (id != null) {
+                                onReview(id as int, 'cancelled');
+                              }
+                            },
+                            borderRadius: const BorderRadius.only(
+                              bottomLeft: Radius.circular(24),
                             ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.person_off_rounded, size: 18, color: AppColors.error),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Mark No-Show',
-                                  style: AppTypography.body.copyWith(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.close_rounded,
+                                    size: 18,
                                     color: AppColors.error,
-                                    fontWeight: FontWeight.w700,
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Decline',
+                                    style: AppTypography.body.copyWith(
+                                      color: AppColors.error,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    Container(
-                      width: 1,
+                      Container(
+                        width: 1,
+                        color: AppColors.textDisabled.withValues(alpha: 0.15),
+                      ),
+                      Expanded(
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              final id =
+                                  (booking['booking_id'] ?? booking['id']);
+                              if (id != null) {
+                                onReview(id as int, 'confirmed');
+                              }
+                            },
+                            borderRadius: const BorderRadius.only(
+                              bottomRight: Radius.circular(24),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.check_rounded,
+                                    size: 18,
+                                    color: AppColors.success,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Confirm',
+                                    style: AppTypography.body.copyWith(
+                                      color: AppColors.success,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+            if (isConfirmed) ...[
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  border: Border(
+                    top: BorderSide(
                       color: AppColors.textDisabled.withValues(alpha: 0.15),
                     ),
-                    Expanded(
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () {
-                            final id = (booking['booking_id'] ?? booking['id']);
-                            if (id != null) {
-                              onArrived(id as int);
-                            }
-                          },
-                          borderRadius: const BorderRadius.only(
-                            bottomRight: Radius.circular(24),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 16,
+                  ),
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(24),
+                  ),
+                ),
+                child: IntrinsicHeight(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              final id =
+                                  (booking['booking_id'] ?? booking['id']);
+                              if (id != null) {
+                                onNoShow(id as int);
+                              }
+                            },
+                            borderRadius: const BorderRadius.only(
+                              bottomLeft: Radius.circular(24),
                             ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.check_rounded, size: 18, color: AppColors.success),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Mark Arrived',
-                                  style: AppTypography.body.copyWith(
-                                    color: AppColors.success,
-                                    fontWeight: FontWeight.w700,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.person_off_rounded,
+                                    size: 18,
+                                    color: AppColors.error,
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Mark No-Show',
+                                    style: AppTypography.body.copyWith(
+                                      color: AppColors.error,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                      Container(
+                        width: 1,
+                        color: AppColors.textDisabled.withValues(alpha: 0.15),
+                      ),
+                      Expanded(
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              final id =
+                                  (booking['booking_id'] ?? booking['id']);
+                              if (id != null) {
+                                onArrived(id as int);
+                              }
+                            },
+                            borderRadius: const BorderRadius.only(
+                              bottomRight: Radius.circular(24),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.check_rounded,
+                                    size: 18,
+                                    color: AppColors.success,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Mark Arrived',
+                                    style: AppTypography.body.copyWith(
+                                      color: AppColors.success,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
+            ],
           ],
-        ],
-      ),
+        ),
       ),
     );
   }
@@ -930,10 +1020,7 @@ class _StatusBadge extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 6,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(20),
@@ -945,11 +1032,11 @@ class _StatusBadge extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             label,
-              style: AppTypography.caption.copyWith(
-                color: color,
-                fontWeight: FontWeight.w700,
-                fontSize: 10,
-              ),
+            style: AppTypography.caption.copyWith(
+              color: color,
+              fontWeight: FontWeight.w700,
+              fontSize: 10,
+            ),
           ),
         ],
       ),
@@ -962,14 +1049,24 @@ class _DetailRow extends StatelessWidget {
   final String value;
   final bool isLink;
 
-  const _DetailRow({required this.label, required this.value, this.isLink = false});
+  const _DetailRow({
+    required this.label,
+    required this.value,
+    this.isLink = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTypography.caption.copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w700)),
+        Text(
+          label,
+          style: AppTypography.caption.copyWith(
+            color: AppColors.textSecondary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
         const SizedBox(height: 2),
         Text(
           value,

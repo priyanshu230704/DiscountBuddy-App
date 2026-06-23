@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import 'package:discount_buddy/widgets/app_scaffold.dart';
 import 'package:discount_buddy/widgets/app_gradient_button.dart';
 import '../../services/merchant_service.dart';
-import '../../services/notification_service.dart';
 import '../../routes/app_routes.dart';
 import 'dart:async';
 import '../../providers/notification_provider.dart';
@@ -17,7 +17,8 @@ class MerchantDashboardPage extends StatefulWidget {
   State<MerchantDashboardPage> createState() => _MerchantDashboardPageState();
 }
 
-class _MerchantDashboardPageState extends State<MerchantDashboardPage> with WidgetsBindingObserver {
+class _MerchantDashboardPageState extends State<MerchantDashboardPage>
+    with WidgetsBindingObserver {
   bool _isLoading = true;
   bool _isFetching = false;
   int _totalBookings = 0;
@@ -30,14 +31,13 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
   String? _currentAddress;
   // Removed local _notificationCount and subscription as it's handled by NotificationProvider
   final NotificationProvider _notificationProvider = NotificationProvider();
-  final NotificationService _notificationService = NotificationService();
-  
+
   // Multi-restaurant support
 
   List<Map<String, dynamic>> _restaurants = [];
   int? _selectedRestaurantId; // null means 'All'
   String _selectedRestaurantName = 'All Restaurants';
-  
+
   final MerchantService _merchantService = MerchantService();
 
   @override
@@ -79,24 +79,26 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
 
       // Simulating a brief delay for a premium feel
       await Future.delayed(const Duration(milliseconds: 600));
-      
+
       final stats = await _merchantService.getMerchantDashboardStats(
         restaurantId: _selectedRestaurantId,
       );
-      
+
       if (mounted) {
         setState(() {
           _totalBookings = stats['total_bookings'] ?? 0;
           _activeDeals = stats['active_deals'] ?? 0;
           _averageRating = (stats['average_rating'] ?? 0.0).toDouble();
-          
+
           _totalRedeemedCount = stats['total_redeemed'] ?? 0;
           _totalEarnings = (stats['total_earnings'] ?? 0.0).toDouble();
-          
+
           // Update restaurant list and default selection if needed
           if (stats['restaurants'] != null) {
-            _restaurants = List<Map<String, dynamic>>.from(stats['restaurants']);
-            
+            _restaurants = List<Map<String, dynamic>>.from(
+              stats['restaurants'],
+            );
+
             // If only one restaurant, auto-select it if nothing selected
             if (_restaurants.length == 1 && _selectedRestaurantId == null) {
               _selectedRestaurantId = _restaurants[0]['id'];
@@ -127,7 +129,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
 
   void _onRestaurantSelected(int? id, String name) {
     if (_selectedRestaurantId == id) return;
-    
+
     setState(() {
       _selectedRestaurantId = id;
       _selectedRestaurantName = name;
@@ -138,6 +140,20 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Get.toNamed(
+          AppRoutes.merchantCalendar,
+          arguments: {'restaurantId': _selectedRestaurantId},
+        ),
+        elevation: 4,
+        // shape: CircleBorder(
+        //   side: BorderSide(
+        //     color: Colors.black.withValues(alpha: 0.05),
+        //     width: 1,
+        //   ),
+        // ),
+        child: _buildCalendarIcon(),
+      ),
       body: RefreshIndicator(
         onRefresh: _fetchDashboardData,
         color: AppColors.primary,
@@ -147,26 +163,28 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
           ),
           slivers: [
             _buildHeader(),
-            
+
             // Manager Reminders Banner
-            SliverToBoxAdapter(
-              child: _buildRemindersBanner(),
-            ),
-            
-            if (_restaurants.length > 1) 
+            SliverToBoxAdapter(child: _buildRemindersBanner()),
+
+            if (_restaurants.length > 1)
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.only(top: AppSpacing.md),
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.xl,
+                    ),
                     child: Row(
                       children: [
                         _buildRestaurantChip(null, 'All Restaurants'),
-                        ..._restaurants.map((r) => Padding(
-                          padding: const EdgeInsets.only(left: 8),
-                          child: _buildRestaurantChip(r['id'], r['name']),
-                        )),
+                        ..._restaurants.map(
+                          (r) => Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: _buildRestaurantChip(r['id'], r['name']),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -175,15 +193,23 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
 
             // Premium Restaurant Profile & Status
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.md, AppSpacing.xl, 0),
-              sliver: SliverToBoxAdapter(
-                child: _buildRestaurantProfile(),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.xl,
+                AppSpacing.md,
+                AppSpacing.xl,
+                0,
               ),
+              sliver: SliverToBoxAdapter(child: _buildRestaurantProfile()),
             ),
-            
+
             // Statistics Section
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 0),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.xl,
+                AppSpacing.lg,
+                AppSpacing.xl,
+                0,
+              ),
               sliver: _buildStatsSliver(),
             ),
 
@@ -198,17 +224,6 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
     return SliverToBoxAdapter(
       child: Column(
         children: [
-          _ModernStatCard(
-            label: 'Total Earnings',
-            value: '£${_totalEarnings.toStringAsFixed(2)}',
-            isLoading: _isLoading,
-            icon: Icons.payments_rounded,
-            color: const Color(0xFF10B981), // Merchant Green
-            valueColor: const Color(0xFF10B981),
-            backgroundColor: const Color(0xFFECFDF5),
-            isFullWidth: true,
-          ),
-          const SizedBox(height: AppSpacing.md),
           // Analytics CTA
           GestureDetector(
             onTap: () => Get.toNamed(
@@ -300,9 +315,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
                     onTap: () async {
                       await Get.toNamed(
                         AppRoutes.merchantRedemptionHistory,
-                        arguments: {
-                          'restaurantId': _selectedRestaurantId,
-                        },
+                        arguments: {'restaurantId': _selectedRestaurantId},
                       );
                       _fetchDashboardData();
                     },
@@ -323,9 +336,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
                     onTap: () async {
                       await Get.toNamed(
                         AppRoutes.merchantDeals,
-                        arguments: {
-                          'restaurantId': _selectedRestaurantId,
-                        },
+                        arguments: {'restaurantId': _selectedRestaurantId},
                       );
                       _fetchDashboardData();
                     },
@@ -350,9 +361,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
                     onTap: () async {
                       await Get.toNamed(
                         AppRoutes.merchantBookings,
-                        arguments: {
-                          'restaurantId': _selectedRestaurantId,
-                        },
+                        arguments: {'restaurantId': _selectedRestaurantId},
                       );
                       _fetchDashboardData();
                     },
@@ -374,9 +383,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
                     onTap: () async {
                       await Get.toNamed(
                         AppRoutes.merchantReviews,
-                        arguments: {
-                          'restaurantId': _selectedRestaurantId,
-                        },
+                        arguments: {'restaurantId': _selectedRestaurantId},
                       );
                       _fetchDashboardData();
                     },
@@ -426,7 +433,6 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
     );
   }
 
-
   Future<void> _updateOccupancy(String newOccupancy) async {
     final targetId = _selectedRestaurantId ?? _primaryRestaurantId;
     if (targetId == null || _currentOccupancy == newOccupancy) return;
@@ -439,7 +445,9 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Status updated to ${newOccupancy == 'available' ? 'Less Busy' : newOccupancy.replaceAll('_', ' ')}'),
+            content: Text(
+              'Status updated to ${newOccupancy == 'available' ? 'Less Busy' : newOccupancy.replaceAll('_', ' ')}',
+            ),
             behavior: SnackBarBehavior.floating,
             backgroundColor: AppColors.merchantIndigo,
           ),
@@ -448,9 +456,9 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
     } catch (e) {
       setState(() => _currentOccupancy = oldOccupancy);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update status: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to update status: $e')));
       }
     }
   }
@@ -487,10 +495,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
               padding: const EdgeInsets.all(3),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(11),
-                child: Image.asset(
-                  "assets/png/db_logo.png",
-                  fit: BoxFit.cover,
-                ),
+                child: Image.asset("assets/png/db_logo.png", fit: BoxFit.cover),
               ),
             ),
             const SizedBox(width: 14),
@@ -605,36 +610,6 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
               ),
             ),
             const SizedBox(width: 12),
-            // Calendar Icon
-            GestureDetector(
-              onTap: () => Get.toNamed(
-                AppRoutes.merchantCalendar,
-                arguments: {'restaurantId': _selectedRestaurantId},
-              ),
-              child: Container(
-                padding: const EdgeInsets.all(9),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                  border: Border.all(
-                    color: Colors.black.withValues(alpha: 0.04),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.calendar_month_rounded,
-                  size: 21,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
             // Scanner Button - Refined Design
             Material(
               color: Colors.transparent,
@@ -642,9 +617,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
                 onPressed: () async {
                   await Get.toNamed(
                     AppRoutes.qrScanner,
-                    arguments: {
-                      'initialRestaurantId': _selectedRestaurantId,
-                    },
+                    arguments: {'initialRestaurantId': _selectedRestaurantId},
                   );
                   _fetchDashboardData();
                 },
@@ -701,10 +674,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
                 height: 50,
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [
-                      Color(0x1A7C3AED),
-                      Color(0x1A6D28D9),
-                    ],
+                    colors: [Color(0x1A7C3AED), Color(0x1A6D28D9)],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -731,9 +701,11 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      _selectedRestaurantId == null 
-                        ? (_restaurants.length > 1 ? "${_restaurants.length} Registered Locations" : "Verified Merchant Partner")
-                        : (_currentAddress ?? "Verified Merchant Partner"),
+                      _selectedRestaurantId == null
+                          ? (_restaurants.length > 1
+                                ? "${_restaurants.length} Registered Locations"
+                                : "Verified Merchant Partner")
+                          : (_currentAddress ?? "Verified Merchant Partner"),
                       style: AppTypography.bodySmall.copyWith(
                         color: AppColors.textSecondary,
                         fontWeight: FontWeight.w500,
@@ -741,7 +713,6 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-
                   ],
                 ),
               ),
@@ -762,6 +733,17 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
             const SizedBox(height: AppSpacing.sm),
             _buildOccupancyToggle(),
           ],
+          const SizedBox(height: AppSpacing.lg),
+          _ModernStatCard(
+            label: 'Total Earnings',
+            value: '£${_totalEarnings.toStringAsFixed(2)}',
+            isLoading: _isLoading,
+            icon: Icons.payments_rounded,
+            color: const Color(0xFF10B981), // Merchant Green
+            valueColor: const Color(0xFF10B981),
+            backgroundColor: const Color(0xFFECFDF5),
+            isFullWidth: true,
+          ),
         ],
       ),
     );
@@ -771,7 +753,12 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
     return GestureDetector(
       onTap: () => Get.toNamed(AppRoutes.merchantReminders),
       child: Container(
-        margin: const EdgeInsets.fromLTRB(AppSpacing.xl, AppSpacing.md, AppSpacing.xl, 0),
+        margin: const EdgeInsets.fromLTRB(
+          AppSpacing.xl,
+          AppSpacing.md,
+          AppSpacing.xl,
+          0,
+        ),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
@@ -836,7 +823,6 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
     );
   }
 
-
   Widget _buildRestaurantChip(int? id, String name) {
     final isSelected = _selectedRestaurantId == id;
     return GestureDetector(
@@ -856,6 +842,36 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage> with Widg
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildCalendarIcon() {
+    final dayStr = DateTime.now().day.toString();
+    const svgString = '''
+<svg viewBox="0 0 497 497" xmlns="http://www.w3.org/2000/svg"><g><g><path d="m16.567 397.6v66.267c0 18.299 14.834 33.133 33.133 33.133h397.6c18.299 0 33.132-14.834 33.132-33.133v-66.267z" fill="#b5dbff"/><path d="m457.433 397.6v66.268c0 18.298-14.834 33.132-33.132 33.132h23c18.299 0 33.132-14.834 33.132-33.132v-66.268z" fill="#97d0ff"/><path d="m16.567 132.533v298.2c0 18.298 14.834 33.132 33.132 33.132h397.601c18.299 0 33.132-14.834 33.132-33.132v-298.2z" fill="#edf5ff"/><path d="m457.433 132.533v298.2c0 18.298-14.834 33.132-33.132 33.132h23c18.299 0 33.132-14.834 33.132-33.132v-298.2z" fill="#d5e8fe"/><path d="m480.433 149.1v-82.834c0-18.299-14.834-33.132-33.132-33.132h-397.601c-18.299 0-33.132 14.834-33.132 33.132v82.834z" fill="#ff435b"/><g><path d="m115.967 73.767h-16.567c-4.142 0-7.5-3.358-7.5-7.5s3.358-7.5 7.5-7.5h16.567c4.142 0 7.5 3.358 7.5 7.5s-3.358 7.5-7.5 7.5z" fill="#e3374e"/></g><g><path d="m165.667 73.767h-16.567c-4.142 0-7.5-3.358-7.5-7.5s3.358-7.5 7.5-7.5h16.566c4.142 0 7.5 3.358 7.5 7.5s-3.357 7.5-7.499 7.5z" fill="#e3374e"/></g><g><path d="m347.9 73.767h-16.566c-4.142 0-7.5-3.358-7.5-7.5s3.358-7.5 7.5-7.5h16.566c4.142 0 7.5 3.358 7.5 7.5s-3.358 7.5-7.5 7.5z" fill="#e3374e"/></g><g><path d="m397.6 73.767h-16.567c-4.142 0-7.5-3.358-7.5-7.5s3.358-7.5 7.5-7.5h16.567c4.142 0 7.5 3.358 7.5 7.5s-3.358 7.5-7.5 7.5z" fill="#e3374e"/></g><path d="m115.967 66.267c0 9.149 7.417 16.567 16.567 16.567s16.567-7.417 16.567-16.567v-49.7c-.001-9.15-7.418-16.567-16.568-16.567-9.149 0-16.567 7.417-16.567 16.567v49.7z" fill="#596c76"/><path d="m347.9 66.267c0 9.149 7.417 16.567 16.567 16.567s16.567-7.417 16.567-16.567v-49.7c0-9.15-7.417-16.567-16.567-16.567s-16.567 7.417-16.567 16.567z" fill="#596c76"/><g fill="#e3374e"><path d="m447.3 33.133h-23c18.299 0 33.132 14.834 33.132 33.132v82.835h23v-82.834c.001-18.299-14.833-33.133-33.132-33.133z"/><path d="m16.567 108.467h463.866v15h-463.866z"/></g></g></g></svg>
+''';
+
+    return SizedBox(
+      width: 44,
+      height: 44,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          SvgPicture.string(svgString, width: 44, height: 44),
+          Padding(
+            padding: const EdgeInsets.only(top: 5.5),
+            child: Text(
+              dayStr,
+              style: const TextStyle(
+                color: Color(0xFF596C76),
+                fontSize: 15.0,
+                fontWeight: FontWeight.w800,
+                height: 1.0,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -903,7 +919,9 @@ class _OccupancySegment extends StatelessWidget {
             child: Text(
               label,
               style: AppTypography.bodySmall.copyWith(
-                color: isSelected ? activeColor : const Color(0xFF64748B), // Slate 500
+                color: isSelected
+                    ? activeColor
+                    : const Color(0xFF64748B), // Slate 500
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
               ),
             ),
@@ -940,13 +958,14 @@ class _ModernStatCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {    return GestureDetector(
+  Widget build(BuildContext context) {
+    return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         width: isFullWidth ? double.infinity : null,
         padding: EdgeInsets.symmetric(
-          horizontal: AppSpacing.md, 
+          horizontal: AppSpacing.md,
           vertical: isFullWidth ? AppSpacing.md : AppSpacing.lg,
         ),
         decoration: BoxDecoration(
@@ -964,147 +983,146 @@ class _ModernStatCard extends StatelessWidget {
             width: 1,
           ),
         ),
-        child: isFullWidth 
-          ? Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  decoration: BoxDecoration(
-                    color: backgroundColor,
-                    borderRadius: BorderRadius.circular(16),
+        child: isFullWidth
+            ? Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: backgroundColor,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(icon, color: color, size: 24),
                   ),
-                  child: Icon(icon, color: color, size: 24),
-                ),
-                const SizedBox(width: AppSpacing.lg),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (isLoading)
-                        Container(
-                          height: 24,
-                          width: 60,
-                          decoration: BoxDecoration(
-                            color: AppColors.divider.withValues(alpha: 0.5),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                        )
-                      else
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
-                          children: [
-                            Flexible(
-                              child: Text(
-                                value,
-                                style: AppTypography.headline.copyWith(
-                                  fontSize: 22,
-                                  color: valueColor ?? AppColors.textDarkest,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                  const SizedBox(width: AppSpacing.lg),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (isLoading)
+                          Container(
+                            height: 24,
+                            width: 60,
+                            decoration: BoxDecoration(
+                              color: AppColors.divider.withValues(alpha: 0.5),
+                              borderRadius: BorderRadius.circular(6),
                             ),
-                            if (suffix != null)
-                              Padding(
-                                padding: const EdgeInsets.only(left: 4),
+                          )
+                        else
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              Flexible(
                                 child: Text(
-                                  suffix!,
-                                  style: AppTypography.caption.copyWith(
-                                    color: AppColors.textSecondary,
-                                    fontWeight: FontWeight.w700,
+                                  value,
+                                  style: AppTypography.headline.copyWith(
+                                    fontSize: 22,
+                                    color: valueColor ?? AppColors.textDarkest,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (suffix != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 4),
+                                  child: Text(
+                                    suffix!,
+                                    style: AppTypography.caption.copyWith(
+                                      color: AppColors.textSecondary,
+                                      fontWeight: FontWeight.w700,
+                                    ),
                                   ),
                                 ),
-                              ),
-                          ],
-                        ),
-                      const SizedBox(height: 2),
-                      Text(
-                        label,
-                        style: AppTypography.bodySmall.copyWith(
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                if (onTap != null)
-                  Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    size: 12,
-                    color: AppColors.textDisabled.withValues(alpha: 0.5),
-                  ),
-              ],
-            )
-          : Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  decoration: BoxDecoration(
-                    color: backgroundColor,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Icon(icon, color: color, size: 24),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                if (isLoading)
-                  Container(
-                    height: 20,
-                    width: 40,
-                    decoration: BoxDecoration(
-                      color: AppColors.divider.withValues(alpha: 0.5),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                  )
-                else
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          value,
-                          style: AppTypography.headline.copyWith(
-                            fontSize: 18,
-                            color: valueColor ?? AppColors.textDarkest,
+                            ],
                           ),
+                        const SizedBox(height: 2),
+                        Text(
+                          label,
+                          style: AppTypography.bodySmall.copyWith(
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
+                      ],
+                    ),
+                  ),
+                  if (onTap != null)
+                    Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 12,
+                      color: AppColors.textDisabled.withValues(alpha: 0.5),
+                    ),
+                ],
+              )
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: backgroundColor,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(icon, color: color, size: 24),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  if (isLoading)
+                    Container(
+                      height: 20,
+                      width: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.divider.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(6),
                       ),
-                      if (suffix != null)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 2),
+                    )
+                  else
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
+                      children: [
+                        Flexible(
                           child: Text(
-                            suffix!,
-                            style: AppTypography.caption.copyWith(
-                              color: AppColors.textSecondary,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 10,
+                            value,
+                            style: AppTypography.headline.copyWith(
+                              fontSize: 18,
+                              color: valueColor ?? AppColors.textDarkest,
                             ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                    ],
+                        if (suffix != null)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 2),
+                            child: Text(
+                              suffix!,
+                              style: AppTypography.caption.copyWith(
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  const SizedBox(height: 2),
+                  Text(
+                    label,
+                    style: AppTypography.bodySmall.copyWith(
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 1,
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                const SizedBox(height: 2),
-                Text(
-                  label,
-                  style: AppTypography.bodySmall.copyWith(
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 1,
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
+                ],
+              ),
       ),
     );
-
   }
 }

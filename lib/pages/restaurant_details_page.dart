@@ -1240,6 +1240,18 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
               ),
             ),
 
+          // Loyalty Card Section
+          if (restaurant.loyaltyCardEnabled && restaurant.loyaltyProgram != null)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: _LoyaltyCardSection(
+                  loyaltyProgram: restaurant.loyaltyProgram!,
+                  isGuestMode: _authProvider.isGuestMode,
+                ),
+              ),
+            ),
+
           // Offer Card Section
           if (restaurant.activeDeals.isNotEmpty)
             SliverToBoxAdapter(
@@ -2826,6 +2838,302 @@ class _AddReviewDialogState extends State<_AddReviewDialog> {
                 ),
         ),
       ],
+    );
+  }
+}
+
+class _LoyaltyCardSection extends StatelessWidget {
+  final LoyaltyProgram loyaltyProgram;
+  final bool isGuestMode;
+
+  const _LoyaltyCardSection({
+    required this.loyaltyProgram,
+    required this.isGuestMode,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (!loyaltyProgram.loyaltyCardEnabled) return const SizedBox.shrink();
+
+    final isEligible = loyaltyProgram.isRewardEligible;
+    final completed = isGuestMode ? 0 : loyaltyProgram.completedRedemptions;
+    final requiredVal = loyaltyProgram.requiredRedemptions;
+
+    final baseColor = isEligible ? const Color(0xFFF59E0B) : const Color(0xFF7C3AED);
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: isEligible
+            ? const LinearGradient(
+                colors: [Color(0xFFFBBF24), Color(0xFFF59E0B), Color(0xFFD97706)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : const LinearGradient(
+                colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: baseColor.withValues(alpha: 0.25),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  isEligible ? Icons.emoji_events_rounded : Icons.stars_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  isEligible ? 'Loyalty Reward Unlocked!' : 'Loyalty Card Program',
+                  style: AppTypography.title.copyWith(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              if (isEligible)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    'REDEEMABLE',
+                    style: AppTypography.caption.copyWith(
+                      color: const Color(0xFFD97706),
+                      fontWeight: FontWeight.w900,
+                      fontSize: 9,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(top: 2),
+                  child: Icon(
+                    Icons.card_giftcard_rounded,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    loyaltyProgram.rewardDescription,
+                    style: AppTypography.bodySmall.copyWith(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (isEligible) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.info_outline_rounded,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Present this screen to the server when you pay to claim your reward!',
+                      style: AppTypography.bodySmall.copyWith(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            if (requiredVal > 0 && requiredVal <= 12) ...[
+              _buildStampGrid(completed, requiredVal, isEligible),
+              const SizedBox(height: 14),
+            ] else ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(6),
+                child: LinearProgressIndicator(
+                  value: requiredVal > 0 ? (completed / requiredVal) : 0.0,
+                  backgroundColor: Colors.white.withValues(alpha: 0.2),
+                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                  minHeight: 8,
+                ),
+              ),
+              const SizedBox(height: 8),
+            ],
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  isGuestMode
+                      ? 'Progress: 0 of $requiredVal completed'
+                      : loyaltyProgram.progressText.isNotEmpty
+                          ? loyaltyProgram.progressText
+                          : 'Progress: $completed of $requiredVal completed',
+                  style: AppTypography.bodySmall.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 12,
+                  ),
+                ),
+                if (!isGuestMode)
+                  Text(
+                    '${requiredVal - completed} left',
+                    style: AppTypography.bodySmall.copyWith(
+                      color: Colors.white.withValues(alpha: 0.8),
+                      fontWeight: FontWeight.w600,
+                      fontSize: 11,
+                    ),
+                  ),
+              ],
+            ),
+          ],
+          if (isGuestMode) ...[
+            const SizedBox(height: 12),
+            Center(
+              child: Text(
+                'Login to track progress and earn this reward!',
+                style: AppTypography.caption.copyWith(
+                  color: Colors.white.withValues(alpha: 0.9),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 11,
+                ),
+              ),
+            ),
+          ] else if (!isEligible) ...[
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Total lifetime redemptions: ${loyaltyProgram.totalLifetimeRedemptions}',
+                  style: AppTypography.caption.copyWith(
+                    color: Colors.white.withValues(alpha: 0.8),
+                    fontSize: 10,
+                  ),
+                ),
+                if (loyaltyProgram.rewardsEarned > 0)
+                  Text(
+                    'Rewards earned: ${loyaltyProgram.rewardsEarned}',
+                    style: AppTypography.caption.copyWith(
+                      color: Colors.white.withValues(alpha: 0.8),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStampGrid(int completed, int requiredVal, bool isEligible) {
+    return Wrap(
+      spacing: 8.0,
+      runSpacing: 8.0,
+      children: List.generate(requiredVal, (index) {
+        final isCompleted = index < completed;
+        final isLast = index == requiredVal - 1;
+
+        return Container(
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            color: isCompleted 
+                ? Colors.white 
+                : Colors.white.withValues(alpha: 0.08),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: isCompleted 
+                  ? Colors.white 
+                  : Colors.white.withValues(alpha: 0.4),
+              width: 1.5,
+            ),
+            boxShadow: isCompleted 
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    )
+                  ]
+                : null,
+          ),
+          alignment: Alignment.center,
+          child: isCompleted
+              ? Icon(
+                  Icons.check_rounded,
+                  color: isEligible ? const Color(0xFFD97706) : const Color(0xFF7C3AED),
+                  size: 20,
+                  weight: 3.0,
+                )
+              : isLast
+                  ? Icon(
+                      Icons.card_giftcard_rounded,
+                      color: Colors.white.withValues(alpha: 0.8),
+                      size: 16,
+                    )
+                  : Text(
+                      '${index + 1}',
+                      style: AppTypography.bodySmall.copyWith(
+                        color: Colors.white.withValues(alpha: 0.7),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 11,
+                      ),
+                    ),
+        );
+      }),
     );
   }
 }

@@ -154,6 +154,44 @@ class RestaurantCard extends StatelessWidget {
                           ),
                         ),
                       ),
+                    // Loyalty Card Badge
+                    if (restaurant.loyaltyCardEnabled)
+                      Positioned(
+                        bottom: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+                            ),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.card_membership_rounded,
+                                color: Colors.white,
+                                size: 10,
+                              ),
+                              const SizedBox(width: 3),
+                              Text(
+                                "LOYALTY",
+                                style: AppTypography.caption.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 8,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     // Distance Badge
                     Positioned(
                       top: 8,

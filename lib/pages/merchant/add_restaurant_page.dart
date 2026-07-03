@@ -27,6 +27,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
   final MerchantService _merchantService = MerchantService();
   final LocationService _locationService = LocationService();
   final _formKey = GlobalKey<FormState>();
+  final GlobalKey _loyaltySectionKey = GlobalKey();
   final _nameController = TextEditingController();
   final _slugController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -37,6 +38,9 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _websiteController = TextEditingController();
+  bool _loyaltyCardEnabled = false;
+  final _loyaltyRequiredRedemptionsController = TextEditingController();
+  final _loyaltyRewardDescriptionController = TextEditingController();
 
   List<Map<String, dynamic>> _cities = [];
   List<Map<String, dynamic>> _categories = [];
@@ -310,10 +314,23 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
     _emailController.dispose();
     _websiteController.dispose();
     _cityController.dispose();
+    _loyaltyRequiredRedemptionsController.dispose();
+    _loyaltyRewardDescriptionController.dispose();
     _cityFocusNode.removeListener(_onCityFocusChange);
     _cityFocusNode.dispose();
     _hideOverlay();
     super.dispose();
+  }
+
+  void _scrollToLoyaltySection() {
+    final context = _loyaltySectionKey.currentContext;
+    if (context != null) {
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    }
   }
 
   Future<void> _loadReferenceData() async {
@@ -334,6 +351,16 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
           _filteredCities = _cities;
           _isLoadingData = false;
         });
+
+        if (widget.restaurant != null && widget.restaurant!['scrollToLoyalty'] == true) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Future.delayed(const Duration(milliseconds: 350), () {
+              if (mounted) {
+                _scrollToLoyaltySection();
+              }
+            });
+          });
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -406,6 +433,11 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
       }).toList();
     }
 
+    // Load loyalty details
+    _loyaltyCardEnabled = restaurant['loyalty_card_enabled'] as bool? ?? false;
+    _loyaltyRequiredRedemptionsController.text = restaurant['loyalty_required_redemptions']?.toString() ?? '';
+    _loyaltyRewardDescriptionController.text = restaurant['loyalty_reward_description'] as String? ?? '';
+
     // Load opening hours
     if (restaurant['opening_hours'] != null) {
       final hours = restaurant['opening_hours'] as Map<String, dynamic>;
@@ -467,6 +499,11 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
         'price_range': _priceRange,
         'menu_type': _menuType,
         if (openingHours.isNotEmpty) 'opening_hours': openingHours,
+        'loyalty_card_enabled': _loyaltyCardEnabled,
+        if (_loyaltyCardEnabled) ...{
+          'loyalty_required_redemptions': int.tryParse(_loyaltyRequiredRedemptionsController.text.trim()) ?? 0,
+          'loyalty_reward_description': _loyaltyRewardDescriptionController.text.trim(),
+        }
       };
 
       if (_websiteController.text.trim().isNotEmpty) {
@@ -1320,8 +1357,67 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                         );
                       }).toList(),
                     ),
-                    const SizedBox(height: AppSpacing.xl),
-                    _buildSectionHeader('Restaurant Gallery', Icons.image_rounded),
+                     const SizedBox(height: AppSpacing.xl),
+                     _buildSectionHeader('Loyalty Card Program', Icons.card_membership_rounded, key: _loyaltySectionKey),
+                     const SizedBox(height: AppSpacing.md),
+                     _buildFormSection(
+                       children: [
+                         SwitchListTile(
+                           title: Text(
+                             'Enable Loyalty Card',
+                             style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold),
+                           ),
+                           subtitle: Text(
+                             'Reward repeat customers after a set number of redemptions',
+                             style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
+                           ),
+                           value: _loyaltyCardEnabled,
+                           activeTrackColor: AppColors.merchantIndigo,
+                           contentPadding: EdgeInsets.zero,
+                           onChanged: (bool value) {
+                             setState(() {
+                               _loyaltyCardEnabled = value;
+                             });
+                           },
+                         ),
+                         if (_loyaltyCardEnabled) ...[
+                           const SizedBox(height: AppSpacing.lg),
+                           AppTextField(
+                             controller: _loyaltyRequiredRedemptionsController,
+                             label: 'Required Redemptions *',
+                             hintText: 'e.g. 10',
+                             keyboardType: TextInputType.number,
+                             validator: (value) {
+                               if (!_loyaltyCardEnabled) return null;
+                               if (value == null || value.trim().isEmpty) {
+                                 return 'Required redemptions is required';
+                               }
+                               final val = int.tryParse(value.trim());
+                               if (val == null || val < 1) {
+                                 return 'Must be a number greater than 0';
+                               }
+                               return null;
+                             },
+                           ),
+                           const SizedBox(height: AppSpacing.lg),
+                           AppTextField(
+                             controller: _loyaltyRewardDescriptionController,
+                             label: 'Reward Description *',
+                             hintText: 'e.g. Free main course or dessert',
+                             validator: (value) {
+                               if (!_loyaltyCardEnabled) return null;
+                               if (value == null || value.trim().isEmpty) {
+                                 return 'Reward description is required';
+                               }
+                               return null;
+                             },
+                           ),
+                         ],
+                       ],
+                     ),
+
+                     const SizedBox(height: AppSpacing.xl),
+                     _buildSectionHeader('Restaurant Gallery', Icons.image_rounded),
                     const SizedBox(height: AppSpacing.md),
                     _buildFormSection(
                       children: [
@@ -1390,8 +1486,9 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
     );
   }
 
-  Widget _buildSectionHeader(String title, IconData icon) {
+  Widget _buildSectionHeader(String title, IconData icon, {Key? key}) {
     return Row(
+      key: key,
       children: [
         Icon(icon, size: 20, color: AppColors.merchantIndigo),
         const SizedBox(width: 8),

@@ -37,6 +37,7 @@ import '../pages/merchant/merchant_redemption_history_page.dart';
 import '../pages/merchant/qr_scanner_page.dart';
 import '../pages/merchant/merchant_calendar_page.dart';
 import '../pages/merchant/merchant_reminders_page.dart';
+import '../pages/merchant/merchant_loyalty_page.dart';
 
 // User Bookings
 import '../pages/bookings/bookings_page.dart';
@@ -370,6 +371,11 @@ class AppPages {
     GetPage(
       name: AppRoutes.merchantReminders,
       page: () => const MerchantRemindersPage(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.merchantLoyalty,
+      page: () => const MerchantLoyaltyPage(),
       transition: Transition.rightToLeft,
     ),
   ];

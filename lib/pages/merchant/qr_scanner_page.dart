@@ -4,6 +4,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../../services/qr_scanner_service.dart';
 import '../../services/merchant_service.dart';
 import '../../models/deal_redemption.dart';
+import '../../models/restaurant.dart';
 import '../../widgets/generic_bottom_sheet.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import '../../widgets/app_scaffold.dart';
@@ -312,7 +313,11 @@ class _QRScannerPageState extends State<QRScannerPage> {
       final success = response['success'] ?? false;
       if (success) {
         final dealRedemption = DealRedemption.fromJson(response);
-        _showSuccessDialog(dealRedemption);
+        final loyaltyData = response['loyalty'] != null
+            ? LoyaltyProgram.fromJson(response['loyalty'] as Map<String, dynamic>)
+            : null;
+        final loyaltyRewardJustEarned = response['loyalty_reward_just_earned'] as bool? ?? false;
+        _showSuccessDialog(dealRedemption, loyaltyData, loyaltyRewardJustEarned);
       } else {
         final reason = _cleanErrorMessage(response['reason'] ?? 'Redemption failed');
         _showErrorDialog(reason, null);
@@ -378,13 +383,18 @@ class _QRScannerPageState extends State<QRScannerPage> {
     );
   }
 
-  void _showSuccessDialog(DealRedemption dealRedemption) {
+  void _showSuccessDialog(
+    DealRedemption dealRedemption, [
+    LoyaltyProgram? loyalty,
+    bool loyaltyRewardJustEarned = false,
+  ]) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.65,
+          maxHeight: MediaQuery.of(context).size.height * 
+              (loyalty != null && loyalty.loyaltyCardEnabled ? 0.85 : 0.65),
         ),
         child: GenericBottomSheet(
           title: 'Deal Redeemed!',
@@ -465,6 +475,142 @@ class _QRScannerPageState extends State<QRScannerPage> {
                     ],
                   ),
                 ),
+                if (loyalty != null && loyalty.loyaltyCardEnabled) ...[
+                  const SizedBox(height: 16),
+                  if (loyaltyRewardJustEarned)
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      decoration: BoxDecoration(
+                        gradient: AppColors.orangeGradient,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: AppShadows.medium,
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.emoji_events_rounded,
+                            color: Colors.white,
+                            size: 40,
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '🎉 Reward Earned!',
+                                  style: AppTypography.title.copyWith(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Customer completed their card! Reward details:',
+                                  style: AppTypography.caption.copyWith(
+                                    color: Colors.white.withValues(alpha: 0.9),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  loyalty.rewardDescription,
+                                  style: AppTypography.title.copyWith(
+                                    color: Colors.white,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.cardBorder),
+                        boxShadow: AppShadows.low,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.card_membership_rounded,
+                                color: AppColors.primaryPurple,
+                                size: 24,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Loyalty Program Progress',
+                                style: AppTypography.title.copyWith(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                loyalty.progressText.isNotEmpty
+                                    ? loyalty.progressText
+                                    : 'Progress: ${loyalty.completedRedemptions} of ${loyalty.requiredRedemptions}',
+                                style: AppTypography.bodySmall.copyWith(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                '${loyalty.remainingRedemptions} left',
+                                style: AppTypography.bodySmall.copyWith(
+                                  color: AppColors.primaryPurple,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: loyalty.progressPercentage / 100.0,
+                              minHeight: 8,
+                              backgroundColor: AppColors.cardBorder,
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                AppColors.primaryPurple,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            'Reward: ${loyalty.rewardDescription}',
+                            style: AppTypography.bodySmall.copyWith(
+                              color: AppColors.textSecondary,
+                              fontSize: 12,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
                 const SizedBox(height: 24),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),

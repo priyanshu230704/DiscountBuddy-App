@@ -57,8 +57,6 @@ class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
   Map<String, dynamic> _get(String key, [Map<String, dynamic>? fallback]) =>
       (_data[key] as Map<String, dynamic>?) ?? (fallback ?? {});
 
-  int _getInt(String key, [int def = 0]) => (_data[key] as num?)?.toInt() ?? def;
-  double _getDouble(String key, [double def = 0]) => (_data[key] as num?)?.toDouble() ?? def;
   List _getList(String key) => (_data[key] as List?) ?? [];
 
   @override

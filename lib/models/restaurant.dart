@@ -22,12 +22,7 @@ class Cuisine {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'slug': slug,
-      'icon': icon,
-    };
+    return {'id': id, 'name': name, 'slug': slug, 'icon': icon};
   }
 }
 
@@ -55,12 +50,7 @@ class RestaurantCategory {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'slug': slug,
-      'icon': icon,
-    };
+    return {'id': id, 'name': name, 'slug': slug, 'icon': icon};
   }
 }
 
@@ -281,6 +271,10 @@ class Restaurant {
   final List<RestaurantCategory> categories;
   final bool verified;
   final bool isFeatured;
+  final bool loyaltyCardEnabled;
+  final int? loyaltyRequiredRedemptions;
+  final String? loyaltyRewardDescription;
+  final LoyaltyProgram? loyaltyProgram;
 
   Restaurant({
     required this.id,
@@ -319,26 +313,33 @@ class Restaurant {
     this.categories = const [],
     this.verified = false,
     this.isFeatured = false,
+    this.loyaltyCardEnabled = false,
+    this.loyaltyRequiredRedemptions,
+    this.loyaltyRewardDescription,
+    this.loyaltyProgram,
   });
 
   factory Restaurant.fromJson(Map<String, dynamic> json) {
-    final List<Discount> activeDeals = (json['active_deals'] as List<dynamic>?)
+    final List<Discount> activeDeals =
+        (json['active_deals'] as List<dynamic>?)
             ?.map((e) => Discount.fromJson(e as Map<String, dynamic>))
             .toList() ??
         <Discount>[];
 
-    final List<Cuisine> cuisines = (json['cuisines'] as List<dynamic>?)
+    final List<Cuisine> cuisines =
+        (json['cuisines'] as List<dynamic>?)
             ?.whereType<Map<String, dynamic>>()
             .map((e) => Cuisine.fromJson(e))
             .toList() ??
         <Cuisine>[];
-        
-    final List<RestaurantCategory> categories = (json['categories'] as List<dynamic>?)
+
+    final List<RestaurantCategory> categories =
+        (json['categories'] as List<dynamic>?)
             ?.whereType<Map<String, dynamic>>()
             .map((e) => RestaurantCategory.fromJson(e))
             .toList() ??
         <RestaurantCategory>[];
-        
+
     final List<dynamic> rawImagesList = json['images'] as List<dynamic>? ?? [];
     List<RestaurantImage> parsedRestaurantImages = [];
     List<String> plainStringImages = [];
@@ -361,7 +362,7 @@ class Restaurant {
         .map((e) => e.imageUrl)
         .where((u) => u.isNotEmpty)
         .toList();
-        
+
     if (sortedImageUrls.isEmpty && plainStringImages.isNotEmpty) {
       sortedImageUrls.addAll(plainStringImages);
     } else {
@@ -372,8 +373,8 @@ class Restaurant {
       }
     }
 
-    final String primaryImageUrl = sortedImageUrls.isNotEmpty 
-        ? sortedImageUrls.first 
+    final String primaryImageUrl = sortedImageUrls.isNotEmpty
+        ? sortedImageUrls.first
         : (json['imageUrl'] as String? ?? json['image'] as String? ?? '');
 
     return Restaurant(
@@ -384,7 +385,9 @@ class Restaurant {
       address: json['address'] as String? ?? '',
       latitude: _parseDouble(json['latitude']) ?? 0.0,
       longitude: _parseDouble(json['longitude']) ?? 0.0,
-      cuisine: json['cuisine'] as String? ?? (cuisines.isNotEmpty ? cuisines.map((e) => e.name).join(' • ') : ''),
+      cuisine:
+          json['cuisine'] as String? ??
+          (cuisines.isNotEmpty ? cuisines.map((e) => e.name).join(' • ') : ''),
       occupancy: json['occupancy'] as String?,
       rating:
           _parseDouble(json['average_rating']) ??
@@ -399,7 +402,9 @@ class Restaurant {
       activeDeals: activeDeals,
       discount: json['discount'] != null
           ? Discount.fromJson(json['discount'] as Map<String, dynamic>)
-          : (activeDeals.isNotEmpty ? activeDeals.first : Discount(type: 'none', description: '')),
+          : (activeDeals.isNotEmpty
+                ? activeDeals.first
+                : Discount(type: 'none', description: '')),
       images: sortedImageUrls,
       phoneNumber: json['phoneNumber'] as String? ?? '',
       website: json['website'] as String? ?? '',
@@ -424,9 +429,9 @@ class Restaurant {
           [],
       facilities:
           (json['facilities'] as List<dynamic>?)
-               ?.whereType<Map<String, dynamic>>()
-               .map((e) => Facility.fromJson(e))
-               .toList() ??
+              ?.whereType<Map<String, dynamic>>()
+              .map((e) => Facility.fromJson(e))
+              .toList() ??
           [],
       slug: json['slug'] as String?,
       leaderboardScore: _parseDouble(json['leaderboard_score']) ?? 0.0,
@@ -435,6 +440,24 @@ class Restaurant {
       categories: categories,
       verified: json['verified'] as bool? ?? false,
       isFeatured: json['is_featured'] as bool? ?? false,
+      loyaltyCardEnabled: (json['loyalty_card_enabled'] as bool? ?? false) ||
+          (json['loyalty_program'] != null &&
+              json['loyalty_program']['loyalty_card_enabled'] == true),
+      loyaltyRequiredRedemptions:
+          _parseInt(json['loyalty_required_redemptions']) ??
+          (json['loyalty_program'] != null
+              ? _parseInt(json['loyalty_program']['required_redemptions'])
+              : null),
+      loyaltyRewardDescription:
+          (json['loyalty_reward_description'] as String?) ??
+          (json['loyalty_program'] != null
+              ? json['loyalty_program']['reward_description'] as String?
+              : null),
+      loyaltyProgram: json['loyalty_program'] != null
+          ? LoyaltyProgram.fromJson(
+              json['loyalty_program'] as Map<String, dynamic>,
+            )
+          : null,
     );
   }
 
@@ -468,6 +491,12 @@ class Restaurant {
       'images': restaurantImages.map((e) => e.toJson()).toList(),
       'verified': verified,
       'is_featured': isFeatured,
+      'loyalty_card_enabled': loyaltyCardEnabled,
+      if (loyaltyRequiredRedemptions != null)
+        'loyalty_required_redemptions': loyaltyRequiredRedemptions,
+      if (loyaltyRewardDescription != null)
+        'loyalty_reward_description': loyaltyRewardDescription,
+      if (loyaltyProgram != null) 'loyalty_program': loyaltyProgram!.toJson(),
       if (slug != null) 'slug': slug,
     };
   }
@@ -507,6 +536,10 @@ class Restaurant {
     List<RestaurantImage>? restaurantImages,
     bool? verified,
     bool? isFeatured,
+    bool? loyaltyCardEnabled,
+    int? loyaltyRequiredRedemptions,
+    String? loyaltyRewardDescription,
+    LoyaltyProgram? loyaltyProgram,
   }) {
     return Restaurant(
       id: id ?? this.id,
@@ -545,6 +578,12 @@ class Restaurant {
       cuisines: cuisines,
       verified: verified ?? this.verified,
       isFeatured: isFeatured ?? this.isFeatured,
+      loyaltyCardEnabled: loyaltyCardEnabled ?? this.loyaltyCardEnabled,
+      loyaltyRequiredRedemptions:
+          loyaltyRequiredRedemptions ?? this.loyaltyRequiredRedemptions,
+      loyaltyRewardDescription:
+          loyaltyRewardDescription ?? this.loyaltyRewardDescription,
+      loyaltyProgram: loyaltyProgram ?? this.loyaltyProgram,
     );
   }
 }
@@ -619,7 +658,7 @@ class Discount {
     final title = json['title'] as String?;
     final description = json['description'] as String? ?? '';
     final shortDescription = json['short_description'] as String?;
-    final minimumSpendAmount = 
+    final minimumSpendAmount =
         _parseDouble(json['minimumSpendAmount']) ??
         _parseDouble(json['minimum_spend_amount']) ??
         _parseDouble(json['minimum_spend']);
@@ -657,6 +696,86 @@ class Discount {
       'validDays': validDays,
       'validTime': validTime,
       'minimumSpendAmount': minimumSpendAmount,
+    };
+  }
+}
+
+/// Loyalty Program Model
+class LoyaltyProgram {
+  final bool loyaltyCardEnabled;
+  final int requiredRedemptions;
+  final String rewardDescription;
+  final int completedRedemptions;
+  final int remainingRedemptions;
+  final String progressText;
+  final double progressPercentage;
+  final bool isRewardEligible;
+  final String? rewardEligibleAt;
+  final int totalLifetimeRedemptions;
+  final int rewardsEarned;
+  final String? lastRewardClaimedAt;
+
+  LoyaltyProgram({
+    required this.loyaltyCardEnabled,
+    required this.requiredRedemptions,
+    required this.rewardDescription,
+    required this.completedRedemptions,
+    required this.remainingRedemptions,
+    required this.progressText,
+    required this.progressPercentage,
+    required this.isRewardEligible,
+    this.rewardEligibleAt,
+    required this.totalLifetimeRedemptions,
+    required this.rewardsEarned,
+    this.lastRewardClaimedAt,
+  });
+
+  factory LoyaltyProgram.fromJson(Map<String, dynamic> json) {
+    return LoyaltyProgram(
+      loyaltyCardEnabled: json['loyalty_card_enabled'] as bool? ?? false,
+      requiredRedemptions: json['required_redemptions'] as int? ?? 0,
+      rewardDescription: json['reward_description'] as String? ?? '',
+      completedRedemptions: json['completed_redemptions'] as int? ?? 0,
+      remainingRedemptions: json['remaining_redemptions'] as int? ?? 0,
+      progressText: json['progress_text'] as String? ?? '',
+      progressPercentage: _parseDouble(json['progress_percentage']) ?? 0.0,
+      isRewardEligible: json['is_reward_eligible'] as bool? ?? false,
+      rewardEligibleAt: json['reward_eligible_at'] as String?,
+      totalLifetimeRedemptions: json['total_lifetime_redemptions'] as int? ?? 0,
+      rewardsEarned: json['rewards_earned'] as int? ?? 0,
+      lastRewardClaimedAt: json['last_reward_claimed_at'] as String?,
+    );
+  }
+
+  factory LoyaltyProgram.empty() {
+    return LoyaltyProgram(
+      loyaltyCardEnabled: false,
+      requiredRedemptions: 0,
+      rewardDescription: '',
+      completedRedemptions: 0,
+      remainingRedemptions: 0,
+      progressText: '',
+      progressPercentage: 0.0,
+      isRewardEligible: false,
+      totalLifetimeRedemptions: 0,
+      rewardsEarned: 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'loyalty_card_enabled': loyaltyCardEnabled,
+      'required_redemptions': requiredRedemptions,
+      'reward_description': rewardDescription,
+      'completed_redemptions': completedRedemptions,
+      'remaining_redemptions': remainingRedemptions,
+      'progress_text': progressText,
+      'progress_percentage': progressPercentage,
+      'is_reward_eligible': isRewardEligible,
+      'reward_eligible_at': rewardEligibleAt,
+      'total_lifetime_redemptions': totalLifetimeRedemptions,
+      'rewards_earned': rewardsEarned,
+      'last_reward_claimed_at': lastRewardClaimedAt,
     };
   }
 }

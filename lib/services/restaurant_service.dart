@@ -675,6 +675,15 @@ class RestaurantService {
       menuType: json['menu_type'] as String? ?? 'structured',
       restaurantImages: restaurantImages,
       activeDeals: activeDeals,
+      loyaltyCardEnabled: (json['loyalty_card_enabled'] as bool? ?? false) ||
+          (json['loyalty_program'] != null && json['loyalty_program']['loyalty_card_enabled'] == true),
+      loyaltyRequiredRedemptions: _parseInt(json['loyalty_required_redemptions']) ??
+          (json['loyalty_program'] != null ? _parseInt(json['loyalty_program']['required_redemptions']) : null),
+      loyaltyRewardDescription: (json['loyalty_reward_description'] as String?) ??
+          (json['loyalty_program'] != null ? json['loyalty_program']['reward_description'] as String? : null),
+      loyaltyProgram: json['loyalty_program'] != null
+          ? LoyaltyProgram.fromJson(json['loyalty_program'] as Map<String, dynamic>)
+          : null,
     );
   }
 
@@ -899,6 +908,15 @@ class RestaurantService {
       menuType: json['menu_type'] as String? ?? 'structured',
       restaurantImages: restaurantImages,
       cuisines: cuisinesList.map((e) => Cuisine.fromJson(e)).toList(),
+      loyaltyCardEnabled: (json['loyalty_card_enabled'] as bool? ?? false) ||
+          (json['loyalty_program'] != null && json['loyalty_program']['loyalty_card_enabled'] == true),
+      loyaltyRequiredRedemptions: _parseInt(json['loyalty_required_redemptions']) ??
+          (json['loyalty_program'] != null ? _parseInt(json['loyalty_program']['required_redemptions']) : null),
+      loyaltyRewardDescription: (json['loyalty_reward_description'] as String?) ??
+          (json['loyalty_program'] != null ? json['loyalty_program']['reward_description'] as String? : null),
+      loyaltyProgram: json['loyalty_program'] != null
+          ? LoyaltyProgram.fromJson(json['loyalty_program'] as Map<String, dynamic>)
+          : null,
     );
   }
 
@@ -990,6 +1008,27 @@ class RestaurantService {
         requiresBooking: true,
       ),
     ];
+  }
+
+  /// List all loyalty cards for the current user
+  Future<List<Map<String, dynamic>>> getLoyaltyCards() async {
+    try {
+      final response = await _apiService.get(ApiEndpoints.loyaltyCards);
+      final List<dynamic> results = _extractList(response);
+      return results.map((item) => item as Map<String, dynamic>).toList();
+    } catch (e) {
+      throw Exception('Failed to load loyalty cards: ${e.toString()}');
+    }
+  }
+
+  /// Get loyalty card details for a specific restaurant
+  Future<Map<String, dynamic>> getLoyaltyCardForRestaurant(int restaurantId) async {
+    try {
+      final response = await _apiService.get(ApiEndpoints.loyaltyCardDetail(restaurantId));
+      return response;
+    } catch (e) {
+      throw Exception('Failed to load loyalty card details: ${e.toString()}');
+    }
   }
 
   /// Helper to safely parse a value to double

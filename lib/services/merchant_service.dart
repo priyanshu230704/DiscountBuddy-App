@@ -963,5 +963,86 @@ class MerchantService {
       throw Exception('Failed to load analytics: ${e.toString()}');
     }
   }
+
+  /// List customers participating in the restaurant's loyalty program
+  Future<Map<String, dynamic>> getLoyaltyCustomers({
+    required int restaurantId,
+    bool? eligibleOnly,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+      final queryParams = <String, String>{
+        'restaurant_id': restaurantId.toString(),
+      };
+      if (eligibleOnly != null) {
+        queryParams['eligible_only'] = eligibleOnly.toString();
+      }
+
+      final response = await _apiService.get(
+        ApiEndpoints.merchantLoyaltyCustomers,
+        queryParameters: queryParams,
+        type: ApiType.merchant,
+      );
+      return response;
+    } catch (e) {
+      throw Exception('Failed to load loyalty customers: ${e.toString()}');
+    }
+  }
+
+  /// Mark customer's loyalty reward as claimed
+  Future<Map<String, dynamic>> claimLoyaltyReward({
+    required int restaurantId,
+    required int userId,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+      final response = await _apiService.post(
+        ApiEndpoints.merchantClaimReward,
+        body: {
+          'restaurant_id': restaurantId,
+          'user_id': userId,
+        },
+        type: ApiType.merchant,
+      );
+      return response;
+    } catch (e) {
+      throw Exception('Failed to claim loyalty reward: ${e.toString()}');
+    }
+  }
+
+  /// Retrieve loyalty redemption and claim history
+  Future<List<Map<String, dynamic>>> getLoyaltyHistory({
+    required int restaurantId,
+    int? userId,
+    String? status,
+  }) async {
+    try {
+      await _ensureAuthenticated();
+      final queryParams = <String, String>{
+        'restaurant_id': restaurantId.toString(),
+      };
+      if (userId != null) {
+        queryParams['user_id'] = userId.toString();
+      }
+      if (status != null) {
+        queryParams['status'] = status;
+      }
+
+      final response = await _apiService.get(
+        ApiEndpoints.merchantLoyaltyHistory,
+        queryParameters: queryParams,
+        type: ApiType.merchant,
+      );
+
+      if (response['records'] != null && response['records'] is List) {
+        return (response['records'] as List).cast<Map<String, dynamic>>();
+      } else if (response['results'] != null && response['results'] is List) {
+        return (response['results'] as List).cast<Map<String, dynamic>>();
+      }
+      return [];
+    } catch (e) {
+      throw Exception('Failed to load loyalty history: ${e.toString()}');
+    }
+  }
 }
 

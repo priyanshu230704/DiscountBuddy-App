@@ -4,6 +4,7 @@ import 'dart:io';
 import '../services/auth_service.dart';
 import '../services/firebase_messaging_service.dart';
 import '../models/api_user.dart';
+import '../models/image_variants.dart';
 
 /// Authentication provider for managing auth state (Singleton)
 class AuthProvider extends ChangeNotifier {
@@ -544,8 +545,12 @@ class AuthProvider extends ChangeNotifier {
       _user.value = updatedUser;
       if (avatarUrl != null && _user.value != null) {
         _user.value = _user.value!.copyWith(
-          profile: _user.value!.profile?.copyWith(profilePicture: avatarUrl) ?? 
-                  UserProfile(role: _userRole.value, profilePicture: avatarUrl),
+          profile: _user.value!.profile?.copyWith(
+            profilePicture: ImageVariants(medium: avatarUrl, large: avatarUrl),
+          ) ?? UserProfile(
+            role: _userRole.value,
+            profilePicture: ImageVariants(medium: avatarUrl, large: avatarUrl),
+          ),
         );
       }
       

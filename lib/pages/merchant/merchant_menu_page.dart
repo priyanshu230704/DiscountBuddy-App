@@ -1380,8 +1380,13 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
         item['image_url'] ??
         item['thumbnail_url'] ??
         item['photo'];
-    if (v == null || v.toString().isEmpty) return null;
-    return v.toString();
+    if (v == null) return null;
+    if (v is Map) {
+      return v['medium']?.toString() ?? v['large']?.toString();
+    }
+    final s = v.toString();
+    if (s.isEmpty) return null;
+    return s;
   }
 
   Widget _buildMenuTag(String label, Color color) {

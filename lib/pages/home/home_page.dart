@@ -8,6 +8,7 @@ import 'package:geolocator/geolocator.dart'
 import 'package:get/get.dart';
 
 import '../../models/restaurant.dart';
+import '../../models/image_variants.dart';
 import '../../services/restaurant_service.dart';
 import '../../services/location_service.dart';
 import '../../services/app_config_service.dart';
@@ -758,10 +759,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         children: [
           CarouselSlider(
             items: _banners.map((banner) {
+              final imageMap = banner['image'];
+              String? url;
+              if (imageMap is Map<String, dynamic>) {
+                url = ImageVariants.fromJson(imageMap).urlFor(fullScreen: false);
+              } else if (imageMap is String) {
+                url = imageMap;
+              }
               return _GradientBanner(
                 title: banner['title'] as String? ?? '',
                 subtitle: banner['body'] as String? ?? '',
-                imageUrl: banner['image'] as String?,
+                imageUrl: url,
               );
             }).toList(),
             options: CarouselOptions(

@@ -696,7 +696,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             },
                             itemBuilder: (context, index) {
                               return CachedNetworkImage(
-                                imageUrl: images[index].imageUrl,
+                                imageUrl: images[index].image.urlFor(fullScreen: true) ?? '',
                                 fit: BoxFit.cover,
                                 placeholder: (context, url) => Container(
                                   color: AppColors.textDisabled,
@@ -2221,7 +2221,7 @@ class MenuPopup extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Image.network(
-                menuImages[index].imageUrl,
+                menuImages[index].image.urlFor(fullScreen: true) ?? '',
                 fit: BoxFit.cover,
                 loadingBuilder: (context, child, loadingProgress) {
                   if (loadingProgress == null) return child;

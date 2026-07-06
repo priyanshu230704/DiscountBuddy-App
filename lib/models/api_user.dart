@@ -1,3 +1,5 @@
+import 'image_variants.dart';
+
 /// API User model matching the API response structure
 class ApiUser {
   final int id;
@@ -35,7 +37,7 @@ class ApiUser {
   }
 
   /// Convenience getter for profile picture
-  String? get profilePicture => profile?.profilePicture;
+  String? get profilePicture => profile?.profilePicture.urlFor(fullScreen: false);
 
   factory ApiUser.fromJson(Map<String, dynamic> json) {
     return ApiUser(
@@ -76,20 +78,20 @@ class UserProfile {
 
   final String role;
   final String? phoneNumber;
-  final String? profilePicture;
+  final ImageVariants profilePicture;
   final bool marketingOptIn;
 
   UserProfile({
     required this.role,
     this.phoneNumber,
-    this.profilePicture,
+    this.profilePicture = const ImageVariants(),
     this.marketingOptIn = true,
   });
 
   UserProfile copyWith({
     String? role,
     String? phoneNumber,
-    String? profilePicture,
+    ImageVariants? profilePicture,
     bool? marketingOptIn,
   }) {
     return UserProfile(
@@ -101,10 +103,20 @@ class UserProfile {
   }
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
+    final rawProfilePicture = json['profile_picture'];
+    ImageVariants parsedProfilePic;
+    if (rawProfilePicture is Map<String, dynamic>) {
+      parsedProfilePic = ImageVariants.fromJson(rawProfilePicture);
+    } else if (rawProfilePicture is String) {
+      parsedProfilePic = ImageVariants(medium: rawProfilePicture, large: rawProfilePicture);
+    } else {
+      parsedProfilePic = const ImageVariants();
+    }
+
     return UserProfile(
       role: json['role'] as String? ?? 'customer',
       phoneNumber: json['phone_number'] as String?,
-      profilePicture: json['profile_picture'] as String?,
+      profilePicture: parsedProfilePic,
       marketingOptIn: json['marketing_opt_in'] as bool? ?? true,
     );
   }
@@ -113,7 +125,7 @@ class UserProfile {
     return {
       'role': role,
       'phone_number': phoneNumber,
-      'profile_picture': profilePicture,
+      'profile_picture': profilePicture.toJson(),
       'marketing_opt_in': marketingOptIn,
     };
   }

@@ -1,3 +1,5 @@
+import 'image_variants.dart';
+
 /// Cuisine model
 class Cuisine {
   final int id;
@@ -175,8 +177,7 @@ class Facility {
 /// Restaurant Image model
 class RestaurantImage {
   final int id;
-  final String image;
-  final String imageUrl;
+  final ImageVariants image;
   final String altText;
   final String imageType; // gallery, menu
   final bool isPrimary;
@@ -185,18 +186,29 @@ class RestaurantImage {
   RestaurantImage({
     required this.id,
     required this.image,
-    required this.imageUrl,
     this.altText = '',
     this.imageType = 'gallery',
     this.isPrimary = false,
     this.order = 0,
   });
 
+  // Convenience getter for backward compatibility
+  String get imageUrl => image.urlFor(fullScreen: false) ?? '';
+
   factory RestaurantImage.fromJson(Map<String, dynamic> json) {
+    final rawImage = json['image'] ?? json['image_url'];
+    ImageVariants parsedImage;
+    if (rawImage is Map<String, dynamic>) {
+      parsedImage = ImageVariants.fromJson(rawImage);
+    } else if (rawImage is String) {
+      parsedImage = ImageVariants(medium: rawImage, large: rawImage);
+    } else {
+      parsedImage = const ImageVariants();
+    }
+
     return RestaurantImage(
       id: json['id'] as int? ?? 0,
-      image: json['image'] as String? ?? json['image_url'] as String? ?? '',
-      imageUrl: json['image_url'] as String? ?? json['image'] as String? ?? '',
+      image: parsedImage,
       altText: json['alt_text'] as String? ?? '',
       imageType: json['image_type'] as String? ?? 'gallery',
       isPrimary: json['is_primary'] as bool? ?? false,
@@ -207,8 +219,7 @@ class RestaurantImage {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'image': image,
-      'image_url': imageUrl,
+      'image': image.toJson(),
       'alt_text': altText,
       'image_type': imageType,
       'is_primary': isPrimary,
@@ -216,6 +227,7 @@ class RestaurantImage {
     };
   }
 }
+
 
 /// Helper to safely parse a value to double
 double? _parseDouble(dynamic value) {
@@ -359,7 +371,7 @@ class Restaurant {
     });
 
     final List<String> sortedImageUrls = parsedRestaurantImages
-        .map((e) => e.imageUrl)
+        .map((e) => e.image.urlFor(fullScreen: true) ?? '')
         .where((u) => u.isNotEmpty)
         .toList();
 

@@ -699,7 +699,6 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
               return model.RestaurantImage(
                 id: img.id,
                 image: img.image,
-                imageUrl: img.imageUrl,
                 altText: img.altText,
                 imageType: img.imageType,
                 isPrimary: img.id == imageId,

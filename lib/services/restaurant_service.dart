@@ -550,9 +550,7 @@ class RestaurantService {
             orElse: () => restaurantImages.first,
           );
         }
-        imageUrl = bestImage.imageUrl.isNotEmpty
-            ? bestImage.imageUrl
-            : bestImage.image;
+        imageUrl = bestImage.imageUrl;
       }
     }
 
@@ -797,10 +795,10 @@ class RestaurantService {
       imageUrl = '';
     }
 
-    // Get all image URLs
-    final imageUrls = imagesJson
-        .where((img) => img is Map<String, dynamic> && img['image_url'] != null)
-        .map((img) => (img as Map<String, dynamic>)['image_url'] as String)
+    // Get all image URLs (preferring large size for details gallery)
+    final imageUrls = restaurantImages
+        .map((img) => img.image.urlFor(fullScreen: true) ?? '')
+        .where((url) => url.isNotEmpty)
         .toList();
 
     // Get all cuisines from cuisines array and join them

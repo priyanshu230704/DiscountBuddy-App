@@ -550,6 +550,12 @@ class _BookingCard extends StatelessWidget {
       date = DateTimeUtils.tryParseBookingInstant(dateStr);
     }
 
+    DateTime? arrivedDate;
+    final arrivedTimeStr = booking['arrived_time'];
+    if (arrivedTimeStr != null) {
+      arrivedDate = DateTimeUtils.tryParseBookingInstant(arrivedTimeStr);
+    }
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -592,7 +598,9 @@ class _BookingCard extends StatelessWidget {
                 const SizedBox(height: 12),
                 _DetailRow(
                   label: 'Arrival Time',
-                  value: booking['arrived_time'].toString(),
+                  value: arrivedDate != null
+                      ? DateTimeUtils.formatDateTime24h(arrivedDate)
+                      : booking['arrived_time'].toString(),
                 ),
               ],
               if (status.toLowerCase() == 'no_show') ...[

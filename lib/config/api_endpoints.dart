@@ -101,6 +101,7 @@ class ApiEndpoints {
   static String loyaltyCardDetail(int id) => '/restaurants/loyalty-cards/$id';
   static const String merchantLoyaltyCustomers = '/restaurants/loyalty/customers';
   static const String merchantClaimReward = '/merchants/loyalty/claim';
+  static const String merchantClaimLoyaltyReward = '/restaurants/loyalty/claim-reward';
   static const String merchantLoyaltyHistory = '/restaurants/loyalty/history';
   static String loyaltyVisit(String slug) => '/restaurants/$slug/loyalty_visit';
 

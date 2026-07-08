@@ -102,13 +102,20 @@ class _LoyaltyCardsScreenState extends State<LoyaltyCardsScreen> {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.lg),
-                    if (card.rewardQrCode != null && card.rewardQrCode!.isNotEmpty) ...[
+                    if (card.rewardQrCode != null &&
+                        card.rewardQrCode!.isNotEmpty) ...[
                       ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: Image.network(
                           card.rewardQrCode!
-                              .replaceAll('http://127.0.0.1:8000', Environment.baseUrl)
-                              .replaceAll('http://localhost:8000', Environment.baseUrl),
+                              .replaceAll(
+                                'http://127.0.0.1:8000',
+                                Environment.baseUrl,
+                              )
+                              .replaceAll(
+                                'http://localhost:8000',
+                                Environment.baseUrl,
+                              ),
                           width: 180,
                           height: 180,
                           fit: BoxFit.contain,
@@ -119,32 +126,41 @@ class _LoyaltyCardsScreenState extends State<LoyaltyCardsScreen> {
                               height: 180,
                               child: Center(
                                 child: CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    AppColors.primary,
+                                  ),
                                 ),
                               ),
                             );
                           },
-                          errorBuilder: (context, error, stackTrace) => Container(
-                            width: 180,
-                            height: 180,
-                            color: AppColors.cardBorder,
-                            child: const Center(
-                              child: Icon(
-                                Icons.qr_code_2_rounded,
-                                size: 64,
-                                color: AppColors.textDisabled,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
+                                width: 180,
+                                height: 180,
+                                color: AppColors.cardBorder,
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.qr_code_2_rounded,
+                                    size: 64,
+                                    color: AppColors.textDisabled,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
                         ),
                       ),
                       const SizedBox(height: AppSpacing.lg),
                     ],
-                    if (card.rewardCode != null && card.rewardCode!.isNotEmpty) ...[
+                    if (card.rewardCode != null &&
+                        card.rewardCode!.isNotEmpty) ...[
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
-                          color: AppColors.cardBorder.withAlpha((0.4 * 255).toInt()),
+                          color: AppColors.cardBorder.withAlpha(
+                            (0.4 * 255).toInt(),
+                          ),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
@@ -159,15 +175,6 @@ class _LoyaltyCardsScreenState extends State<LoyaltyCardsScreen> {
                       ),
                       const SizedBox(height: AppSpacing.lg),
                     ],
-                    const Text(
-                      'Ask the merchant to scan this QR code to claim your free reward.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
-                        height: 1.4,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
                   ],
                 ),
               ),
@@ -180,7 +187,9 @@ class _LoyaltyCardsScreenState extends State<LoyaltyCardsScreen> {
                     backgroundColor: AppColors.textPrimary,
                     foregroundColor: AppColors.white,
                     minimumSize: const Size.fromHeight(52),
-                    shape: const RoundedRectangleBorder(borderRadius: AppRadius.button),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: AppRadius.button,
+                    ),
                   ),
                   child: Text(
                     'Done',
@@ -212,8 +221,8 @@ class _LoyaltyCardsScreenState extends State<LoyaltyCardsScreen> {
             shape: BoxShape.circle,
             color: isStamped
                 ? (isEligible
-                    ? AppColors.success.withAlpha((0.1 * 255).toInt())
-                    : AppColors.primary.withAlpha((0.1 * 255).toInt()))
+                      ? AppColors.success.withAlpha((0.1 * 255).toInt())
+                      : AppColors.primary.withAlpha((0.1 * 255).toInt()))
                 : Colors.transparent,
             border: Border.all(
               color: isStamped
@@ -267,17 +276,25 @@ class _LoyaltyCardsScreenState extends State<LoyaltyCardsScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 48),
+              const Icon(
+                Icons.error_outline_rounded,
+                color: AppColors.error,
+                size: 48,
+              ),
               const SizedBox(height: AppSpacing.md),
               Text(
                 'Something went wrong',
-                style: AppTypography.subtitle.copyWith(fontWeight: FontWeight.bold),
+                style: AppTypography.subtitle.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
                 _errorMessage!,
                 textAlign: TextAlign.center,
-                style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.textSecondary,
+                ),
               ),
               const SizedBox(height: AppSpacing.lg),
               ElevatedButton(
@@ -367,7 +384,8 @@ class _LoyaltyCardsScreenState extends State<LoyaltyCardsScreen> {
                 Get.toNamed(
                   AppRoutes.restaurantDetails,
                   arguments: {
-                    'slug': card.restaurant.slug ?? card.restaurant.id.toString(),
+                    'slug':
+                        card.restaurant.slug ?? card.restaurant.id.toString(),
                   },
                 );
               },
@@ -386,18 +404,25 @@ class _LoyaltyCardsScreenState extends State<LoyaltyCardsScreen> {
                                   width: 60,
                                   height: 60,
                                   fit: BoxFit.cover,
-                                  errorWidget: (context, url, error) => Container(
-                                    width: 60,
-                                    height: 60,
-                                    color: AppColors.divider,
-                                    child: const Icon(Icons.storefront, color: AppColors.textDisabled),
-                                  ),
+                                  errorWidget: (context, url, error) =>
+                                      Container(
+                                        width: 60,
+                                        height: 60,
+                                        color: AppColors.divider,
+                                        child: const Icon(
+                                          Icons.storefront,
+                                          color: AppColors.textDisabled,
+                                        ),
+                                      ),
                                 )
                               : Container(
                                   width: 60,
                                   height: 60,
                                   color: AppColors.divider,
-                                  child: const Icon(Icons.storefront, color: AppColors.textDisabled),
+                                  child: const Icon(
+                                    Icons.storefront,
+                                    color: AppColors.textDisabled,
+                                  ),
                                 ),
                         ),
                         const SizedBox(width: AppSpacing.lg),
@@ -417,10 +442,19 @@ class _LoyaltyCardsScreenState extends State<LoyaltyCardsScreen> {
                               ),
                               const SizedBox(height: AppSpacing.xs),
                               Text(
-                                isEligible ? 'Free Reward Unlocked!' : card.restaurant.loyaltyRewardDescription ?? 'Collect Stamps',
+                                isEligible
+                                    ? 'Free Reward Unlocked!'
+                                    : card
+                                              .restaurant
+                                              .loyaltyRewardDescription ??
+                                          'Collect Stamps',
                                 style: AppTypography.bodySmall.copyWith(
-                                  color: isEligible ? AppColors.success : AppColors.textSecondary,
-                                  fontWeight: isEligible ? FontWeight.bold : FontWeight.normal,
+                                  color: isEligible
+                                      ? AppColors.success
+                                      : AppColors.textSecondary,
+                                  fontWeight: isEligible
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
@@ -433,19 +467,25 @@ class _LoyaltyCardsScreenState extends State<LoyaltyCardsScreen> {
                     const SizedBox(height: AppSpacing.lg),
                     const Divider(height: 1, color: AppColors.divider),
                     const SizedBox(height: AppSpacing.lg),
-                    
+
                     // Visual Coffee Card Style Stamps Grid
                     _buildStampGrid(completed, requiredVal, isEligible),
-                    
+
                     const SizedBox(height: AppSpacing.md),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          isEligible ? 'Reward Unlocked!' : '$completed of $requiredVal stamps collected',
+                          isEligible
+                              ? 'Reward Unlocked!'
+                              : '$completed of $requiredVal stamps collected',
                           style: AppTypography.caption.copyWith(
-                            color: isEligible ? AppColors.success : AppColors.textSecondary,
-                            fontWeight: isEligible ? FontWeight.bold : FontWeight.normal,
+                            color: isEligible
+                                ? AppColors.success
+                                : AppColors.textSecondary,
+                            fontWeight: isEligible
+                                ? FontWeight.bold
+                                : FontWeight.normal,
                           ),
                         ),
                         if (!isEligible)
@@ -468,7 +508,11 @@ class _LoyaltyCardsScreenState extends State<LoyaltyCardsScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.qr_code_rounded, color: Colors.white, size: 18),
+                              const Icon(
+                                Icons.qr_code_rounded,
+                                color: Colors.white,
+                                size: 18,
+                              ),
                               const SizedBox(width: 8),
                               Text(
                                 'Show Reward QR',

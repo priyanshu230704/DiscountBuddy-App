@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import 'package:discount_buddy/widgets/app_scaffold.dart';
-import 'package:discount_buddy/widgets/app_gradient_button.dart';
 import '../../services/merchant_service.dart';
 import '../../routes/app_routes.dart';
 import 'dart:async';
@@ -140,20 +138,6 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage>
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Get.toNamed(
-          AppRoutes.merchantCalendar,
-          arguments: {'restaurantId': _selectedRestaurantId},
-        ),
-        elevation: 4,
-        // shape: CircleBorder(
-        //   side: BorderSide(
-        //     color: Colors.black.withValues(alpha: 0.05),
-        //     width: 1,
-        //   ),
-        // ),
-        child: _buildCalendarIcon(),
-      ),
       body: RefreshIndicator(
         onRefresh: _fetchDashboardData,
         color: AppColors.primary,
@@ -224,82 +208,6 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage>
     return SliverToBoxAdapter(
       child: Column(
         children: [
-          // Analytics CTA
-          GestureDetector(
-            onTap: () => Get.toNamed(
-              AppRoutes.merchantAnalytics,
-              arguments: {
-                'restaurantId': _selectedRestaurantId,
-                'restaurantName': _selectedRestaurantName,
-              },
-            ),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.xl,
-                vertical: AppSpacing.lg,
-              ),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF4F46E5), Color(0xFF7C3AED)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF4F46E5).withValues(alpha: 0.35),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(
-                      Icons.analytics_rounded,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'View Full Analytics',
-                          style: AppTypography.title.copyWith(
-                            color: Colors.white,
-                            fontSize: 16,
-                          ),
-                        ),
-                        Text(
-                          'Funnel, revenue, heatmap, insights & more',
-                          style: AppTypography.caption.copyWith(
-                            color: Colors.white.withValues(alpha: 0.75),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    color: Colors.white,
-                    size: 16,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
           Row(
             children: [
               Expanded(
@@ -393,79 +301,50 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage>
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          GestureDetector(
-            onTap: () async {
-              await Get.toNamed(
-                AppRoutes.merchantLoyalty,
-                arguments: {'restaurantId': _selectedRestaurantId},
-              );
-              _fetchDashboardData();
-            },
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.xl,
-                vertical: AppSpacing.lg,
-              ),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF8B5CF6), Color(0xFFD946EF)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+          Row(
+            children: [
+              Expanded(
+                child: AspectRatio(
+                  aspectRatio: 1.1,
+                  child: _ModernStatCard(
+                    label: 'View Analytics',
+                    value: 'Insights',
+                    isLoading: _isLoading,
+                    icon: Icons.analytics_rounded,
+                    color: const Color(0xFF10B981), // Emerald
+                    backgroundColor: const Color(0xFFECFDF5),
+                    onTap: () => Get.toNamed(
+                      AppRoutes.merchantAnalytics,
+                      arguments: {
+                        'restaurantId': _selectedRestaurantId,
+                        'restaurantName': _selectedRestaurantName,
+                      },
+                    ),
+                  ),
                 ),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.35),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
               ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: const Icon(
-                      Icons.card_membership_rounded,
-                      color: Colors.white,
-                      size: 24,
-                    ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: AspectRatio(
+                  aspectRatio: 1.1,
+                  child: _ModernStatCard(
+                    label: 'Loyalty Program',
+                    value: 'Customers',
+                    isLoading: _isLoading,
+                    icon: Icons.card_membership_rounded,
+                    color: const Color(0xFFEC4899), // Pink
+                    backgroundColor: const Color(0xFFFDF2F8),
+                    onTap: () async {
+                      await Get.toNamed(
+                        AppRoutes.merchantLoyalty,
+                        arguments: {'restaurantId': _selectedRestaurantId},
+                      );
+                      _fetchDashboardData();
+                    },
                   ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Loyalty Customers & Program',
-                          style: AppTypography.title.copyWith(
-                            color: Colors.white,
-                            fontSize: 16,
-                          ),
-                        ),
-                        Text(
-                          'Track redemptions, grant rewards & view history',
-                          style: AppTypography.caption.copyWith(
-                            color: Colors.white.withValues(alpha: 0.75),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    color: Colors.white,
-                    size: 16,
-                  ),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
         ],
       ),
@@ -684,38 +563,66 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage>
                 },
               ),
             ),
-            const SizedBox(width: 12),
-            // Scanner Button - Refined Design
-            Material(
-              color: Colors.transparent,
-              child: AppGradientButton(
-                onPressed: () async {
-                  await Get.toNamed(
-                    AppRoutes.qrScanner,
-                    arguments: {'initialRestaurantId': _selectedRestaurantId},
-                  );
-                  _fetchDashboardData();
-                },
-                width: 78,
-                height: 38,
-                borderRadius: BorderRadius.circular(12),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.qr_code_scanner_rounded,
-                      color: Colors.white,
-                      size: 18,
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      'Scan',
-                      style: AppTypography.button.copyWith(
-                        color: Colors.white,
-                        fontSize: 12,
-                      ),
+            const SizedBox(width: 10),
+            // Calendar Button
+            GestureDetector(
+              onTap: () => Get.toNamed(
+                AppRoutes.merchantCalendar,
+                arguments: {'restaurantId': _selectedRestaurantId},
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(9),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                  border: Border.all(
+                    color: Colors.black.withValues(alpha: 0.04),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
                     ),
                   ],
+                ),
+                child: const Icon(
+                  Icons.calendar_today_outlined,
+                  size: 21,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            // Scanner Button - Refined Design
+            GestureDetector(
+              onTap: () async {
+                await Get.toNamed(
+                  AppRoutes.qrScanner,
+                  arguments: {'initialRestaurantId': _selectedRestaurantId},
+                );
+                _fetchDashboardData();
+              },
+              child: Container(
+                padding: const EdgeInsets.all(9),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                  border: Border.all(
+                    color: Colors.black.withValues(alpha: 0.04),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.qr_code_scanner_rounded,
+                  size: 21,
+                  color: AppColors.textPrimary,
                 ),
               ),
             ),
@@ -830,57 +737,57 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage>
       child: Container(
         margin: const EdgeInsets.fromLTRB(
           AppSpacing.xl,
-          AppSpacing.md,
+          AppSpacing.xs, // small top margin
           AppSpacing.xl,
           0,
         ),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10), // compact padding
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16), // matching border radius for compact card
+          border: Border.all(
+            color: const Color(0xFF6366F1).withValues(alpha: 0.12),
+            width: 1.2,
           ),
-          borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF6366F1).withValues(alpha: 0.25),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+              color: const Color(0xFF6366F1).withValues(alpha: 0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
             ),
           ],
         ),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
+              padding: const EdgeInsets.all(7), // compact icon container
+              decoration: const BoxDecoration(
+                color: Color(0xFFEEF2FF),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.notifications_active_rounded,
-                color: Colors.white,
-                size: 24,
+                color: Color(0xFF6366F1),
+                size: 16, // smaller icon
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Manager Reminder (1 Hour Before)',
-                    style: AppTypography.bodyLarge.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+                    'Manager Reminders',
+                    style: AppTypography.bodySmall.copyWith(
+                      color: const Color(0xFF1E1B4B),
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(height: 2),
                   Text(
-                    'View upcoming countdown alerts for bookings.',
+                    'Upcoming countdown alerts for bookings.',
                     style: AppTypography.caption.copyWith(
-                      color: Colors.white.withValues(alpha: 0.85),
+                      color: AppColors.textSecondary,
+                      fontSize: 10.5,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -889,8 +796,8 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage>
             ),
             const Icon(
               Icons.chevron_right_rounded,
-              color: Colors.white,
-              size: 24,
+              color: Color(0xFF6366F1),
+              size: 20, // smaller chevron
             ),
           ],
         ),
@@ -921,35 +828,6 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage>
     );
   }
 
-  Widget _buildCalendarIcon() {
-    final dayStr = DateTime.now().day.toString();
-    const svgString = '''
-<svg viewBox="0 0 497 497" xmlns="http://www.w3.org/2000/svg"><g><g><path d="m16.567 397.6v66.267c0 18.299 14.834 33.133 33.133 33.133h397.6c18.299 0 33.132-14.834 33.132-33.133v-66.267z" fill="#b5dbff"/><path d="m457.433 397.6v66.268c0 18.298-14.834 33.132-33.132 33.132h23c18.299 0 33.132-14.834 33.132-33.132v-66.268z" fill="#97d0ff"/><path d="m16.567 132.533v298.2c0 18.298 14.834 33.132 33.132 33.132h397.601c18.299 0 33.132-14.834 33.132-33.132v-298.2z" fill="#edf5ff"/><path d="m457.433 132.533v298.2c0 18.298-14.834 33.132-33.132 33.132h23c18.299 0 33.132-14.834 33.132-33.132v-298.2z" fill="#d5e8fe"/><path d="m480.433 149.1v-82.834c0-18.299-14.834-33.132-33.132-33.132h-397.601c-18.299 0-33.132 14.834-33.132 33.132v82.834z" fill="#ff435b"/><g><path d="m115.967 73.767h-16.567c-4.142 0-7.5-3.358-7.5-7.5s3.358-7.5 7.5-7.5h16.567c4.142 0 7.5 3.358 7.5 7.5s-3.358 7.5-7.5 7.5z" fill="#e3374e"/></g><g><path d="m165.667 73.767h-16.567c-4.142 0-7.5-3.358-7.5-7.5s3.358-7.5 7.5-7.5h16.566c4.142 0 7.5 3.358 7.5 7.5s-3.357 7.5-7.499 7.5z" fill="#e3374e"/></g><g><path d="m347.9 73.767h-16.566c-4.142 0-7.5-3.358-7.5-7.5s3.358-7.5 7.5-7.5h16.566c4.142 0 7.5 3.358 7.5 7.5s-3.358 7.5-7.5 7.5z" fill="#e3374e"/></g><g><path d="m397.6 73.767h-16.567c-4.142 0-7.5-3.358-7.5-7.5s3.358-7.5 7.5-7.5h16.567c4.142 0 7.5 3.358 7.5 7.5s-3.358 7.5-7.5 7.5z" fill="#e3374e"/></g><path d="m115.967 66.267c0 9.149 7.417 16.567 16.567 16.567s16.567-7.417 16.567-16.567v-49.7c-.001-9.15-7.418-16.567-16.568-16.567-9.149 0-16.567 7.417-16.567 16.567v49.7z" fill="#596c76"/><path d="m347.9 66.267c0 9.149 7.417 16.567 16.567 16.567s16.567-7.417 16.567-16.567v-49.7c0-9.15-7.417-16.567-16.567-16.567s-16.567 7.417-16.567 16.567z" fill="#596c76"/><g fill="#e3374e"><path d="m447.3 33.133h-23c18.299 0 33.132 14.834 33.132 33.132v82.835h23v-82.834c.001-18.299-14.833-33.133-33.132-33.133z"/><path d="m16.567 108.467h463.866v15h-463.866z"/></g></g></g></svg>
-''';
-
-    return SizedBox(
-      width: 44,
-      height: 44,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          SvgPicture.string(svgString, width: 44, height: 44),
-          Padding(
-            padding: const EdgeInsets.only(top: 5.5),
-            child: Text(
-              dayStr,
-              style: const TextStyle(
-                color: Color(0xFF596C76),
-                fontSize: 15.0,
-                fontWeight: FontWeight.w800,
-                height: 1.0,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _OccupancySegment extends StatelessWidget {
@@ -1093,8 +971,9 @@ class _ModernStatCard extends StatelessWidget {
                                 child: Text(
                                   value,
                                   style: AppTypography.headline.copyWith(
-                                    fontSize: 22,
+                                    fontSize: (double.tryParse(value) == null) ? 18 : 22,
                                     color: valueColor ?? AppColors.textDarkest,
+                                    letterSpacing: (double.tryParse(value) == null) ? -0.2 : -0.5,
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -1164,8 +1043,9 @@ class _ModernStatCard extends StatelessWidget {
                           child: Text(
                             value,
                             style: AppTypography.headline.copyWith(
-                              fontSize: 18,
+                              fontSize: (double.tryParse(value) == null) ? 15 : 18,
                               color: valueColor ?? AppColors.textDarkest,
+                              letterSpacing: (double.tryParse(value) == null) ? -0.2 : -0.5,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),

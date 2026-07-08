@@ -4,6 +4,7 @@ import 'package:discount_buddy/design/app_design.dart';
 import 'package:discount_buddy/widgets/app_scaffold.dart';
 import 'package:discount_buddy/components/app_app_bar.dart';
 import 'package:discount_buddy/services/merchant_service.dart';
+import 'package:discount_buddy/utils/date_time_utils.dart';
 
 class MerchantCalendarPage extends StatefulWidget {
   final int? restaurantId;
@@ -15,7 +16,6 @@ class MerchantCalendarPage extends StatefulWidget {
 
 class _MerchantCalendarPageState extends State<MerchantCalendarPage> {
   final MerchantService _merchantService = MerchantService();
-  String _selectedTab = 'Month'; // 'Day', 'Week', 'Month'
   DateTime _selectedDate = DateTime.now();
   List<Map<String, dynamic>> _bookings = [];
   bool _isLoading = true;
@@ -76,75 +76,16 @@ class _MerchantCalendarPageState extends State<MerchantCalendarPage> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: AppColors.merchantBlue))
-          : Column(
-              children: [
-                _buildViewToggle(),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-                    child: Column(
-                      children: [
-                        if (_selectedTab == 'Month') _buildMonthView(),
-                        if (_selectedTab == 'Week') _buildWeekView(),
-                        if (_selectedTab == 'Day') _buildDayView(),
-                        const SizedBox(height: 24),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-    );
-  }
-
-  Widget _buildViewToggle() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
-      ),
-      child: Row(
-        children: [
-          _buildToggleItem('Day'),
-          _buildToggleItem('Week'),
-          _buildToggleItem('Month'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildToggleItem(String tab) {
-    final isSelected = _selectedTab == tab;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _selectedTab = tab;
-          });
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            gradient: isSelected ? AppColors.purpleGradient : null,
-            color: isSelected ? null : Colors.transparent,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Center(
-            child: Text(
-              tab,
-              style: AppTypography.bodySmall.copyWith(
-                color: isSelected ? Colors.white : AppColors.textSecondary,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+          : SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+              child: Column(
+                children: [
+                  _buildMonthView(),
+                  const SizedBox(height: 24),
+                ],
               ),
             ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -388,353 +329,6 @@ class _MerchantCalendarPageState extends State<MerchantCalendarPage> {
     );
   }
 
-  // ==================== WEEK VIEW ====================
-  Widget _buildWeekView() {
-    // Find the start of the week (Monday)
-    final int weekday = _selectedDate.weekday;
-    final DateTime startOfWeek = _selectedDate.subtract(Duration(days: weekday - 1));
-    final List<DateTime> weekDays = List.generate(7, (i) => startOfWeek.add(Duration(days: i)));
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.chevron_left_rounded, size: 28),
-              onPressed: () {
-                setState(() {
-                  _selectedDate = _selectedDate.subtract(const Duration(days: 7));
-                });
-              },
-            ),
-            Text(
-              'Week of ${_getMonthName(startOfWeek.month)} ${startOfWeek.day}',
-              style: AppTypography.title.copyWith(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            IconButton(
-              icon: const Icon(Icons.chevron_right_rounded, size: 28),
-              onPressed: () {
-                setState(() {
-                  _selectedDate = _selectedDate.add(const Duration(days: 7));
-                });
-              },
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        // Week Days List
-        ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: 7,
-          separatorBuilder: (context, index) => const SizedBox(height: 12),
-          itemBuilder: (context, index) {
-            final day = weekDays[index];
-            final bookings = _getBookingsForDay(day);
-            final isSelected = _isSameDay(day, _selectedDate);
-
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  _selectedDate = day;
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: isSelected ? Colors.purple.withValues(alpha: 0.03) : Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: isSelected ? AppColors.primaryPurple : AppColors.cardBorder,
-                    width: isSelected ? 1.5 : 1,
-                  ),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Date indicator column
-                    Container(
-                      width: 45,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isSelected ? AppColors.primaryPurple : const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            _getWeekdayShort(day.weekday),
-                            style: TextStyle(
-                              color: isSelected ? Colors.white : AppColors.textSecondary,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            day.day.toString(),
-                            style: TextStyle(
-                              color: isSelected ? Colors.white : AppColors.textPrimary,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    // Bookings lists
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${bookings.length} Reservation${bookings.length == 1 ? '' : 's'}',
-                            style: AppTypography.bodySmall.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: bookings.isNotEmpty ? AppColors.textPrimary : AppColors.textSecondary,
-                            ),
-                          ),
-                          if (bookings.isNotEmpty) ...[
-                            const SizedBox(height: 8),
-                            Column(
-                              children: bookings.take(2).map((b) {
-                                final timeStr = _getBookingTime(b['booking_date']);
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 4.0),
-                                  child: Row(
-                                    children: [
-                                      Text(
-                                        timeStr,
-                                        style: AppTypography.caption.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.merchantBlue,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        child: Text(
-                                          '${b['contact_name']} (${b['number_of_guests']} Guests)',
-                                          style: AppTypography.caption.copyWith(
-                                            color: AppColors.textPrimary,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                            if (bookings.length > 2)
-                              Text(
-                                '+ ${bookings.length - 2} more',
-                                style: AppTypography.caption.copyWith(
-                                  color: AppColors.textSecondary,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      ],
-    );
-  }
-
-  // ==================== DAY VIEW ====================
-  Widget _buildDayView() {
-    final dayBookings = _getBookingsForDay(_selectedDate);
-
-    // Sort bookings by time
-    dayBookings.sort((a, b) {
-      final tA = DateTime.tryParse(a['booking_date'] ?? '') ?? DateTime(0);
-      final tB = DateTime.tryParse(b['booking_date'] ?? '') ?? DateTime(0);
-      return tA.compareTo(tB);
-    });
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.chevron_left_rounded, size: 28),
-              onPressed: () {
-                setState(() {
-                  _selectedDate = _selectedDate.subtract(const Duration(days: 1));
-                });
-              },
-            ),
-            Text(
-              '${_getWeekdayName(_selectedDate.weekday)}, ${_selectedDate.day} ${_getMonthName(_selectedDate.month)}',
-              style: AppTypography.title.copyWith(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            IconButton(
-              icon: const Icon(Icons.chevron_right_rounded, size: 28),
-              onPressed: () {
-                setState(() {
-                  _selectedDate = _selectedDate.add(const Duration(days: 1));
-                });
-              },
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        // Day Timeline
-        if (dayBookings.isNotEmpty)
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: dayBookings.length,
-            itemBuilder: (context, index) {
-              final b = dayBookings[index];
-              final timeStr = _getBookingTime(b['booking_date']);
-              final status = (b['status'] ?? 'pending').toString().toLowerCase();
-
-              Color statusColor;
-              if (status == 'confirmed') {
-                statusColor = AppColors.merchantBlue;
-              } else if (status == 'arrived') {
-                statusColor = AppColors.merchantTeal;
-              } else if (status == 'no_show') {
-                statusColor = AppColors.error;
-              } else {
-                statusColor = AppColors.merchantAmber;
-              }
-
-              return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                child: IntrinsicHeight(
-                  child: Row(
-                    children: [
-                      // Time indicator
-                      SizedBox(
-                        width: 75,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              timeStr,
-                              style: AppTypography.bodyLarge.copyWith(
-                                color: AppColors.textPrimary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              status.toUpperCase(),
-                              style: TextStyle(
-                                color: statusColor,
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Timeline vertical bar
-                      Container(
-                        width: 3,
-                        decoration: BoxDecoration(
-                          color: statusColor,
-                          borderRadius: BorderRadius.circular(1.5),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      // Booking Card
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.cardBorder),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                b['contact_name'] ?? 'Guest',
-                                style: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  Icon(Icons.group_outlined, size: 14, color: AppColors.textSecondary),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '${b['number_of_guests']} guests',
-                                    style: AppTypography.caption,
-                                  ),
-                                  if (b['restaurant_name'] != null) ...[
-                                    const SizedBox(width: 12),
-                                    Icon(Icons.storefront_outlined, size: 14, color: AppColors.textSecondary),
-                                    const SizedBox(width: 4),
-                                    Expanded(
-                                      child: Text(
-                                        b['restaurant_name'].toString(),
-                                        style: AppTypography.caption,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          )
-        else
-          Container(
-            padding: const EdgeInsets.all(40),
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.cardBorder),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.event_busy_rounded, size: 48, color: AppColors.textDisabled),
-                const SizedBox(height: 12),
-                Text(
-                  'No Bookings Today',
-                  style: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Enjoy the quiet day or select another date.',
-                  style: AppTypography.bodySmall,
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-      ],
-    );
-  }
-
   // ==================== SUB-WIDGETS & HELPERS ====================
   Widget _buildMetricCard({
     required IconData icon,
@@ -788,46 +382,49 @@ class _MerchantCalendarPageState extends State<MerchantCalendarPage> {
       statusColor = AppColors.merchantAmber;
     }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.cardBorder),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                customer,
-                style: AppTypography.body.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '$guests Guests • $timeStr',
-                style: AppTypography.caption,
-              ),
-            ],
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+    return GestureDetector(
+      onTap: () => _showBookingDetails(context, b),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.cardBorder),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  customer,
+                  style: AppTypography.body.copyWith(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '$guests Guests • $timeStr',
+                  style: AppTypography.caption,
+                ),
+              ],
             ),
-            child: Text(
-              status.toUpperCase(),
-              style: TextStyle(
-                color: statusColor,
-                fontSize: 9,
-                fontWeight: FontWeight.bold,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                status.toUpperCase(),
+                style: TextStyle(
+                  color: statusColor,
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -840,15 +437,7 @@ class _MerchantCalendarPageState extends State<MerchantCalendarPage> {
     return months[month - 1];
   }
 
-  String _getWeekdayShort(int weekday) {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    return days[weekday - 1];
-  }
 
-  String _getWeekdayName(int weekday) {
-    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    return days[weekday - 1];
-  }
 
   String _getBookingTime(String? dateStr) {
     if (dateStr == null) return 'N/A';
@@ -857,5 +446,148 @@ class _MerchantCalendarPageState extends State<MerchantCalendarPage> {
     final hour = parsed.hour.toString().padLeft(2, '0');
     final minute = parsed.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
+  }
+
+  void _showBookingDetails(BuildContext context, Map<String, dynamic> booking) {
+    final restaurant = booking['restaurant_name'] ?? 'Restaurant';
+    final customer = booking['contact_name']?.toString().isNotEmpty == true
+        ? booking['contact_name']
+        : 'Guest';
+    final phoneRaw = booking['contact_phone']?.toString().trim() ?? '';
+    final phone = phoneRaw.isEmpty ? 'Not provided' : phoneRaw;
+    final guests = booking['number_of_guests'] ?? 0;
+    final dateStr = booking['booking_date'];
+    final status = booking['status'] ?? 'pending';
+    final srRaw = booking['special_requests']?.toString().trim() ?? '';
+    final specialRequests = srRaw.isEmpty ? 'None' : srRaw;
+
+    DateTime? date;
+    if (dateStr != null) {
+      date = DateTimeUtils.tryParseBookingInstant(dateStr);
+    }
+
+    DateTime? arrivedDate;
+    final arrivedTimeStr = booking['arrived_time'];
+    if (arrivedTimeStr != null) {
+      arrivedDate = DateTimeUtils.tryParseBookingInstant(arrivedTimeStr);
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(
+          'Booking Details',
+          style: AppTypography.title.copyWith(fontWeight: FontWeight.bold),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _DetailRow(label: 'Customer', value: customer),
+              const SizedBox(height: 12),
+              _DetailRow(
+                label: 'Phone',
+                value: phone,
+                isLink: phone != 'Not provided',
+              ),
+              const SizedBox(height: 12),
+              _DetailRow(label: 'Restaurant', value: restaurant),
+              const SizedBox(height: 12),
+              _DetailRow(
+                label: 'Date & Time',
+                value: date != null
+                    ? DateTimeUtils.formatDateTime24h(date)
+                    : 'N/A',
+              ),
+              const SizedBox(height: 12),
+              _DetailRow(label: 'Guests', value: guests.toString()),
+              const SizedBox(height: 12),
+              _DetailRow(
+                label: 'Status',
+                value: _formatBookingStatusForDialog(status),
+              ),
+              if (status.toLowerCase() == 'arrived' &&
+                  booking['arrived_time'] != null) ...[
+                const SizedBox(height: 12),
+                _DetailRow(
+                  label: 'Arrival Time',
+                  value: arrivedDate != null
+                      ? DateTimeUtils.formatDateTime24h(arrivedDate)
+                      : booking['arrived_time'].toString(),
+                ),
+              ],
+              if (status.toLowerCase() == 'no_show') ...[
+                const SizedBox(height: 12),
+                _DetailRow(
+                  label: 'No-Show Reason',
+                  value: booking['no_show_reason'] ?? 'Not specified',
+                ),
+                if (booking['no_show_notes']?.toString().isNotEmpty ==
+                    true) ...[
+                  const SizedBox(height: 12),
+                  _DetailRow(
+                    label: 'Notes',
+                    value: booking['no_show_notes'].toString(),
+                  ),
+                ],
+              ],
+              const SizedBox(height: 12),
+              _DetailRow(label: 'Special requests', value: specialRequests),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+String _formatBookingStatusForDialog(dynamic raw) {
+  final t = (raw ?? 'pending').toString().trim().toLowerCase();
+  if (t.isEmpty) return 'Pending';
+  return '${t[0].toUpperCase()}${t.substring(1)}';
+}
+
+class _DetailRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool isLink;
+
+  const _DetailRow({
+    required this.label,
+    required this.value,
+    this.isLink = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTypography.caption.copyWith(
+            color: AppColors.textSecondary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: AppTypography.body.copyWith(
+            fontWeight: FontWeight.w600,
+            color: isLink ? AppColors.merchantBlue : AppColors.textPrimary,
+          ),
+        ),
+      ],
+    );
   }
 }

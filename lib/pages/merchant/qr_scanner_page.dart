@@ -138,19 +138,23 @@ class _QRScannerPageState extends State<QRScannerPage> {
     // Pause scanner to prevent multiple scans
     await _controller.stop();
 
-    // Validate QR format
+    if (QRScannerService.isValidLoyaltyRewardQRCode(qrData)) {
+      // Loyalty reward — go directly to claim (no bill/people modal needed)
+      if (mounted) _processLoyaltyRewardClaim(qrData: qrData);
+      return;
+    }
+
     if (!QRScannerService.isValidDealQRCode(qrData)) {
       if (mounted) {
         _showErrorDialog('Invalid QR code format', null);
       }
-      // Resume scanner after a delay
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) _controller.start();
       });
       return;
     }
 
-    // Show details modal to collect price and people count
+    // Deal QR — show price/people modal first
     if (mounted) {
       _showRedemptionDetailsModal(qrData: qrData);
     }
@@ -331,6 +335,39 @@ class _QRScannerPageState extends State<QRScannerPage> {
     }
   }
 
+  /// Claim a loyalty reward — no bill/people needed, just the QR or code.
+  Future<void> _processLoyaltyRewardClaim({
+    String? qrData,
+    String? rewardCode,
+  }) async {
+    assert(qrData != null || rewardCode != null);
+    setState(() => _isProcessing = true);
+    _showLoyaltyLoadingDialog();
+
+    try {
+      final response = qrData != null
+          ? await _merchantService.claimLoyaltyRewardByQR(qrData)
+          : await _merchantService.claimLoyaltyRewardByCode(rewardCode!);
+
+      if (!mounted) return;
+      Navigator.of(context).pop(); // Hide loading
+
+      final success = response['success'] ?? false;
+      if (success) {
+        _showLoyaltyRewardSuccessDialog(response);
+      } else {
+        final reason = _cleanErrorMessage(response['reason'] ?? 'Claim failed');
+        _showErrorDialog(reason, null);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.of(context).pop(); // Hide loading
+      _showErrorDialog(_cleanErrorMessage(e.toString()), null);
+    } finally {
+      setState(() => _isProcessing = false);
+    }
+  }
+
   String _cleanErrorMessage(String message) {
     // Remove common prefixes
     message = message.replaceFirst('Exception: Redemption failed: ', '');
@@ -373,6 +410,40 @@ class _QRScannerPageState extends State<QRScannerPage> {
     );
   }
 
+  void _showLoyaltyLoadingDialog() {
+    showModalBottomSheet(
+      context: context,
+      isDismissible: false,
+      enableDrag: false,
+      backgroundColor: Colors.transparent,
+      builder: (context) => GenericBottomSheet(
+        title: 'Processing',
+        showCloseButton: false,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 32),
+          child: Column(
+            children: [
+              const SizedBox(
+                height: 48,
+                width: 48,
+                child: CircularProgressIndicator(
+                  color: AppColors.primaryPurple,
+                  strokeWidth: 4,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'Claiming loyalty reward...',
+                style: AppTypography.title.copyWith(fontSize: 18, fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -383,11 +454,120 @@ class _QRScannerPageState extends State<QRScannerPage> {
     );
   }
 
+  void _showLoyaltyRewardSuccessDialog(Map<String, dynamic> response) {
+    final customerName = response['customer_name'] as String? ?? 'Customer';
+    final rewardDescription = response['reward_description'] as String? ?? 'Loyalty Reward';
+    final message = response['message'] as String?;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.55,
+        ),
+        child: GenericBottomSheet(
+          title: 'Reward Claimed!',
+          onClose: () {
+            Navigator.of(context).pop();
+            Navigator.of(context).pop();
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Padding(
+                padding: EdgeInsets.only(top: 8, bottom: 16),
+                child: Icon(
+                  Icons.card_giftcard_rounded,
+                  color: AppColors.primaryPurple,
+                  size: 64,
+                ),
+              ),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(AppSpacing.xl),
+                margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF7C3AED), Color(0xFF9F67FF)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '🎉 Reward Accepted',
+                      style: AppTypography.title.copyWith(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      customerName,
+                      style: AppTypography.body.copyWith(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      rewardDescription,
+                      style: AppTypography.body.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                      ),
+                    ),
+                    if (message != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        message,
+                        style: AppTypography.caption.copyWith(
+                          color: Colors.white.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                child: AppGradientButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop();
+                  },
+                  width: double.infinity,
+                  height: 56,
+                  child: Text(
+                    'Done',
+                    style: AppTypography.title.copyWith(color: AppColors.white, fontSize: 18, fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _showSuccessDialog(
     DealRedemption dealRedemption, [
     LoyaltyProgram? loyalty,
     bool loyaltyRewardJustEarned = false,
   ]) {
+    final isLoyaltyOnly = dealRedemption.isLoyaltyOnly || dealRedemption.deal == null;
+    final title = isLoyaltyOnly ? 'Loyalty Visit Recorded!' : 'Deal Redeemed!';
+    final displayRestaurantName = dealRedemption.deal?.restaurantName ?? dealRedemption.restaurantName;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -397,7 +577,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
               (loyalty != null && loyalty.loyaltyCardEnabled ? 0.85 : 0.65),
         ),
         child: GenericBottomSheet(
-          title: 'Deal Redeemed!',
+          title: title,
           onClose: () {
             Navigator.of(context).pop(); // Close sheet
             Navigator.of(context).pop(); // Go back to dashboard
@@ -428,7 +608,9 @@ class _QRScannerPageState extends State<QRScannerPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        dealRedemption.deal.title,
+                        isLoyaltyOnly
+                            ? 'Loyalty Stamp Added'
+                            : (dealRedemption.deal?.title ?? 'Deal'),
                         style: AppTypography.title.copyWith(fontSize: 18, fontWeight: FontWeight.w700),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -436,19 +618,19 @@ class _QRScannerPageState extends State<QRScannerPage> {
                       const SizedBox(height: 16),
                       _buildInfoRow(
                         'Restaurant',
-                        dealRedemption.deal.restaurantName,
+                        displayRestaurantName,
                       ),
                       _buildInfoRow(
                         'Total Bill',
                         '£${dealRedemption.price?.toStringAsFixed(2) ?? '0.00'}',
                       ),
-                      if (dealRedemption.deal.dealType == 'combo')
+                      if (!isLoyaltyOnly && dealRedemption.deal?.dealType == 'combo')
                         _buildInfoRow(
                           'Combo Price',
-                          '£${dealRedemption.deal.comboPrice ?? '0.00'}',
+                          '£${dealRedemption.deal?.comboPrice ?? '0.00'}',
                           valueColor: AppColors.merchantIndigo,
                         )
-                      else
+                      else if (!isLoyaltyOnly)
                         _buildInfoRow(
                           'Discount Saved',
                           '-£${dealRedemption.discountAmountSaved?.toStringAsFixed(2) ?? '0.00'}',
@@ -849,77 +1031,169 @@ class _QRScannerPageState extends State<QRScannerPage> {
   }
 
   void _showManualEntryDialog() {
-    final controller = TextEditingController();
+    final codeController = TextEditingController();
+    // 0 = Deal code, 1 = Loyalty reward code
+    int selectedType = 0;
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text(
-          'Enter Redemption Code',
-          style: AppTypography.title,
-        ),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          maxLength: 6,
-          style: AppTypography.title.copyWith(fontSize: 20, letterSpacing: 2, fontWeight: FontWeight.w700),
-          textAlign: TextAlign.center,
-          decoration: InputDecoration(
-            hintText: '000000',
-            hintStyle: AppTypography.body.copyWith(
-              color: AppColors.textDisabled, 
-              fontSize: 20, 
-              letterSpacing: 2
-            ),
-            filled: true,
-            fillColor: AppColors.background,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: AppColors.cardBorder),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: AppColors.cardBorder),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.merchantIndigo, width: 2),
-            ),
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          backgroundColor: AppColors.surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          title: Text(
+            'Enter Code',
+            style: AppTypography.title,
           ),
-        ),
-        actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(
-              'Cancel',
-              style: AppTypography.body.copyWith(
-                fontWeight: FontWeight.w700, 
-                color: AppColors.textSecondary
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Code type toggle
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.cardBorder),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setDialogState(() => selectedType = 0),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: selectedType == 0 ? AppColors.merchantIndigo : Colors.transparent,
+                            borderRadius: BorderRadius.circular(11),
+                          ),
+                          child: Text(
+                            'Deal',
+                            textAlign: TextAlign.center,
+                            style: AppTypography.bodySmall.copyWith(
+                              color: selectedType == 0 ? Colors.white : AppColors.textSecondary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setDialogState(() => selectedType = 1),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: selectedType == 1 ? AppColors.primaryPurple : Colors.transparent,
+                            borderRadius: BorderRadius.circular(11),
+                          ),
+                          child: Text(
+                            'Loyalty Reward',
+                            textAlign: TextAlign.center,
+                            style: AppTypography.bodySmall.copyWith(
+                              color: selectedType == 1 ? Colors.white : AppColors.textSecondary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: codeController,
+                keyboardType: TextInputType.number,
+                maxLength: 6,
+                style: AppTypography.title.copyWith(fontSize: 20, letterSpacing: 2, fontWeight: FontWeight.w700),
+                textAlign: TextAlign.center,
+                decoration: InputDecoration(
+                  hintText: '000000',
+                  hintStyle: AppTypography.body.copyWith(
+                    color: AppColors.textDisabled,
+                    fontSize: 20,
+                    letterSpacing: 2,
+                  ),
+                  filled: true,
+                  fillColor: AppColors.background,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(color: AppColors.cardBorder),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(color: AppColors.cardBorder),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide(
+                      color: selectedType == 1 ? AppColors.primaryPurple : AppColors.merchantIndigo,
+                      width: 2,
+                    ),
+                  ),
+                ),
+              ),
+              if (selectedType == 1) ...[
+                const SizedBox(height: 10),
+                Center(
+                  child: Text(
+                    'This is for user loyalty reward only',
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.primaryPurple,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(
+                'Cancel',
+                style: AppTypography.body.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textSecondary,
+                ),
               ),
             ),
-          ),
-          AppGradientButton(
-            onPressed: () {
-              final code = controller.text.trim();
-              if (code.length != 6) {
-                _showError('Code must be 6 digits');
-                return;
-              }
+            AppGradientButton(
+              onPressed: () {
+                final code = codeController.text.trim();
+                if (code.length != 6) {
+                  _showError('Code must be 6 digits');
+                  return;
+                }
 
-              Navigator.of(context).pop();
-              _showRedemptionDetailsModal(manualCode: code);
-            },
-            width: 120,
-            height: 48,
-            child: const Text('Next', style: TextStyle(fontWeight: FontWeight.w700)),
-          ),
-        ],
+                Navigator.of(dialogContext).pop();
+
+                if (selectedType == 1) {
+                  // Loyalty reward code — go directly to claim endpoint
+                  _processLoyaltyRewardClaim(rewardCode: code);
+                } else {
+                  // Deal redemption code — collect bill details first
+                  _showRedemptionDetailsModal(manualCode: code);
+                }
+              },
+              width: 120,
+              height: 48,
+              gradient: LinearGradient(
+                colors: selectedType == 1
+                    ? [const Color(0xFF7C3AED), const Color(0xFF9F67FF)]
+                    : [AppColors.merchantIndigo, const Color(0xFF4F46E5)],
+              ),
+              child: const Text('Next', style: TextStyle(fontWeight: FontWeight.w700)),
+            ),
+          ],
+        ),
       ),
     );
   }
+
 
   Widget _buildRestaurantFilter() {
     if (_restaurants.length <= 1) return const SizedBox.shrink();

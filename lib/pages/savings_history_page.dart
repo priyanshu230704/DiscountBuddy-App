@@ -102,7 +102,7 @@ class _SavingsCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  redemption.deal.restaurantName,
+                  redemption.restaurantName,
                   style: AppTypography.title.copyWith(fontSize: 18),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -182,7 +182,7 @@ class _RedemptionDetailModal extends StatelessWidget {
               child: Column(
                 children: [
                   Text(
-                    redemption.deal.restaurantName,
+                    redemption.restaurantName,
                     style: AppTypography.title.copyWith(fontSize: 22),
                   ),
                   const SizedBox(height: 4),
@@ -229,7 +229,7 @@ class _RedemptionDetailModal extends StatelessWidget {
                 Get.toNamed(
                   AppRoutes.restaurantDetails,
                   arguments: {
-                    'slug': redemption.deal.restaurantSlug,
+                    'slug': redemption.deal?.restaurantSlug ?? redemption.restaurantId.toString(),
                   },
                 );
               },

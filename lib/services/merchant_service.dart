@@ -734,6 +734,47 @@ class MerchantService {
     }
   }
 
+  /// Claim a loyalty reward using QR data
+  /// QR data format: `LOYALTYREWARD:<loyalty_id>:<reward_code>`
+  Future<Map<String, dynamic>> claimLoyaltyRewardByQR(String qrData) async {
+    try {
+      await _ensureAuthenticated();
+      final response = await _apiService.post(
+        ApiEndpoints.merchantClaimLoyaltyReward,
+        body: {'qr_data': qrData},
+        type: ApiType.merchant,
+      );
+      return response;
+    } catch (e) {
+      if (e is ApiException) {
+        throw Exception('Loyalty claim failed: ${e.message}');
+      }
+      throw Exception('Loyalty claim failed: ${e.toString()}');
+    }
+  }
+
+  /// Claim a loyalty reward using a manual 6-digit reward code
+  Future<Map<String, dynamic>> claimLoyaltyRewardByCode(
+    String rewardCode,
+  ) async {
+    try {
+      await _ensureAuthenticated();
+      final response = await _apiService.post(
+        ApiEndpoints.merchantClaimLoyaltyReward,
+        body: {'reward_code': rewardCode},
+        type: ApiType.merchant,
+      );
+      return response;
+    } catch (e) {
+      if (e is ApiException) {
+        throw Exception('Loyalty claim failed: ${e.message}');
+      }
+      throw Exception('Loyalty claim failed: ${e.toString()}');
+    }
+  }
+
+
+
   /// Update restaurant occupancy status
   Future<Map<String, dynamic>> updateOccupancy(int restaurantId, String occupancy) async {
     try {

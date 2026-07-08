@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:discount_buddy/config/environment.dart';
+import 'package:discount_buddy/design/app_spacing.dart';
+import 'package:discount_buddy/models/loyalty_card.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -697,7 +699,11 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             },
                             itemBuilder: (context, index) {
                               return CachedNetworkImage(
-                                imageUrl: images[index].image.urlFor(fullScreen: true) ?? '',
+                                imageUrl:
+                                    images[index].image.urlFor(
+                                      fullScreen: true,
+                                    ) ??
+                                    '',
                                 fit: BoxFit.cover,
                                 placeholder: (context, url) => Container(
                                   color: AppColors.textDisabled,
@@ -1242,13 +1248,19 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
             ),
 
           // Loyalty Card Section
-          if (restaurant.loyaltyCardEnabled && restaurant.loyaltyProgram != null)
+          if (restaurant.loyaltyCardEnabled &&
+              restaurant.loyaltyProgram != null)
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: _LoyaltyCardSection(
                   loyaltyProgram: restaurant.loyaltyProgram!,
                   isGuestMode: _authProvider.isGuestMode,
+                  restaurantName: restaurant.name,
+                  restaurantId: restaurant.id,
                 ),
               ),
             ),
@@ -1833,7 +1845,8 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                   },
                   height: 52,
                   child: Text(
-                    (!restaurant.activeDeals.any((d) => d.type != 'none') && restaurant.loyaltyCardEnabled)
+                    (!restaurant.activeDeals.any((d) => d.type != 'none') &&
+                            restaurant.loyaltyCardEnabled)
                         ? 'Collect Stamp'
                         : 'Redeem Offer',
                     style: AppTypography.body.copyWith(
@@ -2845,42 +2858,358 @@ class _AddReviewDialogState extends State<_AddReviewDialog> {
   }
 }
 
-class _LoyaltyCardSection extends StatelessWidget {
+class _LoyaltyCardSection extends StatefulWidget {
   final LoyaltyProgram loyaltyProgram;
   final bool isGuestMode;
+  final String restaurantName;
+  final String restaurantId;
 
   const _LoyaltyCardSection({
     required this.loyaltyProgram,
     required this.isGuestMode,
+    required this.restaurantName,
+    required this.restaurantId,
   });
 
   @override
+  State<_LoyaltyCardSection> createState() => _LoyaltyCardSectionState();
+}
+
+class _LoyaltyCardSectionState extends State<_LoyaltyCardSection> {
+  final RestaurantService _restaurantService = RestaurantService();
+  LoyaltyCard? _loyaltyCard;
+  bool _loadingCard = false;
+
+  void _showRewardQrDialog(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          if (_loyaltyCard == null && !_loadingCard && !widget.isGuestMode) {
+            _loadingCard = true;
+            _restaurantService
+                .getLoyaltyCards()
+                .then((cards) {
+                  final matchingCard = cards.firstWhereOrNull(
+                    (c) =>
+                        c.restaurant.id.toString() ==
+                        widget.restaurantId.toString(),
+                  );
+                  setModalState(() {
+                    _loyaltyCard = matchingCard;
+                    _loadingCard = false;
+                  });
+                })
+                .catchError((e) {
+                  setModalState(() {
+                    _loadingCard = false;
+                  });
+                  debugPrint('Error loading loyalty card: $e');
+                });
+          }
+
+          return GenericBottomSheet(
+            title: 'Claim Reward',
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    widget.restaurantName,
+                    style: AppTypography.body.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xxl),
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: AppShadows.card,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'REWARD UNLOCKED',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.primary,
+                            letterSpacing: 2.0,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        if (_loadingCard) ...[
+                          const SizedBox(
+                            width: 180,
+                            height: 180,
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  AppColors.primary,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+                        ] else if (_loyaltyCard != null) ...[
+                          if (_loyaltyCard!.rewardQrCode != null &&
+                              _loyaltyCard!.rewardQrCode!.isNotEmpty) ...[
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                _loyaltyCard!.rewardQrCode!
+                                    .replaceAll(
+                                      'http://127.0.0.1:8000',
+                                      Environment.baseUrl,
+                                    )
+                                    .replaceAll(
+                                      'http://localhost:8000',
+                                      Environment.baseUrl,
+                                    ),
+                                width: 180,
+                                height: 180,
+                                fit: BoxFit.contain,
+                                loadingBuilder:
+                                    (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return const SizedBox(
+                                        width: 180,
+                                        height: 180,
+                                        child: Center(
+                                          child: CircularProgressIndicator(
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                  AppColors.primary,
+                                                ),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Container(
+                                      width: 180,
+                                      height: 180,
+                                      color: AppColors.cardBorder,
+                                      child: const Center(
+                                        child: Icon(
+                                          Icons.qr_code_2_rounded,
+                                          size: 64,
+                                          color: AppColors.textDisabled,
+                                        ),
+                                      ),
+                                    ),
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                          ],
+                          if (_loyaltyCard!.rewardCode != null &&
+                              _loyaltyCard!.rewardCode!.isNotEmpty) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.cardBorder.withValues(
+                                  alpha: 0.4,
+                                ),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                _loyaltyCard!.rewardCode!,
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 4,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                          ],
+                        ] else ...[
+                          const SizedBox(
+                            width: 180,
+                            height: 180,
+                            child: Center(
+                              child: Text(
+                                'No active reward found.',
+                                style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xxxl),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.xxl,
+                    ),
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.textPrimary,
+                        foregroundColor: AppColors.white,
+                        minimumSize: const ui.Size(double.infinity, 52),
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: AppRadius.button,
+                        ),
+                      ),
+                      child: Text(
+                        'Done',
+                        style: AppTypography.body.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (!loyaltyProgram.loyaltyCardEnabled) return const SizedBox.shrink();
+    if (!widget.loyaltyProgram.loyaltyCardEnabled) {
+      return const SizedBox.shrink();
+    }
+    final isEligible = widget.loyaltyProgram.isRewardEligible;
+    final completed = widget.isGuestMode
+        ? 0
+        : widget.loyaltyProgram.completedRedemptions;
+    final requiredVal = widget.loyaltyProgram.requiredRedemptions;
 
-    final isEligible = loyaltyProgram.isRewardEligible;
-    final completed = isGuestMode ? 0 : loyaltyProgram.completedRedemptions;
-    final requiredVal = loyaltyProgram.requiredRedemptions;
-
-    final baseColor = isEligible ? const Color(0xFFF59E0B) : const Color(0xFF7C3AED);
+    if (isEligible) {
+      return Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFFBBF24), Color(0xFFF59E0B), Color(0xFFD97706)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFD97706).withValues(alpha: 0.3),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                // Gift Box Icon with Glow
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(
+                    Icons.card_giftcard_rounded,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                // Text Column
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Loyalty Reward Unlocked!',
+                        style: AppTypography.title.copyWith(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        widget.loyaltyProgram.rewardDescription,
+                        style: AppTypography.bodySmall.copyWith(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => _showRewardQrDialog(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: const Color(0xFFD97706),
+                  minimumSize: const ui.Size(double.infinity, 46),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  elevation: 0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.qr_code_rounded, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Show Reward QR',
+                      style: AppTypography.button.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFFD97706),
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
 
     return Container(
       decoration: BoxDecoration(
-        gradient: isEligible
-            ? const LinearGradient(
-                colors: [Color(0xFFFBBF24), Color(0xFFF59E0B), Color(0xFFD97706)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )
-            : const LinearGradient(
-                colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: baseColor.withValues(alpha: 0.25),
+            color: const Color(0xFF7C3AED).withValues(alpha: 0.25),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
@@ -2898,8 +3227,8 @@ class _LoyaltyCardSection extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  isEligible ? Icons.emoji_events_rounded : Icons.stars_rounded,
+                child: const Icon(
+                  Icons.stars_rounded,
                   color: Colors.white,
                   size: 24,
                 ),
@@ -2907,7 +3236,7 @@ class _LoyaltyCardSection extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  isEligible ? 'Loyalty Reward Unlocked!' : 'Loyalty Card Program',
+                  'Loyalty Card Program',
                   style: AppTypography.title.copyWith(
                     color: Colors.white,
                     fontSize: 18,
@@ -2915,22 +3244,6 @@ class _LoyaltyCardSection extends StatelessWidget {
                   ),
                 ),
               ),
-              if (isEligible)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    'REDEEMABLE',
-                    style: AppTypography.caption.copyWith(
-                      color: const Color(0xFFD97706),
-                      fontWeight: FontWeight.w900,
-                      fontSize: 9,
-                    ),
-                  ),
-                ),
             ],
           ),
           const SizedBox(height: 16),
@@ -2956,7 +3269,7 @@ class _LoyaltyCardSection extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    loyaltyProgram.rewardDescription,
+                    widget.loyaltyProgram.rewardDescription,
                     style: AppTypography.bodySmall.copyWith(
                       color: Colors.white,
                       fontSize: 13,
@@ -2969,154 +3282,48 @@ class _LoyaltyCardSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          if (isEligible) ...[
-            Container(
-              padding: const EdgeInsets.all(16),
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(height: 8),
-                  const Text(
-                    'REWARD UNLOCKED',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.primary,
-                      letterSpacing: 2.0,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  if (loyaltyProgram.rewardQrCode != null && loyaltyProgram.rewardQrCode!.isNotEmpty) ...[
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        loyaltyProgram.rewardQrCode!
-                            .replaceAll('http://127.0.0.1:8000', Environment.baseUrl)
-                            .replaceAll('http://localhost:8000', Environment.baseUrl),
-                        width: 160,
-                        height: 160,
-                        fit: BoxFit.contain,
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return const SizedBox(
-                            width: 160,
-                            height: 160,
-                            child: Center(
-                              child: CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                              ),
-                            ),
-                          );
-                        },
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            width: 160,
-                            height: 160,
-                            decoration: BoxDecoration(
-                              color: AppColors.cardBorder,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.qr_code_2_rounded,
-                                size: 54,
-                                color: AppColors.textDisabled,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  if (loyaltyProgram.rewardCode != null && loyaltyProgram.rewardCode!.isNotEmpty) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: AppColors.cardBorder.withValues(alpha: 0.4),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        loyaltyProgram.rewardCode!,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 4,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  const Text(
-                    'Ask the merchant to scan this QR code to claim your free reward.',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textSecondary,
-                      height: 1.4,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                ],
-              ),
-            ),
+          if (requiredVal > 0 && requiredVal <= 12) ...[
+            _buildStampGrid(completed, requiredVal, isEligible),
+            const SizedBox(height: 14),
           ] else ...[
-            if (requiredVal > 0 && requiredVal <= 12) ...[
-              _buildStampGrid(completed, requiredVal, isEligible),
-              const SizedBox(height: 14),
-            ] else ...[
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: LinearProgressIndicator(
-                  value: requiredVal > 0 ? (completed / requiredVal) : 0.0,
-                  backgroundColor: Colors.white.withValues(alpha: 0.2),
-                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                  minHeight: 8,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: LinearProgressIndicator(
+                value: requiredVal > 0 ? (completed / requiredVal) : 0.0,
+                backgroundColor: Colors.white.withValues(alpha: 0.2),
+                valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                minHeight: 8,
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                widget.isGuestMode
+                    ? 'Progress: 0 of $requiredVal completed'
+                    : widget.loyaltyProgram.progressText.isNotEmpty
+                    ? widget.loyaltyProgram.progressText
+                    : 'Progress: $completed of $requiredVal completed',
+                style: AppTypography.bodySmall.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
                 ),
               ),
-              const SizedBox(height: 8),
-            ],
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
+              if (!widget.isGuestMode)
                 Text(
-                  isGuestMode
-                      ? 'Progress: 0 of $requiredVal completed'
-                      : loyaltyProgram.progressText.isNotEmpty
-                          ? loyaltyProgram.progressText
-                          : 'Progress: $completed of $requiredVal completed',
+                  '${requiredVal - completed} left',
                   style: AppTypography.bodySmall.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 12,
+                    color: Colors.white.withValues(alpha: 0.8),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 11,
                   ),
                 ),
-                if (!isGuestMode)
-                  Text(
-                    '${requiredVal - completed} left',
-                    style: AppTypography.bodySmall.copyWith(
-                      color: Colors.white.withValues(alpha: 0.8),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 11,
-                    ),
-                  ),
-              ],
-            ),
-          ],
-          if (isGuestMode) ...[
+            ],
+          ),
+          if (widget.isGuestMode) ...[
             const SizedBox(height: 12),
             Center(
               child: Text(
@@ -3128,21 +3335,21 @@ class _LoyaltyCardSection extends StatelessWidget {
                 ),
               ),
             ),
-          ] else if (!isEligible) ...[
+          ] else ...[
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Total lifetime redemptions: ${loyaltyProgram.totalLifetimeRedemptions}',
+                  'Total lifetime redemptions: ${widget.loyaltyProgram.totalLifetimeRedemptions}',
                   style: AppTypography.caption.copyWith(
                     color: Colors.white.withValues(alpha: 0.8),
                     fontSize: 10,
                   ),
                 ),
-                if (loyaltyProgram.rewardsEarned > 0)
+                if (widget.loyaltyProgram.rewardsEarned > 0)
                   Text(
-                    'Rewards earned: ${loyaltyProgram.rewardsEarned}',
+                    'Rewards earned: ${widget.loyaltyProgram.rewardsEarned}',
                     style: AppTypography.caption.copyWith(
                       color: Colors.white.withValues(alpha: 0.8),
                       fontSize: 10,
@@ -3169,23 +3376,23 @@ class _LoyaltyCardSection extends StatelessWidget {
           width: 38,
           height: 38,
           decoration: BoxDecoration(
-            color: isCompleted 
-                ? Colors.white 
+            color: isCompleted
+                ? Colors.white
                 : Colors.white.withValues(alpha: 0.08),
             shape: BoxShape.circle,
             border: Border.all(
-              color: isCompleted 
-                  ? Colors.white 
+              color: isCompleted
+                  ? Colors.white
                   : Colors.white.withValues(alpha: 0.4),
               width: 1.5,
             ),
-            boxShadow: isCompleted 
+            boxShadow: isCompleted
                 ? [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
-                    )
+                    ),
                   ]
                 : null,
           ),
@@ -3193,24 +3400,26 @@ class _LoyaltyCardSection extends StatelessWidget {
           child: isCompleted
               ? Icon(
                   Icons.check_rounded,
-                  color: isEligible ? const Color(0xFFD97706) : const Color(0xFF7C3AED),
+                  color: isEligible
+                      ? const Color(0xFFD97706)
+                      : const Color(0xFF7C3AED),
                   size: 20,
                   weight: 3.0,
                 )
               : isLast
-                  ? Icon(
-                      Icons.card_giftcard_rounded,
-                      color: Colors.white.withValues(alpha: 0.8),
-                      size: 16,
-                    )
-                  : Text(
-                      '${index + 1}',
-                      style: AppTypography.bodySmall.copyWith(
-                        color: Colors.white.withValues(alpha: 0.7),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 11,
-                      ),
-                    ),
+              ? Icon(
+                  Icons.card_giftcard_rounded,
+                  color: Colors.white.withValues(alpha: 0.8),
+                  size: 16,
+                )
+              : Text(
+                  '${index + 1}',
+                  style: AppTypography.bodySmall.copyWith(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 11,
+                  ),
+                ),
         );
       }),
     );

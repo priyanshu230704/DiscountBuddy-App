@@ -502,12 +502,14 @@ class _RedemptionCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      redemption.deal.restaurantName,
+                      redemption.restaurantName,
                       style: AppTypography.title.copyWith(fontSize: 16),
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
-                      redemption.deal.title,
+                      redemption.isLoyaltyOnly
+                          ? 'Loyalty Stamp'
+                          : (redemption.deal?.title ?? 'Deal'),
                       style: AppTypography.bodySmall,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -591,7 +593,7 @@ class _RedemptionCard extends StatelessWidget {
         maxChildSize: 0.95,
         expand: false,
         builder: (context, scrollController) => GenericBottomSheet(
-          title: redemption.deal.restaurantName,
+          title: redemption.restaurantName,
           showHandle: false,
           centerTitle: true,
           showCloseButton: true,
@@ -707,23 +709,25 @@ class _RedemptionDetailContent extends StatelessWidget {
         _DetailRow(
           icon: Icons.local_offer,
           label: 'Offer',
-          value: redemption.deal.title,
+          value: redemption.isLoyaltyOnly
+              ? 'Loyalty Stamp'
+              : (redemption.deal?.title ?? 'Deal'),
         ),
-        if (redemption.deal.discountPercentage != null) ...[
+        if (!redemption.isLoyaltyOnly && redemption.deal?.discountPercentage != null) ...[
           const SizedBox(height: AppSpacing.md),
           _DetailRow(
             icon: Icons.percent,
             label: 'Discount',
             value:
-                '${redemption.deal.discountPercentage!.toStringAsFixed(0)}% OFF',
+                '${redemption.deal!.discountPercentage!.toStringAsFixed(0)}% OFF',
           ),
         ],
-        if (redemption.deal.discountAmount != null) ...[
+        if (!redemption.isLoyaltyOnly && redemption.deal?.discountAmount != null) ...[
           const SizedBox(height: AppSpacing.md),
           _DetailRow(
             icon: Icons.attach_money,
             label: 'Fixed discount',
-            value: '£${redemption.deal.discountAmount}',
+            value: '£${redemption.deal!.discountAmount}',
           ),
         ],
         if (redemption.restaurantConfirmed &&

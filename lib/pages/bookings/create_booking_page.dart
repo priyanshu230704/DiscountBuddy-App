@@ -142,8 +142,18 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
       }
     } catch (e) {
       if (mounted) {
+        String errorMsg = e.toString();
+        if (errorMsg.contains('contact_phone') || errorMsg.contains('no more than 20 characters')) {
+          errorMsg = 'Please enter a valid phone number (up to 15 digits).';
+        } else {
+          errorMsg = errorMsg
+              .replaceFirst('Exception: Failed to book: ', '')
+              .replaceFirst('Exception: ', '')
+              .replaceFirst('Failed to book: ', '')
+              .trim();
+        }
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to book: ${e.toString()}')),
+          SnackBar(content: Text(errorMsg)),
         );
       }
     } finally {
@@ -221,9 +231,11 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
                 TextFormField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
+                  maxLength: 15,
                   decoration: const InputDecoration(
                     labelText: 'Phone number',
                     prefixIcon: Icon(Icons.phone_outlined),
+                    counterText: '',
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),

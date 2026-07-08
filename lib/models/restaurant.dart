@@ -761,7 +761,7 @@ class LoyaltyProgram {
       rewardsEarned: json['rewards_earned'] as int? ?? 0,
       lastRewardClaimedAt: json['last_reward_claimed_at'] as String?,
       rewardCode: json['reward_code'] as String?,
-      rewardQrCode: json['reward_qr_code'] as String?,
+      rewardQrCode: json['reward_qr_url'] as String? ?? json['reward_qr_code'] as String?,
     );
   }
 

@@ -1,6 +1,6 @@
 class DealRedemption {
   final int id;
-  final RedeemedDeal deal;
+  final RedeemedDeal? deal;       // null for loyalty-only visits (is_loyalty_only: true)
   final DateTime usedAt;
   final bool restaurantConfirmed;
   final String? notes;
@@ -14,11 +14,13 @@ class DealRedemption {
   final double? discountAmountSaved;
   final double? finalBillAmount;
   final int restaurantId;
+  final String restaurantName;    // top-level restaurant_name added by backend
+  final bool isLoyaltyOnly;
   final DateTime createdAt;
 
   DealRedemption({
     required this.id,
-    required this.deal,
+    this.deal,
     required this.usedAt,
     required this.restaurantConfirmed,
     this.notes,
@@ -32,13 +34,29 @@ class DealRedemption {
     this.discountAmountSaved,
     this.finalBillAmount,
     required this.restaurantId,
+    required this.restaurantName,
+    required this.isLoyaltyOnly,
     required this.createdAt,
   });
 
   factory DealRedemption.fromJson(Map<String, dynamic> json) {
+    final restaurantId = _parseInt(json['restaurant_id']) ??
+        _parseInt(json['restaurant']) ??
+        0;
+    final restaurantName =
+        json['restaurant_name'] as String? ?? 'Unknown Restaurant';
+    final isLoyaltyOnly = json['is_loyalty_only'] as bool? ?? false;
+
+    // Parse the nested deal object only when it is not null
+    final dealJson = json['deal'];
+    RedeemedDeal? deal;
+    if (dealJson != null && dealJson is Map<String, dynamic>) {
+      deal = RedeemedDeal.fromJson(dealJson);
+    }
+
     return DealRedemption(
       id: _parseInt(json['id']) ?? 0,
-      deal: RedeemedDeal.fromJson(json['deal'] as Map<String, dynamic>),
+      deal: deal,
       usedAt: DateTime.tryParse(json['used_at'] ?? '') ?? DateTime.now(),
       restaurantConfirmed: json['restaurant_confirmed'] as bool? ?? false,
       notes: json['notes'] as String?,
@@ -53,13 +71,14 @@ class DealRedemption {
       peopleCount: _parseInt(json['people_count']),
       discountAmountSaved: _parseDouble(json['discount_amount_saved']),
       finalBillAmount: _parseDouble(json['final_bill_amount']),
-      restaurantId: _parseInt(json['restaurant_id']) ??
-          _parseInt(json['restaurant']) ??
-          0,
+      restaurantId: restaurantId,
+      restaurantName: restaurantName,
+      isLoyaltyOnly: isLoyaltyOnly,
       createdAt: DateTime.tryParse(json['created_at'] ?? '') ?? DateTime.now(),
     );
   }
 }
+
 
 class RedeemedDeal {
   final int id;

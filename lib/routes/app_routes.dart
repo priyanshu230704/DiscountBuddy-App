@@ -18,6 +18,7 @@ class AppRoutes {
   static const String levelProgress = '/level-progress';
   static const String savingsHistory = '/savings-history';
   static const String savedRestaurants = '/saved-restaurants';
+  static const String loyaltyCards = '/loyalty-cards';
   static const String joinPartner = '/join-partner';
   static const String helpSupport = '/help-support';
   static const String privacyPolicy = '/privacy-policy';

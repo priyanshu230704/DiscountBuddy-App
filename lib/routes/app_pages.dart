@@ -22,6 +22,7 @@ import '../pages/join_partner_page.dart';
 import '../pages/help_support_page.dart';
 import '../pages/privacy_policy_page.dart';
 import '../pages/restaurant_details_page.dart';
+import '../pages/loyalty/loyalty_cards_screen.dart';
 
 // Merchant Pages
 import '../pages/merchant/merchant_dashboard_page.dart';
@@ -181,6 +182,11 @@ class AppPages {
     GetPage(
       name: AppRoutes.savedRestaurants,
       page: () => const SavedRestaurantsPage(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.loyaltyCards,
+      page: () => const LoyaltyCardsScreen(),
       transition: Transition.rightToLeft,
     ),
     GetPage(

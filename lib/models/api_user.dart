@@ -1,5 +1,30 @@
 import 'image_variants.dart';
 
+/// User Loyalty Stats model
+class UserLoyaltyStats {
+  final int activeRestaurantsCount;
+  final int rewardEligibleCount;
+
+  UserLoyaltyStats({
+    required this.activeRestaurantsCount,
+    required this.rewardEligibleCount,
+  });
+
+  factory UserLoyaltyStats.fromJson(Map<String, dynamic> json) {
+    return UserLoyaltyStats(
+      activeRestaurantsCount: json['active_restaurants_count'] as int? ?? 0,
+      rewardEligibleCount: json['reward_eligible_count'] as int? ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'active_restaurants_count': activeRestaurantsCount,
+      'reward_eligible_count': rewardEligibleCount,
+    };
+  }
+}
+
 /// API User model matching the API response structure
 class ApiUser {
   final int id;
@@ -8,6 +33,7 @@ class ApiUser {
   final bool isMerchant;
   final bool isCustomer;
   final UserProfile? profile;
+  final UserLoyaltyStats? loyaltyStats;
 
   ApiUser({
     required this.id,
@@ -16,6 +42,7 @@ class ApiUser {
     required this.isMerchant,
     required this.isCustomer,
     this.profile,
+    this.loyaltyStats,
   });
 
   ApiUser copyWith({
@@ -25,6 +52,7 @@ class ApiUser {
     bool? isMerchant,
     bool? isCustomer,
     UserProfile? profile,
+    UserLoyaltyStats? loyaltyStats,
   }) {
     return ApiUser(
       id: id ?? this.id,
@@ -33,6 +61,7 @@ class ApiUser {
       isMerchant: isMerchant ?? this.isMerchant,
       isCustomer: isCustomer ?? this.isCustomer,
       profile: profile ?? this.profile,
+      loyaltyStats: loyaltyStats ?? this.loyaltyStats,
     );
   }
 
@@ -50,6 +79,9 @@ class ApiUser {
           json['profile'] != null && json['profile'] is Map<String, dynamic>
           ? UserProfile.fromJson(json['profile'] as Map<String, dynamic>)
           : null,
+      loyaltyStats: json['loyalty_stats'] != null
+          ? UserLoyaltyStats.fromJson(json['loyalty_stats'] as Map<String, dynamic>)
+          : null,
     );
   }
 
@@ -65,6 +97,7 @@ class ApiUser {
       'is_merchant': isMerchant,
       'is_customer': isCustomer,
       'profile': profile?.toJson(),
+      if (loyaltyStats != null) 'loyalty_stats': loyaltyStats!.toJson(),
     };
   }
 }

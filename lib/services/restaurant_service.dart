@@ -7,6 +7,7 @@ import '../models/review.dart';
 import '../models/menu_item.dart';
 import '../models/user_interactions.dart';
 import '../models/deal_redemption.dart';
+import '../models/loyalty_card.dart';
 import '../config/api_endpoints.dart';
 import 'api_service.dart';
 
@@ -1009,11 +1010,11 @@ class RestaurantService {
   }
 
   /// List all loyalty cards for the current user
-  Future<List<Map<String, dynamic>>> getLoyaltyCards() async {
+  Future<List<LoyaltyCard>> getLoyaltyCards() async {
     try {
       final response = await _apiService.get(ApiEndpoints.loyaltyCards);
       final List<dynamic> results = _extractList(response);
-      return results.map((item) => item as Map<String, dynamic>).toList();
+      return results.map((item) => LoyaltyCard.fromJson(item as Map<String, dynamic>)).toList();
     } catch (e) {
       throw Exception('Failed to load loyalty cards: ${e.toString()}');
     }
@@ -1026,6 +1027,19 @@ class RestaurantService {
       return response;
     } catch (e) {
       throw Exception('Failed to load loyalty card details: ${e.toString()}');
+    }
+  }
+
+  /// Create a loyalty-only visit check-in QR code
+  Future<Map<String, dynamic>> createLoyaltyOnlyVisit(String slug, {String? notes}) async {
+    try {
+      final response = await _apiService.post(
+        ApiEndpoints.loyaltyVisit(slug),
+        body: notes != null ? {'notes': notes} : {},
+      );
+      return response;
+    } catch (e) {
+      throw Exception('Failed to create loyalty check-in: ${e.toString()}');
     }
   }
 

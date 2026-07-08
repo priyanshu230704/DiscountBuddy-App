@@ -22,28 +22,41 @@ class RedeemOfferModal extends StatefulWidget {
 
 class _RedeemOfferModalState extends State<RedeemOfferModal> {
   bool _isRedeeming = false;
-  late Discount _selectedDeal;
+  late dynamic _selectedOption; // Can be a Discount or 'loyalty'
   Map<String, dynamic>? _redemptionResult;
 
   @override
   void initState() {
     super.initState();
-    _selectedDeal = widget.restaurant.activeDeals.isNotEmpty
-        ? widget.restaurant.activeDeals.first
-        : widget.restaurant.discount;
+    final deals = widget.restaurant.activeDeals
+        .where((d) => d.type != 'none')
+        .toList();
+    if (deals.isNotEmpty) {
+      _selectedOption = deals.first;
+    } else if (widget.restaurant.loyaltyCardEnabled) {
+      _selectedOption = 'loyalty';
+    } else {
+      _selectedOption = widget.restaurant.discount;
+    }
   }
 
   Future<void> _confirmRedemption() async {
-    final dealId = _selectedDeal.id;
-    if (dealId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a valid offer')),
-      );
-      return;
-    }
     setState(() => _isRedeeming = true);
     try {
-      final result = await RestaurantService().claimDeal(dealId);
+      Map<String, dynamic> result;
+      if (_selectedOption == 'loyalty') {
+        final slug = widget.restaurant.slug ?? widget.restaurant.id;
+        result = await RestaurantService().createLoyaltyOnlyVisit(slug);
+      } else if (_selectedOption is Discount) {
+        final dealId = (_selectedOption as Discount).id;
+        if (dealId == null) {
+          throw Exception('Please select a valid offer');
+        }
+        result = await RestaurantService().claimDeal(dealId);
+      } else {
+        throw Exception('Please select a valid option');
+      }
+
       if (mounted) {
         setState(() {
           _isRedeeming = false;
@@ -91,6 +104,8 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
         .where((d) => d.type != 'none')
         .toList();
 
+    final showList = deals.isNotEmpty || widget.restaurant.loyaltyCardEnabled;
+
     return GenericBottomSheet(
       title: 'Redeem Offer',
       child: SingleChildScrollView(
@@ -104,7 +119,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
             ),
             const SizedBox(height: AppSpacing.xxl),
 
-            if (deals.isEmpty)
+            if (!showList)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxxl),
                 child: Column(
@@ -124,33 +139,27 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
             else
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
-                child: RadioGroup<Discount>(
-                  groupValue: _selectedDeal,
-                  onChanged: (Discount? value) {
-                    if (value != null) {
-                      setState(() {
-                        _selectedDeal = value;
-                      });
-                    }
-                  },
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Select an offer:',
-                        style: AppTypography.subtitle.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      deals.isNotEmpty ? 'Select an option:' : 'Loyalty Program Check-in:',
+                      style: AppTypography.subtitle.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
                       ),
-                      const SizedBox(height: AppSpacing.md),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    
+                    // Render deals
+                    if (deals.isNotEmpty)
                       ...deals.map((deal) {
-                        final isSelected = _selectedDeal.id == deal.id;
+                        final isSelected = _selectedOption is Discount && (_selectedOption as Discount).id == deal.id;
                         return Container(
                           margin: const EdgeInsets.only(bottom: AppSpacing.md),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? AppColors.primary.withValues(alpha: 0.05)
+                                ? AppColors.primary.withAlpha((0.05 * 255).toInt())
                                 : AppColors.surface,
                             borderRadius: AppRadius.large,
                             border: Border.all(
@@ -163,8 +172,9 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                           ),
                           child: Column(
                             children: [
-                              RadioListTile<Discount>(
+                              RadioListTile<dynamic>(
                                 value: deal,
+                                groupValue: _selectedOption,
                                 toggleable: true,
                                 activeColor: AppColors.primary,
                                 contentPadding: const EdgeInsets.symmetric(
@@ -189,6 +199,11 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                                     style: AppTypography.bodySmall,
                                   ),
                                 ),
+                                onChanged: (dynamic value) {
+                                  setState(() {
+                                    _selectedOption = value;
+                                  });
+                                },
                               ),
                               if (isSelected &&
                                   (deal.termsAndConditions.isNotEmpty ||
@@ -241,13 +256,64 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                           ),
                         );
                       }),
+
+                    // Render loyalty check-in if enabled
+                    if (widget.restaurant.loyaltyCardEnabled) ...[
+                      Container(
+                        margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                        decoration: BoxDecoration(
+                          color: _selectedOption == 'loyalty'
+                              ? AppColors.primary.withAlpha((0.05 * 255).toInt())
+                              : AppColors.surface,
+                          borderRadius: AppRadius.large,
+                          border: Border.all(
+                            color: _selectedOption == 'loyalty'
+                                ? AppColors.primary
+                                : AppColors.cardBorder,
+                            width: _selectedOption == 'loyalty' ? 2 : 1,
+                          ),
+                          boxShadow: _selectedOption == 'loyalty' ? [] : AppShadows.card,
+                        ),
+                        child: RadioListTile<dynamic>(
+                          value: 'loyalty',
+                          groupValue: _selectedOption,
+                          toggleable: true,
+                          activeColor: AppColors.primary,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.lg,
+                            vertical: AppSpacing.sm,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: AppRadius.medium,
+                          ),
+                          title: Text(
+                            'Loyalty Point Check-In',
+                            style: AppTypography.body.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: AppSpacing.xs),
+                            child: Text(
+                              'Collect a stamp towards a free reward.',
+                              style: AppTypography.bodySmall,
+                            ),
+                          ),
+                          onChanged: (dynamic value) {
+                            setState(() {
+                              _selectedOption = value;
+                            });
+                          },
+                        ),
+                      ),
                     ],
-                  ),
+                  ],
                 ),
               ),
 
             const SizedBox(height: AppSpacing.lg),
-            if (deals.isNotEmpty) ...[
+            if (showList) ...[
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
                 child: Container(
@@ -266,7 +332,9 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
                       const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: Text(
-                          'Activated offers last for 15 mins. Show to staff when ordering.',
+                          _selectedOption == 'loyalty'
+                              ? 'Check-in QR codes must be scanned by staff to credit a point to your card.'
+                              : 'Activated offers last for 15 mins. Show to staff when ordering.',
                           style: AppTypography.caption.copyWith(
                             color: AppColors.textPrimary,
                           ),
@@ -280,7 +348,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
                 child: PrimaryButton(
-                  label: 'Confirm Redemption',
+                  label: _selectedOption == 'loyalty' ? 'Get Check-In QR' : 'Confirm Redemption',
                   onPressed: _isRedeeming ? null : _confirmRedemption,
                   isLoading: _isRedeeming,
                   expand: true,
@@ -305,6 +373,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
   Widget _buildSuccessView() {
     String qrUrl = _redemptionResult!['qr_code_url'] ?? '';
     final code = _redemptionResult!['redemption_code'] ?? 'Unknown';
+    final isLoyalty = _selectedOption == 'loyalty';
 
     // Replace localhost/127.0.0.1 with correct base URL if needed
     if (qrUrl.contains('127.0.0.1') || qrUrl.contains('localhost')) {
@@ -314,7 +383,7 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
     }
 
     return GenericBottomSheet(
-      title: 'Redemption Successful',
+      title: isLoyalty ? 'Loyalty Check-In Created' : 'Redemption Successful',
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -333,7 +402,9 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
           ),
           const SizedBox(height: 24),
           Text(
-            'Show this QR code to the staff',
+            isLoyalty
+                ? 'Show this Check-in QR to staff to collect your stamp'
+                : 'Show this QR code to the staff',
             style: AppTypography.body.copyWith(
               color: AppColors.textSecondary,
             ),

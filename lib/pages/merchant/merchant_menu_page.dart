@@ -533,8 +533,9 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
               AppGradientButton(
                 onPressed: () {
                   if (nameController.text.trim().isEmpty ||
-                      priceController.text.trim().isEmpty)
+                      priceController.text.trim().isEmpty) {
                     return;
+                  }
                   Navigator.pop(context, {
                     if (existingItem != null && existingItem.containsKey('id'))
                       'id': existingItem['id'],
@@ -1090,8 +1091,9 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
   }
 
   Widget _buildItemsList() {
-    if (_selectedCategoryData == null)
+    if (_selectedCategoryData == null) {
       return const Center(child: CircularProgressIndicator());
+    }
 
     final allItems = _selectedCategoryData!['items'] as List<dynamic>? ?? [];
     final items = _searchQuery.isEmpty

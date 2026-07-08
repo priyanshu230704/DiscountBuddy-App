@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
+import 'package:discount_buddy/config/environment.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -1804,7 +1805,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                 ),
               ),
               const SizedBox(width: 12),
-              // Redeem Offer Button
+              // Redeem Offer / Loyalty Button
               Expanded(
                 child: AppGradientButton(
                   onPressed: () {
@@ -1832,7 +1833,9 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                   },
                   height: 52,
                   child: Text(
-                    'Redeem Offer',
+                    (!restaurant.activeDeals.any((d) => d.type != 'none') && restaurant.loyaltyCardEnabled)
+                        ? 'Collect Stamp'
+                        : 'Redeem Offer',
                     style: AppTypography.body.copyWith(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -2968,29 +2971,105 @@ class _LoyaltyCardSection extends StatelessWidget {
           const SizedBox(height: 16),
           if (isEligible) ...[
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(16),
+              width: double.infinity,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.info_outline_rounded,
-                    color: Colors.white,
-                    size: 18,
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Present this screen to the server when you pay to claim your reward!',
-                      style: AppTypography.bodySmall.copyWith(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                      ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 8),
+                  const Text(
+                    'REWARD UNLOCKED',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.primary,
+                      letterSpacing: 2.0,
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  if (loyaltyProgram.rewardQrCode != null && loyaltyProgram.rewardQrCode!.isNotEmpty) ...[
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        loyaltyProgram.rewardQrCode!
+                            .replaceAll('http://127.0.0.1:8000', Environment.baseUrl)
+                            .replaceAll('http://localhost:8000', Environment.baseUrl),
+                        width: 160,
+                        height: 160,
+                        fit: BoxFit.contain,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return const SizedBox(
+                            width: 160,
+                            height: 160,
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                              ),
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            width: 160,
+                            height: 160,
+                            decoration: BoxDecoration(
+                              color: AppColors.cardBorder,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.qr_code_2_rounded,
+                                size: 54,
+                                color: AppColors.textDisabled,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  if (loyaltyProgram.rewardCode != null && loyaltyProgram.rewardCode!.isNotEmpty) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.cardBorder.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        loyaltyProgram.rewardCode!,
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 4,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  const Text(
+                    'Ask the merchant to scan this QR code to claim your free reward.',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                      height: 1.4,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
                 ],
               ),
             ),

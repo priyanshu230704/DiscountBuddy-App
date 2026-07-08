@@ -9,6 +9,7 @@ import '../widgets/app_scaffold.dart';
 import '../providers/auth_provider.dart';
 import '../services/restaurant_service.dart';
 import '../models/user_interactions.dart';
+import 'loyalty/loyalty_cards_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../config/environment.dart';
 
@@ -49,9 +50,8 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _onAuthStateChanged() {
-    if (mounted && _authProvider.isAuthenticated) {
+    if (mounted) {
       setState(() {});
-      _loadStats();
     }
   }
 
@@ -61,12 +61,16 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     try {
-      final stats = await _restaurantService.getProfileStats();
-      if (mounted) {
-        setState(() {
-          _stats = stats;
-        });
-      }
+      await Future.wait([
+        _restaurantService.getProfileStats().then((stats) {
+          if (mounted) {
+            setState(() {
+              _stats = stats;
+            });
+          }
+        }),
+        _authProvider.refreshUser(),
+      ]);
     } catch (e) {
       // Silently fail
     }
@@ -175,6 +179,43 @@ class _ProfilePageState extends State<ProfilePage> {
                 },
               ),
               const SizedBox(height: AppSpacing.xxl),
+
+              // Loyalty Summary Chip/ListTile
+              if (!_authProvider.isMerchant &&
+                  user?.loyaltyStats != null &&
+                  user!.loyaltyStats!.activeRestaurantsCount > 0) ...[
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: AppRadius.xLarge,
+                    border: Border.all(color: AppColors.cardBorder),
+                    boxShadow: AppShadows.card,
+                  ),
+                  child: ListTile(
+                    leading: const CircleAvatar(
+                      backgroundColor: Color(0xFFFEE2E2),
+                      child: Icon(Icons.card_giftcard_rounded, color: AppColors.primary),
+                    ),
+                    title: Text(
+                      'My Loyalty Cards',
+                      style: AppTypography.body.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      user.loyaltyStats!.rewardEligibleCount > 0
+                          ? '${user.loyaltyStats!.rewardEligibleCount} reward${user.loyaltyStats!.rewardEligibleCount > 1 ? 's' : ''} ready!'
+                          : '${user.loyaltyStats!.activeRestaurantsCount} active card${user.loyaltyStats!.activeRestaurantsCount == 1 ? '' : 's'}',
+                      style: AppTypography.caption.copyWith(
+                        color: user.loyaltyStats!.rewardEligibleCount > 0 ? AppColors.success : AppColors.textSecondary,
+                        fontWeight: user.loyaltyStats!.rewardEligibleCount > 0 ? FontWeight.bold : FontWeight.normal,
+                      ),
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+                    onTap: () => Navigator.push(context, LoyaltyCardsScreen.route()),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xxl),
+              ],
 
               // Menu Options
               Container(

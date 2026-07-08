@@ -726,6 +726,8 @@ class LoyaltyProgram {
   final int totalLifetimeRedemptions;
   final int rewardsEarned;
   final String? lastRewardClaimedAt;
+  final String? rewardCode;
+  final String? rewardQrCode;
 
   LoyaltyProgram({
     required this.loyaltyCardEnabled,
@@ -740,6 +742,8 @@ class LoyaltyProgram {
     required this.totalLifetimeRedemptions,
     required this.rewardsEarned,
     this.lastRewardClaimedAt,
+    this.rewardCode,
+    this.rewardQrCode,
   });
 
   factory LoyaltyProgram.fromJson(Map<String, dynamic> json) {
@@ -756,6 +760,8 @@ class LoyaltyProgram {
       totalLifetimeRedemptions: json['total_lifetime_redemptions'] as int? ?? 0,
       rewardsEarned: json['rewards_earned'] as int? ?? 0,
       lastRewardClaimedAt: json['last_reward_claimed_at'] as String?,
+      rewardCode: json['reward_code'] as String?,
+      rewardQrCode: json['reward_qr_code'] as String?,
     );
   }
 
@@ -788,6 +794,8 @@ class LoyaltyProgram {
       'total_lifetime_redemptions': totalLifetimeRedemptions,
       'rewards_earned': rewardsEarned,
       'last_reward_claimed_at': lastRewardClaimedAt,
+      if (rewardCode != null) 'reward_code': rewardCode,
+      if (rewardQrCode != null) 'reward_qr_code': rewardQrCode,
     };
   }
 }

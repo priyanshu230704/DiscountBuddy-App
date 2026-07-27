@@ -9,6 +9,7 @@ import 'providers/auth_provider.dart';
 import 'providers/connectivity_provider.dart';
 import 'services/auth_service.dart';
 import 'services/firebase_messaging_service.dart'; // Import the service
+import 'services/app_permission_service.dart';
 import 'firebase_options.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -92,19 +93,20 @@ void main() async {
 
 /// Run non-critical initializations in background to not block app startup
 Future<void> _runBackgroundInitializations() async {
+  final permissionService = AppPermissionService();
+
   // Initialize auth service to load stored tokens
   await AuthService().initializeAuth();
 
-  // Initialize Firebase Messaging Service if Firebase is initialized
-  if (Firebase.apps.isNotEmpty) {
-    try {
+  try {
+    if (Firebase.apps.isNotEmpty) {
       final firebaseService = FirebaseMessagingService();
-      // We don't await this here to let the app finish starting
-      // but we do start it.
-      firebaseService.initialize();
-    } catch (e) {
-      debugPrint('❌ Error initializing Firebase Messaging: $e');
+      await firebaseService.initialize();
     }
+  } catch (e) {
+    debugPrint('❌ Error initializing Firebase Messaging: $e');
+  } finally {
+    await permissionService.requestLocationAfterNotifications();
   }
 
   MapboxOptions.setAccessToken(Environment.mapboxAccessToken);

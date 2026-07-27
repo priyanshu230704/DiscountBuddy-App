@@ -11,6 +11,7 @@ import '../../models/restaurant.dart';
 import '../../models/image_variants.dart';
 import '../../services/restaurant_service.dart';
 import '../../services/location_service.dart';
+import '../../services/app_permission_service.dart';
 import '../../services/app_config_service.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/notification_provider.dart';
@@ -101,7 +102,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
     final permission = await _locationService.checkPermission();
     if (permission == LocationPermission.denied ||
-        permission == LocationPermission.deniedForever) {
+        permission == LocationPermission.deniedForever ||
+        permission == LocationPermission.unableToDetermine) {
       if (mounted) {
         setState(() {
           _locationPermissionDenied = true;
@@ -159,6 +161,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     _isFetchingLocation = true;
 
     try {
+      // Let the startup notification → location sequence finish first on iOS.
+      await AppPermissionService().waitForStartupLocationPrompt();
+
       final location = await _locationService.getUserLocation(
         requestPermissionIfDenied: true,
       );

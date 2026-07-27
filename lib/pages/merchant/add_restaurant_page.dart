@@ -162,6 +162,26 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
     return "Couldn't get your current location. $s";
   }
 
+  String? _validateLatitude(String? value) {
+    final trimmed = value?.trim() ?? '';
+    if (trimmed.isEmpty) return null;
+    final parsed = double.tryParse(trimmed);
+    if (parsed == null) return 'Enter a valid latitude';
+    if (parsed < -90 || parsed > 90) return 'Latitude must be between -90 and 90';
+    return null;
+  }
+
+  String? _validateLongitude(String? value) {
+    final trimmed = value?.trim() ?? '';
+    if (trimmed.isEmpty) return null;
+    final parsed = double.tryParse(trimmed);
+    if (parsed == null) return 'Enter a valid longitude';
+    if (parsed < -180 || parsed > 180) {
+      return 'Longitude must be between -180 and 180';
+    }
+    return null;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -988,8 +1008,12 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                               child: AppTextField(
                                 controller: _latitudeController,
                                 label: 'Latitude',
-                                readOnly: true,
-                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                hintText: 'e.g. 51.5074',
+                                keyboardType: const TextInputType.numberWithOptions(
+                                  decimal: true,
+                                  signed: true,
+                                ),
+                                validator: _validateLatitude,
                               ),
                             ),
                             const SizedBox(width: AppSpacing.lg),
@@ -997,8 +1021,12 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                               child: AppTextField(
                                 controller: _longitudeController,
                                 label: 'Longitude',
-                                readOnly: true,
-                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                hintText: 'e.g. -0.1278',
+                                keyboardType: const TextInputType.numberWithOptions(
+                                  decimal: true,
+                                  signed: true,
+                                ),
+                                validator: _validateLongitude,
                               ),
                             ),
                           ],

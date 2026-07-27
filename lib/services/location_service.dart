@@ -10,6 +10,47 @@ class LocationService {
       permission == LocationPermission.whileInUse ||
       permission == LocationPermission.always;
 
+  /// Whether the OS has not been asked yet, or the user denied without blocking.
+  static bool canRequestPermission(LocationPermission permission) =>
+      permission == LocationPermission.denied ||
+      permission == LocationPermission.unableToDetermine;
+
+  /// Show the system location permission dialog when still undecided.
+  Future<LocationPermission> requestPermission() =>
+      Geolocator.requestPermission();
+
+  /// Request location permission if the user has not been asked yet.
+  /// Safe to call after other startup dialogs (e.g. notifications on iOS).
+  Future<LocationPermission> requestPermissionIfNeeded() async {
+    final current = await checkPermission();
+    if (!canRequestPermission(current)) return current;
+    return requestPermission();
+  }
+
+  Future<LocationPermission> _ensurePermission({
+    required bool requestPermissionIfDenied,
+  }) async {
+    var permission = await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.deniedForever) {
+      throw LocationPermissionDeniedException(isPermanent: true);
+    }
+
+    if (requestPermissionIfDenied && canRequestPermission(permission)) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      throw LocationPermissionDeniedException(isPermanent: true);
+    }
+
+    if (!isPermissionGranted(permission)) {
+      throw LocationPermissionDeniedException(isPermanent: false);
+    }
+
+    return permission;
+  }
+
   /// Get current location.
   ///
   /// Set [requestPermissionIfDenied] to `true` only on first explicit prompt
@@ -18,27 +59,7 @@ class LocationService {
   Future<Position> getCurrentLocation({
     bool requestPermissionIfDenied = false,
   }) async {
-    LocationPermission permission = await Geolocator.checkPermission();
-
-    if (permission == LocationPermission.deniedForever) {
-      throw LocationPermissionDeniedException(isPermanent: true);
-    }
-
-    if (permission == LocationPermission.denied) {
-      if (requestPermissionIfDenied) {
-        permission = await Geolocator.requestPermission();
-      }
-      if (permission == LocationPermission.deniedForever) {
-        throw LocationPermissionDeniedException(isPermanent: true);
-      }
-      if (permission == LocationPermission.denied) {
-        throw LocationPermissionDeniedException(isPermanent: false);
-      }
-    }
-
-    if (!isPermissionGranted(permission)) {
-      throw LocationPermissionDeniedException(isPermanent: false);
-    }
+    await _ensurePermission(requestPermissionIfDenied: requestPermissionIfDenied);
 
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
 

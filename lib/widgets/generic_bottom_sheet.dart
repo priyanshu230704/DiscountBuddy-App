@@ -1,6 +1,6 @@
-import 'package:discount_buddy/theme/app_colors.dart';
+import 'package:discount_buddy/core/theme/app_colors.dart';
 
-import 'package:discount_buddy/design/app_typography.dart';
+import 'package:discount_buddy/core/theme/app_typography.dart';
 import 'package:flutter/material.dart';
 
 class GenericBottomSheet extends StatelessWidget {

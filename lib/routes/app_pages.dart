@@ -1,54 +1,54 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../pages/splash_screen.dart';
-import '../pages/onboarding_check_screen.dart';
-import '../pages/onboarding_screen.dart';
-import '../pages/auth/login_page.dart';
-import '../pages/auth/register_page.dart';
-import '../pages/auth/forgot_password_page.dart';
-import '../pages/auth/reset_password_page.dart';
-import '../pages/main_navigation.dart';
-import '../pages/app_update_page.dart';
-import '../pages/profile_page.dart';
-import '../pages/edit_profile_page.dart';
-import '../pages/search_page.dart';
-import '../pages/notifications_page.dart';
-import '../pages/savings_history_page.dart';
-import '../pages/saved_restaurants_page.dart';
-import '../pages/level_progress_page.dart';
-import '../pages/my_deals_page.dart';
-import '../pages/join_partner_page.dart';
-import '../pages/help_support_page.dart';
-import '../pages/privacy_policy_page.dart';
-import '../pages/restaurant_details_page.dart';
-import '../pages/loyalty/loyalty_cards_screen.dart';
+import 'package:discount_buddy/features/onboarding/pages/splash_screen.dart';
+import 'package:discount_buddy/features/onboarding/pages/onboarding_check_screen.dart';
+import 'package:discount_buddy/features/onboarding/pages/onboarding_screen.dart';
+import 'package:discount_buddy/features/auth/pages/login_page.dart';
+import 'package:discount_buddy/features/auth/pages/register_page.dart';
+import 'package:discount_buddy/features/auth/pages/forgot_password_page.dart';
+import 'package:discount_buddy/features/auth/pages/reset_password_page.dart';
+import 'package:discount_buddy/features/home/pages/main_navigation.dart';
+import 'package:discount_buddy/features/onboarding/pages/app_update_page.dart';
+import 'package:discount_buddy/features/profile/pages/profile_page.dart';
+import 'package:discount_buddy/features/profile/pages/edit_profile_page.dart';
+import 'package:discount_buddy/features/restaurants/pages/search_page.dart';
+import 'package:discount_buddy/features/notifications/pages/notifications_page.dart';
+import 'package:discount_buddy/features/profile/pages/savings_history_page.dart';
+import 'package:discount_buddy/features/restaurants/pages/saved_restaurants_page.dart';
+import 'package:discount_buddy/features/profile/pages/level_progress_page.dart';
+import 'package:discount_buddy/features/deals/pages/my_deals_page.dart';
+import 'package:discount_buddy/features/profile/pages/join_partner_page.dart';
+import 'package:discount_buddy/features/profile/pages/help_support_page.dart';
+import 'package:discount_buddy/features/profile/pages/privacy_policy_page.dart';
+import 'package:discount_buddy/features/restaurants/pages/restaurant_details_page.dart';
+import 'package:discount_buddy/features/loyalty/pages/loyalty_cards_screen.dart';
 
 // Merchant Pages
-import '../pages/merchant/merchant_dashboard_page.dart';
-import '../pages/merchant/merchant_restaurants_page.dart';
-import '../pages/merchant/merchant_menu_page.dart';
-import '../pages/merchant/merchant_deals_page.dart';
-import '../pages/merchant/add_deal_page.dart';
-import '../pages/merchant/add_restaurant_page.dart';
-import '../pages/merchant/merchant_bookings_page.dart';
-import '../pages/merchant/merchant_reviews_page.dart';
-import '../pages/merchant/merchant_analytics_page.dart';
-import '../pages/merchant/merchant_redemption_history_page.dart';
-import '../pages/merchant/qr_scanner_page.dart';
-import '../pages/merchant/merchant_calendar_page.dart';
-import '../pages/merchant/merchant_reminders_page.dart';
-import '../pages/merchant/merchant_loyalty_page.dart';
+import 'package:discount_buddy/features/merchant/pages/merchant_dashboard_page.dart';
+import 'package:discount_buddy/features/merchant/pages/merchant_restaurants_page.dart';
+import 'package:discount_buddy/features/merchant/pages/merchant_menu_page.dart';
+import 'package:discount_buddy/features/merchant/pages/merchant_deals_page.dart';
+import 'package:discount_buddy/features/merchant/pages/add_deal_page.dart';
+import 'package:discount_buddy/features/merchant/pages/add_restaurant_page.dart';
+import 'package:discount_buddy/features/merchant/pages/merchant_bookings_page.dart';
+import 'package:discount_buddy/features/merchant/pages/merchant_reviews_page.dart';
+import 'package:discount_buddy/features/merchant/pages/merchant_analytics_page.dart';
+import 'package:discount_buddy/features/merchant/pages/merchant_redemption_history_page.dart';
+import 'package:discount_buddy/features/merchant/pages/qr_scanner_page.dart';
+import 'package:discount_buddy/features/merchant/pages/merchant_calendar_page.dart';
+import 'package:discount_buddy/features/merchant/pages/merchant_reminders_page.dart';
+import 'package:discount_buddy/features/merchant/pages/merchant_loyalty_page.dart';
 
 // User Bookings
-import '../pages/bookings/bookings_page.dart';
-import '../pages/bookings/create_booking_page.dart';
+import 'package:discount_buddy/features/bookings/pages/bookings_page.dart';
+import 'package:discount_buddy/features/bookings/pages/create_booking_page.dart';
 
-import '../models/app_version_info.dart';
-import '../models/user_interactions.dart';
-import '../providers/auth_provider.dart';
-import 'app_routes.dart';
-import 'bindings/home_binding.dart';
+import 'package:discount_buddy/features/onboarding/models/app_version_info.dart';
+import 'package:discount_buddy/features/profile/models/user_interactions.dart';
+import 'package:discount_buddy/features/auth/data/auth_provider.dart';
+import 'package:discount_buddy/routes/app_routes.dart';
+import 'package:discount_buddy/routes/bindings/home_binding.dart';
 
 class AppPages {
   AppPages._();

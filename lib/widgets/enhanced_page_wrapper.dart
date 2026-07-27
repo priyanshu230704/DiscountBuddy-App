@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/connectivity_provider.dart';
-import '../services/network_service.dart';
-import '../design/app_colors.dart';
-import 'app_gradient_button.dart';
-import 'no_internet_view.dart';
+import 'package:discount_buddy/core/network/connectivity_provider.dart';
+import 'package:discount_buddy/core/network/network_service.dart';
+import 'package:discount_buddy/core/theme/app_colors.dart';
+import 'package:discount_buddy/widgets/app_gradient_button.dart';
+import 'package:discount_buddy/widgets/no_internet_view.dart';
 
 class EnhancedPageWrapper extends StatefulWidget {
   final Widget child;

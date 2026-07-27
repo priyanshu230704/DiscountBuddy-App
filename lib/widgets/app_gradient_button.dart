@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../design/app_colors.dart';
-import '../design/app_radius.dart';
-import '../design/app_shadows.dart';
+import 'package:discount_buddy/core/theme/app_colors.dart';
+import 'package:discount_buddy/core/theme/app_radius.dart';
+import 'package:discount_buddy/core/theme/app_shadows.dart';
 
 class AppGradientButton extends StatelessWidget {
   final VoidCallback? onPressed;

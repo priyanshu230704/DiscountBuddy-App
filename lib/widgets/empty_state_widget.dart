@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../design/app_design.dart';
-import '../components/buttons.dart';
+import 'package:discount_buddy/core/theme/app_design.dart';
+import 'package:discount_buddy/components/buttons.dart';
 
 class EmptyStateWidget extends StatelessWidget {
   final IconData icon;

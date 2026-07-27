@@ -1,4 +1,4 @@
-import 'package:discount_buddy/theme/app_colors.dart';
+import 'package:discount_buddy/core/theme/app_colors.dart';
 
 import 'package:flutter/material.dart';
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'connectivity_gate.dart';
-import '../design/app_colors.dart';
+import 'package:discount_buddy/widgets/connectivity_gate.dart';
+import 'package:discount_buddy/core/theme/app_colors.dart';
 
 class AppScaffold extends StatelessWidget {
   final Widget body;

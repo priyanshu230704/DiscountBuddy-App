@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
-import '../design/app_colors.dart';
-import '../providers/connectivity_provider.dart';
-import 'app_gradient_button.dart';
+import 'package:discount_buddy/core/theme/app_colors.dart';
+import 'package:discount_buddy/core/network/connectivity_provider.dart';
+import 'package:discount_buddy/widgets/app_gradient_button.dart';
 
 class NoInternetView extends StatelessWidget {
   /// When null, uses [AppColors.backgroundGradient] (same as [AppScaffold] / home).

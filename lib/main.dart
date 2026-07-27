@@ -2,24 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'config/environment.dart';
-import 'services/app_version_checker.dart';
-import 'providers/theme_provider.dart';
-import 'providers/auth_provider.dart';
-import 'providers/connectivity_provider.dart';
-import 'services/auth_service.dart';
-import 'services/firebase_messaging_service.dart'; // Import the service
-import 'services/app_permission_service.dart';
-import 'firebase_options.dart';
+import 'package:discount_buddy/core/config/environment.dart';
+import 'package:discount_buddy/features/onboarding/data/app_version_checker.dart';
+import 'package:discount_buddy/core/theme/theme_provider.dart';
+import 'package:discount_buddy/features/auth/data/auth_provider.dart';
+import 'package:discount_buddy/core/network/connectivity_provider.dart';
+import 'package:discount_buddy/features/auth/data/auth_service.dart';
+import 'package:discount_buddy/features/notifications/data/firebase_messaging_service.dart'; // Import the service
+import 'package:discount_buddy/core/device/app_permission_service.dart';
+import 'package:discount_buddy/firebase_options.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:get/get.dart';
-import 'routes/app_routes.dart';
-import 'routes/app_pages.dart';
-import 'routes/bindings/initial_binding.dart';
-import 'utils/navigator_key.dart';
+import 'package:discount_buddy/routes/app_routes.dart';
+import 'package:discount_buddy/routes/app_pages.dart';
+import 'package:discount_buddy/core/di/initial_binding.dart';
+import 'package:discount_buddy/core/utils/navigator_key.dart';
 import 'package:provider/provider.dart';
 
 // Background message handler - must be top-level function

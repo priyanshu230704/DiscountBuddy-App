@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../design/app_colors.dart';
-import '../design/app_typography.dart';
+import 'package:discount_buddy/core/theme/app_colors.dart';
+import 'package:discount_buddy/core/theme/app_typography.dart';
 
 class AppAppBar extends AppBar {
   AppAppBar({

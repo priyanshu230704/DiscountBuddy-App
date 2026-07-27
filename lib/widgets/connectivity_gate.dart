@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/connectivity_provider.dart';
-import 'no_internet_view.dart';
+import 'package:discount_buddy/core/network/connectivity_provider.dart';
+import 'package:discount_buddy/widgets/no_internet_view.dart';
 
 /// Shows [NoInternetView] when offline; otherwise shows [child].
 class ConnectivityGate extends StatelessWidget {

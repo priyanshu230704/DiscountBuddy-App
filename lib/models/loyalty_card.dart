@@ -21,18 +21,29 @@ class LoyaltyCard {
   });
 
   factory LoyaltyCard.fromJson(Map<String, dynamic> json) {
-    final restaurantId = json['restaurant_id']?.toString() ?? '';
-    final restaurantName = json['restaurant_name'] as String? ?? '';
-    final restaurantSlug = json['restaurant_slug'] as String? ?? '';
-    final restaurantImage = json['restaurant_image'] as String? ?? '';
+    final nestedRestaurant = json['restaurant'];
+    final Map<String, dynamic>? restaurantMap =
+        nestedRestaurant is Map<String, dynamic> ? nestedRestaurant : null;
 
-    final restaurant = Restaurant.fromJson(const {}).copyWith(
-      id: restaurantId,
-      name: restaurantName,
-      imageUrl: restaurantImage,
-      slug: restaurantSlug,
-      loyaltyCardEnabled: true,
-    );
+    final restaurantId =
+        json['restaurant_id']?.toString() ??
+        restaurantMap?['id']?.toString() ??
+        '';
+    final restaurantName =
+        (json['restaurant_name'] as String?)?.trim().isNotEmpty == true
+        ? json['restaurant_name'] as String
+        : (restaurantMap?['name'] as String? ?? '');
+    final restaurantSlug =
+        (json['restaurant_slug'] as String?)?.trim().isNotEmpty == true
+        ? json['restaurant_slug'] as String
+        : (restaurantMap?['slug'] as String? ?? '');
+    final restaurantImage =
+        (json['restaurant_image'] as String?)?.trim().isNotEmpty == true
+        ? json['restaurant_image'] as String
+        : (restaurantMap?['image'] as String? ??
+              restaurantMap?['imageUrl'] as String? ??
+              restaurantMap?['primary_image'] as String? ??
+              '');
 
     final programJson = json['loyalty_program'] as Map<String, dynamic>?;
 
@@ -45,11 +56,31 @@ class LoyaltyCard {
         : (json['current_cycle_redemptions'] as int? ?? 0);
 
     final isRewardEligible = programJson != null
-        ? (programJson['is_reward_eligible'] as bool? ?? json['is_reward_eligible'] as bool? ?? false)
+        ? (programJson['is_reward_eligible'] as bool? ??
+              json['is_reward_eligible'] as bool? ??
+              false)
         : (json['is_reward_eligible'] as bool? ?? false);
 
+    final rewardDescription =
+        programJson?['reward_description'] as String? ??
+        json['reward_description'] as String?;
+
     final rewardCode = json['reward_code'] as String?;
-    final rewardQrCode = json['reward_qr_url'] as String? ?? json['reward_qr_code'] as String?;
+    final rewardQrCode =
+        json['reward_qr_url'] as String? ?? json['reward_qr_code'] as String?;
+
+    final restaurant = Restaurant.fromJson(const {}).copyWith(
+      id: restaurantId,
+      name: restaurantName,
+      imageUrl: restaurantImage,
+      slug: restaurantSlug.isNotEmpty ? restaurantSlug : null,
+      loyaltyCardEnabled: true,
+      loyaltyRewardDescription: rewardDescription,
+      loyaltyRequiredRedemptions: requiredRedemptions,
+      loyaltyProgram: programJson != null
+          ? LoyaltyProgram.fromJson(programJson)
+          : null,
+    );
 
     return LoyaltyCard(
       id: json['id'] as int? ?? 0,

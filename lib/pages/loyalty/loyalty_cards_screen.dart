@@ -381,12 +381,15 @@ class _LoyaltyCardsScreenState extends State<LoyaltyCardsScreen> {
             color: Colors.transparent,
             child: InkWell(
               onTap: () {
+                // Restaurant details API expects restaurant ID (same as home/nearby/saved).
+                // Prefer ID; only fall back to slug when ID is missing.
+                final restaurantKey = card.restaurant.id.isNotEmpty
+                    ? card.restaurant.id
+                    : (card.restaurant.slug ?? '');
+                if (restaurantKey.isEmpty) return;
                 Get.toNamed(
                   AppRoutes.restaurantDetails,
-                  arguments: {
-                    'slug':
-                        card.restaurant.slug ?? card.restaurant.id.toString(),
-                  },
+                  arguments: {'slug': restaurantKey},
                 );
               },
               child: Padding(

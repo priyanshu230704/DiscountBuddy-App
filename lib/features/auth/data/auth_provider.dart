@@ -1,26 +1,122 @@
-import 'package:get/get.dart';
-import 'package:flutter/foundation.dart';
 import 'dart:io';
-import 'package:discount_buddy/features/auth/data/auth_service.dart';
-import 'package:discount_buddy/features/notifications/data/firebase_messaging_service.dart';
-import 'package:discount_buddy/features/auth/models/api_user.dart';
-import 'package:discount_buddy/features/restaurants/models/image_variants.dart';
 
-/// Authentication provider for managing auth state (Singleton)
+import 'package:discount_buddy/features/auth/data/auth_repository_impl.dart';
+import 'package:discount_buddy/features/auth/data/device_token_adapter.dart';
+import 'package:discount_buddy/features/auth/data/mappers/user_mapper.dart';
+import 'package:discount_buddy/features/auth/domain/entities/auth_session.dart';
+import 'package:discount_buddy/features/auth/domain/entities/user_entity.dart';
+import 'package:discount_buddy/features/auth/domain/failures/auth_failure.dart';
+import 'package:discount_buddy/features/auth/domain/failures/failure.dart';
+import 'package:discount_buddy/features/auth/domain/result.dart';
+import 'package:discount_buddy/features/auth/domain/usecases/check_username_usecase.dart';
+import 'package:discount_buddy/features/auth/domain/usecases/complete_registration_usecase.dart';
+import 'package:discount_buddy/features/auth/domain/usecases/confirm_password_reset_usecase.dart';
+import 'package:discount_buddy/features/auth/domain/usecases/delete_account_init_usecase.dart';
+import 'package:discount_buddy/features/auth/domain/usecases/delete_account_usecase.dart';
+import 'package:discount_buddy/features/auth/domain/usecases/get_current_user_usecase.dart';
+import 'package:discount_buddy/features/auth/domain/usecases/initialize_session_usecase.dart';
+import 'package:discount_buddy/features/auth/domain/usecases/login_with_apple_usecase.dart';
+import 'package:discount_buddy/features/auth/domain/usecases/login_with_email_usecase.dart';
+import 'package:discount_buddy/features/auth/domain/usecases/login_with_google_usecase.dart';
+import 'package:discount_buddy/features/auth/domain/usecases/logout_usecase.dart';
+import 'package:discount_buddy/features/auth/domain/usecases/refresh_token_usecase.dart';
+import 'package:discount_buddy/features/auth/domain/usecases/register_with_password_usecase.dart';
+import 'package:discount_buddy/features/auth/domain/usecases/request_password_reset_email_usecase.dart';
+import 'package:discount_buddy/features/auth/domain/usecases/request_password_reset_otp_usecase.dart';
+import 'package:discount_buddy/features/auth/domain/usecases/resend_registration_otp_usecase.dart';
+import 'package:discount_buddy/features/auth/domain/usecases/start_registration_usecase.dart';
+import 'package:discount_buddy/features/auth/domain/usecases/update_profile_usecase.dart';
+import 'package:discount_buddy/features/auth/domain/usecases/verify_password_reset_otp_usecase.dart';
+import 'package:discount_buddy/features/auth/domain/usecases/verify_registration_otp_usecase.dart';
+import 'package:discount_buddy/features/auth/models/api_user.dart';
+import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
+
+/// Presentation state for auth. Holds state, calls one use case, maps [Result].
 class AuthProvider extends ChangeNotifier {
   static final AuthProvider _instance = AuthProvider._internal();
   factory AuthProvider() => _instance;
+
   AuthProvider._internal() {
-    _initializeAuth();
+    final repo = AuthRepositoryImpl();
+    final tokens = DeviceTokenAdapter();
+    _mapper = const UserMapper();
+
+    _getCurrentUserUseCase = GetCurrentUserUseCase(repo);
+    _refreshTokenUseCase = RefreshTokenUseCase(repo);
+    _initializeSessionUseCase = InitializeSessionUseCase(
+      repo,
+      _refreshTokenUseCase,
+      _getCurrentUserUseCase,
+    );
+    _loginWithEmailUseCase = LoginWithEmailUseCase(
+      repo,
+      tokens,
+      getCurrentUser: _getCurrentUserUseCase,
+    );
+    _loginWithGoogleUseCase = LoginWithGoogleUseCase(
+      repo,
+      tokens,
+      getCurrentUser: _getCurrentUserUseCase,
+    );
+    _loginWithAppleUseCase = LoginWithAppleUseCase(
+      repo,
+      tokens,
+      getCurrentUser: _getCurrentUserUseCase,
+    );
+    _startRegistrationUseCase = StartRegistrationUseCase(repo);
+    _verifyRegistrationOtpUseCase = VerifyRegistrationOtpUseCase(repo);
+    _resendRegistrationOtpUseCase = ResendRegistrationOtpUseCase(repo);
+    _completeRegistrationUseCase = CompleteRegistrationUseCase(
+      repo,
+      tokens,
+      getCurrentUser: _getCurrentUserUseCase,
+    );
+    _checkUsernameUseCase = CheckUsernameUseCase(repo);
+    _registerWithPasswordUseCase = RegisterWithPasswordUseCase(
+      repo,
+      tokens,
+      getCurrentUser: _getCurrentUserUseCase,
+    );
+    _logoutUseCase = LogoutUseCase(repo, tokens);
+    _requestPasswordResetOtpUseCase = RequestPasswordResetOtpUseCase(repo);
+    _verifyPasswordResetOtpUseCase = VerifyPasswordResetOtpUseCase(repo);
+    _confirmPasswordResetUseCase = ConfirmPasswordResetUseCase(repo);
+    _requestPasswordResetEmailUseCase = RequestPasswordResetEmailUseCase(repo);
+    _updateProfileUseCase = UpdateProfileUseCase(repo);
+    _deleteAccountInitUseCase = DeleteAccountInitUseCase(repo);
+    _deleteAccountUseCase = DeleteAccountUseCase(repo);
+
+    _bootstrapSession();
   }
 
-  final AuthService _authService = AuthService();
+  late final UserMapper _mapper;
+  late final GetCurrentUserUseCase _getCurrentUserUseCase;
+  late final RefreshTokenUseCase _refreshTokenUseCase;
+  late final InitializeSessionUseCase _initializeSessionUseCase;
+  late final LoginWithEmailUseCase _loginWithEmailUseCase;
+  late final LoginWithGoogleUseCase _loginWithGoogleUseCase;
+  late final LoginWithAppleUseCase _loginWithAppleUseCase;
+  late final StartRegistrationUseCase _startRegistrationUseCase;
+  late final VerifyRegistrationOtpUseCase _verifyRegistrationOtpUseCase;
+  late final ResendRegistrationOtpUseCase _resendRegistrationOtpUseCase;
+  late final CompleteRegistrationUseCase _completeRegistrationUseCase;
+  late final CheckUsernameUseCase _checkUsernameUseCase;
+  late final RegisterWithPasswordUseCase _registerWithPasswordUseCase;
+  late final LogoutUseCase _logoutUseCase;
+  late final RequestPasswordResetOtpUseCase _requestPasswordResetOtpUseCase;
+  late final VerifyPasswordResetOtpUseCase _verifyPasswordResetOtpUseCase;
+  late final ConfirmPasswordResetUseCase _confirmPasswordResetUseCase;
+  late final RequestPasswordResetEmailUseCase _requestPasswordResetEmailUseCase;
+  late final UpdateProfileUseCase _updateProfileUseCase;
+  late final DeleteAccountInitUseCase _deleteAccountInitUseCase;
+  late final DeleteAccountUseCase _deleteAccountUseCase;
 
   final Rxn<ApiUser> _user = Rxn<ApiUser>();
   final RxBool _isLoading = false.obs;
   final RxBool _isAuthenticated = false.obs;
   final RxnString _errorMessage = RxnString();
-  final RxString _userRole = 'customer'.obs; // 'customer' or 'merchant'
+  final RxString _userRole = 'customer'.obs;
   final RxBool _isGuestMode = false.obs;
 
   ApiUser? get user => _user.value;
@@ -34,363 +130,210 @@ class AuthProvider extends ChangeNotifier {
       _userRole.value == 'customer' || _userRole.value == 'mystery_guest';
   bool get isMysteryGuest => _userRole.value == 'mystery_guest';
 
-  /// Initialize authentication state
-  Future<void> _initializeAuth() async {
-    _isLoading.value = true;
+  void _setLoading(bool value) {
+    _isLoading.value = value;
     notifyListeners();
-
-    try {
-      await _authService.initializeAuth();
-      final isLoggedIn = await _authService.isLoggedIn();
-
-      if (isLoggedIn) {
-        ApiUser? user;
-        try {
-          user = await _authService.getCurrentUser();
-        } catch (e) {
-          final errorStr = e.toString().toLowerCase();
-          if (errorStr.contains('401') || errorStr.contains('unauthorized')) {
-            debugPrint('DEBUG AuthProvider._initializeAuth: explicitly unauthorized.');
-          } else {
-            debugPrint('DEBUG AuthProvider._initializeAuth: Network or other error getting user: $e');
-          }
-        }
-        
-        // If getting user fails via network, try getting from secure storage first
-        if (user == null) {
-          debugPrint('DEBUG AuthProvider._initializeAuth: Current user via network failed, trying local storage...');
-          user = await _authService.getStoredUser();
-          
-          // If no local user, or we want to double check, try refreshing token
-          if (user == null) {
-            debugPrint('DEBUG AuthProvider._initializeAuth: No local user, trying refresh token...');
-            try {
-              final success = await _authService.refreshAccessToken();
-              if (success) {
-                user = await _authService.getCurrentUser();
-              }
-            } catch (e) {
-              debugPrint('DEBUG AuthProvider._initializeAuth: Error refreshing token: $e');
-            }
-          }
-        }
-
-        if (user != null) {
-          _user.value = user;
-          _userRole.value = user.profile?.role ?? (user.isMerchant ? 'merchant' : 'customer');
-          _isAuthenticated.value = true;
-          debugPrint(
-            'DEBUG AuthProvider._initializeAuth: Logged in as user=${user.email}, _userRole=${_userRole.value}',
-          );
-        } else {
-          await _authService.logout();
-          _isAuthenticated.value = false;
-          _userRole.value = 'customer';
-          debugPrint(
-            'DEBUG AuthProvider._initializeAuth: login failed after fallback attempts, logging out',
-          );
-        }
-      } else {
-        _isAuthenticated.value = false;
-        _userRole.value = 'customer';
-        debugPrint('DEBUG AuthProvider._initializeAuth: not logged in');
-      }
-    } catch (e) {
-      _errorMessage.value = 'Failed to initialize authentication';
-      _isAuthenticated.value = false;
-      debugPrint('DEBUG AuthProvider._initializeAuth: ERROR: $e');
-    } finally {
-      _isLoading.value = false;
-      notifyListeners();
-    }
   }
 
-  /// Register a new user
+  void clearError() {
+    _errorMessage.value = null;
+    notifyListeners();
+  }
+
+  void _applyFailure(Failure failure, {bool clearAuth = false}) {
+    // Cancelled social login: stop loading, no snackbar message.
+    _errorMessage.value = failure is CancelledFailure ? null : failure.message;
+    if (clearAuth) {
+      _isAuthenticated.value = false;
+    }
+    _isLoading.value = false;
+    notifyListeners();
+  }
+
+  bool _applySessionResult(Result<AuthSession> result) {
+    return result.fold(
+      onSuccess: (session) {
+        _user.value = _mapper.toDto(session.user);
+        _userRole.value = session.role;
+        _isAuthenticated.value = true;
+        _isGuestMode.value = false;
+        _errorMessage.value = null;
+        _isLoading.value = false;
+        notifyListeners();
+        return true;
+      },
+      onError: (failure) {
+        _applyFailure(failure, clearAuth: true);
+        return false;
+      },
+    );
+  }
+
+  bool _applyVoidResult(Result<void> result) {
+    return result.fold(
+      onSuccess: (_) {
+        _errorMessage.value = null;
+        _isLoading.value = false;
+        notifyListeners();
+        return true;
+      },
+      onError: (failure) {
+        _applyFailure(failure);
+        return false;
+      },
+    );
+  }
+
+  Future<void> _bootstrapSession() async {
+    _setLoading(true);
+    final result = await _initializeSessionUseCase();
+    result.fold(
+      onSuccess: (session) {
+        if (session != null) {
+          _user.value = _mapper.toDto(session.user);
+          _userRole.value = session.role;
+          _isAuthenticated.value = true;
+          debugPrint(
+            'DEBUG AuthProvider: session restored as ${session.user.email}, '
+            'role=${session.role}',
+          );
+        } else {
+          _isAuthenticated.value = false;
+          _userRole.value = 'customer';
+        }
+        _isLoading.value = false;
+        notifyListeners();
+      },
+      onError: (failure) {
+        _errorMessage.value = 'Failed to initialize authentication';
+        _isAuthenticated.value = false;
+        _isLoading.value = false;
+        notifyListeners();
+        debugPrint('DEBUG AuthProvider bootstrap: ${failure.message}');
+      },
+    );
+  }
+
   Future<bool> register({
     required String email,
     required String username,
     required String password,
     required String role,
   }) async {
-    _isLoading.value = true;
-    _errorMessage.value = null;
-    notifyListeners();
-
-    try {
-      await _authService.register(
-        email: email,
-        username: username,
-        password: password,
-        role: role,
-      );
-
-      // After successful registration, login the user
-      return await login(email: email, password: password);
-    } catch (e) {
-      _errorMessage.value = e.toString().replaceAll('Exception: ', '');
-      _isLoading.value = false;
-      notifyListeners();
-      return false;
-    }
+    _setLoading(true);
+    clearError();
+    final result = await _registerWithPasswordUseCase(
+      email: email,
+      username: username,
+      password: password,
+      role: role,
+    );
+    return _applySessionResult(result);
   }
 
-  /// Stage 1: Request OTP
   Future<bool> registerInit({
     required String email,
     required String role,
   }) async {
-    _isLoading.value = true;
-    _errorMessage.value = null;
-    notifyListeners();
-
-    try {
-      await _authService.registerInit(email: email, role: role);
-      _isLoading.value = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _errorMessage.value = e.toString().replaceAll('Exception: ', '');
-      _isLoading.value = false;
-      notifyListeners();
-      return false;
-    }
+    _setLoading(true);
+    clearError();
+    final result = await _startRegistrationUseCase(email: email, role: role);
+    return _applyVoidResult(result);
   }
 
-  /// Stage 2: Verify OTP
   Future<bool> verifyOtp({
     required String email,
     required String otp,
   }) async {
-    _isLoading.value = true;
-    _errorMessage.value = null;
-    notifyListeners();
-
-    try {
-      await _authService.verifyOtp(email: email, otp: otp);
-      _isLoading.value = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _errorMessage.value = e.toString().replaceAll('Exception: ', '');
-      _isLoading.value = false;
-      notifyListeners();
-      return false;
-    }
+    _setLoading(true);
+    clearError();
+    final result =
+        await _verifyRegistrationOtpUseCase(email: email, otp: otp);
+    return _applyVoidResult(result);
   }
 
-  /// Stage 1.5: Resend OTP
-  Future<Map<String, dynamic>> resendOtp({
-    required String email,
-  }) async {
-    return await _authService.resendOtp(email: email);
+  Future<Map<String, dynamic>> resendOtp({required String email}) async {
+    final result = await _resendRegistrationOtpUseCase(email: email);
+    return result.fold(
+      onSuccess: (info) => info.toLegacyMap(),
+      onError: (failure) => {
+        'success': false,
+        'detail': failure.message,
+      },
+    );
   }
 
-  /// Stage 3: Complete registration and create account (with password)
   Future<bool> registerComplete({
     required String email,
     required String otp,
     required String password,
     String? username,
   }) async {
-    _isLoading.value = true;
-    _errorMessage.value = null;
-    notifyListeners();
-
-    try {
-      await _authService.registerComplete(
-        email: email,
-        otp: otp,
-        password: password,
-        username: username,
-      );
-
-      // After successful registration, login the user
-      return await login(email: email, password: password);
-    } catch (e) {
-      _errorMessage.value = e.toString().replaceAll('Exception: ', '');
-      _isLoading.value = false;
-      notifyListeners();
-      return false;
-    }
+    _setLoading(true);
+    clearError();
+    final result = await _completeRegistrationUseCase(
+      email: email,
+      otp: otp,
+      password: password,
+      username: username,
+    );
+    return _applySessionResult(result);
   }
 
-  /// Check username availability
-  Future<Map<String, dynamic>> checkUsernameAvailability(String username) async {
-    return await _authService.checkUsernameAvailability(username);
+  Future<Map<String, dynamic>> checkUsernameAvailability(
+    String username,
+  ) async {
+    final result = await _checkUsernameUseCase(username);
+    return result.fold(
+      onSuccess: (info) => info.toLegacyMap(),
+      onError: (failure) => {
+        'available': false,
+        'error': failure.message,
+      },
+    );
   }
 
-  /// Login with email and password
-  Future<bool> login({required String email, required String password}) async {
-    _isLoading.value = true;
-    _errorMessage.value = null;
-    notifyListeners();
-
-    try {
-      final loginResponse = await _authService.login(
-        email: email,
-        password: password,
-      );
-
-      _user.value = loginResponse.user;
-      _userRole.value = loginResponse.role; // Store role from login response
-      debugPrint(
-        'DEBUG AuthProvider.login: loginResponse.role="${loginResponse.role}", _userRole="${_userRole.value}", isMysteryGuest=$isMysteryGuest',
-      );
-      _isAuthenticated.value = true;
-      _isGuestMode.value = false;
-      _isLoading.value = false;
-      notifyListeners();
-
-      // Register FCM token with backend after successful login
-      try {
-        final firebaseService = FirebaseMessagingService();
-        await firebaseService.registerTokenAfterLogin();
-      } catch (e) {
-        debugPrint('DEBUG AuthProvider.login: Error registering FCM token: $e');
-      }
-
-      // Refresh user data to get full profile (including email)
-      await refreshUser();
-
-      return true;
-    } catch (e) {
-      _errorMessage.value = e.toString().replaceAll('Exception: ', '');
-      _isAuthenticated.value = false;
-      _isLoading.value = false;
-      notifyListeners();
-      return false;
-    }
+  Future<bool> login({
+    required String email,
+    required String password,
+  }) async {
+    _setLoading(true);
+    clearError();
+    final result = await _loginWithEmailUseCase(
+      email: email,
+      password: password,
+    );
+    return _applySessionResult(result);
   }
 
-  /// Login with Google
   Future<bool> loginWithGoogle() async {
     debugPrint('DEBUG: AuthProvider.loginWithGoogle -> Triggered');
-    _isLoading.value = true;
-    _errorMessage.value = null;
-    notifyListeners();
-
-    try {
-      final loginResponse = await _authService.loginWithGoogle();
-
-      _user.value = loginResponse.user;
-      _userRole.value = loginResponse.role;
-      _isAuthenticated.value = true;
-      _isLoading.value = false;
-      debugPrint(
-        'DEBUG: AuthProvider.loginWithGoogle -> Success: authenticated as ${_user.value?.email}',
-      );
-      notifyListeners();
-
-      // Register FCM token with backend after successful login
-      try {
-        final firebaseService = FirebaseMessagingService();
-        await firebaseService.registerTokenAfterLogin();
-      } catch (e) {
-        debugPrint('DEBUG AuthProvider.loginWithGoogle: Error registering FCM token: $e');
-      }
-
-      // Refresh user data to get full profile (including email)
-      await refreshUser();
-
-      return true;
-    } catch (e) {
-      final message = e.toString().replaceAll('Exception: ', '');
-      final lower = message.toLowerCase();
-      final isUserCancelled = lower.contains('googlesigninexceptioncode.canceled') ||
-          lower.contains('cancelled') ||
-          lower.contains('canceled by the user') ||
-          lower.contains('activity is cancelled by the user');
-
-      debugPrint('DEBUG: AuthProvider.loginWithGoogle -> Catching error: $message');
-      // Cancel flow should silently stop loading without showing an error snackbar.
-      _errorMessage.value = isUserCancelled ? null : message;
-      _isAuthenticated.value = false;
-      _isLoading.value = false;
-      notifyListeners();
-      return false;
-    }
+    _setLoading(true);
+    clearError();
+    final result = await _loginWithGoogleUseCase();
+    return _applySessionResult(result);
   }
 
-  /// Login with Apple
   Future<bool> loginWithApple() async {
     debugPrint('DEBUG: AuthProvider.loginWithApple -> Triggered');
-    _isLoading.value = true;
-    _errorMessage.value = null;
-    notifyListeners();
-
-    try {
-      final loginResponse = await _authService.loginWithApple();
-
-      _user.value = loginResponse.user;
-      _userRole.value = loginResponse.role;
-      _isAuthenticated.value = true;
-      _isLoading.value = false;
-      debugPrint(
-        'DEBUG: AuthProvider.loginWithApple -> Success: authenticated as ${_user.value?.email}',
-      );
-      notifyListeners();
-
-      // Register FCM token with backend after successful login
-      try {
-        final firebaseService = FirebaseMessagingService();
-        await firebaseService.registerTokenAfterLogin();
-      } catch (e) {
-        debugPrint('DEBUG AuthProvider.loginWithApple: Error registering FCM token: $e');
-      }
-
-      // Refresh user data to get full profile (including email)
-      await refreshUser();
-
-      return true;
-    } catch (e) {
-      final message = e.toString().replaceAll('Exception: ', '');
-      debugPrint('DEBUG: AuthProvider.loginWithApple -> Catching error: $message');
-
-      _errorMessage.value = message.contains('Apple login cancelled') ? null : message;
-      _isAuthenticated.value = false;
-      _isLoading.value = false;
-      notifyListeners();
-      return false;
-    }
+    _setLoading(true);
+    clearError();
+    final result = await _loginWithAppleUseCase();
+    return _applySessionResult(result);
   }
 
-  /// Logout user
   Future<void> logout() async {
-    _isLoading.value = true;
-    notifyListeners();
-
-    try {
-      // Run FCM deactivation and refresh-token revoke together; then clear storage.
-      // Google Sign-In is not awaited in wipe so the UI is not blocked on Play Services.
-      await Future.wait<void>([
-        FirebaseMessagingService().deactivateCurrentDevice(),
-        _authService.postLogoutToServer(),
-      ]);
-    } catch (e) {
-      debugPrint('DEBUG AuthProvider.logout: $e');
-    } finally {
-      try {
-        await _authService.wipeLocalSessionAfterLogout();
-      } catch (e) {
-        debugPrint('DEBUG AuthProvider.logout: local wipe: $e');
-      }
-      _user.value = null;
-      _isAuthenticated.value = false;
-      _isGuestMode.value = false;
-      _userRole.value = 'customer';
-      _errorMessage.value = null;
-      _isLoading.value = false;
-      notifyListeners();
-    }
-  }
-
-  /// Clear error message
-  void clearError() {
+    _setLoading(true);
+    await _logoutUseCase();
+    _user.value = null;
+    _isAuthenticated.value = false;
+    _isGuestMode.value = false;
+    _userRole.value = 'customer';
     _errorMessage.value = null;
+    _isLoading.value = false;
     notifyListeners();
   }
 
-  /// Skip login and enter guest mode
   void skipLogin() {
     _isGuestMode.value = true;
     _isAuthenticated.value = false;
@@ -399,124 +342,78 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Refresh user data
   Future<void> refreshUser() async {
-    try {
-      final user = await _authService.getCurrentUser();
-      if (user != null) {
-        _user.value = user;
-        notifyListeners();
-      } else {
-        // If getting user from network failed but didn't throw an auth error,
-        // we might be offline. Let's see if we have them cached.
-        final cachedUser = await _authService.getStoredUser();
-        if (cachedUser != null) {
-          _user.value = cachedUser;
+    final result = await _getCurrentUserUseCase();
+    result.fold(
+      onSuccess: (UserEntity? entity) {
+        if (entity != null) {
+          _user.value = _mapper.toDto(entity);
+          _userRole.value = entity.role;
           notifyListeners();
         }
-      }
-    } catch (e) {
-      // Only logout if it's explicitly an unauthorized error, otherwise keep current session alive
-      final errorStr = e.toString().toLowerCase();
-      if (errorStr.contains('401') || errorStr.contains('unauthorized')) {
-        debugPrint('DEBUG AuthProvider.refreshUser: Unauthorized error, logging out... ($e)');
-        await logout();
-      } else {
-        debugPrint('DEBUG AuthProvider.refreshUser: Non-auth error while refreshing user, preserving session ($e)');
-      }
-    }
+      },
+      onError: (failure) {
+        if (failure is UnauthorizedFailure) {
+          // Local session already cleared inside GetCurrentUserUseCase.
+          debugPrint(
+            'DEBUG AuthProvider.refreshUser: Unauthorized — clearing UI state',
+          );
+          _user.value = null;
+          _isAuthenticated.value = false;
+          _isGuestMode.value = false;
+          _userRole.value = 'customer';
+          notifyListeners();
+        } else {
+          debugPrint(
+            'DEBUG AuthProvider.refreshUser: ${failure.message} — keeping session',
+          );
+        }
+      },
+    );
   }
 
-  /// Request password reset OTP
   Future<bool> requestPasswordResetOtp({required String email}) async {
-    _isLoading.value = true;
-    _errorMessage.value = null;
-    notifyListeners();
-
-    try {
-      await _authService.requestPasswordResetOtp(email: email);
-      _isLoading.value = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _errorMessage.value = e.toString().replaceAll('Exception: ', '');
-      _isLoading.value = false;
-      notifyListeners();
-      return false;
-    }
+    _setLoading(true);
+    clearError();
+    final result = await _requestPasswordResetOtpUseCase(email: email);
+    return _applyVoidResult(result);
   }
 
-  /// Verify password reset OTP
   Future<bool> verifyPasswordResetOtp({
     required String email,
     required String otp,
   }) async {
-    _isLoading.value = true;
-    _errorMessage.value = null;
-    notifyListeners();
-
-    try {
-      await _authService.verifyPasswordResetOtp(email: email, otp: otp);
-      _isLoading.value = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _errorMessage.value = e.toString().replaceAll('Exception: ', '');
-      _isLoading.value = false;
-      notifyListeners();
-      return false;
-    }
+    _setLoading(true);
+    clearError();
+    final result =
+        await _verifyPasswordResetOtpUseCase(email: email, otp: otp);
+    return _applyVoidResult(result);
   }
 
-  /// Confirm password reset with OTP
   Future<bool> confirmPasswordReset({
     required String email,
     required String otp,
     required String password,
     required String confirmPassword,
   }) async {
-    _isLoading.value = true;
-    _errorMessage.value = null;
-    notifyListeners();
-
-    try {
-      await _authService.confirmPasswordReset(
-        email: email,
-        otp: otp,
-        password: password,
-        confirmPassword: confirmPassword,
-      );
-      _isLoading.value = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _errorMessage.value = e.toString().replaceAll('Exception: ', '');
-      _isLoading.value = false;
-      notifyListeners();
-      return false;
-    }
+    _setLoading(true);
+    clearError();
+    final result = await _confirmPasswordResetUseCase(
+      email: email,
+      otp: otp,
+      password: password,
+      confirmPassword: confirmPassword,
+    );
+    return _applyVoidResult(result);
   }
 
-  /// Request forgot password email
   Future<bool> forgotPassword({required String email}) async {
-    _isLoading.value = true;
-    _errorMessage.value = null;
-    notifyListeners();
-
-    try {
-      await _authService.passwordReset(email: email);
-      _isLoading.value = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _errorMessage.value = e.toString().replaceAll('Exception: ', '');
-      _isLoading.value = false;
-      notifyListeners();
-      return false;
-    }
+    _setLoading(true);
+    clearError();
+    final result = await _requestPasswordResetEmailUseCase(email: email);
+    return _applyVoidResult(result);
   }
 
-  /// Update current user profile
   Future<bool> updateProfile({
     String? username,
     String? firstName,
@@ -525,84 +422,57 @@ class AuthProvider extends ChangeNotifier {
     File? imageFile,
     String? avatarUrl,
   }) async {
-    _isLoading.value = true;
-    _errorMessage.value = null;
-    notifyListeners();
-
-    try {
-      final updatedUser = await _authService.updateProfile(
-        username: username,
-        firstName: firstName,
-        lastName: lastName,
-        email: email,
-        imageFile: imageFile,
-        avatarUrl: avatarUrl,
-      );
-      
-      // Update local state with the returned user, 
-      // but if the backend hasn't implemented avatarUrl yet, 
-      // ensure we keep the local selection.
-      _user.value = updatedUser;
-      if (avatarUrl != null && _user.value != null) {
-        _user.value = _user.value!.copyWith(
-          profile: _user.value!.profile?.copyWith(
-            profilePicture: ImageVariants(medium: avatarUrl, large: avatarUrl),
-          ) ?? UserProfile(
-            role: _userRole.value,
-            profilePicture: ImageVariants(medium: avatarUrl, large: avatarUrl),
-          ),
-        );
-      }
-      
-      _isLoading.value = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _errorMessage.value = e.toString().replaceAll('Exception: ', '');
-      _isLoading.value = false;
-      notifyListeners();
-      return false;
-    }
+    _setLoading(true);
+    clearError();
+    final result = await _updateProfileUseCase(
+      username: username,
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      imageFile: imageFile,
+      avatarUrl: avatarUrl,
+    );
+    return result.fold(
+      onSuccess: (entity) {
+        _user.value = _mapper.toDto(entity);
+        _userRole.value = entity.role;
+        _errorMessage.value = null;
+        _isLoading.value = false;
+        notifyListeners();
+        return true;
+      },
+      onError: (failure) {
+        _applyFailure(failure);
+        return false;
+      },
+    );
   }
 
-  /// Stage 1: Initialize account deletion (Request OTP)
   Future<bool> deleteAccountInit() async {
-    _isLoading.value = true;
-    _errorMessage.value = null;
-    notifyListeners();
-
-    try {
-      await _authService.initDeleteAccount();
-      _isLoading.value = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _errorMessage.value = e.toString().replaceAll('Exception: ', '');
-      _isLoading.value = false;
-      notifyListeners();
-      return false;
-    }
+    _setLoading(true);
+    clearError();
+    final result = await _deleteAccountInitUseCase();
+    return _applyVoidResult(result);
   }
 
-  /// Stage 2: Delete current user account (Verify OTP and Delete)
   Future<bool> deleteAccount({required String otp}) async {
-    _isLoading.value = true;
-    _errorMessage.value = null;
-    notifyListeners();
-
-    try {
-      await _authService.deleteAccount(otp: otp);
-      _user.value = null;
-      _isAuthenticated.value = false;
-      _userRole.value = 'customer';
-      _isLoading.value = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _errorMessage.value = e.toString().replaceAll('Exception: ', '');
-      _isLoading.value = false;
-      notifyListeners();
-      return false;
-    }
+    _setLoading(true);
+    clearError();
+    final result = await _deleteAccountUseCase(otp: otp);
+    return result.fold(
+      onSuccess: (_) {
+        _user.value = null;
+        _isAuthenticated.value = false;
+        _userRole.value = 'customer';
+        _errorMessage.value = null;
+        _isLoading.value = false;
+        notifyListeners();
+        return true;
+      },
+      onError: (failure) {
+        _applyFailure(failure);
+        return false;
+      },
+    );
   }
 }

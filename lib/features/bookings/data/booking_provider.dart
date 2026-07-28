@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:discount_buddy/core/domain/failures/failure.dart';
 import 'package:discount_buddy/features/bookings/data/booking_repository_impl.dart';
 import 'package:discount_buddy/features/bookings/domain/repositories/booking_repository.dart';
-import 'package:discount_buddy/features/bookings/domain/usecases/booking_usecases.dart';
+import 'package:discount_buddy/features/bookings/domain/usecases/cancel_booking_usecase.dart';
+import 'package:discount_buddy/features/bookings/domain/usecases/create_booking_usecase.dart';
+import 'package:discount_buddy/features/bookings/domain/usecases/delete_booking_usecase.dart';
+import 'package:discount_buddy/features/bookings/domain/usecases/list_user_bookings_usecase.dart';
+import 'package:discount_buddy/features/bookings/domain/usecases/update_booking_usecase.dart';
 import 'package:discount_buddy/features/profile/models/user_interactions.dart';
 
 /// Booking state and use case provider.

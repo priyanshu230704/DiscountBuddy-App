@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:discount_buddy/features/auth/data/auth_repository_impl.dart';
 import 'package:discount_buddy/features/auth/data/device_token_adapter.dart';
-import 'package:discount_buddy/features/auth/data/mappers/user_mapper.dart';
 import 'package:discount_buddy/features/auth/domain/entities/auth_session.dart';
 import 'package:discount_buddy/features/auth/domain/entities/user_entity.dart';
 import 'package:discount_buddy/features/auth/domain/failures/auth_failure.dart';
@@ -28,7 +27,6 @@ import 'package:discount_buddy/features/auth/domain/usecases/start_registration_
 import 'package:discount_buddy/features/auth/domain/usecases/update_profile_usecase.dart';
 import 'package:discount_buddy/features/auth/domain/usecases/verify_password_reset_otp_usecase.dart';
 import 'package:discount_buddy/features/auth/domain/usecases/verify_registration_otp_usecase.dart';
-import 'package:discount_buddy/features/auth/models/api_user.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
@@ -40,7 +38,6 @@ class AuthProvider extends ChangeNotifier {
   AuthProvider._internal() {
     final repo = AuthRepositoryImpl();
     final tokens = DeviceTokenAdapter();
-    _mapper = const UserMapper();
 
     _getCurrentUserUseCase = GetCurrentUserUseCase(repo);
     _refreshTokenUseCase = RefreshTokenUseCase(repo);
@@ -90,7 +87,6 @@ class AuthProvider extends ChangeNotifier {
     _bootstrapSession();
   }
 
-  late final UserMapper _mapper;
   late final GetCurrentUserUseCase _getCurrentUserUseCase;
   late final RefreshTokenUseCase _refreshTokenUseCase;
   late final InitializeSessionUseCase _initializeSessionUseCase;
@@ -112,14 +108,15 @@ class AuthProvider extends ChangeNotifier {
   late final DeleteAccountInitUseCase _deleteAccountInitUseCase;
   late final DeleteAccountUseCase _deleteAccountUseCase;
 
-  final Rxn<ApiUser> _user = Rxn<ApiUser>();
+  final Rxn<UserEntity> _user = Rxn<UserEntity>();
   final RxBool _isLoading = false.obs;
   final RxBool _isAuthenticated = false.obs;
   final RxnString _errorMessage = RxnString();
   final RxString _userRole = 'customer'.obs;
   final RxBool _isGuestMode = false.obs;
 
-  ApiUser? get user => _user.value;
+  /// Domain user — UI should use [UserEntity], not API DTOs.
+  UserEntity? get user => _user.value;
   bool get isLoading => _isLoading.value;
   bool get isAuthenticated => _isAuthenticated.value;
   String? get errorMessage => _errorMessage.value;
@@ -153,7 +150,7 @@ class AuthProvider extends ChangeNotifier {
   bool _applySessionResult(Result<AuthSession> result) {
     return result.fold(
       onSuccess: (session) {
-        _user.value = _mapper.toDto(session.user);
+        _user.value = session.user;
         _userRole.value = session.role;
         _isAuthenticated.value = true;
         _isGuestMode.value = false;
@@ -190,7 +187,7 @@ class AuthProvider extends ChangeNotifier {
     result.fold(
       onSuccess: (session) {
         if (session != null) {
-          _user.value = _mapper.toDto(session.user);
+          _user.value = session.user;
           _userRole.value = session.role;
           _isAuthenticated.value = true;
           debugPrint(
@@ -347,7 +344,7 @@ class AuthProvider extends ChangeNotifier {
     result.fold(
       onSuccess: (UserEntity? entity) {
         if (entity != null) {
-          _user.value = _mapper.toDto(entity);
+          _user.value = entity;
           _userRole.value = entity.role;
           notifyListeners();
         }
@@ -434,7 +431,7 @@ class AuthProvider extends ChangeNotifier {
     );
     return result.fold(
       onSuccess: (entity) {
-        _user.value = _mapper.toDto(entity);
+        _user.value = entity;
         _userRole.value = entity.role;
         _errorMessage.value = null;
         _isLoading.value = false;

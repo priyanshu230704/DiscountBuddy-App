@@ -3,7 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:discount_buddy/core/domain/failures/failure.dart';
 import 'package:discount_buddy/features/mystery_guest/data/mystery_guest_repository_impl.dart';
 import 'package:discount_buddy/features/mystery_guest/domain/repositories/mystery_guest_repository.dart';
-import 'package:discount_buddy/features/mystery_guest/domain/usecases/mystery_guest_usecases.dart';
+import 'package:discount_buddy/features/mystery_guest/domain/usecases/get_visit_detail_usecase.dart';
+import 'package:discount_buddy/features/mystery_guest/domain/usecases/list_assigned_visits_usecase.dart';
+import 'package:discount_buddy/features/mystery_guest/domain/usecases/start_visit_usecase.dart';
+import 'package:discount_buddy/features/mystery_guest/domain/usecases/submit_visit_usecase.dart';
+import 'package:discount_buddy/features/mystery_guest/domain/usecases/upload_evidence_usecase.dart';
 import 'package:discount_buddy/features/mystery_guest/models/mystery_visit.dart';
 
 /// Mystery Guest state and use case provider.

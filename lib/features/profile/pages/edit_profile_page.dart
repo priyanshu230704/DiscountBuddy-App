@@ -55,7 +55,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _loadUserData();
     
     // Initialize avatar selection
-    final userProfilePic = _authProvider.user?.profilePicture;
+    final userProfilePic = _authProvider.user?.profilePictureUrl;
     int initialPage = _presetAvatars.length ~/ 2;
     
     if (userProfilePic != null && userProfilePic.isNotEmpty) {

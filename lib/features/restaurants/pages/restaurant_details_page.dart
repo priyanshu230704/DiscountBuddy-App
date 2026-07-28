@@ -87,15 +87,15 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
 
     // Check multiple sources for mystery_guest role to be safe
     final roleFromProvider = _authProvider.userRole;
-    final roleFromProfile = _authProvider.user?.profile?.role;
+    final roleFromUser = _authProvider.user?.role;
     final isMysteryFromUser = _authProvider.user?.isMysteryGuest ?? false;
     _isMysteryGuest =
         _authProvider.isMysteryGuest ||
-        roleFromProfile == 'mystery_guest' ||
+        roleFromUser == 'mystery_guest' ||
         isMysteryFromUser;
     debugPrint('DEBUG RestaurantDetails.initState:');
     debugPrint('  roleFromProvider="$roleFromProvider"');
-    debugPrint('  roleFromProfile="$roleFromProfile"');
+    debugPrint('  roleFromUser="$roleFromUser"');
     debugPrint('  isMysteryFromUser=$isMysteryFromUser');
     debugPrint('  FINAL _isMysteryGuest=$_isMysteryGuest');
     _loadRestaurant();

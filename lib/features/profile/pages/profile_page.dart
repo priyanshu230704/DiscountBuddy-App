@@ -164,7 +164,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   final stats = profileProvider.profileStats;
                   return _ProfileHeader(
                     displayName: displayName,
-                    profilePicture: user?.profilePicture,
+                    profilePicture: user?.profilePictureUrl,
                     stats: stats,
                     showStats: !_authProvider.isMerchant,
                     isLoadingStats: !_authProvider.isMerchant && profileProvider.isLoading,
@@ -183,8 +183,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
               // Loyalty Summary Chip/ListTile
               if (!_authProvider.isMerchant &&
-                  user?.loyaltyStats != null &&
-                  user!.loyaltyStats!.activeRestaurantsCount > 0) ...[
+                  (user?.activeRestaurantsCount ?? 0) > 0) ...[
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
                   decoration: BoxDecoration(
@@ -203,12 +202,12 @@ class _ProfilePageState extends State<ProfilePage> {
                       style: AppTypography.body.copyWith(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text(
-                      user.loyaltyStats!.rewardEligibleCount > 0
-                          ? '${user.loyaltyStats!.rewardEligibleCount} reward${user.loyaltyStats!.rewardEligibleCount > 1 ? 's' : ''} ready!'
-                          : '${user.loyaltyStats!.activeRestaurantsCount} active card${user.loyaltyStats!.activeRestaurantsCount == 1 ? '' : 's'}',
+                      (user!.rewardEligibleCount ?? 0) > 0
+                          ? '${user.rewardEligibleCount} reward${user.rewardEligibleCount! > 1 ? 's' : ''} ready!'
+                          : '${user.activeRestaurantsCount} active card${user.activeRestaurantsCount == 1 ? '' : 's'}',
                       style: AppTypography.caption.copyWith(
-                        color: user.loyaltyStats!.rewardEligibleCount > 0 ? AppColors.success : AppColors.textSecondary,
-                        fontWeight: user.loyaltyStats!.rewardEligibleCount > 0 ? FontWeight.bold : FontWeight.normal,
+                        color: (user.rewardEligibleCount ?? 0) > 0 ? AppColors.success : AppColors.textSecondary,
+                        fontWeight: (user.rewardEligibleCount ?? 0) > 0 ? FontWeight.bold : FontWeight.normal,
                       ),
                     ),
                     trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),

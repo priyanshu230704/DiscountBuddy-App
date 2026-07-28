@@ -1,5 +1,6 @@
 import 'package:discount_buddy/features/home/pages/main_navigation.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:discount_buddy/core/utils/date_time_utils.dart';
 import 'package:discount_buddy/core/theme/app_design.dart';
 import 'package:get/get.dart';
@@ -9,7 +10,10 @@ import 'package:discount_buddy/components/layout.dart';
 import 'package:discount_buddy/components/buttons.dart';
 import 'package:discount_buddy/features/deals/models/deal_redemption.dart';
 import 'package:discount_buddy/features/profile/models/user_interactions.dart';
-import 'package:discount_buddy/features/restaurants/data/restaurant_service.dart';
+import 'package:discount_buddy/features/bookings/data/booking_provider.dart';
+import 'package:discount_buddy/features/profile/data/profile_provider.dart';
+import 'package:discount_buddy/features/restaurants/data/restaurant_provider.dart';
+import 'package:discount_buddy/features/nearby/data/nearby_provider.dart';
 import 'package:discount_buddy/widgets/app_scaffold.dart';
 import 'package:discount_buddy/widgets/app_gradient_button.dart';
 import 'package:discount_buddy/widgets/loading_widget.dart';
@@ -17,7 +21,6 @@ import 'package:discount_buddy/widgets/empty_state_widget.dart';
 import 'package:discount_buddy/widgets/generic_bottom_sheet.dart';
 import 'package:discount_buddy/features/restaurants/models/restaurant.dart';
 import 'package:discount_buddy/routes/app_routes.dart';
-import 'package:discount_buddy/features/nearby/data/location_service.dart';
 import 'package:discount_buddy/core/utils/media_url_utils.dart';
 
 /// Bookings/Redemptions Screen - Integrated with deal uses API
@@ -30,19 +33,12 @@ class BookingsPage extends StatefulWidget {
 
 class _BookingsPageState extends State<BookingsPage>
     with SingleTickerProviderStateMixin {
-  final RestaurantService _restaurantService = RestaurantService();
-  final LocationService _locationService = LocationService();
-  // Distance calculation is handled, but dist variable itself is not used currently
-  // keeping it commented if needed, or just remove if we use it elsewhere
-  // final dist = restaurant.distanceMiles ?? _kmToMiles(restaurant.distance);
   List<DealRedemption> _redemptions = [];
-  List<Booking> _bookings = [];
   bool _isLoading = true;
   late TabController _tabController;
   List<Restaurant> _trendingRestaurants = [];
   double? _userLat;
   double? _userLon;
-
 
   @override
   void initState() {
@@ -64,42 +60,47 @@ class _BookingsPageState extends State<BookingsPage>
     });
 
     try {
-      // Get location for distance calculation
+      // Get location
+      final nearbyProvider = context.read<NearbyProvider>();
+      final userLocation = await nearbyProvider.getUserLocation();
       double? lat, lon;
-      try {
-        final position = await _locationService.getCurrentLocation();
-        lat = position.latitude;
-        lon = position.longitude;
-      } catch (e) {
-        debugPrint('Location fetching failed for bookings: $e');
+      if (userLocation != null) {
+        lat = userLocation.position.latitude;
+        lon = userLocation.position.longitude;
       }
 
-      // Load redemptions, bookings and trending restaurants in parallel
-      final results = await Future.wait([
-        _restaurantService.getUserDealRedemptions(),
-        _restaurantService.getRestaurants(latitude: lat, longitude: lon),
-        _restaurantService.getUserBookings(),
+      // Get data from providers
+      final restaurantProvider = context.read<RestaurantProvider>();
+      final profileProvider = context.read<ProfileProvider>();
+
+      await Future.wait([
+        profileProvider.getDealRedemptions(),
+        restaurantProvider.getRestaurants(latitude: lat, longitude: lon),
       ]);
 
       if (mounted) {
         setState(() {
-          _redemptions = results[0] as List<DealRedemption>;
-          _trendingRestaurants = results[1] as List<Restaurant>;
-          _bookings = results[2] as List<Booking>;
+          _redemptions = profileProvider.dealRedemptions;
+          _trendingRestaurants = restaurantProvider.restaurants;
           _userLat = lat;
           _userLon = lon;
           _isLoading = false;
         });
+        
+        Future.microtask(() {
+          if (mounted) {
+            context.read<BookingProvider>().loadBookings();
+          }
+        });
       }
-
     } catch (e) {
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to load activity: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading data: $e')),
+        );
       }
     }
   }
@@ -124,23 +125,17 @@ class _BookingsPageState extends State<BookingsPage>
       ),
     );
 
-    if (confirmed == true) {
-      setState(() => _isLoading = true);
-      try {
-        await _restaurantService.deleteBooking(bookingId);
-        await _loadData();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Booking cancelled successfully')),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          setState(() => _isLoading = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to cancel: $e')),
-          );
-        }
+    if (confirmed == true && mounted) {
+      final success = await context.read<BookingProvider>().deleteBooking(bookingId);
+      if (success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Booking cancelled successfully')),
+        );
+      } else if (!success && mounted) {
+        final failure = context.read<BookingProvider>().failure;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to cancel booking: ${failure?.message}')),
+        );
       }
     }
   }
@@ -248,24 +243,27 @@ class _BookingsPageState extends State<BookingsPage>
     );
 
     if (result != null && result['update'] == true) {
-      setState(() => _isLoading = true);
-      try {
-        await _restaurantService.updateBooking(
+      if (mounted) {
+        final success = await context.read<BookingProvider>().updateBooking(
           bookingId: booking.id,
           bookingDate: result['date'] as DateTime,
           numberOfGuests: int.tryParse(guestsController.text),
           specialRequests: requestController.text,
         );
-        await _loadData();
-      } catch (e) {
-        if (mounted) {
-          setState(() => _isLoading = false);
+        if (success && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to update: $e')),
+            const SnackBar(content: Text('Booking updated successfully')),
+          );
+        } else if (!success && mounted) {
+          final failure = context.read<BookingProvider>().failure;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to update booking: ${failure?.message}')),
           );
         }
       }
     }
+    guestsController.dispose();
+    requestController.dispose();
   }
 
   List<DealRedemption> _getRedemptionsByTab(int index) {
@@ -317,39 +315,43 @@ class _BookingsPageState extends State<BookingsPage>
             Expanded(
               child: _isLoading
                   ? const LoadingWidget(message: 'Loading your activity...')
-                  : TabBarView(
-                      controller: _tabController,
-                      children: [
-                        _bookings.isEmpty
-                            ? RefreshIndicator(
-                                onRefresh: _loadData,
-                                child: _ReservationEmptyTab(
-                                  trendingItems: _trendingRestaurants,
-                                  userLat: _userLat,
-                                  userLon: _userLon,
-                                  onExplorePressed: () {
-                                    // Navigation to explore restaurants
-                                  },
-                                ),
-                              )
-                            : _BookingList(
-                                bookings: _bookings,
-                                onRefresh: _loadData,
-                                onEdit: _editBooking,
-                                onDelete: _deleteBooking,
-                              ),
+                  : Consumer<BookingProvider>(
+                      builder: (context, bookingProvider, _) {
+                        return TabBarView(
+                          controller: _tabController,
+                          children: [
+                            bookingProvider.bookings.isEmpty
+                                ? RefreshIndicator(
+                                    onRefresh: () => bookingProvider.loadBookings(),
+                                    child: _ReservationEmptyTab(
+                                      trendingItems: _trendingRestaurants,
+                                      userLat: _userLat,
+                                      userLon: _userLon,
+                                      onExplorePressed: () {
+                                        // Navigation to explore restaurants
+                                      },
+                                    ),
+                                  )
+                                : _BookingList(
+                                    bookings: bookingProvider.bookings,
+                                    onRefresh: () => bookingProvider.loadBookings(),
+                                    onEdit: _editBooking,
+                                    onDelete: _deleteBooking,
+                                  ),
 
-                        _RedemptionList(
-                          redemptions: _getRedemptionsByTab(1),
-                          onRefresh: _loadData,
-                          emptyMessage: 'No active coupons',
-                        ),
-                        _RedemptionList(
-                          redemptions: _getRedemptionsByTab(2),
-                          onRefresh: _loadData,
-                          emptyMessage: 'No claimed coupons',
-                        ),
-                      ],
+                            _RedemptionList(
+                              redemptions: _getRedemptionsByTab(1),
+                              onRefresh: _loadData,
+                              emptyMessage: 'No active coupons',
+                            ),
+                            _RedemptionList(
+                              redemptions: _getRedemptionsByTab(2),
+                              onRefresh: _loadData,
+                              emptyMessage: 'No claimed coupons',
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ],

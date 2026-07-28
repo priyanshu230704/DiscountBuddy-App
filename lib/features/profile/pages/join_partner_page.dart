@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:discount_buddy/core/theme/app_design.dart';
 import 'package:discount_buddy/widgets/app_scaffold.dart';
 import 'package:discount_buddy/widgets/app_gradient_button.dart';
 import 'package:discount_buddy/components/app_app_bar.dart';
 import 'package:discount_buddy/components/inputs.dart';
-import 'package:discount_buddy/features/restaurants/data/restaurant_service.dart';
+import 'package:discount_buddy/features/profile/data/profile_provider.dart';
 
 /// Page for restaurants to request partnership
 class JoinPartnerPage extends StatefulWidget {
@@ -16,7 +17,6 @@ class JoinPartnerPage extends StatefulWidget {
 
 class _JoinPartnerPageState extends State<JoinPartnerPage> {
   final _formKey = GlobalKey<FormState>();
-  final _restaurantService = RestaurantService();
   
   final _restaurantNameController = TextEditingController();
   final _contactNameController = TextEditingController();
@@ -25,8 +25,6 @@ class _JoinPartnerPageState extends State<JoinPartnerPage> {
   final _cityController = TextEditingController();
   final _websiteController = TextEditingController();
   final _commentsController = TextEditingController();
-  
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -43,10 +41,8 @@ class _JoinPartnerPageState extends State<JoinPartnerPage> {
   Future<void> _submitRequest() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
-
     try {
-      await _restaurantService.submitPartnerRequest(
+      await context.read<ProfileProvider>().submitPartnerRequest(
         restaurantName: _restaurantNameController.text.trim(),
         contactName: _contactNameController.text.trim(),
         email: _emailController.text.trim(),
@@ -57,7 +53,17 @@ class _JoinPartnerPageState extends State<JoinPartnerPage> {
       );
 
       if (mounted) {
-        _showSuccessDialog();
+        final provider = context.read<ProfileProvider>();
+        if (provider.error == null) {
+          _showSuccessDialog();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(provider.error?.toString() ?? 'Failed to submit request'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -67,10 +73,6 @@ class _JoinPartnerPageState extends State<JoinPartnerPage> {
             backgroundColor: AppColors.error,
           ),
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
       }
     }
   }
@@ -219,10 +221,14 @@ class _JoinPartnerPageState extends State<JoinPartnerPage> {
               
               const SizedBox(height: AppSpacing.xxxl),
               
-              AppGradientButton(
-                onPressed: _isLoading ? null : _submitRequest,
-                isLoading: _isLoading,
-                child: const Text('Submit Application'),
+              Consumer<ProfileProvider>(
+                builder: (context, profileProvider, _) {
+                  return AppGradientButton(
+                    onPressed: profileProvider.isLoading ? null : _submitRequest,
+                    isLoading: profileProvider.isLoading,
+                    child: const Text('Submit Application'),
+                  );
+                },
               ),
               
               const SizedBox(height: AppSpacing.xxxl),

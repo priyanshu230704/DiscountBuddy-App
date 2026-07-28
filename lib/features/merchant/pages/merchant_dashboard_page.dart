@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:discount_buddy/core/theme/app_design.dart';
 import 'package:discount_buddy/widgets/app_scaffold.dart';
-import 'package:discount_buddy/features/merchant/data/merchant_service.dart';
+import 'package:discount_buddy/features/merchant/data/merchant_provider.dart';
 import 'package:discount_buddy/routes/app_routes.dart';
 import 'dart:async';
 import 'package:discount_buddy/features/notifications/data/notification_provider.dart';
@@ -36,7 +36,7 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage>
   int? _selectedRestaurantId; // null means 'All'
   String _selectedRestaurantName = 'All Restaurants';
 
-  final MerchantService _merchantService = MerchantService();
+  final MerchantProvider _merchantProvider = MerchantProvider();
 
   @override
   void initState() {
@@ -78,38 +78,48 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage>
       // Simulating a brief delay for a premium feel
       await Future.delayed(const Duration(milliseconds: 600));
 
-      final stats = await _merchantService.getMerchantDashboardStats(
+      final result = await _merchantProvider.getMerchantDashboardStats(
         restaurantId: _selectedRestaurantId,
       );
 
       if (mounted) {
-        setState(() {
-          _totalBookings = stats['total_bookings'] ?? 0;
-          _activeDeals = stats['active_deals'] ?? 0;
-          _averageRating = (stats['average_rating'] ?? 0.0).toDouble();
+        result.fold(
+          onSuccess: (stats) {
+            setState(() {
+              _totalBookings = stats['total_bookings'] ?? 0;
+              _activeDeals = stats['active_deals'] ?? 0;
+              _averageRating = (stats['average_rating'] ?? 0.0).toDouble();
 
-          _totalRedeemedCount = stats['total_redeemed'] ?? 0;
-          _totalEarnings = (stats['total_earnings'] ?? 0.0).toDouble();
+              _totalRedeemedCount = stats['total_redeemed'] ?? 0;
+              _totalEarnings = (stats['total_earnings'] ?? 0.0).toDouble();
 
-          // Update restaurant list and default selection if needed
-          if (stats['restaurants'] != null) {
-            _restaurants = List<Map<String, dynamic>>.from(
-              stats['restaurants'],
-            );
+              // Update restaurant list and default selection if needed
+              if (stats['restaurants'] != null) {
+                _restaurants = List<Map<String, dynamic>>.from(
+                  stats['restaurants'],
+                );
 
-            // If only one restaurant, auto-select it if nothing selected
-            if (_restaurants.length == 1 && _selectedRestaurantId == null) {
-              _selectedRestaurantId = _restaurants[0]['id'];
-              _selectedRestaurantName = _restaurants[0]['name'];
-            }
-          }
+                // If only one restaurant, auto-select it if nothing selected
+                if (_restaurants.length == 1 && _selectedRestaurantId == null) {
+                  _selectedRestaurantId = _restaurants[0]['id'];
+                  _selectedRestaurantName = _restaurants[0]['name'];
+                }
+              }
 
-          _primaryRestaurantId = stats['primary_restaurant_id'];
-          _currentOccupancy = stats['primary_restaurant_occupancy'];
-          _currentAddress = stats['primary_restaurant_address'];
+              _primaryRestaurantId = stats['primary_restaurant_id'];
+              _currentOccupancy = stats['primary_restaurant_occupancy'];
+              _currentAddress = stats['primary_restaurant_address'];
 
-          _isLoading = false;
-        });
+              _isLoading = false;
+            });
+          },
+          onError: (failure) {
+            debugPrint('Error loading dashboard: $failure');
+            setState(() {
+              _isLoading = false;
+            });
+          },
+        );
       }
     } catch (e) {
       debugPrint('Error loading dashboard: $e');
@@ -395,16 +405,26 @@ class _MerchantDashboardPageState extends State<MerchantDashboardPage>
     setState(() => _currentOccupancy = newOccupancy);
 
     try {
-      await _merchantService.updateOccupancy(targetId, newOccupancy);
+      final result = await _merchantProvider.updateOccupancy(targetId, newOccupancy);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Status updated to ${newOccupancy == 'available' ? 'Less Busy' : newOccupancy.replaceAll('_', ' ')}',
-            ),
-            behavior: SnackBarBehavior.floating,
-            backgroundColor: AppColors.merchantIndigo,
-          ),
+        result.fold(
+          onSuccess: (_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  'Status updated to ${newOccupancy == 'available' ? 'Less Busy' : newOccupancy.replaceAll('_', ' ')}',
+                ),
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: AppColors.merchantIndigo,
+              ),
+            );
+          },
+          onError: (failure) {
+            setState(() => _currentOccupancy = oldOccupancy);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Failed to update status: $failure')),
+            );
+          },
         );
       }
     } catch (e) {

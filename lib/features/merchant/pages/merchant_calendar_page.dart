@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:discount_buddy/core/theme/app_design.dart';
 import 'package:discount_buddy/widgets/app_scaffold.dart';
 import 'package:discount_buddy/components/app_app_bar.dart';
-import 'package:discount_buddy/features/merchant/data/merchant_service.dart';
+import 'package:discount_buddy/features/merchant/data/merchant_provider.dart';
 import 'package:discount_buddy/core/utils/date_time_utils.dart';
 
 class MerchantCalendarPage extends StatefulWidget {
@@ -15,7 +15,7 @@ class MerchantCalendarPage extends StatefulWidget {
 }
 
 class _MerchantCalendarPageState extends State<MerchantCalendarPage> {
-  final MerchantService _merchantService = MerchantService();
+  final MerchantProvider _merchantProvider = MerchantProvider();
   DateTime _selectedDate = DateTime.now();
   List<Map<String, dynamic>> _bookings = [];
   bool _isLoading = true;
@@ -29,9 +29,10 @@ class _MerchantCalendarPageState extends State<MerchantCalendarPage> {
   Future<void> _loadBookings() async {
     try {
       setState(() => _isLoading = true);
-      final bookings = await _merchantService.getMerchantBookings(
+      final bookingsResult = await _merchantProvider.getMerchantBookings(
         restaurantId: widget.restaurantId,
       );
+      final bookings = bookingsResult.valueOrNull ?? [];
       if (mounted) {
         setState(() {
           _bookings = bookings;

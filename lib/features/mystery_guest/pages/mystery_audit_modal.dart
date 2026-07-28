@@ -1,12 +1,13 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:discount_buddy/core/theme/app_colors.dart';
 import 'package:discount_buddy/core/theme/app_radius.dart';
 import 'package:discount_buddy/core/theme/app_shadows.dart';
 import 'package:discount_buddy/core/theme/app_typography.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:discount_buddy/features/mystery_guest/models/mystery_visit.dart';
-import 'package:discount_buddy/features/mystery_guest/data/mystery_guest_service.dart';
+import 'package:discount_buddy/features/mystery_guest/data/mystery_guest_provider.dart';
 
 class MysteryAuditModal extends StatefulWidget {
   final MysteryVisit visit;
@@ -23,10 +24,8 @@ class MysteryAuditModal extends StatefulWidget {
 }
 
 class _MysteryAuditModalState extends State<MysteryAuditModal> {
-  final MysteryGuestService _mysteryService = MysteryGuestService();
   final ImagePicker _picker = ImagePicker();
 
-  bool _isLoading = false;
   late MysteryVisit _currentVisit;
 
   // Scores (0-10)
@@ -52,29 +51,35 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
   void initState() {
     super.initState();
     _currentVisit = widget.visit;
-    // Load existing scores if in progress
-    // In a real app, we'd fetch these from the API or local storage
   }
 
-  Future<void> _startVisit() async {
-    setState(() => _isLoading = true);
-    try {
-      final updated = await _mysteryService.startVisit(_currentVisit.id);
+  @override
+  void dispose() {
+    _preVisitComment.dispose();
+    _ambienceComment.dispose();
+    _serviceComment.dispose();
+    _foodComment.dispose();
+    _discountComment.dispose();
+    _hygieneComment.dispose();
+    _overallComment.dispose();
+    super.dispose();
+  }
+
+  Future<void> _startVisit(MysteryGuestProvider provider) async {
+    final success = await provider.startVisit(_currentVisit.id);
+    if (success && mounted) {
       setState(() {
-        _currentVisit = updated;
-        _isLoading = false;
+        _currentVisit = provider.currentVisit ?? _currentVisit;
       });
-      widget.onUpdate(updated);
-    } catch (e) {
-      setState(() => _isLoading = false);
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to start visit: $e')));
+      widget.onUpdate(provider.currentVisit ?? _currentVisit);
+    } else if (!success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to start visit: ${provider.failure?.message}')),
+      );
     }
   }
 
-  Future<void> _pickAndUploadEvidence() async {
+  Future<void> _pickAndUploadEvidence(MysteryGuestProvider provider) async {
     final XFile? image = await _picker.pickImage(
       source: ImageSource.camera,
       maxWidth: 1024,
@@ -83,121 +88,117 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
     );
     if (image == null) return;
 
-    setState(() => _isLoading = true);
-    try {
-      await _mysteryService.uploadEvidence(
-        visitId: _currentVisit.id,
-        file: File(image.path),
-        description: 'Mystery Guest Evidence',
+    final success = await provider.uploadEvidence(
+      visitId: _currentVisit.id,
+      file: File(image.path),
+      description: 'Mystery Guest Evidence',
+    );
+
+    if (success && mounted) {
+      await provider.getVisitDetail(_currentVisit.id);
+      if (provider.currentVisit != null) {
+        setState(() {
+          _currentVisit = provider.currentVisit!;
+        });
+        widget.onUpdate(_currentVisit);
+      }
+    } else if (!success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Upload failed: ${provider.failure?.message}')),
       );
-      // Reload visit to see new evidence
-      final updated = await _mysteryService.getVisitDetail(_currentVisit.id);
-      setState(() {
-        _currentVisit = updated;
-        _isLoading = false;
-      });
-      widget.onUpdate(updated);
-    } catch (e) {
-      setState(() => _isLoading = false);
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Upload failed: $e')));
     }
   }
 
-  Future<void> _submitReport() async {
-    setState(() => _isLoading = true);
-    try {
-      final report = {
-        'pre_visit_score': _preVisitScore,
-        'pre_visit_comment': _preVisitComment.text,
-        'ambience_score': _ambienceScore,
-        'ambience_comment': _ambienceComment.text,
-        'service_score': _serviceScore,
-        'service_comment': _serviceComment.text,
-        'food_score': _foodScore,
-        'food_comment': _foodComment.text,
-        'discount_experience_score': _discountScore,
-        'discount_experience_comment': _discountComment.text,
-        'hygiene_score': _hygieneScore,
-        'hygiene_comment': _hygieneComment.text,
-        'is_risk_flagged': _isRiskFlagged,
-        'comments': _overallComment.text,
-      };
+  Future<void> _submitReport(MysteryGuestProvider provider) async {
+    final report = {
+      'pre_visit_score': _preVisitScore,
+      'pre_visit_comment': _preVisitComment.text,
+      'ambience_score': _ambienceScore,
+      'ambience_comment': _ambienceComment.text,
+      'service_score': _serviceScore,
+      'service_comment': _serviceComment.text,
+      'food_score': _foodScore,
+      'food_comment': _foodComment.text,
+      'discount_experience_score': _discountScore,
+      'discount_experience_comment': _discountComment.text,
+      'hygiene_score': _hygieneScore,
+      'hygiene_comment': _hygieneComment.text,
+      'is_risk_flagged': _isRiskFlagged,
+      'comments': _overallComment.text,
+    };
 
-      final updated = await _mysteryService.submitVisit(
-        id: _currentVisit.id,
-        reportData: report,
+    final success = await provider.submitVisit(
+      visitId: _currentVisit.id,
+      reportData: report,
+    );
+
+    if (success && mounted) {
+      Navigator.pop(context);
+      widget.onUpdate(provider.currentVisit ?? _currentVisit);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Audit submitted successfully!')),
       );
-
-      if (mounted) {
-        Navigator.pop(context);
-        widget.onUpdate(updated);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Audit submitted successfully!')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Submission failed: $e')));
-      }
+    } else if (!success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Submission failed: ${provider.failure?.message}')),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.9,
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      padding: const EdgeInsets.all(20),
-      child: Stack(
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Consumer<MysteryGuestProvider>(
+      builder: (context, provider, _) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.9,
+          decoration: const BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          padding: const EdgeInsets.all(20),
+          child: Stack(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Mystery Guest Audit',
-                    style: AppTypography.body.copyWith(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Mystery Guest Audit',
+                        style: AppTypography.body.copyWith(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.close),
+                      ),
+                    ],
                   ),
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
+                  const Divider(),
+                  Expanded(
+                    child: _currentVisit.status == 'assigned'
+                        ? _buildStartScreen(provider)
+                        : _buildAuditForm(provider),
                   ),
                 ],
               ),
-              const Divider(),
-              Expanded(
-                child: _currentVisit.status == 'assigned'
-                    ? _buildStartScreen()
-                    : _buildAuditForm(),
-              ),
+              if (provider.isLoading)
+                Container(
+                  color: AppColors.white.withValues(alpha: 0.6),
+                  child: const Center(child: CircularProgressIndicator()),
+                ),
             ],
           ),
-          if (_isLoading)
-            Container(
-              color: AppColors.white.withValues(alpha: 0.6),
-              child: const Center(child: CircularProgressIndicator()),
-            ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildStartScreen() {
+  Widget _buildStartScreen(MysteryGuestProvider provider) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -221,7 +222,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
           width: double.infinity,
           height: 56,
           child: ElevatedButton(
-            onPressed: _startVisit,
+            onPressed: () => _startVisit(provider),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               shape: RoundedRectangleBorder(
@@ -242,7 +243,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
     );
   }
 
-  Widget _buildAuditForm() {
+  Widget _buildAuditForm(MysteryGuestProvider provider) {
     return ListView(
       children: [
         _buildSectionHeader('Pre-Visit Experience'),
@@ -323,7 +324,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
               ),
             ),
             GestureDetector(
-              onTap: _pickAndUploadEvidence,
+              onTap: () => _pickAndUploadEvidence(provider),
               child: Container(
                 width: 80,
                 height: 80,
@@ -366,7 +367,7 @@ class _MysteryAuditModalState extends State<MysteryAuditModal> {
           width: double.infinity,
           height: 56,
           child: ElevatedButton(
-            onPressed: _submitReport,
+            onPressed: () => _submitReport(provider),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               shape: RoundedRectangleBorder(

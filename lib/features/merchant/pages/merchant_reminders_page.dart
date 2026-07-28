@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:discount_buddy/core/theme/app_design.dart';
+import 'package:discount_buddy/core/utils/date_time_utils.dart';
 import 'package:discount_buddy/widgets/app_scaffold.dart';
 import 'package:discount_buddy/components/app_app_bar.dart';
-import 'package:discount_buddy/features/merchant/data/merchant_service.dart';
+import 'package:discount_buddy/features/merchant/data/merchant_provider.dart';
+import 'package:discount_buddy/features/merchant/pages/booking_details_dialog.dart';
 import 'dart:async';
 
 class MerchantRemindersPage extends StatefulWidget {
@@ -14,7 +16,7 @@ class MerchantRemindersPage extends StatefulWidget {
 }
 
 class _MerchantRemindersPageState extends State<MerchantRemindersPage> {
-  final MerchantService _merchantService = MerchantService();
+  final MerchantProvider _merchantProvider = MerchantProvider();
   List<Map<String, dynamic>> _reminders = [];
   bool _isLoading = true;
   Timer? _timer;
@@ -40,7 +42,8 @@ class _MerchantRemindersPageState extends State<MerchantRemindersPage> {
   Future<void> _loadReminders() async {
     try {
       setState(() => _isLoading = true);
-      final reminders = await _merchantService.getUpcomingReminders();
+      final remindersResult = await _merchantProvider.getUpcomingReminders();
+      final reminders = remindersResult.valueOrNull ?? [];
       if (mounted) {
         setState(() {
           _reminders = reminders;
@@ -54,9 +57,8 @@ class _MerchantRemindersPageState extends State<MerchantRemindersPage> {
     }
   }
 
-  String _getCountdownText(String? dateStr) {
-    if (dateStr == null) return '';
-    final bookingDate = DateTime.tryParse(dateStr);
+  String _getCountdownText(Object? dateStr) {
+    final bookingDate = DateTimeUtils.tryParseBookingInstant(dateStr);
     if (bookingDate == null) return '';
 
     final now = DateTime.now();
@@ -147,103 +149,116 @@ class _MerchantRemindersPageState extends State<MerchantRemindersPage> {
   }
 
   Widget _buildReminderCard(Map<String, dynamic> reminder) {
-    final customer = reminder['contact_name'] ?? 'Guest';
+    final customer = (reminder['contact_name']?.toString().trim().isNotEmpty == true)
+        ? reminder['contact_name'].toString().trim()
+        : 'Guest';
     final guests = reminder['number_of_guests'] ?? 0;
     final dateStr = reminder['booking_date'];
-    final initial = customer.toString().substring(0, 1).toUpperCase();
+    final initial = customer.substring(0, 1).toUpperCase();
 
-    DateTime? date;
-    if (dateStr != null) {
-      date = DateTime.tryParse(dateStr);
-    }
-    
-    final formattedTime = date != null
-        ? '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}'
-        : 'N/A';
+    final date = DateTimeUtils.tryParseBookingInstant(dateStr);
+    final formattedTime =
+        date != null ? DateTimeUtils.format24h(date) : 'N/A';
     final formattedDate = date != null
-        ? '${date.day.toString().padLeft(2, '0')} ${_getMonthShort(date.month)} ${date.year}'
+        ? DateTimeUtils.formatDateOnly(date.isUtc ? date.toLocal() : date)
         : 'N/A';
 
     final countdownText = _getCountdownText(dateStr);
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => showMerchantBookingDetailsDialog(context, reminder),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.cardBorder),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Circular initials avatar
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: AppColors.merchantIndigo.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              initial,
-              style: AppTypography.title.copyWith(
-                color: AppColors.merchantIndigo,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: AppColors.cardBorder),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
-            ),
+            ],
           ),
-          const SizedBox(width: 16),
-          // Details
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Row(
+            children: [
+              // Circular initials avatar
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppColors.merchantIndigo.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  initial,
+                  style: AppTypography.title.copyWith(
+                    color: AppColors.merchantIndigo,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              // Details
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '$formattedTime - $customer',
-                      style: AppTypography.bodyLarge.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    // Countdown badge
-                    if (countdownText.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.merchantIndigo.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          countdownText,
-                          style: TextStyle(
-                            color: AppColors.merchantIndigo,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '$formattedTime - $customer',
+                            style: AppTypography.bodyLarge.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                      ),
+                        // Countdown badge
+                        if (countdownText.isNotEmpty)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.merchantIndigo.withValues(
+                                alpha: 0.1,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              countdownText,
+                              style: TextStyle(
+                                color: AppColors.merchantIndigo,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '$guests Guests • $formattedDate',
+                      style: AppTypography.caption,
+                    ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  '$guests Guests • $formattedDate',
-                  style: AppTypography.caption,
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -264,7 +279,7 @@ class _MerchantRemindersPageState extends State<MerchantRemindersPage> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'You will get a reminder 1 hour before every confirmed booking.',
+              'You will get a reminder 1 hour before every pending booking.',
               style: AppTypography.bodySmall.copyWith(
                 color: AppColors.merchantIndigo,
                 fontWeight: FontWeight.w600,
@@ -276,8 +291,4 @@ class _MerchantRemindersPageState extends State<MerchantRemindersPage> {
     );
   }
 
-  String _getMonthShort(int month) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return months[month - 1];
-  }
 }

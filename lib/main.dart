@@ -21,6 +21,15 @@ import 'package:discount_buddy/routes/app_pages.dart';
 import 'package:discount_buddy/core/di/initial_binding.dart';
 import 'package:discount_buddy/core/utils/navigator_key.dart';
 import 'package:provider/provider.dart';
+import 'package:discount_buddy/features/restaurants/data/restaurant_provider.dart';
+import 'package:discount_buddy/features/nearby/data/nearby_provider.dart';
+import 'package:discount_buddy/features/bookings/data/booking_provider.dart';
+import 'package:discount_buddy/features/loyalty/data/loyalty_provider.dart';
+import 'package:discount_buddy/features/deals/data/deals_provider.dart';
+import 'package:discount_buddy/features/profile/data/profile_provider.dart';
+import 'package:discount_buddy/features/mystery_guest/data/mystery_guest_provider.dart';
+import 'package:discount_buddy/features/notifications/data/notification_provider.dart';
+import 'package:discount_buddy/features/onboarding/data/onboarding_provider.dart';
 
 // Background message handler - must be top-level function
 @pragma('vm:entry-point')
@@ -157,8 +166,39 @@ class _DiscountBuddyAppState extends State<DiscountBuddyApp>
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<ConnectivityProvider>(
-      create: (_) => ConnectivityProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<ConnectivityProvider>(
+          create: (_) => ConnectivityProvider(),
+        ),
+        ChangeNotifierProvider<RestaurantProvider>(
+          create: (_) => RestaurantProvider(),
+        ),
+        ChangeNotifierProvider<NearbyProvider>(
+          create: (_) => NearbyProvider(),
+        ),
+        ChangeNotifierProvider<BookingProvider>(
+          create: (_) => BookingProvider(),
+        ),
+        ChangeNotifierProvider<LoyaltyProvider>(
+          create: (_) => LoyaltyProvider(),
+        ),
+        ChangeNotifierProvider<DealsProvider>(
+          create: (_) => DealsProvider(),
+        ),
+        ChangeNotifierProvider<ProfileProvider>(
+          create: (_) => ProfileProvider(),
+        ),
+        ChangeNotifierProvider<MysteryGuestProvider>(
+          create: (_) => MysteryGuestProvider(),
+        ),
+        ChangeNotifierProvider<NotificationProvider>(
+          create: (_) => NotificationProvider(),
+        ),
+        ChangeNotifierProvider<OnboardingProvider>(
+          create: (_) => OnboardingProvider(),
+        ),
+      ],
       child: ListenableBuilder(
         listenable: _themeProvider,
         builder: (context, child) {

@@ -147,21 +147,31 @@ class Booking {
   });
 
   factory Booking.fromJson(Map<String, dynamic> json) {
+    final bookingDateRaw = json['booking_date']?.toString();
+    final createdAtRaw = json['created_at']?.toString();
+
     return Booking(
       id: json['booking_id'] as int? ?? json['id'] as int? ?? 0,
-      restaurantId: json['restaurant_id'] as int? ?? json['restaurant'] as int? ?? 0,
+      restaurantId:
+          json['restaurant_id'] as int? ?? json['restaurant'] as int? ?? 0,
       restaurantName: json['restaurant_name'] as String? ?? '',
       restaurantSlug: json['restaurant_slug'] as String? ?? '',
       restaurantCityName: json['restaurant_city_name'] as String?,
-      bookingDate: DateTime.parse(json['booking_date'] as String),
-
+      bookingDate: bookingDateRaw != null && bookingDateRaw.isNotEmpty
+          ? DateTime.parse(bookingDateRaw)
+          : DateTime.now().toUtc(),
       numberOfGuests: json['number_of_guests'] as int? ?? 1,
       status: _parseBookingStatus(json['status'] as String? ?? 'pending'),
       specialRequests: json['special_requests'] as String? ?? '',
       contactName: json['contact_name'] as String? ?? '',
       contactPhone: json['contact_phone'] as String? ?? '',
       canCancel: json['can_cancel'] as bool? ?? false,
-      createdAt: DateTime.parse(json['created_at'] as String),
+      // Create booking API may omit created_at — fall back to booking_date / now.
+      createdAt: createdAtRaw != null && createdAtRaw.isNotEmpty
+          ? DateTime.parse(createdAtRaw)
+          : (bookingDateRaw != null && bookingDateRaw.isNotEmpty
+              ? DateTime.parse(bookingDateRaw)
+              : DateTime.now().toUtc()),
     );
   }
 

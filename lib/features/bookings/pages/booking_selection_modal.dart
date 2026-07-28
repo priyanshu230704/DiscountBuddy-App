@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:discount_buddy/core/utils/date_time_utils.dart';
 import 'package:discount_buddy/features/restaurants/models/restaurant.dart';
-import 'package:discount_buddy/features/restaurants/data/restaurant_service.dart';
+import 'package:discount_buddy/features/bookings/data/booking_provider.dart';
 import 'package:discount_buddy/core/theme/app_colors.dart';
 import 'package:discount_buddy/core/theme/app_radius.dart';
 import 'package:discount_buddy/core/theme/app_spacing.dart';
@@ -22,7 +23,6 @@ class BookingSelectionModal extends StatefulWidget {
 }
 
 class _BookingSelectionModalState extends State<BookingSelectionModal> {
-  final RestaurantService _restaurantService = RestaurantService();
   DateTime _selectedDate = DateTime.now();
   String? _selectedTime;
   int _guestCount = 2;
@@ -111,7 +111,7 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
         int.parse(timeParts[1]),
       );
 
-      await _restaurantService.createBooking(
+      final success = await context.read<BookingProvider>().createBooking(
         restaurantId: int.parse(widget.restaurant.id),
         bookingDate: bookingDateTime,
         numberOfGuests: _guestCount,
@@ -120,25 +120,34 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
         contactPhone: '',
       );
 
-      if (mounted) {
-        // Success! Now show Redemption modal
-        Navigator.pop(context); // Close Booking Modal
+      if (!mounted) return;
 
-        // Show Redeem modal
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (context) => RedeemOfferModal(restaurant: widget.restaurant),
-        );
-
+      if (!success) {
+        setState(() => _isBooking = false);
+        final failure = context.read<BookingProvider>().failure;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Booking confirmed! Ready to redeem offer.'),
-            backgroundColor: AppColors.primary,
-          ),
+          SnackBar(content: Text(failure?.message ?? 'Booking failed')),
         );
+        return;
       }
+
+      // Success! Now show Redemption modal
+      Navigator.pop(context); // Close Booking Modal
+
+      // Show Redeem modal
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => RedeemOfferModal(restaurant: widget.restaurant),
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Booking confirmed! Ready to redeem offer.'),
+          backgroundColor: AppColors.primary,
+        ),
+      );
     } catch (e) {
       if (mounted) {
         setState(() {

@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:discount_buddy/features/notifications/data/notification_service.dart';
+import 'package:discount_buddy/features/notifications/data/notifications_repository_impl.dart';
+import 'package:discount_buddy/features/notifications/domain/repositories/notifications_repository.dart';
+import 'package:discount_buddy/features/notifications/domain/usecases/get_unread_count_usecase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationProvider extends ChangeNotifier {
   static final NotificationProvider _instance = NotificationProvider._internal();
   factory NotificationProvider() => _instance;
-  NotificationProvider._internal();
+  NotificationProvider._internal() {
+    _repository = NotificationsRepositoryImpl();
+    _getUnreadCountUseCase = GetUnreadCountUseCase(_repository);
+  }
+
+  late NotificationsRepository _repository;
+  late GetUnreadCountUseCase _getUnreadCountUseCase;
 
   int _unreadCount = 0;
   int get unreadCount => _unreadCount;
@@ -16,8 +24,6 @@ class NotificationProvider extends ChangeNotifier {
 
   bool _hasFetched = false;
   bool get hasFetched => _hasFetched;
-
-  final NotificationService _notificationService = NotificationService();
 
   /// Avoids "setState/markNeedsBuild during build" when callers run from [initState].
   void _safeNotifyListeners() {
@@ -49,15 +55,21 @@ class NotificationProvider extends ChangeNotifier {
     _safeNotifyListeners();
 
     try {
-      final count = await _notificationService.getUnreadCount(isMerchant: isMerchant);
-      _unreadCount = count;
-      _hasFetched = true;
-      
-      // Sync persistent storage
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt('unread_notification_count', count);
-    } catch (e) {
-      debugPrint('Error fetching unread count: $e');
+      final result = await _getUnreadCountUseCase(isMerchant: isMerchant);
+      result.fold(
+        onSuccess: (count) {
+          _unreadCount = count;
+          _hasFetched = true;
+          
+          // Sync persistent storage
+          SharedPreferences.getInstance().then((prefs) {
+            prefs.setInt('unread_notification_count', count);
+          }).catchError((_) {});
+        },
+        onError: (failure) {
+          debugPrint('Error fetching unread count: ${failure.message}');
+        },
+      );
     } finally {
       _isLoading = false;
       _safeNotifyListeners();

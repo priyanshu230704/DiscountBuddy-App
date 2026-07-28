@@ -4,7 +4,7 @@ import 'package:discount_buddy/widgets/app_scaffold.dart';
 import 'package:discount_buddy/widgets/app_gradient_button.dart';
 import 'package:discount_buddy/components/app_app_bar.dart';
 import 'package:discount_buddy/components/layout.dart';
-import 'package:discount_buddy/features/merchant/data/merchant_service.dart';
+import 'package:discount_buddy/features/merchant/data/merchant_provider.dart';
 import 'package:discount_buddy/widgets/empty_state_widget.dart';
 import 'package:discount_buddy/widgets/skeleton_loader.dart';
 
@@ -24,7 +24,7 @@ class MerchantCategoryItemsPage extends StatefulWidget {
 }
 
 class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
-  final MerchantService _merchantService = MerchantService();
+  final MerchantProvider _merchantProvider = MerchantProvider();
   Map<String, dynamic>? _category;
   bool _isLoading = true;
 
@@ -37,9 +37,10 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
   Future<void> _loadCategory() async {
     setState(() => _isLoading = true);
     try {
-      final category = await _merchantService.getMenuCategoryDetails(
+      final categoryResult = await _merchantProvider.getMenuCategoryDetails(
         widget.categoryId,
       );
+      final category = categoryResult.valueOrNull;
       if (mounted) {
         setState(() {
           _category = category;
@@ -222,14 +223,14 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
     try {
       if (isEdit) {
         final int id = itemData['id'];
-        await _merchantService.updateMenuItem(id, itemData);
+        await _merchantProvider.updateMenuItem(id, itemData);
       } else {
         final newItemData = Map<String, dynamic>.from(itemData);
         newItemData['category'] = widget.categoryId;
         if (!newItemData.containsKey('order')) {
           newItemData['order'] = 0;
         }
-        await _merchantService.createMenuItem(newItemData);
+        await _merchantProvider.createMenuItem(newItemData);
       }
 
       _loadCategory();
@@ -289,7 +290,7 @@ class _MerchantCategoryItemsPageState extends State<MerchantCategoryItemsPage> {
     if (confirm == true && _category != null) {
       try {
         if (item.containsKey('id')) {
-          await _merchantService.deleteMenuItem(item['id']);
+          await _merchantProvider.deleteMenuItem(item['id']);
           _loadCategory();
         } else {
           throw Exception('Item ID not found');

@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:discount_buddy/core/theme/app_design.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:get/get.dart';
 
 import 'package:discount_buddy/features/restaurants/models/restaurant.dart';
-import 'package:discount_buddy/features/restaurants/data/restaurant_service.dart';
-import 'package:discount_buddy/features/nearby/data/location_service.dart';
+import 'package:discount_buddy/features/restaurants/data/restaurant_provider.dart';
+import 'package:discount_buddy/features/nearby/data/nearby_provider.dart';
 import 'package:discount_buddy/routes/app_routes.dart';
 import 'package:discount_buddy/features/restaurants/widgets/restaurant_card.dart';
 import 'package:discount_buddy/widgets/loading_widget.dart';
@@ -24,8 +25,6 @@ class BrowsePage extends StatefulWidget {
 }
 
 class _BrowsePageState extends State<BrowsePage> {
-  final RestaurantService _restaurantService = RestaurantService();
-  final LocationService _locationService = LocationService();
   final TextEditingController _searchController = TextEditingController();
   List<Restaurant> _restaurants = [];
   List<Restaurant> _filteredRestaurants = [];
@@ -58,20 +57,24 @@ class _BrowsePageState extends State<BrowsePage> {
     try {
       // Get real location
       try {
-        final position = await _locationService.getCurrentLocation();
-        _userLat = position.latitude;
-        _userLon = position.longitude;
+        final nearbyProvider = context.read<NearbyProvider>();
+        final position = await nearbyProvider.getCurrentPosition(requestPermissionIfDenied: false);
+        if (position != null) {
+          _userLat = position.latitude;
+          _userLon = position.longitude;
+        }
       } catch (e) {
         debugPrint('Error getting location in BrowsePage: $e');
       }
 
-      final restaurants = await _restaurantService.getNearbyRestaurants(
+      final restaurantProvider = context.read<RestaurantProvider>();
+      await restaurantProvider.getNearbyRestaurants(
         latitude: _userLat ?? 51.5074,
         longitude: _userLon ?? -0.1278,
       );
       setState(() {
-        _restaurants = restaurants;
-        _filteredRestaurants = restaurants;
+        _restaurants = restaurantProvider.nearbyRestaurants;
+        _filteredRestaurants = restaurantProvider.nearbyRestaurants;
         _isLoading = false;
       });
       _updateMarkers();

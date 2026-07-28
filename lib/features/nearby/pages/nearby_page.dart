@@ -6,12 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 
 import 'package:discount_buddy/core/theme/app_design.dart';
 import 'package:discount_buddy/features/restaurants/models/restaurant.dart';
 import 'package:discount_buddy/features/restaurants/models/city.dart';
-import 'package:discount_buddy/features/restaurants/data/restaurant_service.dart';
-import 'package:discount_buddy/features/nearby/data/location_service.dart';
+import 'package:discount_buddy/features/restaurants/data/restaurant_provider.dart';
+import 'package:discount_buddy/features/nearby/data/nearby_provider.dart';
 import 'package:discount_buddy/features/restaurants/data/city_service.dart';
 import 'package:discount_buddy/routes/app_routes.dart';
 import 'package:discount_buddy/features/restaurants/widgets/city_selector_modal.dart';
@@ -33,8 +34,6 @@ class NearbyPage extends StatefulWidget {
 
 class _NearbyPageState extends State<NearbyPage>
     with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
-  final RestaurantService _restaurantService = RestaurantService();
-  final LocationService _locationService = LocationService();
   final CityService _cityService = CityService();
 
   final TextEditingController _searchController = TextEditingController();
@@ -143,6 +142,8 @@ class _NearbyPageState extends State<NearbyPage>
     setState(() => _isLoading = true);
 
     try {
+      final nearbyProvider = context.read<NearbyProvider>();
+      
       if (widget.initialLatitude != null && widget.initialLongitude != null) {
         final pt = Point(
           coordinates: Position(
@@ -157,10 +158,10 @@ class _NearbyPageState extends State<NearbyPage>
         });
 
         // Background update user GPS for the blue dot
-        _locationService
-            .getCurrentLocation()
+        nearbyProvider
+            .getCurrentPosition(requestPermissionIfDenied: false)
             .then((position) {
-              if (mounted) {
+              if (mounted && position != null) {
                 setState(() {
                   _userLocation = Point(
                     coordinates: Position(
@@ -174,8 +175,11 @@ class _NearbyPageState extends State<NearbyPage>
             .catchError((_) {});
       } else {
         // Fast path: Get coordinates first
-        final position = await _locationService.getCurrentLocation();
-        if (!mounted) return;
+        final position = await nearbyProvider.getCurrentPosition(requestPermissionIfDenied: false);
+        if (!mounted || position == null) {
+          setState(() => _isLoading = false);
+          return;
+        }
 
         final userPt = Point(
           coordinates: Position(position.longitude, position.latitude),
@@ -189,13 +193,13 @@ class _NearbyPageState extends State<NearbyPage>
 
           // Lazy path: Fetch city name AND sync with database ID
           try {
-            final cityName = await _locationService.getCityName(
+            final cityName = await nearbyProvider.getCityName(
               position.latitude,
               position.longitude,
             );
             final cities = await _cityService.getCities();
 
-            if (mounted && !_isManualCitySelected && cities.isNotEmpty) {
+            if (mounted && !_isManualCitySelected && cities.isNotEmpty && cityName != null) {
               // Find matching city in our database list
               final matchedCity = cities.firstWhere(
                 (c) =>
@@ -249,8 +253,10 @@ class _NearbyPageState extends State<NearbyPage>
       final double? queryLat = _isManualCitySelected ? _center?.coordinates.lat.toDouble() : _userLocation?.coordinates.lat.toDouble();
       final double? queryLon = _isManualCitySelected ? _center?.coordinates.lng.toDouble() : _userLocation?.coordinates.lng.toDouble();
 
-      final list = await _restaurantService.getRestaurants(
+      final restaurantProvider = context.read<RestaurantProvider>();
+      await restaurantProvider.getRestaurants(
         cityId: _selectedCityId,
+        page: 1,
         latitude: queryLat,
         longitude: queryLon,
         search: _searchController.text.trim(),
@@ -261,6 +267,7 @@ class _NearbyPageState extends State<NearbyPage>
 
       if (!mounted) return;
 
+      final list = restaurantProvider.restaurants;
       setState(() {
         _cityRestaurants = list;
         _filteredRestaurants = list;
@@ -323,8 +330,9 @@ class _NearbyPageState extends State<NearbyPage>
     if (_mapboxMap == null) return;
 
     try {
-      final location = await _locationService.getUserLocation();
-      if (!mounted) return;
+      final nearbyProvider = context.read<NearbyProvider>();
+      final location = await nearbyProvider.getUserLocation();
+      if (!mounted || location == null) return;
 
       final userPoint = Point(
         coordinates: Position(
@@ -336,7 +344,7 @@ class _NearbyPageState extends State<NearbyPage>
       setState(() {
         _cityName = location.cityName;
         _center = userPoint;
-        _selectedCityId = null; // Reset ID when using GPS location
+        _selectedCityId = null;
       });
 
       _isProgrammaticMove = true;
@@ -349,7 +357,6 @@ class _NearbyPageState extends State<NearbyPage>
       await Future.delayed(const Duration(milliseconds: 700));
       _isProgrammaticMove = false;
     } catch (_) {
-      // If location fetch fails, just fly to existing center
       if (_center == null) return;
       _isProgrammaticMove = true;
       await _mapboxMap!.flyTo(

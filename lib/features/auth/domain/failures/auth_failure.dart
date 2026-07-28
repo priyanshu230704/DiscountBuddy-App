@@ -1,15 +1,7 @@
-import 'package:discount_buddy/features/auth/domain/failures/failure.dart';
+/// Auth-specific failure aliases — prefer core types for new code.
+export 'package:discount_buddy/core/domain/failures/app_failure.dart';
 
-class AuthFailure extends Failure {
-  const AuthFailure(super.message);
-}
+import 'package:discount_buddy/core/domain/failures/app_failure.dart';
 
-/// Session is invalid; caller should treat user as logged out.
-class UnauthorizedFailure extends AuthFailure {
-  const UnauthorizedFailure([super.message = 'Session expired']);
-}
-
-/// User dismissed Google/Apple sign-in — do not show as an error snackbar.
-class CancelledFailure extends AuthFailure {
-  const CancelledFailure([super.message = 'Cancelled']);
-}
+/// Kept for existing auth imports; same as [AppFailure].
+typedef AuthFailure = AppFailure;

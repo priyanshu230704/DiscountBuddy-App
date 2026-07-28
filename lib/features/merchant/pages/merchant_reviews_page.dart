@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:discount_buddy/features/merchant/data/merchant_service.dart';
+import 'package:discount_buddy/features/merchant/data/merchant_provider.dart';
 import 'package:discount_buddy/core/theme/app_design.dart';
 import 'package:discount_buddy/components/layout.dart';
 import 'package:discount_buddy/components/app_app_bar.dart';
@@ -18,7 +18,7 @@ class MerchantReviewsPage extends StatefulWidget {
 }
 
 class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
-  final MerchantService _merchantService = MerchantService();
+  final MerchantProvider _merchantProvider = MerchantProvider();
   List<Map<String, dynamic>> _reviews = [];
   List<Map<String, dynamic>> _restaurants = [];
   int? _selectedRestaurantId;
@@ -37,7 +37,8 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
   Future<void> _loadRestaurants() async {
     try {
       setState(() => _isLoadingRestaurants = true);
-      final restaurants = await _merchantService.getMerchantRestaurants();
+      final restaurantsResult = await _merchantProvider.getMerchantRestaurants();
+      final restaurants = restaurantsResult.valueOrNull ?? [];
       if (mounted) {
         setState(() {
           _restaurants = restaurants;
@@ -60,9 +61,10 @@ class _MerchantReviewsPageState extends State<MerchantReviewsPage> {
         _isFetching = true;
       });
 
-      final reviews = await _merchantService.getMerchantReviews(
+      final reviewsResult = await _merchantProvider.getMerchantReviews(
         restaurantId: _selectedRestaurantId,
       );
+      final reviews = reviewsResult.valueOrNull ?? [];
       if (mounted) {
         setState(() {
           _reviews = reviews;

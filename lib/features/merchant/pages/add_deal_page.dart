@@ -4,7 +4,7 @@ import 'package:discount_buddy/widgets/app_scaffold.dart';
 import 'package:discount_buddy/widgets/app_gradient_button.dart';
 import 'package:discount_buddy/components/app_app_bar.dart';
 import 'package:discount_buddy/components/inputs.dart';
-import 'package:discount_buddy/features/merchant/data/merchant_service.dart';
+import 'package:discount_buddy/features/merchant/data/merchant_provider.dart';
 import 'package:intl/intl.dart';
 
 /// Add/Edit Deal Page for Merchants
@@ -17,7 +17,7 @@ class AddDealPage extends StatefulWidget {
 }
 
 class _AddDealPageState extends State<AddDealPage> {
-  final MerchantService _merchantService = MerchantService();
+  final MerchantProvider _merchantProvider = MerchantProvider();
   final _formKey = GlobalKey<FormState>();
 
   final _titleController = TextEditingController();
@@ -47,17 +47,29 @@ class _AddDealPageState extends State<AddDealPage> {
 
   Future<void> _loadInitialData() async {
     try {
-      final restaurants = await _merchantService.getMerchantRestaurants();
-      setState(() {
-        _myRestaurants = restaurants;
-        if (restaurants.isNotEmpty) {
-          _selectedRestaurantId = restaurants.first['id'];
+      final apiResult = await _merchantProvider.getMerchantRestaurants();
+      final restaurants = apiResult.valueOrNull ?? [];
+      
+      if (mounted) {
+        setState(() {
+          _myRestaurants = restaurants;
+          if (restaurants.isNotEmpty) {
+            _selectedRestaurantId = restaurants.first['id'];
+          }
+          _isLoading = false;
+        });
+        if (widget.deal != null) {
+          _loadDealData();
         }
-        _isLoading = false;
-      });
-
-      if (widget.deal != null) {
-        _loadDealData();
+        
+        if (apiResult.isError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to load restaurants: ${apiResult.failureOrNull}'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -166,18 +178,54 @@ class _AddDealPageState extends State<AddDealPage> {
       };
 
       if (widget.deal != null) {
-        await _merchantService.updateDeal(widget.deal!['id'], dealData);
+        final result = await _merchantProvider.updateDeal(widget.deal!['id'], dealData);
+        result.fold(
+          onSuccess: (_) {
+            if (mounted) {
+              Navigator.pop(context, true);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Deal saved successfully'),
+                  backgroundColor: AppColors.success,
+                ),
+              );
+            }
+          },
+          onError: (failure) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Failed to save deal: $failure'),
+                  backgroundColor: AppColors.error,
+                ),
+              );
+            }
+          },
+        );
       } else {
-        await _merchantService.createDeal(dealData);
-      }
-
-      if (mounted) {
-        Navigator.pop(context, true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Deal saved successfully'),
-            backgroundColor: AppColors.success,
-          ),
+        final result = await _merchantProvider.createDeal(dealData);
+        result.fold(
+          onSuccess: (_) {
+            if (mounted) {
+              Navigator.pop(context, true);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Deal saved successfully'),
+                  backgroundColor: AppColors.success,
+                ),
+              );
+            }
+          },
+          onError: (failure) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Failed to save deal: $failure'),
+                  backgroundColor: AppColors.error,
+                ),
+              );
+            }
+          },
         );
       }
     } catch (e) {

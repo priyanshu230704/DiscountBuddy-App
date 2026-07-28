@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:discount_buddy/core/theme/app_design.dart';
 import 'package:intl/intl.dart';
 import 'package:discount_buddy/components/layout.dart';
@@ -6,7 +7,7 @@ import 'package:get/get.dart';
 
 import 'package:discount_buddy/components/buttons.dart';
 import 'package:discount_buddy/features/deals/models/deal_redemption.dart';
-import 'package:discount_buddy/features/restaurants/data/restaurant_service.dart';
+import 'package:discount_buddy/features/profile/data/profile_provider.dart';
 import 'package:discount_buddy/routes/app_routes.dart';
 import 'package:discount_buddy/widgets/app_scaffold.dart';
 import 'package:discount_buddy/components/app_app_bar.dart';
@@ -21,38 +22,16 @@ class SavingsHistoryPage extends StatefulWidget {
 }
 
 class _SavingsHistoryPageState extends State<SavingsHistoryPage> {
-  final RestaurantService _restaurantService = RestaurantService();
-  List<DealRedemption> _redemptions = [];
-  bool _isLoading = true;
-
   @override
   void initState() {
     super.initState();
-    _loadData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ProfileProvider>().getDealRedemptions();
+    });
   }
 
   Future<void> _loadData() async {
-    setState(() => _isLoading = true);
-    try {
-      final redemptions = await _restaurantService.getUserDealRedemptions();
-      // Filter for confirmed (claimed) redemptions and sort by date desc
-      final claimedRedemptions = redemptions.where((r) => r.isRedeemed || r.restaurantConfirmed).toList()
-        ..sort((a, b) => b.usedAt.compareTo(a.usedAt));
-
-      if (mounted) {
-        setState(() {
-          _redemptions = claimedRedemptions;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load savings history: $e')),
-        );
-      }
-    }
+    await context.read<ProfileProvider>().getDealRedemptions();
   }
 
   @override
@@ -62,24 +41,41 @@ class _SavingsHistoryPageState extends State<SavingsHistoryPage> {
         titleText: 'Savings History',
         backgroundColor: Colors.transparent,
       ),
-      body: _isLoading
-          ? const Center(child: LoadingWidget(message: 'Loading your savings...'))
-          : _redemptions.isEmpty
-              ? const EmptyStateWidget(
-                  icon: Icons.savings_outlined,
-                  title: 'No savings yet',
-                  message: 'Your savings will appear here once you redeem a deal.',
-                )
-              : RefreshIndicator(
-                  onRefresh: _loadData,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
-                    itemCount: _redemptions.length,
-                    itemBuilder: (context, index) {
-                      return _SavingsCard(redemption: _redemptions[index]);
-                    },
-                  ),
-                ),
+      body: Consumer<ProfileProvider>(
+        builder: (context, profileProvider, _) {
+          final redemptions = profileProvider.dealRedemptions;
+          final claimedRedemptions = <DealRedemption>[];
+          for (final r in redemptions) {
+            if (r.isRedeemed == true || r.restaurantConfirmed == true) {
+              claimedRedemptions.add(r);
+            }
+          }
+          claimedRedemptions.sort((a, b) {
+            final dateA = a.usedAt;
+            final dateB = b.usedAt;
+            return dateB.compareTo(dateA);
+          });
+
+          return profileProvider.isLoading
+              ? const Center(child: LoadingWidget(message: 'Loading your savings...'))
+              : claimedRedemptions.isEmpty
+                  ? const EmptyStateWidget(
+                      icon: Icons.savings_outlined,
+                      title: 'No savings yet',
+                      message: 'Your savings will appear here once you redeem a deal.',
+                    )
+                  : RefreshIndicator(
+                      onRefresh: _loadData,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(AppSpacing.lg),
+                        itemCount: claimedRedemptions.length,
+                        itemBuilder: (context, index) {
+                          return _SavingsCard(redemption: claimedRedemptions[index]);
+                        },
+                      ),
+                    );
+        },
+      ),
     );
   }
 }

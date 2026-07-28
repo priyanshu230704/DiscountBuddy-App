@@ -1,13 +1,14 @@
 import 'dart:io';
 
+import 'package:discount_buddy/core/domain/error_mapper.dart';
+import 'package:discount_buddy/core/domain/failures/failure.dart';
+import 'package:discount_buddy/core/domain/failures/network_failure.dart';
 import 'package:discount_buddy/core/network/api_service.dart';
 import 'package:discount_buddy/features/auth/data/auth_service.dart';
 import 'package:discount_buddy/features/auth/data/mappers/user_mapper.dart';
 import 'package:discount_buddy/features/auth/domain/entities/auth_session.dart';
 import 'package:discount_buddy/features/auth/domain/entities/user_entity.dart';
 import 'package:discount_buddy/features/auth/domain/failures/auth_failure.dart';
-import 'package:discount_buddy/features/auth/domain/failures/failure.dart';
-import 'package:discount_buddy/features/auth/domain/failures/network_failure.dart';
 import 'package:discount_buddy/features/auth/domain/repositories/auth_repository.dart';
 import 'package:discount_buddy/features/auth/domain/result.dart';
 import 'package:discount_buddy/features/auth/models/api_user.dart';
@@ -20,35 +21,8 @@ class AuthRepositoryImpl implements AuthRepository {
   final AuthService _service;
   final UserMapper _mapper;
 
-  Failure _mapError(Object e, {String fallback = 'Something went wrong'}) {
-    if (e is ApiException) {
-      final msg = e.message.isNotEmpty ? e.message : fallback;
-      final lower = msg.toLowerCase();
-      if (e.statusCode == 401 ||
-          lower.contains('unauthorized') ||
-          lower.contains('401')) {
-        return UnauthorizedFailure(msg);
-      }
-      if (lower.contains('cancelled') ||
-          lower.contains('canceled') ||
-          lower.contains('googlesigninexceptioncode.canceled')) {
-        return CancelledFailure(msg);
-      }
-      return AuthFailure(msg);
-    }
-    final msg = e.toString();
-    final lower = msg.toLowerCase();
-    if (lower.contains('cancelled') || lower.contains('canceled')) {
-      return CancelledFailure(msg.replaceFirst('Exception: ', ''));
-    }
-    if (lower.contains('socket') ||
-        lower.contains('network') ||
-        lower.contains('timeout') ||
-        lower.contains('connection')) {
-      return NetworkFailure(msg.replaceFirst('Exception: ', ''));
-    }
-    return AuthFailure(msg.replaceFirst('Exception: ', ''));
-  }
+  Failure _mapError(Object e, {String fallback = 'Something went wrong'}) =>
+      mapToFailure(e, fallback: fallback);
 
   AuthSession _sessionFromLogin(LoginResponse response) {
     final dto = response.user;

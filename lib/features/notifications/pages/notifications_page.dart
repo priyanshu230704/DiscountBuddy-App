@@ -7,6 +7,10 @@ import 'package:discount_buddy/widgets/app_scaffold.dart';
 import 'package:discount_buddy/components/app_app_bar.dart';
 import 'package:discount_buddy/widgets/empty_state_widget.dart';
 import 'package:discount_buddy/features/notifications/data/notification_provider.dart';
+import 'package:discount_buddy/features/notifications/domain/repositories/notifications_repository.dart';
+import 'package:discount_buddy/features/notifications/data/notifications_repository_impl.dart';
+import 'package:discount_buddy/features/notifications/domain/usecases/get_notifications_usecase.dart';
+import 'package:discount_buddy/features/notifications/domain/usecases/mark_all_notifications_read_usecase.dart';
 import 'package:discount_buddy/features/auth/data/auth_provider.dart';
 
 class NotificationsPage extends StatefulWidget {
@@ -22,16 +26,23 @@ class _NotificationsPageState extends State<NotificationsPage> with WidgetsBindi
   final NotificationProvider _notificationProvider = NotificationProvider();
   final AuthProvider _authProvider = AuthProvider();
 
+  late NotificationsRepository _repository;
+  late GetNotificationsUseCase _getNotificationsUseCase;
+  late MarkAllNotificationsReadUseCase _markAllReadUseCase;
+
   List<NotificationModel> _notifications = [];
   bool _isLoading = true;
   bool _isLoadingMore = false;
   int _currentPage = 1;
   bool _hasMore = true;
-  // Removed local _unreadCount as it's now managed by NotificationProvider
 
   @override
   void initState() {
     super.initState();
+    _repository = NotificationsRepositoryImpl();
+    _getNotificationsUseCase = GetNotificationsUseCase(_repository);
+    _markAllReadUseCase = MarkAllNotificationsReadUseCase(_repository);
+    
     WidgetsBinding.instance.addObserver(this);
     _initPage();
     _scrollController.addListener(_onScroll);
@@ -71,26 +82,26 @@ class _NotificationsPageState extends State<NotificationsPage> with WidgetsBindi
   Future<void> _loadNotifications() async {
     setState(() => _isLoading = true);
 
-    try {
-      final response = await _notificationService.getNotifications(
-        page: 1,
-        pageSize: 20,
-      );
+    final result = await _getNotificationsUseCase(page: 1, pageSize: 20);
 
-      if (mounted) {
-        setState(() {
-          _notifications = response.results;
-          _currentPage = 1;
-          _hasMore = response.next != null;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        _showError('Failed to load notifications');
-      }
-    }
+    result.fold(
+      onSuccess: (response) {
+        if (mounted) {
+          setState(() {
+            _notifications = response.results;
+            _currentPage = 1;
+            _hasMore = response.next != null;
+            _isLoading = false;
+          });
+        }
+      },
+      onError: (failure) {
+        if (mounted) {
+          setState(() => _isLoading = false);
+          _showError('Failed to load notifications');
+        }
+      },
+    );
   }
 
   Future<void> _loadMoreNotifications() async {
@@ -98,26 +109,29 @@ class _NotificationsPageState extends State<NotificationsPage> with WidgetsBindi
 
     setState(() => _isLoadingMore = true);
 
-    try {
-      final response = await _notificationService.getNotifications(
-        page: _currentPage + 1,
-        pageSize: 20,
-      );
+    final result = await _getNotificationsUseCase(
+      page: _currentPage + 1,
+      pageSize: 20,
+    );
 
-      if (mounted) {
-        setState(() {
-          _notifications.addAll(response.results);
-          _currentPage++;
-          _hasMore = response.next != null;
-          _isLoadingMore = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoadingMore = false);
-        _showError('Failed to load more notifications');
-      }
-    }
+    result.fold(
+      onSuccess: (response) {
+        if (mounted) {
+          setState(() {
+            _notifications.addAll(response.results);
+            _currentPage++;
+            _hasMore = response.next != null;
+            _isLoadingMore = false;
+          });
+        }
+      },
+      onError: (failure) {
+        if (mounted) {
+          setState(() => _isLoadingMore = false);
+          _showError('Failed to load more notifications');
+        }
+      },
+    );
   }
 
   Future<void> _loadUnreadCount() async {
@@ -129,32 +143,35 @@ class _NotificationsPageState extends State<NotificationsPage> with WidgetsBindi
   }
 
   Future<void> _markAllAsRead({bool silent = false}) async {
-    try {
-      final count = await _notificationService.markAllAsRead();
+    final result = await _markAllReadUseCase();
 
-      if (mounted) {
-        setState(() {
-          _notifications = _notifications
-              .map((n) => n.copyWith(isRead: true))
-              .toList();
-        });
-        _notificationProvider.resetCount();
+    result.fold(
+      onSuccess: (count) {
+        if (mounted) {
+          setState(() {
+            _notifications = _notifications
+                .map((n) => n.copyWith(isRead: true))
+                .toList();
+          });
+          _notificationProvider.resetCount();
 
-        if (!silent) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('$count notifications marked as read'),
-              backgroundColor: AppColors.accent,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          if (!silent) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('$count notifications marked as read'),
+                backgroundColor: AppColors.accent,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
         }
-      }
-    } catch (e) {
-      if (!silent) {
-        _showError('Failed to mark all as read');
-      }
-    }
+      },
+      onError: (failure) {
+        if (!silent) {
+          _showError('Failed to mark all as read');
+        }
+      },
+    );
   }
 
   void _showError(String message) {

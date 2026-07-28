@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:discount_buddy/core/theme/app_design.dart';
 import 'package:discount_buddy/widgets/app_scaffold.dart';
 import 'package:discount_buddy/widgets/app_gradient_button.dart';
-import 'package:discount_buddy/features/merchant/data/merchant_service.dart';
+import 'package:discount_buddy/features/merchant/data/merchant_provider.dart';
 
 /// Merchant Analytics Page — covers all 12 spec sections
 class MerchantAnalyticsPage extends StatefulWidget {
@@ -21,7 +21,7 @@ class MerchantAnalyticsPage extends StatefulWidget {
 }
 
 class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
-  final MerchantService _service = MerchantService();
+  final MerchantProvider _provider = MerchantProvider();
   bool _isLoading = true;
   String? _error;
   int _selectedPeriod = 30;
@@ -36,11 +36,20 @@ class _MerchantAnalyticsPageState extends State<MerchantAnalyticsPage> {
   Future<void> _fetchAnalytics() async {
     setState(() { _isLoading = true; _error = null; });
     try {
-      final data = await _service.getMerchantAnalytics(
+      final result = await _provider.getMerchantAnalytics(
         restaurantId: widget.restaurantId,
         period: _selectedPeriod,
       );
-      if (mounted) setState(() { _data = data; _isLoading = false; });
+      if (mounted) {
+        result.fold(
+          onSuccess: (data) {
+            setState(() { _data = data; _isLoading = false; });
+          },
+          onError: (failure) {
+            setState(() { _error = failure.message; _isLoading = false; });
+          },
+        );
+      }
     } catch (e) {
       if (mounted) setState(() { _error = e.toString(); _isLoading = false; });
     }

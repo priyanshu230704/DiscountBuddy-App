@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:discount_buddy/core/theme/app_colors.dart';
@@ -7,7 +8,7 @@ import 'package:discount_buddy/core/theme/app_shadows.dart';
 import 'package:discount_buddy/core/theme/app_spacing.dart';
 import 'package:discount_buddy/core/theme/app_typography.dart';
 import 'package:discount_buddy/features/loyalty/models/loyalty_card.dart';
-import 'package:discount_buddy/features/restaurants/data/restaurant_service.dart';
+import 'package:discount_buddy/features/loyalty/data/loyalty_provider.dart';
 import 'package:discount_buddy/routes/app_routes.dart';
 import 'package:discount_buddy/core/config/environment.dart';
 import 'package:discount_buddy/widgets/generic_bottom_sheet.dart';
@@ -27,39 +28,14 @@ class LoyaltyCardsScreen extends StatefulWidget {
 }
 
 class _LoyaltyCardsScreenState extends State<LoyaltyCardsScreen> {
-  final RestaurantService _restaurantService = RestaurantService();
-  bool _isLoading = true;
-  List<LoyaltyCard> _cards = [];
-  String? _errorMessage;
-
   @override
   void initState() {
     super.initState();
-    _loadLoyaltyCards();
-  }
-
-  Future<void> _loadLoyaltyCards() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
+    Future.microtask(() {
+      if (mounted) {
+        context.read<LoyaltyProvider>().loadCards();
+      }
     });
-
-    try {
-      final cards = await _restaurantService.getLoyaltyCards();
-      if (mounted) {
-        setState(() {
-          _cards = cards.where((c) => c.restaurant.loyaltyCardEnabled).toList();
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = e.toString().replaceAll('Exception: ', '');
-          _isLoading = false;
-        });
-      }
-    }
   }
 
   void _showRewardQrDialog(LoyaltyCard card) {
@@ -252,16 +228,20 @@ class _LoyaltyCardsScreenState extends State<LoyaltyCardsScreen> {
         titleText: 'My Loyalty Cards',
         backgroundColor: Colors.transparent,
       ),
-      body: RefreshIndicator(
-        onRefresh: _loadLoyaltyCards,
-        color: AppColors.primary,
-        child: _buildContent(),
+      body: Consumer<LoyaltyProvider>(
+        builder: (context, provider, _) {
+          return RefreshIndicator(
+            onRefresh: () => provider.loadCards(),
+            color: AppColors.primary,
+            child: _buildContent(provider),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildContent() {
-    if (_isLoading) {
+  Widget _buildContent(LoyaltyProvider provider) {
+    if (provider.isLoading) {
       return const Center(
         child: CircularProgressIndicator(
           valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
@@ -269,7 +249,7 @@ class _LoyaltyCardsScreenState extends State<LoyaltyCardsScreen> {
       );
     }
 
-    if (_errorMessage != null) {
+    if (provider.hasError) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.xxxl),
@@ -290,7 +270,7 @@ class _LoyaltyCardsScreenState extends State<LoyaltyCardsScreen> {
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                _errorMessage!,
+                provider.failure?.message ?? 'Unknown error',
                 textAlign: TextAlign.center,
                 style: AppTypography.bodySmall.copyWith(
                   color: AppColors.textSecondary,
@@ -298,7 +278,7 @@ class _LoyaltyCardsScreenState extends State<LoyaltyCardsScreen> {
               ),
               const SizedBox(height: AppSpacing.lg),
               ElevatedButton(
-                onPressed: _loadLoyaltyCards,
+                onPressed: () => provider.loadCards(),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
@@ -312,7 +292,7 @@ class _LoyaltyCardsScreenState extends State<LoyaltyCardsScreen> {
       );
     }
 
-    if (_cards.isEmpty) {
+    if (provider.cards.isEmpty) {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
@@ -361,9 +341,9 @@ class _LoyaltyCardsScreenState extends State<LoyaltyCardsScreen> {
         horizontal: AppSpacing.xxl,
         vertical: AppSpacing.md,
       ),
-      itemCount: _cards.length,
+      itemCount: provider.cards.length,
       itemBuilder: (context, index) {
-        final card = _cards[index];
+        final card = provider.cards[index];
         final completed = card.completedRedemptions;
         final requiredVal = card.requiredRedemptions;
         final isEligible = card.isRewardEligible;
@@ -381,8 +361,6 @@ class _LoyaltyCardsScreenState extends State<LoyaltyCardsScreen> {
             color: Colors.transparent,
             child: InkWell(
               onTap: () {
-                // Restaurant details API expects restaurant ID (same as home/nearby/saved).
-                // Prefer ID; only fall back to slug when ID is missing.
                 final restaurantKey = card.restaurant.id.isNotEmpty
                     ? card.restaurant.id
                     : (card.restaurant.slug ?? '');
@@ -471,7 +449,6 @@ class _LoyaltyCardsScreenState extends State<LoyaltyCardsScreen> {
                     const Divider(height: 1, color: AppColors.divider),
                     const SizedBox(height: AppSpacing.lg),
 
-                    // Visual Coffee Card Style Stamps Grid
                     _buildStampGrid(completed, requiredVal, isEligible),
 
                     const SizedBox(height: AppSpacing.md),

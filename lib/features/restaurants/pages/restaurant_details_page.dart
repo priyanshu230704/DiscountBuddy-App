@@ -3,8 +3,10 @@ import 'dart:ui' as ui;
 import 'package:discount_buddy/core/config/environment.dart';
 import 'package:discount_buddy/core/theme/app_spacing.dart';
 import 'package:discount_buddy/features/loyalty/models/loyalty_card.dart';
+import 'package:discount_buddy/features/loyalty/data/loyalty_provider.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:discount_buddy/core/theme/app_typography.dart';
@@ -14,8 +16,8 @@ import 'package:discount_buddy/features/restaurants/models/restaurant.dart';
 import 'package:discount_buddy/features/restaurants/models/restaurant_detail.dart';
 import 'package:discount_buddy/features/restaurants/models/review.dart';
 import 'package:discount_buddy/features/restaurants/models/menu_item.dart';
-import 'package:discount_buddy/features/restaurants/data/restaurant_service.dart';
-import 'package:discount_buddy/features/nearby/data/location_service.dart';
+import 'package:discount_buddy/features/restaurants/data/restaurant_provider.dart';
+import 'package:discount_buddy/features/nearby/data/nearby_provider.dart';
 import 'package:discount_buddy/core/theme/app_colors.dart';
 import 'package:discount_buddy/widgets/app_scaffold.dart';
 import 'package:discount_buddy/widgets/app_gradient_button.dart';
@@ -29,7 +31,7 @@ import 'package:discount_buddy/widgets/generic_bottom_sheet.dart';
 import 'package:discount_buddy/features/deals/pages/redeem_offer_modal.dart';
 import 'package:discount_buddy/features/bookings/pages/booking_selection_modal.dart';
 import 'package:discount_buddy/features/mystery_guest/models/mystery_visit.dart';
-import 'package:discount_buddy/features/mystery_guest/data/mystery_guest_service.dart';
+import 'package:discount_buddy/features/mystery_guest/data/mystery_guest_provider.dart';
 import 'package:discount_buddy/features/auth/data/auth_provider.dart';
 import 'package:discount_buddy/routes/app_routes.dart';
 import 'package:discount_buddy/features/mystery_guest/pages/mystery_audit_modal.dart';
@@ -55,9 +57,6 @@ class RestaurantDetailsPage extends StatefulWidget {
 }
 
 class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
-  final RestaurantService _restaurantService = RestaurantService();
-  final LocationService _locationService = LocationService();
-  final MysteryGuestService _mysteryGuestService = MysteryGuestService();
   final AuthProvider _authProvider = AuthProvider();
 
   RestaurantDetail? _restaurantDetail;
@@ -269,9 +268,12 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
       double? lon = widget.longitude;
       if (lat == null || lon == null) {
         try {
-          final pos = await _locationService.getCurrentLocation();
-          lat = pos.latitude;
-          lon = pos.longitude;
+          final nearbyProvider = context.read<NearbyProvider>();
+          final pos = await nearbyProvider.getCurrentPosition(requestPermissionIfDenied: false);
+          if (pos != null) {
+            lat = pos.latitude;
+            lon = pos.longitude;
+          }
         } catch (_) {
           // Location unavailable — distance will show as '—'
         }
@@ -279,15 +281,18 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
       _resolvedUserLat = lat;
       _resolvedUserLon = lon;
 
-      final restaurantDetail = await _restaurantService
-          .getRestaurantDetailBySlug(
-            widget.slug,
-            latitude: lat,
-            longitude: lon,
-          );
+      final restaurantProvider = context.read<RestaurantProvider>();
+      await restaurantProvider.getRestaurantDetailBySlug(
+        widget.slug,
+        latitude: lat,
+        longitude: lon,
+      );
+      final restaurantDetail = restaurantProvider.restaurantDetail;
       setState(() {
         _restaurantDetail = restaurantDetail;
-        _isFavorite = restaurantDetail.restaurant.isFavourite;
+        if (restaurantDetail != null) {
+          _isFavorite = restaurantDetail.restaurant.isFavourite;
+        }
         _isLoading = false;
       });
 
@@ -317,9 +322,9 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
       debugPrint(
         'DEBUG: Fetching mystery visits for restaurant ID: $restaurantId',
       );
-      final visits = await _mysteryGuestService.getAssignedVisits(
-        restaurantId: restaurantId,
-      );
+      final mysteryProvider = context.read<MysteryGuestProvider>();
+      await mysteryProvider.loadVisits(restaurantId: restaurantId);
+      final visits = mysteryProvider.visits;
 
       debugPrint('DEBUG: Got ${visits.length} mystery visits');
       for (final v in visits) {
@@ -514,11 +519,12 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     });
 
     try {
-      final newStatus = await _restaurantService.toggleFavourite(
+      final restaurantProvider = context.read<RestaurantProvider>();
+      final newStatus = await restaurantProvider.toggleFavourite(
         slug,
         currentStatus,
       );
-      if (mounted) {
+      if (mounted && newStatus != null) {
         setState(() {
           _isFavorite = newStatus;
         });
@@ -550,7 +556,8 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
         restaurantId: int.tryParse(_restaurantDetail!.restaurant.id) ?? 0,
         onSubmit: (rating, comment) async {
           try {
-            await _restaurantService.addReview(
+            final restaurantProvider = context.read<RestaurantProvider>();
+            await restaurantProvider.addReview(
               restaurantId: int.tryParse(_restaurantDetail!.restaurant.id) ?? 0,
               rating: rating,
               comment: comment,
@@ -2876,7 +2883,6 @@ class _LoyaltyCardSection extends StatefulWidget {
 }
 
 class _LoyaltyCardSectionState extends State<_LoyaltyCardSection> {
-  final RestaurantService _restaurantService = RestaurantService();
   LoyaltyCard? _loyaltyCard;
   bool _loadingCard = false;
 
@@ -2889,13 +2895,12 @@ class _LoyaltyCardSectionState extends State<_LoyaltyCardSection> {
         builder: (context, setModalState) {
           if (_loyaltyCard == null && !_loadingCard && !widget.isGuestMode) {
             _loadingCard = true;
-            _restaurantService
-                .getLoyaltyCards()
-                .then((cards) {
-                  final matchingCard = cards.firstWhereOrNull(
-                    (c) =>
-                        c.restaurant.id.toString() ==
-                        widget.restaurantId.toString(),
+            final loyaltyProvider = context.read<LoyaltyProvider>();
+            loyaltyProvider.loadCards().then((_) {
+              final matchingCard = loyaltyProvider.cards.firstWhereOrNull(
+                (c) =>
+                    c.restaurant.id.toString() ==
+                    widget.restaurantId.toString(),
                   );
                   setModalState(() {
                     _loyaltyCard = matchingCard;

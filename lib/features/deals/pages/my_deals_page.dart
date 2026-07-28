@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:discount_buddy/core/theme/app_design.dart';
 import 'package:intl/intl.dart';
-import 'package:discount_buddy/features/restaurants/data/restaurant_service.dart';
 import 'package:discount_buddy/widgets/app_scaffold.dart';
 import 'package:discount_buddy/components/app_app_bar.dart';
 import 'package:discount_buddy/widgets/loading_widget.dart';
 import 'package:discount_buddy/components/layout.dart';
+import 'package:discount_buddy/features/deals/data/deals_provider.dart';
 
 class MyDealsPage extends StatefulWidget {
   const MyDealsPage({super.key});
@@ -15,34 +16,16 @@ class MyDealsPage extends StatefulWidget {
 }
 
 class _MyDealsPageState extends State<MyDealsPage> {
-  final RestaurantService _restaurantService = RestaurantService();
-  List<dynamic> _claimedDeals = [];
-  bool _isLoading = true;
-
   @override
   void initState() {
     super.initState();
-    _loadDeals();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<DealsProvider>().loadDealUses();
+    });
   }
 
   Future<void> _loadDeals() async {
-    setState(() => _isLoading = true);
-    try {
-      final deals = await _restaurantService.getDealUses();
-      if (mounted) {
-        setState(() {
-          _claimedDeals = deals;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load deals: ${e.toString()}')),
-        );
-      }
-    }
+    await context.read<DealsProvider>().loadDealUses();
   }
 
   @override
@@ -52,33 +35,64 @@ class _MyDealsPageState extends State<MyDealsPage> {
         titleText: 'My Deals',
         backgroundColor: Colors.transparent,
       ),
-      body: _isLoading
-          ? const LoadingWidget(message: 'Loading your deals...')
-          : _claimedDeals.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.local_offer_outlined, size: 64, color: AppColors.textDisabled),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No deals claimed yet',
-                        style: AppTypography.body.copyWith(color: AppColors.textSecondary),
-                      ),
-                    ],
+      body: Consumer<DealsProvider>(
+        builder: (context, provider, _) {
+          if (provider.isLoading) {
+            return const LoadingWidget(message: 'Loading your deals...');
+          }
+
+          if (provider.errorMessage != null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error_outline, size: 64, color: AppColors.textDisabled),
+                  const SizedBox(height: 16),
+                  Text(
+                    provider.errorMessage ?? 'Failed to load deals',
+                    style: AppTypography.body.copyWith(color: AppColors.textSecondary),
+                    textAlign: TextAlign.center,
                   ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _loadDeals,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
-                    itemCount: _claimedDeals.length,
-                    itemBuilder: (context, index) {
-                      final use = _claimedDeals[index];
-                      return _DealUseCard(use: use);
-                    },
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _loadDeals,
+                    child: const Text('Retry'),
                   ),
-                ),
+                ],
+              ),
+            );
+          }
+
+          final deals = provider.dealUses ?? [];
+          if (deals.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.local_offer_outlined, size: 64, color: AppColors.textDisabled),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No deals claimed yet',
+                    style: AppTypography.body.copyWith(color: AppColors.textSecondary),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return RefreshIndicator(
+            onRefresh: _loadDeals,
+            child: ListView.builder(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              itemCount: deals.length,
+              itemBuilder: (context, index) {
+                final use = deals[index];
+                return _DealUseCard(use: use);
+              },
+            ),
+          );
+        },
+      ),
     );
   }
 }

@@ -1,11 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:discount_buddy/core/theme/app_design.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:get/get.dart';
 
 import 'package:discount_buddy/features/restaurants/models/restaurant.dart';
-import 'package:discount_buddy/features/nearby/data/location_service.dart';
-import 'package:discount_buddy/features/restaurants/data/restaurant_service.dart';
+import 'package:discount_buddy/features/nearby/data/nearby_provider.dart';
+import 'package:discount_buddy/features/restaurants/data/restaurant_provider.dart';
 import 'package:discount_buddy/routes/app_routes.dart';
 import 'package:discount_buddy/core/utils/distance_utils.dart';
 import 'package:discount_buddy/widgets/app_gradient_button.dart';
@@ -21,8 +22,6 @@ class SavedRestaurantsPage extends StatefulWidget {
 }
 
 class _SavedRestaurantsPageState extends State<SavedRestaurantsPage> {
-  final RestaurantService _restaurantService = RestaurantService();
-  final LocationService _locationService = LocationService();
   List<Restaurant> _savedRestaurants = [];
   bool _isLoading = true;
   double? _userLat;
@@ -39,22 +38,26 @@ class _SavedRestaurantsPageState extends State<SavedRestaurantsPage> {
     try {
       // Get location for pinpoint distance
       try {
-        final position = await _locationService.getCurrentLocation();
-        _userLat = position.latitude;
-        _userLon = position.longitude;
+        final nearbyProvider = context.read<NearbyProvider>();
+        final position = await nearbyProvider.getCurrentPosition(requestPermissionIfDenied: false);
+        if (position != null) {
+          _userLat = position.latitude;
+          _userLon = position.longitude;
+        }
       } catch (e) {
         debugPrint('Location unavailable for saved restaurants: $e');
       }
 
       // Fetch saved restaurants
-      final restaurants = await _restaurantService.getSavedRestaurants(
+      final restaurantProvider = context.read<RestaurantProvider>();
+      await restaurantProvider.getSavedRestaurants(
         latitude: _userLat,
         longitude: _userLon,
       );
 
       if (mounted) {
         setState(() {
-          _savedRestaurants = restaurants;
+          _savedRestaurants = restaurantProvider.savedRestaurants;
           _isLoading = false;
         });
       }
@@ -104,7 +107,8 @@ class _SavedRestaurantsPageState extends State<SavedRestaurantsPage> {
                         userLat: _userLat,
                         userLon: _userLon,
                         onToggleFavorite: () async {
-                          await _restaurantService.toggleFavourite(
+                          final restaurantProvider = context.read<RestaurantProvider>();
+                          await restaurantProvider.toggleFavourite(
                             restaurant.slug ?? restaurant.id,
                             restaurant.isFavourite,
                           );

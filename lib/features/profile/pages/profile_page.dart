@@ -3,11 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 import 'package:discount_buddy/core/theme/app_design.dart';
 import 'package:discount_buddy/routes/app_routes.dart';
 import 'package:discount_buddy/widgets/app_scaffold.dart';
 import 'package:discount_buddy/features/auth/data/auth_provider.dart';
-import 'package:discount_buddy/features/restaurants/data/restaurant_service.dart';
+import 'package:discount_buddy/features/profile/data/profile_provider.dart';
 import 'package:discount_buddy/features/profile/models/user_interactions.dart';
 import 'package:discount_buddy/features/loyalty/pages/loyalty_cards_screen.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -24,9 +25,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  final RestaurantService _restaurantService = RestaurantService();
   final AuthProvider _authProvider = AuthProvider();
-  ProfileStats? _stats;
   StreamSubscription<void>? _tabSub;
 
   @override
@@ -61,26 +60,23 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     try {
-      await Future.wait([
-        _restaurantService.getProfileStats().then((stats) {
-          if (mounted) {
-            setState(() {
-              _stats = stats;
-            });
-          }
-        }),
-        _authProvider.refreshUser(),
-      ]);
+      if (mounted) {
+        await Future.wait([
+          context.read<ProfileProvider>().getProfileStats(),
+          _authProvider.refreshUser(),
+        ]);
+      }
     } catch (e) {
       // Silently fail
     }
   }
 
   void _navigateToLevelDetails() {
-    if (_stats == null) return;
+    final stats = context.read<ProfileProvider>().profileStats;
+    if (stats == null) return;
     Get.toNamed(
       AppRoutes.levelProgress,
-      arguments: _stats!,
+      arguments: stats,
     );
   }
 
@@ -163,19 +159,24 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _ProfileHeader(
-                displayName: displayName,
-                profilePicture: user?.profilePicture,
-                stats: _stats,
-                showStats: !_authProvider.isMerchant,
-                isLoadingStats: !_authProvider.isMerchant && _stats == null,
-                onEditProfile: _navigateToEditProfile,
-                onLevelTap: _navigateToLevelDetails,
-                onSavingsTap: () {
-                  Get.toNamed(AppRoutes.savingsHistory);
-                },
-                onFavouritesTap: () {
-                  Get.toNamed(AppRoutes.savedRestaurants);
+              Consumer<ProfileProvider>(
+                builder: (context, profileProvider, _) {
+                  final stats = profileProvider.profileStats;
+                  return _ProfileHeader(
+                    displayName: displayName,
+                    profilePicture: user?.profilePicture,
+                    stats: stats,
+                    showStats: !_authProvider.isMerchant,
+                    isLoadingStats: !_authProvider.isMerchant && profileProvider.isLoading,
+                    onEditProfile: _navigateToEditProfile,
+                    onLevelTap: _navigateToLevelDetails,
+                    onSavingsTap: () {
+                      Get.toNamed(AppRoutes.savingsHistory);
+                    },
+                    onFavouritesTap: () {
+                      Get.toNamed(AppRoutes.savedRestaurants);
+                    },
+                  );
                 },
               ),
               const SizedBox(height: AppSpacing.xxl),

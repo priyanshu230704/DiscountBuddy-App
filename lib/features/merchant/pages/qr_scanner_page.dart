@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:discount_buddy/features/merchant/data/qr_scanner_service.dart';
-import 'package:discount_buddy/features/merchant/data/merchant_service.dart';
+import 'package:discount_buddy/features/merchant/data/merchant_provider.dart';
 import 'package:discount_buddy/features/deals/models/deal_redemption.dart';
 import 'package:discount_buddy/features/restaurants/models/restaurant.dart';
 import 'package:discount_buddy/widgets/generic_bottom_sheet.dart';
@@ -22,7 +22,7 @@ class QRScannerPage extends StatefulWidget {
 
 class _QRScannerPageState extends State<QRScannerPage> {
   final MobileScannerController _controller = MobileScannerController();
-  final MerchantService _merchantService = MerchantService();
+  final MerchantProvider _merchantProvider = MerchantProvider();
   bool _isProcessing = false;
   bool _hasPermission = false;
   
@@ -39,7 +39,8 @@ class _QRScannerPageState extends State<QRScannerPage> {
 
   Future<void> _fetchRestaurants() async {
     try {
-      final restaurants = await _merchantService.getMerchantRestaurants();
+      final restaurantsResult = await _merchantProvider.getMerchantRestaurants();
+      final restaurants = restaurantsResult.valueOrNull ?? [];
       if (mounted) {
         setState(() {
           _restaurants = restaurants;
@@ -308,24 +309,32 @@ class _QRScannerPageState extends State<QRScannerPage> {
 
     try {
       final response = qrData != null
-          ? await _merchantService.redeemDealByQR(qrData, price: price, peopleCount: peopleCount, restaurantId: restaurantId)
-          : await _merchantService.redeemDealByCode(manualCode!, price: price, peopleCount: peopleCount, restaurantId: restaurantId);
+          ? await _merchantProvider.redeemDealByQR(qrData, price: price, peopleCount: peopleCount, restaurantId: restaurantId)
+          : await _merchantProvider.redeemDealByCode(manualCode!, price: price, peopleCount: peopleCount, restaurantId: restaurantId);
 
       if (!mounted) return;
       Navigator.of(context).pop(); // Hide loading
 
-      final success = response['success'] ?? false;
-      if (success) {
-        final dealRedemption = DealRedemption.fromJson(response);
-        final loyaltyData = response['loyalty'] != null
-            ? LoyaltyProgram.fromJson(response['loyalty'] as Map<String, dynamic>)
-            : null;
-        final loyaltyRewardJustEarned = response['loyalty_reward_just_earned'] as bool? ?? false;
-        _showSuccessDialog(dealRedemption, loyaltyData, loyaltyRewardJustEarned);
-      } else {
-        final reason = _cleanErrorMessage(response['reason'] ?? 'Redemption failed');
-        _showErrorDialog(reason, null);
-      }
+      response.fold(
+        onSuccess: (data) {
+          final success = data['success'] ?? false;
+          if (success) {
+            final dealRedemption = DealRedemption.fromJson(data);
+            final loyaltyData = data['loyalty'] != null
+                ? LoyaltyProgram.fromJson(data['loyalty'] as Map<String, dynamic>)
+                : null;
+            final loyaltyRewardJustEarned = data['loyalty_reward_just_earned'] as bool? ?? false;
+            _showSuccessDialog(dealRedemption, loyaltyData, loyaltyRewardJustEarned);
+          } else {
+            final reason = _cleanErrorMessage(data['reason'] ?? 'Redemption failed');
+            _showErrorDialog(reason, null);
+          }
+        },
+        onError: (failure) {
+          final reason = _cleanErrorMessage(failure.message);
+          _showErrorDialog(reason, null);
+        },
+      );
     } catch (e) {
       if (!mounted) return;
       Navigator.of(context).pop(); // Hide loading
@@ -346,19 +355,27 @@ class _QRScannerPageState extends State<QRScannerPage> {
 
     try {
       final response = qrData != null
-          ? await _merchantService.claimLoyaltyRewardByQR(qrData)
-          : await _merchantService.claimLoyaltyRewardByCode(rewardCode!);
+          ? await _merchantProvider.claimLoyaltyRewardByQR(qrData)
+          : await _merchantProvider.claimLoyaltyRewardByCode(rewardCode!);
 
       if (!mounted) return;
       Navigator.of(context).pop(); // Hide loading
 
-      final success = response['success'] ?? false;
-      if (success) {
-        _showLoyaltyRewardSuccessDialog(response);
-      } else {
-        final reason = _cleanErrorMessage(response['reason'] ?? 'Claim failed');
-        _showErrorDialog(reason, null);
-      }
+      response.fold(
+        onSuccess: (data) {
+          final success = data['success'] ?? false;
+          if (success) {
+            _showLoyaltyRewardSuccessDialog(data);
+          } else {
+            final reason = _cleanErrorMessage(data['reason'] ?? 'Claim failed');
+            _showErrorDialog(reason, null);
+          }
+        },
+        onError: (failure) {
+          final reason = _cleanErrorMessage(failure.message);
+          _showErrorDialog(reason, null);
+        },
+      );
     } catch (e) {
       if (!mounted) return;
       Navigator.of(context).pop(); // Hide loading

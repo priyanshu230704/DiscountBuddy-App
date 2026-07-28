@@ -651,7 +651,7 @@ class MerchantService {
       final tomorrow = now.add(const Duration(days: 1));
       
       final bookings = await getMerchantBookings(
-        status: 'confirmed',
+        status: 'pending',
         startDate: now.toIso8601String().split('T').first,
         endDate: tomorrow.toIso8601String().split('T').first,
       );

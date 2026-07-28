@@ -4,21 +4,15 @@ import 'package:discount_buddy/core/theme/app_design.dart';
 import 'package:discount_buddy/core/utils/date_time_utils.dart';
 import 'package:discount_buddy/widgets/empty_state_widget.dart';
 import 'package:discount_buddy/components/layout.dart' show AppCard;
-import 'package:discount_buddy/features/merchant/data/merchant_service.dart';
+import 'package:discount_buddy/features/merchant/data/merchant_provider.dart';
 import 'package:discount_buddy/widgets/app_scaffold.dart';
 import 'package:discount_buddy/components/app_app_bar.dart';
 import 'package:discount_buddy/widgets/skeleton_loader.dart';
 import 'package:discount_buddy/features/merchant/pages/arrived_dialog.dart';
 import 'package:discount_buddy/features/merchant/pages/noshow_dialog.dart';
+import 'package:discount_buddy/features/merchant/pages/booking_details_dialog.dart';
 import 'package:get/get.dart';
 import 'package:discount_buddy/routes/app_routes.dart';
-
-/// Title case for booking status in the details dialog (matches value weight, not all-caps).
-String _formatBookingStatusForDialog(dynamic raw) {
-  final t = (raw ?? 'pending').toString().trim().toLowerCase();
-  if (t.isEmpty) return 'Pending';
-  return '${t[0].toUpperCase()}${t.substring(1)}';
-}
 
 class MerchantBookingsPage extends StatefulWidget {
   final int? restaurantId;
@@ -29,7 +23,7 @@ class MerchantBookingsPage extends StatefulWidget {
 }
 
 class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
-  final MerchantService _merchantService = MerchantService();
+  final MerchantProvider _merchantProvider = MerchantProvider();
   List<Map<String, dynamic>> _bookings = [];
   List<Map<String, dynamic>> _restaurants = [];
   int? _selectedRestaurantId;
@@ -56,7 +50,8 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
   Future<void> _loadRestaurants() async {
     try {
       setState(() => _isLoadingRestaurants = true);
-      final restaurants = await _merchantService.getMerchantRestaurants();
+      final restaurantsResult = await _merchantProvider.getMerchantRestaurants();
+      final restaurants = restaurantsResult.valueOrNull ?? [];
       if (mounted) {
         setState(() {
           _restaurants = restaurants;
@@ -79,9 +74,10 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
         _isFetching = true;
       });
 
-      final bookings = await _merchantService.getMerchantBookings(
+      final bookingsResult = await _merchantProvider.getMerchantBookings(
         restaurantId: _selectedRestaurantId,
       );
+      final bookings = bookingsResult.valueOrNull ?? [];
       // Sort: Pending first, then by date desc
       bookings.sort((a, b) {
         final statusA = (a['status'] ?? '').toString().toLowerCase();
@@ -123,7 +119,7 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
 
   Future<void> _reviewBooking(int id, String status) async {
     try {
-      await _merchantService.reviewBooking(id, status);
+      await _merchantProvider.reviewBooking(id, status);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -149,7 +145,7 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
 
   Future<void> _markBookingArrived(int id, String arrivalTime) async {
     try {
-      await _merchantService.markBookingArrived(id, arrivalTime);
+      await _merchantProvider.markBookingArrived(id, arrivalTime);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -173,7 +169,7 @@ class _MerchantBookingsPageState extends State<MerchantBookingsPage> {
 
   Future<void> _markBookingNoShow(int id, String reason, String notes) async {
     try {
-      await _merchantService.markBookingNoShow(id, reason, notes);
+      await _merchantProvider.markBookingNoShow(id, reason, notes);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -532,107 +528,6 @@ class _BookingCard extends StatelessWidget {
     required this.onNoShow,
   });
 
-  void _showBookingDetails(BuildContext context) {
-    final restaurant = booking['restaurant_name'] ?? 'Restaurant';
-    final customer = booking['contact_name']?.toString().isNotEmpty == true
-        ? booking['contact_name']
-        : 'Guest';
-    final phoneRaw = booking['contact_phone']?.toString().trim() ?? '';
-    final phone = phoneRaw.isEmpty ? 'Not provided' : phoneRaw;
-    final guests = booking['number_of_guests'] ?? 0;
-    final dateStr = booking['booking_date'];
-    final status = booking['status'] ?? 'pending';
-    final srRaw = booking['special_requests']?.toString().trim() ?? '';
-    final specialRequests = srRaw.isEmpty ? 'None' : srRaw;
-
-    DateTime? date;
-    if (dateStr != null) {
-      date = DateTimeUtils.tryParseBookingInstant(dateStr);
-    }
-
-    DateTime? arrivedDate;
-    final arrivedTimeStr = booking['arrived_time'];
-    if (arrivedTimeStr != null) {
-      arrivedDate = DateTimeUtils.tryParseBookingInstant(arrivedTimeStr);
-    }
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text(
-          'Booking Details',
-          style: AppTypography.title.copyWith(fontWeight: FontWeight.bold),
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _DetailRow(label: 'Customer', value: customer),
-              const SizedBox(height: 12),
-              _DetailRow(
-                label: 'Phone',
-                value: phone,
-                isLink: phone != 'Not provided',
-              ),
-              const SizedBox(height: 12),
-              _DetailRow(label: 'Restaurant', value: restaurant),
-              const SizedBox(height: 12),
-              _DetailRow(
-                label: 'Date & Time',
-                value: date != null
-                    ? DateTimeUtils.formatDateTime24h(date)
-                    : 'N/A',
-              ),
-              const SizedBox(height: 12),
-              _DetailRow(label: 'Guests', value: guests.toString()),
-              const SizedBox(height: 12),
-              _DetailRow(
-                label: 'Status',
-                value: _formatBookingStatusForDialog(status),
-              ),
-              if (status.toLowerCase() == 'arrived' &&
-                  booking['arrived_time'] != null) ...[
-                const SizedBox(height: 12),
-                _DetailRow(
-                  label: 'Arrival Time',
-                  value: arrivedDate != null
-                      ? DateTimeUtils.formatDateTime24h(arrivedDate)
-                      : booking['arrived_time'].toString(),
-                ),
-              ],
-              if (status.toLowerCase() == 'no_show') ...[
-                const SizedBox(height: 12),
-                _DetailRow(
-                  label: 'No-Show Reason',
-                  value: booking['no_show_reason'] ?? 'Not specified',
-                ),
-                if (booking['no_show_notes']?.toString().isNotEmpty ==
-                    true) ...[
-                  const SizedBox(height: 12),
-                  _DetailRow(
-                    label: 'Notes',
-                    value: booking['no_show_notes'].toString(),
-                  ),
-                ],
-              ],
-              const SizedBox(height: 12),
-              _DetailRow(label: 'Special requests', value: specialRequests),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final restaurant = booking['restaurant_name'] ?? 'Restaurant';
@@ -653,7 +548,7 @@ class _BookingCard extends StatelessWidget {
     final initial = customer.toString().substring(0, 1).toUpperCase();
 
     return GestureDetector(
-      onTap: () => _showBookingDetails(context),
+      onTap: () => showMerchantBookingDetailsDialog(context, booking),
       child: AppCard(
         padding: EdgeInsets
             .zero, // Padding handled internally for full-width action bar
@@ -1048,42 +943,6 @@ class _StatusBadge extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _DetailRow extends StatelessWidget {
-  final String label;
-  final String value;
-  final bool isLink;
-
-  const _DetailRow({
-    required this.label,
-    required this.value,
-    this.isLink = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: AppTypography.caption.copyWith(
-            color: AppColors.textSecondary,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: AppTypography.body.copyWith(
-            fontWeight: FontWeight.w600,
-            color: isLink ? AppColors.merchantBlue : AppColors.textPrimary,
-          ),
-        ),
-      ],
     );
   }
 }

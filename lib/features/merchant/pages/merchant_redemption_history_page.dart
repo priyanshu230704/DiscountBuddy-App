@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:discount_buddy/core/theme/app_design.dart';
-import 'package:discount_buddy/features/merchant/data/merchant_service.dart';
+import 'package:discount_buddy/features/merchant/data/merchant_provider.dart';
 import 'package:discount_buddy/components/layout.dart';
 import 'package:discount_buddy/widgets/skeleton_loader.dart';
 import 'package:discount_buddy/widgets/app_scaffold.dart';
@@ -22,7 +22,7 @@ class MerchantRedemptionHistoryPage extends StatefulWidget {
 }
 
 class _MerchantRedemptionHistoryPageState extends State<MerchantRedemptionHistoryPage> {
-  final MerchantService _merchantService = MerchantService();
+  final MerchantProvider _merchantProvider = MerchantProvider();
   bool _isLoading = true;
   List<Map<String, dynamic>> _redemptionHistory = [];
   List<Map<String, dynamic>> _restaurants = [];
@@ -40,7 +40,8 @@ class _MerchantRedemptionHistoryPageState extends State<MerchantRedemptionHistor
   Future<void> _loadRestaurants() async {
     try {
       setState(() => _isLoadingRestaurants = true);
-      final restaurants = await _merchantService.getMerchantRestaurants();
+      final restaurantsResult = await _merchantProvider.getMerchantRestaurants();
+      final restaurants = restaurantsResult.valueOrNull ?? [];
       if (mounted) {
         setState(() {
           _restaurants = restaurants;
@@ -57,9 +58,10 @@ class _MerchantRedemptionHistoryPageState extends State<MerchantRedemptionHistor
   Future<void> _fetchRedemptionHistory() async {
     setState(() => _isLoading = true);
     try {
-      final history = await _merchantService.getMerchantRedemptionHistory(
+      final historyResult = await _merchantProvider.getMerchantRedemptionHistory(
         restaurantId: _selectedRestaurantId,
       );
+      final history = historyResult.valueOrNull ?? [];
       if (mounted) {
         setState(() {
           _redemptionHistory = history;

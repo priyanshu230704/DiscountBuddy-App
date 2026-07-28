@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:discount_buddy/core/theme/app_design.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -9,8 +10,8 @@ import 'package:get/get.dart';
 
 import 'package:discount_buddy/features/restaurants/models/restaurant.dart';
 import 'package:discount_buddy/features/restaurants/models/image_variants.dart';
-import 'package:discount_buddy/features/restaurants/data/restaurant_service.dart';
-import 'package:discount_buddy/features/nearby/data/location_service.dart';
+import 'package:discount_buddy/features/restaurants/data/restaurant_provider.dart';
+import 'package:discount_buddy/features/nearby/data/nearby_provider.dart';
 import 'package:discount_buddy/core/device/app_permission_service.dart';
 import 'package:discount_buddy/core/device/app_config_service.dart';
 import 'package:discount_buddy/features/auth/data/auth_provider.dart';
@@ -31,8 +32,6 @@ class HomePage extends StatefulWidget {
 enum HomeFilter { offers, rating, nearest, openNow }
 
 class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
-  final RestaurantService _restaurantService = RestaurantService();
-  final LocationService _locationService = LocationService();
   final AuthProvider _authProvider = AuthProvider();
   final AppConfigService _appConfigService = AppConfigService();
 
@@ -100,7 +99,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Future<void> _tryRefreshLocationFromSettings() async {
     if (_isFetchingLocation || !mounted) return;
 
-    final permission = await _locationService.checkPermission();
+    final nearbyProvider = context.read<NearbyProvider>();
+    // Check permission manually using geolocator
+    final permission = await GeolocatorPlatform.instance.checkPermission();
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever ||
         permission == LocationPermission.unableToDetermine) {
@@ -117,8 +118,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
     _isFetchingLocation = true;
     try {
-      final location = await _locationService.getUserLocation();
-      if (!mounted) return;
+      final location = await nearbyProvider.getUserLocation();
+      if (!mounted || location == null) return;
       setState(() {
         _locationPermissionDenied = false;
         _userLatitude = location.position.latitude;
@@ -164,45 +165,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       // Let the startup notification → location sequence finish first on iOS.
       await AppPermissionService().waitForStartupLocationPrompt();
 
-      final location = await _locationService.getUserLocation(
+      final nearbyProvider = context.read<NearbyProvider>();
+      final location = await nearbyProvider.getUserLocation(
         requestPermissionIfDenied: true,
       );
-      if (mounted) {
+      if (mounted && location != null) {
         setState(() {
           _locationPermissionDenied = false;
           _userLatitude = location.position.latitude;
           _userLongitude = location.position.longitude;
           _cityName = location.cityName;
         });
-      }
-    } on LocationServiceDisabledException {
-      debugPrint('📍 Location services disabled');
-      if (mounted) {
-        setState(() {
-          _cityName = 'Location Off';
-          _userLatitude = null;
-          _userLongitude = null;
-        });
-        _promptToEnableLocation(
-          'Location services are off.',
-          isServiceOff: true,
-        );
-      }
-    } on LocationPermissionDeniedException catch (e) {
-      debugPrint('📍 Location permission denied (permanent: ${e.isPermanent})');
-      if (mounted) {
-        setState(() {
-          _locationPermissionDenied = true;
-          _cityName = e.isPermanent ? 'Permission blocked' : 'No Permission';
-          _userLatitude = null;
-          _userLongitude = null;
-        });
-        _promptToEnableLocation(
-          e.isPermanent
-              ? 'Location access is blocked. Enable it in Settings to see nearby deals.'
-              : 'Location permission denied. Enable it in Settings for nearby deals.',
-          isServiceOff: false,
-        );
       }
     } catch (e) {
       debugPrint('📍 Location unavailable: $e');
@@ -217,30 +190,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       await _loadRestaurants();
     }
   }
-
-  /// Show a snackbar or subtle indicator to enable location if it's currently off
-  void _promptToEnableLocation(String message, {required bool isServiceOff}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        action: SnackBarAction(
-          label: 'Settings',
-          onPressed: () async {
-            if (isServiceOff) {
-              await Geolocator.openLocationSettings();
-            } else {
-              await Geolocator.openAppSettings();
-            }
-          },
-        ),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: AppRadius.medium),
-        margin: const EdgeInsets.all(AppSpacing.lg),
-      ),
-    );
-  }
-
-  // Removed local _loadNotificationCount as it's now in NotificationProvider
 
   Future<void> _loadRestaurants() async {
     if (!mounted || _isLoadingRestaurants) return;
@@ -264,104 +213,22 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       }
 
       if (_authProvider.isCustomer) {
-        final homeData = await _restaurantService.getHomeData(
-          latitude: _userLatitude,
-          longitude: _userLongitude,
-        );
+        // Load restaurants and nearby restaurants through providers
+        final restaurantProvider = context.read<RestaurantProvider>();
+        await Future.wait([
+          restaurantProvider.getRestaurants(
+            latitude: _userLatitude,
+            longitude: _userLongitude,
+          ),
+          restaurantProvider.getNearbyRestaurants(
+            latitude: _userLatitude ?? 51.5074,
+            longitude: _userLongitude ?? -0.1278,
+          ),
+        ]);
 
-        // Normalize maps from new structure
-        final Map<String, dynamic> restaurantsData =
-            homeData['restaurants'] as Map<String, dynamic>? ?? {};
-        final Map<String, dynamic> dealsData =
-            homeData['deals'] as Map<String, dynamic>? ?? {};
-        final Map<String, dynamic> cuisinesData =
-            homeData['cuisines'] as Map<String, dynamic>? ?? {};
-        final Map<String, dynamic> sections =
-            homeData['sections'] as Map<String, dynamic>? ?? {};
-
-        final Map<int, String> cuisineMap = {};
-        cuisinesData.forEach((key, value) {
-          if (value is Map<String, dynamic>) {
-            final id = value['id'] as int?;
-            final name = value['name'] as String?;
-            if (id != null && name != null) {
-              cuisineMap[id] = name;
-            }
-          }
-        });
-
-        // Helper to convert normalized restaurant to model
-        Restaurant parseRestaurant(int id) {
-          final json = restaurantsData[id.toString()] as Map<String, dynamic>?;
-          if (json == null) {
-            return _restaurantService.convertApiRestaurantToModel({'id': id});
-          }
-
-          final List<dynamic> cuisineIds =
-              json['cuisines'] as List<dynamic>? ?? [];
-          final List<dynamic> dealIds = json['deals'] as List<dynamic>? ?? [];
-
-          // Resolve ALL cuisine names
-          List<String> cuisineNameList = [];
-          for (final cId in cuisineIds) {
-            final name = cuisineMap[cId as int];
-            if (name != null) cuisineNameList.add(name);
-          }
-          String resolvedCuisine = 'Restaurant';
-          if (cuisineNameList.isNotEmpty) {
-            if (cuisineNameList.length > 3) {
-              resolvedCuisine =
-                  '${cuisineNameList.take(3).join(' • ')} & many more';
-            } else {
-              resolvedCuisine = cuisineNameList.join(' • ');
-            }
-          }
-
-          // Resolve deals
-          final List<Map<String, dynamic>> inflatedDeals = [];
-          for (final dId in dealIds) {
-            final dealJson = dealsData[dId.toString()] as Map<String, dynamic>?;
-            if (dealJson != null) {
-              inflatedDeals.add(dealJson);
-            }
-          }
-
-          // Merge into a format that convertApiRestaurantToModel understands
-          final Map<String, dynamic> mergedJson = Map<String, dynamic>.from(
-            json,
-          );
-          mergedJson['active_deals'] = inflatedDeals;
-
-          return _restaurantService.convertApiRestaurantToModel(
-            mergedJson,
-            cuisineMap: {id: resolvedCuisine},
-          );
-        }
-
-        // Parse sections
-        final List<int> allIds = List<int>.from(
-          sections['all_restaurants'] ??
-              sections['top_10'] ??
-              sections['featured'] ??
-              (restaurantsData.keys
-                  .map((k) => int.tryParse(k))
-                  .whereType<int>()
-                  .toList()),
-        );
-        final List<int> nearbyIds = List<int>.from(sections['nearby'] ?? []);
-
-        final allRestaurants = allIds.map((id) => parseRestaurant(id)).toList();
-        final nearbyRestaurants = nearbyIds
-            .map((id) => parseRestaurant(id))
-            .toList();
-
-        // Sort by leaderboard score (highest first)
-        allRestaurants.sort(
-          (a, b) => b.leaderboardScore.compareTo(a.leaderboardScore),
-        );
-        nearbyRestaurants.sort(
-          (a, b) => b.leaderboardScore.compareTo(a.leaderboardScore),
-        );
+        // Get the data from provider
+        final allRestaurants = restaurantProvider.restaurants;
+        final nearbyRestaurants = restaurantProvider.nearbyRestaurants;
 
         if (!mounted) return;
         setState(() {
@@ -372,10 +239,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         });
       } else {
         // Use real user coordinates from location permission
-        final restaurants = await _restaurantService.getNearbyRestaurants(
+        final restaurantProvider = context.read<RestaurantProvider>();
+        await restaurantProvider.getNearbyRestaurants(
           latitude: _userLatitude ?? 51.5074,
           longitude: _userLongitude ?? -0.1278,
         );
+        final restaurants = restaurantProvider.nearbyRestaurants;
 
         if (!mounted) return;
         setState(() {

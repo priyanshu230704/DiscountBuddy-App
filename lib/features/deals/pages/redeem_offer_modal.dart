@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:discount_buddy/core/theme/app_colors.dart';
 import 'package:discount_buddy/core/theme/app_radius.dart';
 import 'package:discount_buddy/core/theme/app_shadows.dart';
@@ -6,9 +7,9 @@ import 'package:discount_buddy/core/theme/app_spacing.dart';
 import 'package:discount_buddy/core/theme/app_typography.dart';
 import 'package:discount_buddy/components/buttons.dart';
 import 'package:discount_buddy/features/restaurants/models/restaurant.dart';
-import 'package:discount_buddy/features/restaurants/data/restaurant_service.dart';
 import 'package:discount_buddy/widgets/generic_bottom_sheet.dart';
 import 'package:discount_buddy/core/config/environment.dart';
+import 'package:discount_buddy/features/deals/data/deals_provider.dart';
 
 /// Redeem Offer Modal - NeoTaste style bottom sheet
 class RedeemOfferModal extends StatefulWidget {
@@ -43,16 +44,26 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
   Future<void> _confirmRedemption() async {
     setState(() => _isRedeeming = true);
     try {
-      Map<String, dynamic> result;
+      final dealsProvider = context.read<DealsProvider>();
+      Map<String, dynamic>? result;
+
       if (_selectedOption == 'loyalty') {
         final slug = widget.restaurant.slug ?? widget.restaurant.id;
-        result = await RestaurantService().createLoyaltyOnlyVisit(slug);
+        final res = await dealsProvider.createLoyaltyCheckIn(slug);
+        result = res.valueOrNull;
+        if (result == null) {
+          throw Exception('Loyalty check-in failed');
+        }
       } else if (_selectedOption is Discount) {
         final dealId = (_selectedOption as Discount).id;
         if (dealId == null) {
           throw Exception('Please select a valid offer');
         }
-        result = await RestaurantService().claimDeal(dealId);
+        final res = await dealsProvider.claimDeal(dealId);
+        result = res.valueOrNull;
+        if (result == null) {
+          throw Exception('Could not claim deal');
+        }
       } else {
         throw Exception('Please select a valid option');
       }

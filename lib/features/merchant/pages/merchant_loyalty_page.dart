@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:discount_buddy/core/theme/app_design.dart';
-import 'package:discount_buddy/features/merchant/data/merchant_service.dart';
+import 'package:discount_buddy/features/merchant/data/merchant_provider.dart';
 import 'package:discount_buddy/widgets/loading_widget.dart';
 import 'package:discount_buddy/widgets/empty_state_widget.dart';
 import 'package:discount_buddy/widgets/app_scaffold.dart';
@@ -19,7 +19,7 @@ class MerchantLoyaltyPage extends StatefulWidget {
 }
 
 class _MerchantLoyaltyPageState extends State<MerchantLoyaltyPage> {
-  final MerchantService _merchantService = MerchantService();
+  final MerchantProvider _merchantProvider = MerchantProvider();
   
   bool _isLoadingRestaurants = true;
   bool _isLoadingCustomers = false;
@@ -48,42 +48,52 @@ class _MerchantLoyaltyPageState extends State<MerchantLoyaltyPage> {
         _isLoadingRestaurants = true;
       });
 
-      final restaurantsList = await _merchantService.getMerchantRestaurants();
+      final result = await _merchantProvider.getMerchantRestaurants();
       
       if (!mounted) return;
 
-      setState(() {
-        _restaurants = restaurantsList;
-        _isLoadingRestaurants = false;
-      });
+      result.fold(
+        onSuccess: (restaurantsList) {
+          setState(() {
+            _restaurants = restaurantsList;
+            _isLoadingRestaurants = false;
+          });
 
-      if (_restaurants.isNotEmpty) {
-        // Retrieve restaurantId from Get.arguments if present
-        final args = Get.arguments;
-        int? argId;
-        if (args is Map && args.containsKey('restaurantId')) {
-          final rawId = args['restaurantId'];
-          if (rawId is int) {
-            argId = rawId;
-          } else if (rawId != null) {
-            argId = int.tryParse(rawId.toString());
+          if (_restaurants.isNotEmpty) {
+            // Retrieve restaurantId from Get.arguments if present
+            final args = Get.arguments;
+            int? argId;
+            if (args is Map && args.containsKey('restaurantId')) {
+              final rawId = args['restaurantId'];
+              if (rawId is int) {
+                argId = rawId;
+              } else if (rawId != null) {
+                argId = int.tryParse(rawId.toString());
+              }
+            }
+
+            // Verify if argument restaurantId actually exists in our list
+            final match = _restaurants.firstWhere(
+              (r) => r['id'] == argId,
+              orElse: () => <String, dynamic>{},
+            );
+
+            if (match.isNotEmpty) {
+              _selectedRestaurantId = argId;
+            } else {
+              _selectedRestaurantId = _restaurants[0]['id'] as int?;
+            }
+
+            _fetchDataForSelectedRestaurant();
           }
-        }
-
-        // Verify if argument restaurantId actually exists in our list
-        final match = _restaurants.firstWhere(
-          (r) => r['id'] == argId,
-          orElse: () => <String, dynamic>{},
-        );
-
-        if (match.isNotEmpty) {
-          _selectedRestaurantId = argId;
-        } else {
-          _selectedRestaurantId = _restaurants[0]['id'] as int?;
-        }
-
-        _fetchDataForSelectedRestaurant();
-      }
+        },
+        onError: (failure) {
+          setState(() {
+            _isLoadingRestaurants = false;
+          });
+          _showErrorSnackBar('Failed to load restaurants: ${failure.message}');
+        },
+      );
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -108,16 +118,26 @@ class _MerchantLoyaltyPageState extends State<MerchantLoyaltyPage> {
         _isLoadingCustomers = true;
       });
 
-      final data = await _merchantService.getLoyaltyCustomers(
+      final result = await _merchantProvider.getLoyaltyCustomers(
         restaurantId: _selectedRestaurantId!,
         eligibleOnly: _eligibleOnly,
       );
 
       if (mounted) {
-        setState(() {
-          _loyaltyData = data;
-          _isLoadingCustomers = false;
-        });
+        result.fold(
+          onSuccess: (data) {
+            setState(() {
+              _loyaltyData = data;
+              _isLoadingCustomers = false;
+            });
+          },
+          onError: (failure) {
+            setState(() {
+              _isLoadingCustomers = false;
+            });
+            _showErrorSnackBar('Failed to load customer list: ${failure.message}');
+          },
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -137,15 +157,25 @@ class _MerchantLoyaltyPageState extends State<MerchantLoyaltyPage> {
         _isLoadingHistory = true;
       });
 
-      final history = await _merchantService.getLoyaltyHistory(
+      final result = await _merchantProvider.getLoyaltyHistory(
         restaurantId: _selectedRestaurantId!,
       );
 
       if (mounted) {
-        setState(() {
-          _historyRecords = history;
-          _isLoadingHistory = false;
-        });
+        result.fold(
+          onSuccess: (history) {
+            setState(() {
+              _historyRecords = history;
+              _isLoadingHistory = false;
+            });
+          },
+          onError: (failure) {
+            setState(() {
+              _isLoadingHistory = false;
+            });
+            _showErrorSnackBar('Failed to load loyalty history: ${failure.message}');
+          },
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -200,7 +230,7 @@ class _MerchantLoyaltyPageState extends State<MerchantLoyaltyPage> {
         _isClaiming = true;
       });
 
-      final response = await _merchantService.claimLoyaltyReward(
+      final result = await _merchantProvider.claimLoyaltyReward(
         restaurantId: _selectedRestaurantId!,
         userId: userId,
       );
@@ -211,13 +241,15 @@ class _MerchantLoyaltyPageState extends State<MerchantLoyaltyPage> {
         _isClaiming = false;
       });
 
-      final success = response['success'] ?? false;
-      if (success) {
-        _showSuccessBottomSheet(customerName);
-        _fetchDataForSelectedRestaurant();
-      } else {
-        _showErrorSnackBar(response['reason'] ?? 'Failed to claim reward');
-      }
+      result.fold(
+        onSuccess: (data) {
+          _showSuccessBottomSheet(customerName);
+          _fetchDataForSelectedRestaurant();
+        },
+        onError: (failure) {
+          _showErrorSnackBar(failure.message);
+        },
+      );
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -347,23 +379,46 @@ class _MerchantLoyaltyPageState extends State<MerchantLoyaltyPage> {
       setState(() {
         _isLoadingRestaurants = true;
       });
-      final fullRestaurant = await _merchantService.getRestaurantDetail(_selectedRestaurantId!);
-      
-      // Inject the scrollToLoyalty flag
-      fullRestaurant['scrollToLoyalty'] = true;
-
-      final refresh = await Get.toNamed(
-        AppRoutes.addRestaurant,
-        arguments: fullRestaurant,
-      );
+      final result = await _merchantProvider.getRestaurantDetail(_selectedRestaurantId!);
       
       if (mounted) {
-        setState(() {
-          _isLoadingRestaurants = false;
-        });
-        if (refresh == true) {
-          _loadRestaurantsAndInitialData();
-        }
+        result.fold(
+          onSuccess: (fullRestaurant) {
+            // Inject the scrollToLoyalty flag
+            fullRestaurant['scrollToLoyalty'] = true;
+
+            final navigationFuture = Get.toNamed(
+              AppRoutes.addRestaurant,
+              arguments: fullRestaurant,
+            );
+            if (navigationFuture != null) {
+              navigationFuture.then((refresh) {
+                if (mounted) {
+                  setState(() {
+                    _isLoadingRestaurants = false;
+                  });
+                  if (refresh == true) {
+                    _loadRestaurantsAndInitialData();
+                  }
+                }
+              });
+            } else {
+              if (mounted) {
+                setState(() {
+                  _isLoadingRestaurants = false;
+                });
+              }
+            }
+          },
+          onError: (failure) {
+            if (mounted) {
+              setState(() {
+                _isLoadingRestaurants = false;
+              });
+            }
+            _showErrorSnackBar('Failed to load restaurant details: ${failure.message}');
+          },
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -464,14 +519,24 @@ class _MerchantLoyaltyPageState extends State<MerchantLoyaltyPage> {
           _isLoadingRestaurants = true;
         });
 
-        await _merchantService.updateRestaurant(_selectedRestaurantId!, {
+        final result = await _merchantProvider.updateRestaurant(_selectedRestaurantId!, {
           'loyalty_card_enabled': true,
           'loyalty_required_redemptions': int.parse(redemptionsController.text.trim()),
           'loyalty_reward_description': rewardController.text.trim(),
         });
 
-        _showSuccessSnackBar('Loyalty program enabled successfully');
-        await _loadRestaurantsAndInitialData();
+        result.fold(
+          onSuccess: (data) {
+            _showSuccessSnackBar('Loyalty program enabled successfully');
+            _loadRestaurantsAndInitialData();
+          },
+          onError: (failure) {
+            setState(() {
+              _isLoadingRestaurants = false;
+            });
+            _showErrorSnackBar('Failed to enable loyalty program: ${failure.message}');
+          },
+        );
       } catch (e) {
         setState(() {
           _isLoadingRestaurants = false;
@@ -519,12 +584,22 @@ class _MerchantLoyaltyPageState extends State<MerchantLoyaltyPage> {
           _isLoadingRestaurants = true;
         });
 
-        await _merchantService.updateRestaurant(_selectedRestaurantId!, {
+        final result = await _merchantProvider.updateRestaurant(_selectedRestaurantId!, {
           'loyalty_card_enabled': false,
         });
 
-        _showSuccessSnackBar('Loyalty program disabled successfully');
-        await _loadRestaurantsAndInitialData();
+        result.fold(
+          onSuccess: (data) {
+            _showSuccessSnackBar('Loyalty program disabled successfully');
+            _loadRestaurantsAndInitialData();
+          },
+          onError: (failure) {
+            setState(() {
+              _isLoadingRestaurants = false;
+            });
+            _showErrorSnackBar('Failed to disable loyalty program: ${failure.message}');
+          },
+        );
       } catch (e) {
         setState(() {
           _isLoadingRestaurants = false;

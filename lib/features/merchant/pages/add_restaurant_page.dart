@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart' show Geolocator;
 import 'package:discount_buddy/core/theme/app_design.dart';
 import 'package:discount_buddy/widgets/app_scaffold.dart';
 import 'package:discount_buddy/widgets/app_gradient_button.dart';
 import 'package:discount_buddy/components/app_app_bar.dart';
 import 'package:discount_buddy/components/inputs.dart';
-import 'package:discount_buddy/features/merchant/data/merchant_service.dart';
-import 'package:discount_buddy/features/nearby/data/location_service.dart';
+import 'package:discount_buddy/features/merchant/data/merchant_provider.dart';
+import 'package:discount_buddy/features/nearby/data/nearby_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:discount_buddy/features/restaurants/models/restaurant.dart' as model;
@@ -24,8 +25,7 @@ class AddRestaurantPage extends StatefulWidget {
 }
 
 class _AddRestaurantPageState extends State<AddRestaurantPage> {
-  final MerchantService _merchantService = MerchantService();
-  final LocationService _locationService = LocationService();
+  final MerchantProvider _merchantProvider = MerchantProvider();
   final _formKey = GlobalKey<FormState>();
   final GlobalKey _loyaltySectionKey = GlobalKey();
   final _nameController = TextEditingController();
@@ -78,7 +78,17 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
       _isLoading = true;
     });
     try {
-      final position = await _locationService.getCurrentLocation();
+      final position = await context.read<NearbyProvider>().getCurrentPosition(
+        requestPermissionIfDenied: true,
+      );
+      if (position == null) {
+        if (mounted) {
+          final msg = context.read<NearbyProvider>().errorMessage ??
+              'Could not get current location';
+          _handleLocationFailure(msg);
+        }
+        return;
+      }
       setState(() {
         _latitudeController.text = position.latitude.toString();
         _longitudeController.text = position.longitude.toString();
@@ -91,34 +101,9 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
           ),
         );
       }
-    } on LocationServiceDisabledException {
-      if (mounted) {
-        _showLocationHelpSnackBar(
-          'Location (GPS) is turned off. Turn it on in system settings, then try again.',
-          isSystemLocationOff: true,
-        );
-      }
-    } on LocationPermissionDeniedException {
-      if (mounted) {
-        _showLocationHelpSnackBar(
-          'Location access is required. Allow it in app settings, then try again.',
-          isSystemLocationOff: false,
-        );
-      }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              _locationErrorUserMessage(e),
-              style: const TextStyle(color: Colors.white),
-            ),
-            backgroundColor: Colors.black,
-            behavior: SnackBarBehavior.floating,
-            margin: const EdgeInsets.all(16),
-            shape: RoundedRectangleBorder(borderRadius: AppRadius.medium),
-          ),
-        );
+        _handleLocationFailure(e.toString());
       }
     } finally {
       if (mounted) {
@@ -129,11 +114,43 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
     }
   }
 
-  void _showLocationHelpSnackBar(String message, {required bool isSystemLocationOff}) {
+  void _handleLocationFailure(String message) {
+    final lower = message.toLowerCase();
+    final isServiceOff = lower.contains('location services are disabled') ||
+        lower.contains('services are disabled') ||
+        lower.contains('gps');
+    final isPermissionDenied = lower.contains('permission');
+
+    if (isServiceOff || isPermissionDenied) {
+      _showLocationHelpSnackBar(isSystemLocationOff: isServiceOff);
+      return;
+    }
+
+    var cleaned = message;
+    if (cleaned.startsWith('Exception: ')) {
+      cleaned = cleaned.substring(11);
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          message,
+          "Couldn't get your current location. $cleaned",
+          style: const TextStyle(color: Colors.white),
+        ),
+        backgroundColor: Colors.black,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.medium),
+      ),
+    );
+  }
+
+  void _showLocationHelpSnackBar({required bool isSystemLocationOff}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isSystemLocationOff
+              ? 'Location (GPS) is turned off. Turn it on in Settings, then try again.'
+              : 'Location access is required. Allow it in app settings, then try again.',
           style: const TextStyle(color: Colors.white),
         ),
         action: SnackBarAction(
@@ -154,12 +171,6 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
         duration: const Duration(seconds: 6),
       ),
     );
-  }
-
-  String _locationErrorUserMessage(Object e) {
-    var s = e.toString();
-    if (s.startsWith('Exception: ')) s = s.substring(11);
-    return "Couldn't get your current location. $s";
   }
 
   String? _validateLatitude(String? value) {
@@ -355,19 +366,22 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
 
   Future<void> _loadReferenceData() async {
     try {
-      final results = await Future.wait([
-        _merchantService.getCities(),
-        _merchantService.getCategories(),
-        _merchantService.getFacilities(),
-        _merchantService.getCuisines(),
-      ]);
+      final citiesResult = await _merchantProvider.getCities();
+      final categoriesResult = await _merchantProvider.getCategories();
+      final facilitiesResult = await _merchantProvider.getFacilities();
+      final cuisinesResult = await _merchantProvider.getCuisines();
 
       if (mounted) {
+        final cities = citiesResult.valueOrNull ?? [];
+        final categories = categoriesResult.valueOrNull ?? [];
+        final facilities = facilitiesResult.valueOrNull ?? [];
+        final cuisines = cuisinesResult.valueOrNull ?? [];
+        
         setState(() {
-          _cities = results[0];
-          _categories = results[1];
-          _facilities = results[2];
-          _cuisines = results[3];
+          _cities = cities;
+          _categories = categories;
+          _facilities = facilities;
+          _cuisines = cuisines;
           _filteredCities = _cities;
           _isLoadingData = false;
         });
@@ -547,9 +561,9 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
         // Update existing restaurant
         final restaurantId = widget.restaurant!['id'];
         if (restaurantId is int) {
-          await _merchantService.updateRestaurant(restaurantId, restaurantData);
+          await _merchantProvider.updateRestaurant(restaurantId, restaurantData);
         } else {
-          await _merchantService.updateRestaurant(
+          await _merchantProvider.updateRestaurant(
             int.parse(restaurantId.toString()),
             restaurantData,
           );
@@ -565,7 +579,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
         }
       } else {
         // Create new restaurant
-        await _merchantService.createRestaurant(restaurantData);
+        await _merchantProvider.createRestaurant(restaurantData);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -623,7 +637,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
       final restaurantId = widget.restaurant!['id'];
       final id = restaurantId is int ? restaurantId : int.parse(restaurantId.toString());
 
-      await _merchantService.uploadRestaurantImage(
+      await _merchantProvider.uploadRestaurantImage(
         restaurantId: id,
         imagePath: image.path,
         imageType: type,
@@ -634,15 +648,22 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
       );
 
       // Reload restaurant data to get updated images list
-      final updatedRestaurant = await _merchantService.getRestaurantDetail(id);
+      final updatedRestaurant = await _merchantProvider.getRestaurantDetail(id);
       if (mounted) {
         setState(() {
-          if (updatedRestaurant['images'] != null) {
-            final imagesData = updatedRestaurant['images'] as List;
-            _restaurantImages = imagesData
-                .map((img) => model.RestaurantImage.fromJson(img))
-                .toList();
-          }
+          updatedRestaurant.fold(
+            onSuccess: (data) {
+              if (data['images'] != null) {
+                final imagesData = data['images'] as List;
+                _restaurantImages = imagesData
+                    .map((img) => model.RestaurantImage.fromJson(img))
+                    .toList();
+              }
+            },
+            onError: (failure) {
+              // Error handled in catch block
+            },
+          );
         });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -675,7 +696,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
     });
 
     try {
-      await _merchantService.deleteRestaurantImage(imageId);
+      await _merchantProvider.deleteRestaurantImage(imageId);
       if (mounted) {
         setState(() {
           _restaurantImages.removeWhere((img) => img.id == imageId);
@@ -711,7 +732,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
     });
 
     try {
-      await _merchantService.setPrimaryImage(imageId);
+      await _merchantProvider.setPrimaryImage(imageId);
       if (mounted) {
         setState(() {
           _restaurantImages = _restaurantImages.map((img) {
@@ -887,7 +908,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                       try {
                         final restaurantId = widget.restaurant!['id'];
                         final id = restaurantId is int ? restaurantId : int.parse(restaurantId.toString());
-                        await _merchantService.deleteRestaurant(id);
+                        await _merchantProvider.deleteRestaurant(id);
                         if (context.mounted) {
                           Navigator.pop(context, true);
                         }

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:discount_buddy/core/theme/app_design.dart';
 import 'package:discount_buddy/components/app_app_bar.dart';
 import 'package:discount_buddy/components/layout.dart';
 import 'package:discount_buddy/core/utils/date_time_utils.dart';
-import 'package:discount_buddy/features/bookings/data/booking_service.dart';
+import 'package:discount_buddy/features/bookings/data/booking_provider.dart';
 import 'package:discount_buddy/widgets/app_scaffold.dart';
 import 'package:discount_buddy/widgets/app_gradient_button.dart';
 
@@ -23,7 +24,6 @@ class CreateBookingPage extends StatefulWidget {
 
 class _CreateBookingPageState extends State<CreateBookingPage> {
   final _formKey = GlobalKey<FormState>();
-  final _bookingService = BookingService();
 
   DateTime _selectedDate = DateTime.now().add(const Duration(hours: 1));
   TimeOfDay _selectedTime = TimeOfDay.now();
@@ -97,41 +97,43 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
 
     setState(() => _isLoading = true);
 
-    try {
-      final now = DateTime.now();
-      final bookingDateTime = DateTime(
-        _selectedDate.year,
-        _selectedDate.month,
-        _selectedDate.day,
-        _selectedTime.hour,
-        _selectedTime.minute,
-      );
+    final now = DateTime.now();
+    final bookingDateTime = DateTime(
+      _selectedDate.year,
+      _selectedDate.month,
+      _selectedDate.day,
+      _selectedTime.hour,
+      _selectedTime.minute,
+    );
 
-      // Basic validation for past dates
-      if (bookingDateTime.isBefore(now)) {
+    if (bookingDateTime.isBefore(now)) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Cannot book for a past time')),
         );
         setState(() => _isLoading = false);
-        return;
       }
+      return;
+    }
 
-      await _bookingService.createBooking(
-        restaurantId: widget.restaurantId,
-        bookingDate: bookingDateTime,
-        numberOfGuests: int.parse(_guestsController.text),
-        specialRequests: _requestController.text.isNotEmpty
-            ? _requestController.text
-            : null,
-        contactName: _nameController.text.isNotEmpty
-            ? _nameController.text
-            : null,
-        contactPhone: _phoneController.text.isNotEmpty
-            ? _phoneController.text
-            : null,
-      );
+    if (!mounted) return;
+    final success = await context.read<BookingProvider>().createBooking(
+      restaurantId: widget.restaurantId,
+      bookingDate: bookingDateTime,
+      numberOfGuests: int.parse(_guestsController.text),
+      specialRequests: _requestController.text.isNotEmpty
+          ? _requestController.text
+          : null,
+      contactName: _nameController.text.isNotEmpty
+          ? _nameController.text
+          : null,
+      contactPhone: _phoneController.text.isNotEmpty
+          ? _phoneController.text
+          : null,
+    );
 
-      if (mounted) {
+    if (mounted) {
+      if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Booking request sent successfully!'),
@@ -139,25 +141,15 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
           ),
         );
         Navigator.pop(context, true);
-      }
-    } catch (e) {
-      if (mounted) {
-        String errorMsg = e.toString();
-        if (errorMsg.contains('contact_phone') || errorMsg.contains('no more than 20 characters')) {
-          errorMsg = 'Please enter a valid phone number (up to 15 digits).';
-        } else {
-          errorMsg = errorMsg
-              .replaceFirst('Exception: Failed to book: ', '')
-              .replaceFirst('Exception: ', '')
-              .replaceFirst('Failed to book: ', '')
-              .trim();
-        }
+      } else {
+        final failure = context.read<BookingProvider>().failure;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMsg)),
+          SnackBar(
+            content: Text(failure?.message ?? 'Failed to create booking'),
+          ),
         );
+        setState(() => _isLoading = false);
       }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
     }
   }
 

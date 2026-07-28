@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:discount_buddy/core/theme/app_design.dart';
-import 'package:discount_buddy/features/merchant/data/merchant_service.dart';
-import 'package:discount_buddy/core/network/api_service.dart';
+import 'package:discount_buddy/features/merchant/data/merchant_provider.dart';
 import 'package:discount_buddy/widgets/empty_state_widget.dart';
 import 'package:discount_buddy/widgets/app_scaffold.dart';
 import 'package:discount_buddy/components/layout.dart';
@@ -20,7 +19,7 @@ class MerchantDealsPage extends StatefulWidget {
 }
 
 class _MerchantDealsPageState extends State<MerchantDealsPage> {
-  final MerchantService _merchantService = MerchantService();
+  final MerchantProvider _merchantProvider = MerchantProvider();
   List<Map<String, dynamic>> _deals = [];
   List<Map<String, dynamic>> _restaurants = [];
   int? _selectedRestaurantId;
@@ -41,12 +40,19 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
   Future<void> _loadRestaurants() async {
     try {
       setState(() => _isLoadingRestaurants = true);
-      final restaurants = await _merchantService.getMerchantRestaurants();
+      final result = await _merchantProvider.getMerchantRestaurants();
       if (mounted) {
-        setState(() {
-          _restaurants = restaurants;
-          _isLoadingRestaurants = false;
-        });
+        result.fold(
+          onSuccess: (restaurants) {
+            setState(() {
+              _restaurants = restaurants;
+              _isLoadingRestaurants = false;
+            });
+          },
+          onError: (failure) {
+            setState(() => _isLoadingRestaurants = false);
+          },
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -64,14 +70,27 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
         _isFetching = true;
       });
 
-      final deals = await _merchantService.getMerchantDeals(
+      final result = await _merchantProvider.getMerchantDeals(
         restaurantId: _selectedRestaurantId,
       );
       if (mounted) {
-        setState(() {
-          _deals = deals;
-          _isLoading = false;
-        });
+        result.fold(
+          onSuccess: (deals) {
+            setState(() {
+              _deals = deals;
+              _isLoading = false;
+            });
+          },
+          onError: (failure) {
+            setState(() => _isLoading = false);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to load deals: ${failure.message}'),
+                backgroundColor: AppColors.error,
+              ),
+            );
+          },
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -106,48 +125,51 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
     }
 
     try {
-      final response = await _merchantService.toggleDealStatus(
+      final result = await _merchantProvider.toggleDealStatus(
         dealId, 
         startDate: startDate, 
         endDate: endDate
       );
       
       if (mounted) {
-        if (response['success'] == true) {
-          // Update local deal with returned deal object
-          if (response['deal'] != null) {
-            setState(() {
-              _deals[dealIndex] = response['deal'];
-            });
-          }
+        result.fold(
+          onSuccess: (data) {
+            // Update local deal with returned deal object
+            if (data['deal'] != null) {
+              setState(() {
+                _deals[dealIndex] = data['deal'];
+              });
+            }
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(response['detail'] ?? 'Status updated'),
-              behavior: SnackBarBehavior.floating,
-              backgroundColor: AppColors.success,
-              duration: const Duration(seconds: 3),
-            ),
-          );
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(data['detail'] ?? 'Status updated'),
+                behavior: SnackBarBehavior.floating,
+                backgroundColor: AppColors.success,
+                duration: const Duration(seconds: 3),
+              ),
+            );
 
-          // Show warnings if any
-          if (response['warnings'] != null && (response['warnings'] as List).isNotEmpty) {
-            _showWarningsDialog(response['warnings'].cast<String>());
-          }
-        } else {
-          // Handle explicit failure if success is false but no exception thrown
-          if (startDate == null && endDate == null) {
-            setState(() {
-              _deals[dealIndex]['is_active'] = originalStatus;
-            });
-          }
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(response['detail'] ?? 'Failed to update status'),
-              backgroundColor: AppColors.error,
-            ),
-          );
-        }
+            // Show warnings if any
+            if (data['warnings'] != null && (data['warnings'] as List).isNotEmpty) {
+              _showWarningsDialog(data['warnings'].cast<String>());
+            }
+          },
+          onError: (failure) {
+            // Revert on error if we did optimistic update
+            if (startDate == null && endDate == null) {
+              setState(() {
+                _deals[dealIndex]['is_active'] = originalStatus;
+              });
+            }
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(failure.message),
+                backgroundColor: AppColors.error,
+              ),
+            );
+          },
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -158,16 +180,12 @@ class _MerchantDealsPageState extends State<MerchantDealsPage> {
           });
         }
 
-        if (e is ApiException && e.data != null && e.data['error_code'] == 'EXPIRED_DEAL') {
-          _showRenewDealDialog(dealId);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(e.toString()),
-              backgroundColor: AppColors.error,
-            ),
-          );
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: AppColors.error,
+          ),
+        );
       }
     }
   }

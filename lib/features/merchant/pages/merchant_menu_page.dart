@@ -6,7 +6,7 @@ import 'package:discount_buddy/components/layout.dart' show AppCard;
 import 'package:discount_buddy/widgets/empty_state_widget.dart';
 import 'package:discount_buddy/widgets/skeleton_loader.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:discount_buddy/features/merchant/data/merchant_service.dart';
+import 'package:discount_buddy/features/merchant/data/merchant_provider.dart';
 import 'package:discount_buddy/features/restaurants/models/restaurant.dart' as model;
 
 import 'package:image_picker/image_picker.dart';
@@ -26,7 +26,7 @@ class MerchantMenuPage extends StatefulWidget {
 }
 
 class _MerchantMenuPageState extends State<MerchantMenuPage> {
-  final MerchantService _merchantService = MerchantService();
+  final MerchantProvider _merchantProvider = MerchantProvider();
   List<Map<String, dynamic>> _categories = [];
   int? _selectedCategoryId;
   Map<String, dynamic>? _selectedCategoryData;
@@ -61,27 +61,31 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
     setState(() => _isLoading = true);
     try {
       // Fetch restaurant details first to get menu_type
-      final restaurant = await _merchantService.getRestaurantDetail(
+      final restaurantResult = await _merchantProvider.getRestaurantDetail(
         widget.restaurantId,
       );
+      final restaurant = restaurantResult.valueOrNull;
 
       if (mounted) {
         setState(() {
-          _menuType = restaurant['menu_type'] ?? 'structured';
-          if (restaurant['images'] != null) {
-            final imagesData = restaurant['images'] as List;
-            _menuImages = imagesData
-                .map((img) => model.RestaurantImage.fromJson(img))
-                .where((img) => img.imageType == 'menu')
-                .toList();
+          if (restaurant != null) {
+            _menuType = restaurant['menu_type'] ?? 'structured';
+            if (restaurant['images'] != null) {
+              final imagesData = restaurant['images'] as List;
+              _menuImages = imagesData
+                  .map((img) => model.RestaurantImage.fromJson(img))
+                  .where((img) => img.imageType == 'menu')
+                  .toList();
+            }
           }
         });
       }
 
       if (_menuType == 'structured') {
-        final categories = await _merchantService.getMenuCategories(
+        final categoriesResult = await _merchantProvider.getMenuCategories(
           restaurantId: widget.restaurantId,
         );
+      final categories = categoriesResult.valueOrNull ?? [];
         if (mounted) {
           setState(() {
             _categories = categories;
@@ -133,10 +137,11 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
   Future<void> _fetchCategoryItems(int categoryId) async {
     setState(() => _isItemsLoading = true);
     try {
-      final categoryData = await _merchantService.getMenuCategoryDetails(
+      final categoryDataResult = await _merchantProvider.getMenuCategoryDetails(
         categoryId,
         restaurantId: widget.restaurantId,
       );
+      final categoryData = categoryDataResult.valueOrNull;
       if (mounted && _selectedCategoryId == categoryId) {
         setState(() {
           _selectedCategoryData = categoryData;
@@ -252,7 +257,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
 
     if (result == true) {
       try {
-        await _merchantService.createMenuCategory({
+        await _merchantProvider.createMenuCategory({
           'restaurant': widget.restaurantId,
           'name': nameController.text.trim(),
           'description': descriptionController.text.trim(),
@@ -333,7 +338,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
 
     if (result == true) {
       try {
-        await _merchantService.updateMenuCategory(category['id'], {
+        await _merchantProvider.updateMenuCategory(category['id'], {
           'name': nameController.text.trim(),
           'description': descriptionController.text.trim(),
         });
@@ -395,7 +400,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
 
     if (confirm == true) {
       try {
-        await _merchantService.deleteMenuCategory(id);
+        await _merchantProvider.deleteMenuCategory(id);
         if (_selectedCategoryId == id) {
           _selectedCategoryId = null;
           _selectedCategoryData = null;
@@ -575,14 +580,14 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
     try {
       if (isEdit) {
         final int id = itemData['id'];
-        await _merchantService.updateMenuItem(id, itemData);
+        await _merchantProvider.updateMenuItem(id, itemData);
       } else {
         final newItemData = Map<String, dynamic>.from(itemData);
         newItemData['category'] = _selectedCategoryId;
         if (!newItemData.containsKey('order')) {
           newItemData['order'] = 0;
         }
-        await _merchantService.createMenuItem(newItemData);
+        await _merchantProvider.createMenuItem(newItemData);
       }
 
       _fetchCategoryItems(_selectedCategoryId!);
@@ -651,7 +656,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
     if (confirm == true) {
       try {
         if (item.containsKey('id')) {
-          await _merchantService.deleteMenuItem(item['id']);
+          await _merchantProvider.deleteMenuItem(item['id']);
           _fetchCategoryItems(_selectedCategoryId!);
         }
       } catch (e) {
@@ -1534,7 +1539,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
     setState(() => _isLoading = true);
 
     try {
-      await _merchantService.uploadRestaurantImage(
+      await _merchantProvider.uploadRestaurantImage(
         restaurantId: widget.restaurantId,
         imagePath: image.path,
         imageType: 'menu',
@@ -1597,7 +1602,7 @@ class _MerchantMenuPageState extends State<MerchantMenuPage> {
     setState(() => _isLoading = true);
 
     try {
-      await _merchantService.deleteRestaurantImage(imageId);
+      await _merchantProvider.deleteRestaurantImage(imageId);
       _loadMenu();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

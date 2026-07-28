@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:discount_buddy/core/theme/app_design.dart';
-import 'package:discount_buddy/features/merchant/data/merchant_service.dart';
+import 'package:discount_buddy/features/merchant/data/merchant_provider.dart';
 import 'package:discount_buddy/widgets/loading_widget.dart';
 import 'package:discount_buddy/widgets/empty_state_widget.dart';
 import 'package:discount_buddy/widgets/app_scaffold.dart';
@@ -23,7 +23,7 @@ class MerchantRestaurantsPage extends StatefulWidget {
 }
 
 class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
-  final MerchantService _merchantService = MerchantService();
+  final MerchantProvider _merchantProvider = MerchantProvider();
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
   bool _isSearching = false;
@@ -48,14 +48,24 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
   Future<void> _loadRestaurants() async {
     try {
       if (mounted) setState(() => _isLoading = true);
-      final restaurants = await _merchantService.getMerchantRestaurants();
+      final apiResult = await _merchantProvider.getMerchantRestaurants();
       if (mounted) {
+        final restaurants = apiResult.valueOrNull ?? [];
         setState(() {
           _restaurants = restaurants;
           _filteredRestaurants = restaurants;
           _isLoading = false;
         });
         _filterRestaurants(_searchController.text);
+        
+        if (apiResult.isError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to load restaurants: ${apiResult.failureOrNull}'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -249,7 +259,8 @@ class _MerchantRestaurantsPageState extends State<MerchantRestaurantsPage> {
       );
     } else {
       try {
-        final fullRestaurant = await _merchantService.getRestaurantDetail(id);
+        final fullRestaurantResult = await _merchantProvider.getRestaurantDetail(id);
+      final fullRestaurant = fullRestaurantResult.valueOrNull;
         if (mounted) {
           final refresh = await Get.toNamed(
             AppRoutes.addRestaurant,

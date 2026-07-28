@@ -1,9 +1,10 @@
 import 'package:discount_buddy/core/theme/app_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 import 'package:discount_buddy/core/theme/app_colors.dart';
 import 'package:discount_buddy/routes/app_routes.dart';
-import 'package:discount_buddy/features/onboarding/data/onboarding_service.dart';
+import 'package:discount_buddy/features/onboarding/data/onboarding_provider.dart';
 import 'package:discount_buddy/widgets/connectivity_gate.dart';
 
 /// Data class for onboarding page content
@@ -62,8 +63,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _handleGetStarted() async {
-    // Mark onboarding as completed
-    await OnboardingService().completeOnboarding();
+    await context.read<OnboardingProvider>().completeOnboarding();
 
     // Navigate to login page
     if (mounted) {

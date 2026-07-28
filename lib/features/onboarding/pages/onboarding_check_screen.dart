@@ -1,9 +1,10 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:discount_buddy/core/theme/app_colors.dart';
 import 'package:discount_buddy/features/auth/data/auth_provider.dart';
 import 'package:discount_buddy/routes/app_routes.dart';
-import 'package:discount_buddy/features/onboarding/data/onboarding_service.dart';
+import 'package:discount_buddy/features/onboarding/data/onboarding_provider.dart';
 
 /// Screen that checks onboarding status and routes accordingly
 class OnboardingCheckScreen extends StatefulWidget {
@@ -15,28 +16,29 @@ class OnboardingCheckScreen extends StatefulWidget {
 
 class _OnboardingCheckScreenState extends State<OnboardingCheckScreen> {
   final AuthProvider _authProvider = AuthProvider();
-  final OnboardingService _onboardingService = OnboardingService();
 
   @override
   void initState() {
     super.initState();
-    _checkOnboardingAndAuth();
+    // Defer until after the first frame — notifyListeners during initState/build is illegal
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkOnboardingAndAuth();
+    });
   }
 
   Future<void> _checkOnboardingAndAuth() async {
     // Wait for AuthProvider to finish initializing
-    // Check if it's still loading, wait a bit
     int attempts = 0;
     while (_authProvider.isLoading && attempts < 20) {
       await Future.delayed(const Duration(milliseconds: 100));
       attempts++;
     }
 
-    // Check if user has completed onboarding
-    final hasCompletedOnboarding = await _onboardingService
-        .hasCompletedOnboarding();
+    if (!mounted) return;
 
-    // Check authentication status
+    final onboardingProvider = context.read<OnboardingProvider>();
+    await onboardingProvider.checkHasCompletedOnboarding();
+    final hasCompletedOnboarding = onboardingProvider.hasCompletedOnboarding;
     final isAuthenticated = _authProvider.isAuthenticated;
 
     if (mounted) {

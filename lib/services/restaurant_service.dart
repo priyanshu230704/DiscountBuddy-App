@@ -662,13 +662,13 @@ class RestaurantService {
           [],
       verified: json['verified'] as bool? ?? false,
       isFeatured: json['is_featured'] as bool? ?? false,
-      occupancy: json['occupancy'] as String?,
+      occupancy: _asString(json['occupancy']),
       rating: averageRating.toDouble(),
       reviewCount: reviewsCount,
       distance: _parseDouble(json['distance']) ?? 0.0,
       distanceMiles: _parseDouble(json['distance_miles']),
       discount: discount,
-      slug: json['slug'] as String?,
+      slug: _asString(json['slug']),
       isFavourite: json['is_favourite'] as bool? ?? false,
       leaderboardScore: _parseDouble(json['leaderboard_score']) ?? 0.0,
       menuType: json['menu_type'] as String? ?? 'structured',
@@ -683,6 +683,7 @@ class RestaurantService {
       loyaltyProgram: json['loyalty_program'] != null
           ? LoyaltyProgram.fromJson(json['loyalty_program'] as Map<String, dynamic>)
           : null,
+      bookingsEnabled: json['bookings_enabled'] as bool? ?? true,
     );
   }
 
@@ -755,13 +756,10 @@ class RestaurantService {
 
   /// Convert restaurant detail API response to Restaurant model
   Restaurant _convertDetailResponseToModel(Map<String, dynamic> json) {
-    final restaurantId = json['id'] as int? ?? 0;
+    final restaurantId = _parseInt(json['id']) ?? 0;
 
-    // Parse latitude and longitude from strings
-    final latStr = json['latitude'] as String? ?? '0';
-    final lngStr = json['longitude'] as String? ?? '0';
-    final latitude = double.tryParse(latStr) ?? 0.0;
-    final longitude = double.tryParse(lngStr) ?? 0.0;
+    final latitude = _parseDouble(json['latitude']) ?? 0.0;
+    final longitude = _parseDouble(json['longitude']) ?? 0.0;
 
     // Parse images using RestaurantImage model for consistency
     final imagesJson = json['images'] as List<dynamic>? ?? [];
@@ -807,7 +805,7 @@ class RestaurantService {
     final cuisinesList = json['cuisines'] as List<dynamic>? ?? [];
     if (cuisinesList.isNotEmpty) {
       final names = cuisinesList
-          .map((c) => (c as Map<String, dynamic>?)?['name'] as String? ?? '')
+          .map((c) => _asString((c as Map<String, dynamic>?)?['name']) ?? '')
           .where((name) => name.isNotEmpty)
           .toList();
       if (names.isNotEmpty) {
@@ -863,29 +861,29 @@ class RestaurantService {
 
     return Restaurant(
       id: restaurantId.toString(),
-      name: json['name'] as String? ?? 'Unknown Restaurant',
-      description: json['description'] as String? ?? '',
+      name: _asString(json['name']) ?? 'Unknown Restaurant',
+      description: _asString(json['description']) ?? '',
       imageUrl: imageUrl,
-      address: json['address'] as String? ?? '',
+      address: _asString(json['address']) ?? '',
       latitude: latitude,
       longitude: longitude,
       cuisine: cuisine,
-      occupancy: json['occupancy'] as String?,
+      occupancy: _asString(json['occupancy']),
       rating: averageRating.toDouble(),
       reviewCount: reviewsCount,
       distance: distance,
       distanceMiles: _parseDouble(json['distance_miles']),
       discount: discount,
       images: imageUrls,
-      phoneNumber: json['phone'] as String? ?? '',
-      website: json['website'] as String? ?? '',
+      phoneNumber: _asString(json['phone']) ?? '',
+      website: _asString(json['website']) ?? '',
       openingHours: openingHours,
       requiresBooking: json['requires_booking'] as bool? ?? false,
       restrictions: const [],
-      slug: json['slug'] as String?,
-      priceRange: json['price_range'] as int?,
-      postcode: json['postcode'] as String?,
-      email: json['email'] as String?,
+      slug: _asString(json['slug']),
+      priceRange: _parseInt(json['price_range']),
+      postcode: _asString(json['postcode']),
+      email: _asString(json['email']),
       isFavourite: json['is_favourite'] as bool? ?? false,
       openingSlots: openingSlotsList,
       activeDeals: activeDeals,
@@ -904,18 +902,19 @@ class RestaurantService {
       verified: json['verified'] as bool? ?? false,
       isFeatured: json['is_featured'] as bool? ?? false,
       leaderboardScore: _parseDouble(json['leaderboard_score']) ?? 0.0,
-      menuType: json['menu_type'] as String? ?? 'structured',
+      menuType: _asString(json['menu_type']) ?? 'structured',
       restaurantImages: restaurantImages,
-      cuisines: cuisinesList.map((e) => Cuisine.fromJson(e)).toList(),
+      cuisines: cuisinesList.map((e) => Cuisine.fromJson(e as Map<String, dynamic>)).toList(),
       loyaltyCardEnabled: (json['loyalty_card_enabled'] as bool? ?? false) ||
           (json['loyalty_program'] != null && json['loyalty_program']['loyalty_card_enabled'] == true),
       loyaltyRequiredRedemptions: _parseInt(json['loyalty_required_redemptions']) ??
           (json['loyalty_program'] != null ? _parseInt(json['loyalty_program']['required_redemptions']) : null),
-      loyaltyRewardDescription: (json['loyalty_reward_description'] as String?) ??
-          (json['loyalty_program'] != null ? json['loyalty_program']['reward_description'] as String? : null),
+      loyaltyRewardDescription: _asString(json['loyalty_reward_description']) ??
+          (json['loyalty_program'] != null ? _asString(json['loyalty_program']['reward_description']) : null),
       loyaltyProgram: json['loyalty_program'] != null
           ? LoyaltyProgram.fromJson(json['loyalty_program'] as Map<String, dynamic>)
           : null,
+      bookingsEnabled: json['bookings_enabled'] as bool? ?? true,
     );
   }
 
@@ -1057,5 +1056,12 @@ class RestaurantService {
     if (value is num) return value.toInt();
     if (value is String) return int.tryParse(value);
     return null;
+  }
+
+  /// Coerce API values to String. Numeric fields sometimes arrive as double.
+  String? _asString(dynamic value) {
+    if (value == null) return null;
+    if (value is String) return value;
+    return value.toString();
   }
 }

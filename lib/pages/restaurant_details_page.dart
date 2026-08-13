@@ -1787,75 +1787,115 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
           ],
         ),
         child: SafeArea(
-          child: Row(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Book Table Button
-              Expanded(
-                child: AppGradientButton(
-                  onPressed: () {
-                    if (_authProvider.isGuestMode) {
-                      LoginRequiredSheet.show(context);
-                      return;
-                    }
-                    Get.toNamed(
-                      AppRoutes.createBooking,
-                      arguments: {
-                        'restaurantId': int.parse(restaurant.id),
-                        'restaurantName': restaurant.name,
+              if (!restaurant.bookingsEnabled) ...[
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.background,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.cardBorder),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline_rounded,
+                        color: AppColors.textSecondary,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Bookings are currently unavailable for this restaurant',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: AppColors.textSecondary,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+              Row(
+                children: [
+                  if (restaurant.bookingsEnabled) ...[
+                    Expanded(
+                      child: AppGradientButton(
+                        onPressed: () {
+                          if (_authProvider.isGuestMode) {
+                            LoginRequiredSheet.show(context);
+                            return;
+                          }
+                          Get.toNamed(
+                            AppRoutes.createBooking,
+                            arguments: {
+                              'restaurantId': int.parse(restaurant.id),
+                              'restaurantName': restaurant.name,
+                            },
+                          );
+                        },
+                        height: 52,
+                        child: Text(
+                          'Book Table',
+                          style: AppTypography.body.copyWith(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                  ],
+                  Expanded(
+                    child: AppGradientButton(
+                      onPressed: () {
+                        if (_authProvider.isGuestMode) {
+                          LoginRequiredSheet.show(context);
+                          return;
+                        }
+                        if (restaurant.requiresBooking &&
+                            restaurant.bookingsEnabled) {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) =>
+                                BookingSelectionModal(restaurant: restaurant),
+                          );
+                        } else {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) =>
+                                RedeemOfferModal(restaurant: restaurant),
+                          );
+                        }
                       },
-                    );
-                  },
-                  height: 52,
-                  child: Text(
-                    'Book Table',
-                    style: AppTypography.body.copyWith(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      height: 52,
+                      child: Text(
+                        (!restaurant.activeDeals.any((d) => d.type != 'none') &&
+                                restaurant.loyaltyCardEnabled)
+                            ? 'Collect Stamp'
+                            : 'Redeem Offer',
+                        style: AppTypography.body.copyWith(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Redeem Offer / Loyalty Button
-              Expanded(
-                child: AppGradientButton(
-                  onPressed: () {
-                    if (_authProvider.isGuestMode) {
-                      LoginRequiredSheet.show(context);
-                      return;
-                    }
-                    if (restaurant.requiresBooking) {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (context) =>
-                            BookingSelectionModal(restaurant: restaurant),
-                      );
-                    } else {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (context) =>
-                            RedeemOfferModal(restaurant: restaurant),
-                      );
-                    }
-                  },
-                  height: 52,
-                  child: Text(
-                    (!restaurant.activeDeals.any((d) => d.type != 'none') &&
-                            restaurant.loyaltyCardEnabled)
-                        ? 'Collect Stamp'
-                        : 'Redeem Offer',
-                    style: AppTypography.body.copyWith(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
+                ],
               ),
             ],
           ),

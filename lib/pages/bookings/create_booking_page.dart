@@ -143,7 +143,13 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
     } catch (e) {
       if (mounted) {
         String errorMsg = e.toString();
-        if (errorMsg.contains('contact_phone') || errorMsg.contains('no more than 20 characters')) {
+        final lower = errorMsg.toLowerCase();
+        if (lower.contains('bookings are not available') ||
+            lower.contains('bookings_disabled')) {
+          errorMsg =
+              'This restaurant is not accepting bookings at the moment. Please try again later.';
+        } else if (errorMsg.contains('contact_phone') ||
+            errorMsg.contains('no more than 20 characters')) {
           errorMsg = 'Please enter a valid phone number (up to 15 digits).';
         } else {
           errorMsg = errorMsg

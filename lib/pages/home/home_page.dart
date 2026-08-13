@@ -1522,6 +1522,29 @@ class _FeedTile extends StatelessWidget {
                       ),
                     ),
                   ),
+                if (!restaurant.bookingsEnabled)
+                  Positioned(
+                    top: deals.isNotEmpty ? 42 : 10,
+                    left: 10,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.65),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        'No bookings',
+                        style: AppTypography.bodySmall.copyWith(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
 

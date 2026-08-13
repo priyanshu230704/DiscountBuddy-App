@@ -287,6 +287,7 @@ class Restaurant {
   final int? loyaltyRequiredRedemptions;
   final String? loyaltyRewardDescription;
   final LoyaltyProgram? loyaltyProgram;
+  final bool bookingsEnabled;
 
   Restaurant({
     required this.id,
@@ -329,6 +330,7 @@ class Restaurant {
     this.loyaltyRequiredRedemptions,
     this.loyaltyRewardDescription,
     this.loyaltyProgram,
+    this.bookingsEnabled = true,
   });
 
   factory Restaurant.fromJson(Map<String, dynamic> json) {
@@ -400,7 +402,7 @@ class Restaurant {
       cuisine:
           json['cuisine'] as String? ??
           (cuisines.isNotEmpty ? cuisines.map((e) => e.name).join(' • ') : ''),
-      occupancy: json['occupancy'] as String?,
+      occupancy: json['occupancy']?.toString(),
       rating:
           _parseDouble(json['average_rating']) ??
           _parseDouble(json['rating']) ??
@@ -470,6 +472,7 @@ class Restaurant {
               json['loyalty_program'] as Map<String, dynamic>,
             )
           : null,
+      bookingsEnabled: json['bookings_enabled'] as bool? ?? true,
     );
   }
 
@@ -510,6 +513,7 @@ class Restaurant {
         'loyalty_reward_description': loyaltyRewardDescription,
       if (loyaltyProgram != null) 'loyalty_program': loyaltyProgram!.toJson(),
       if (slug != null) 'slug': slug,
+      'bookings_enabled': bookingsEnabled,
     };
   }
 
@@ -552,6 +556,7 @@ class Restaurant {
     int? loyaltyRequiredRedemptions,
     String? loyaltyRewardDescription,
     LoyaltyProgram? loyaltyProgram,
+    bool? bookingsEnabled,
   }) {
     return Restaurant(
       id: id ?? this.id,
@@ -596,6 +601,7 @@ class Restaurant {
       loyaltyRewardDescription:
           loyaltyRewardDescription ?? this.loyaltyRewardDescription,
       loyaltyProgram: loyaltyProgram ?? this.loyaltyProgram,
+      bookingsEnabled: bookingsEnabled ?? this.bookingsEnabled,
     );
   }
 }

@@ -154,6 +154,30 @@ class RestaurantCard extends StatelessWidget {
                           ),
                         ),
                       ),
+                    if (!restaurant.bookingsEnabled)
+                      Positioned(
+                        top: 40,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.7),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            'No bookings',
+                            style: AppTypography.caption.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 9,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                        ),
+                      ),
                     // Loyalty Card Badge
                     if (restaurant.loyaltyCardEnabled)
                       Positioned(

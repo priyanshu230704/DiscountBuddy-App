@@ -39,6 +39,9 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
   final _emailController = TextEditingController();
   final _websiteController = TextEditingController();
   bool _loyaltyCardEnabled = false;
+  bool _bookingsEnabled = true;
+  bool _isUpdatingBookings = false;
+  bool _bookingStatusDirty = false;
   final _loyaltyRequiredRedemptionsController = TextEditingController();
   final _loyaltyRewardDescriptionController = TextEditingController();
 
@@ -457,6 +460,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
     _loyaltyCardEnabled = restaurant['loyalty_card_enabled'] as bool? ?? false;
     _loyaltyRequiredRedemptionsController.text = restaurant['loyalty_required_redemptions']?.toString() ?? '';
     _loyaltyRewardDescriptionController.text = restaurant['loyalty_reward_description'] as String? ?? '';
+    _bookingsEnabled = restaurant['bookings_enabled'] as bool? ?? true;
 
     // Load opening hours
     if (restaurant['opening_hours'] != null) {
@@ -466,6 +470,174 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
           _openingHours[key.toLowerCase()] = value.toString();
         }
       });
+    }
+  }
+
+  int? _restaurantId() {
+    final restaurantId = widget.restaurant?['id'];
+    if (restaurantId == null) return null;
+    if (restaurantId is int) return restaurantId;
+    return int.tryParse(restaurantId.toString());
+  }
+
+  Future<int> _pendingBookingsCount() async {
+    final id = _restaurantId();
+    if (id == null) return 0;
+    try {
+      final results = await Future.wait([
+        _merchantService.getMerchantBookings(
+          restaurantId: id,
+          status: 'pending',
+        ),
+        _merchantService.getMerchantBookings(
+          restaurantId: id,
+          status: 'confirmed',
+        ),
+      ]);
+      return results[0].length + results[1].length;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  Future<bool> _confirmDisableBookings() async {
+    final pendingCount = await _pendingBookingsCount();
+    if (!mounted) return false;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(
+          'Disable Bookings?',
+          style: AppTypography.title.copyWith(fontSize: 18),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Customers will no longer see the Book Table button. Existing bookings will not be cancelled.',
+              style: AppTypography.body,
+            ),
+            if (pendingCount > 0) ...[
+              const SizedBox(height: 12),
+              Text(
+                'Warning: You have $pendingCount pending or confirmed booking${pendingCount == 1 ? '' : 's'}. Disabling bookings will not cancel them.',
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.merchantAmber,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ],
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(
+              'Cancel',
+              style: AppTypography.bodySmall.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+          AppGradientButton(
+            onPressed: () => Navigator.pop(context, true),
+            width: 120,
+            height: 48,
+            gradient: LinearGradient(
+              colors: [AppColors.error, AppColors.error.withValues(alpha: 0.8)],
+            ),
+            child: const Text(
+              'Disable',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return confirmed == true;
+  }
+
+  Future<void> _onBookingsEnabledChanged(bool value) async {
+    if (!value) {
+      setState(() {
+        _isUpdatingBookings = true;
+      });
+      final confirmed = await _confirmDisableBookings();
+      if (!mounted) return;
+      if (!confirmed) {
+        setState(() {
+          _isUpdatingBookings = false;
+        });
+        return;
+      }
+    }
+
+    if (widget.restaurant == null) {
+      setState(() {
+        _bookingsEnabled = value;
+        _isUpdatingBookings = false;
+      });
+      return;
+    }
+
+    final id = _restaurantId();
+    if (id == null) {
+      setState(() {
+        _bookingsEnabled = value;
+        _isUpdatingBookings = false;
+      });
+      return;
+    }
+
+    setState(() {
+      _bookingsEnabled = value;
+      _isUpdatingBookings = true;
+    });
+
+    try {
+      await _merchantService.updateRestaurant(id, {
+        'bookings_enabled': value,
+      });
+      if (mounted) {
+        setState(() {
+          _bookingStatusDirty = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              value
+                  ? 'Bookings enabled. Customers can book tables.'
+                  : 'Bookings disabled. The booking button is now hidden.',
+            ),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _bookingsEnabled = !value;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update booking status: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUpdatingBookings = false;
+        });
+      }
     }
   }
 
@@ -520,6 +692,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
         'menu_type': _menuType,
         if (openingHours.isNotEmpty) 'opening_hours': openingHours,
         'loyalty_card_enabled': _loyaltyCardEnabled,
+        'bookings_enabled': _bookingsEnabled,
         if (_loyaltyCardEnabled) ...{
           'loyalty_required_redemptions': int.tryParse(_loyaltyRequiredRedemptionsController.text.trim()) ?? 0,
           'loyalty_reward_description': _loyaltyRewardDescriptionController.text.trim(),
@@ -827,7 +1000,13 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
 
   @override
   Widget build(BuildContext context) {
-    return AppScaffold(
+    return PopScope(
+      canPop: !_bookingStatusDirty,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        Navigator.of(context).pop(true);
+      },
+      child: AppScaffold(
       appBar: AppAppBar(
         titleText: widget.restaurant != null ? 'Edit Restaurant' : 'Add Restaurant',
         backgroundColor: Colors.transparent,
@@ -1385,6 +1564,72 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                       }).toList(),
                     ),
                      const SizedBox(height: AppSpacing.xl),
+                     _buildSectionHeader('Booking Settings', Icons.event_available_rounded),
+                     const SizedBox(height: AppSpacing.md),
+                     _buildFormSection(
+                       children: [
+                         SwitchListTile(
+                           title: Text(
+                             'Accept Bookings',
+                             style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold),
+                           ),
+                           subtitle: Text(
+                             'Allow customers to book tables at your restaurant',
+                             style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
+                           ),
+                           value: _bookingsEnabled,
+                           activeTrackColor: AppColors.merchantIndigo,
+                           contentPadding: EdgeInsets.zero,
+                           onChanged: _isUpdatingBookings ? null : _onBookingsEnabledChanged,
+                         ),
+                         const SizedBox(height: AppSpacing.md),
+                         Container(
+                           width: double.infinity,
+                           padding: const EdgeInsets.all(12),
+                           decoration: BoxDecoration(
+                             color: AppColors.merchantIndigo.withValues(alpha: 0.08),
+                             borderRadius: BorderRadius.circular(12),
+                           ),
+                           child: Row(
+                             crossAxisAlignment: CrossAxisAlignment.start,
+                             children: [
+                               Icon(
+                                 Icons.info_outline_rounded,
+                                 size: 20,
+                                 color: AppColors.merchantIndigo,
+                               ),
+                               const SizedBox(width: 10),
+                               Expanded(
+                                 child: Column(
+                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                   children: [
+                                     Text(
+                                       _bookingsEnabled
+                                           ? 'Booking button visible'
+                                           : 'Booking button hidden',
+                                       style: AppTypography.bodySmall.copyWith(
+                                         fontWeight: FontWeight.w700,
+                                         color: AppColors.merchantIndigo,
+                                       ),
+                                     ),
+                                     const SizedBox(height: 2),
+                                     Text(
+                                       _bookingsEnabled
+                                           ? 'Customers can book tables'
+                                           : 'New bookings cannot be made',
+                                       style: AppTypography.caption.copyWith(
+                                         color: AppColors.textSecondary,
+                                       ),
+                                     ),
+                                   ],
+                                 ),
+                               ),
+                             ],
+                           ),
+                         ),
+                       ],
+                     ),
+                     const SizedBox(height: AppSpacing.xl),
                      _buildSectionHeader('Loyalty Card Program', Icons.card_membership_rounded, key: _loyaltySectionKey),
                      const SizedBox(height: AppSpacing.md),
                      _buildFormSection(
@@ -1510,6 +1755,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                 ),
               ),
             ),
+      ),
     );
   }
 

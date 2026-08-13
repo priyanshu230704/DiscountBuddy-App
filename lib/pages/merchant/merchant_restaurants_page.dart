@@ -298,6 +298,8 @@ class _RestaurantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bookingsEnabled = restaurant['bookings_enabled'] as bool? ?? true;
+
     return AppCard(
       onTap: onTap,
       padding: const EdgeInsets.all(AppSpacing.lg),
@@ -350,6 +352,16 @@ class _RestaurantCard extends StatelessWidget {
                     ),
                   ],
                 ),
+                if (!bookingsEnabled) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    'Bookings disabled',
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.merchantAmber,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

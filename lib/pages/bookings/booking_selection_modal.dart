@@ -90,6 +90,17 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
   }
 
   Future<void> _createBooking() async {
+    if (!widget.restaurant.bookingsEnabled) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'This restaurant is not accepting bookings at the moment. Please try again later.',
+          ),
+        ),
+      );
+      return;
+    }
+
     if (_selectedTime == null) {
       ScaffoldMessenger.of(
         context,
@@ -144,9 +155,14 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
         setState(() {
           _isBooking = false;
         });
+        final raw = e.toString().toLowerCase();
+        final message = raw.contains('bookings are not available') ||
+                raw.contains('bookings_disabled')
+            ? 'This restaurant is not accepting bookings at the moment. Please try again later.'
+            : e.toString();
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(e.toString())));
+        ).showSnackBar(SnackBar(content: Text(message)));
       }
     }
   }

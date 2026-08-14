@@ -2267,38 +2267,75 @@ class MenuPopup extends StatelessWidget {
       if (menuImages.isEmpty) {
         return _buildEmptyState();
       }
+      final imageUrls = menuImages
+          .map((img) => img.image.urlFor(fullScreen: true) ?? '')
+          .toList();
+
       return ListView.builder(
         controller: scrollController,
         padding: const EdgeInsets.all(16),
         itemCount: menuImages.length,
         itemBuilder: (context, index) {
+          final imageUrl = imageUrls[index];
           return Container(
             margin: const EdgeInsets.only(bottom: 16),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.network(
-                menuImages[index].image.urlFor(fullScreen: true) ?? '',
-                fit: BoxFit.cover,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Container(
-                    height: 300,
-                    color: AppColors.cardBackground,
-                    child: const Center(child: CircularProgressIndicator()),
-                  );
-                },
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    height: 200,
-                    color: AppColors.cardBackground,
-                    child: const Center(
-                      child: Icon(
-                        Icons.broken_image,
-                        color: AppColors.textSecondary,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: imageUrl.isEmpty
+                    ? null
+                    : () => _openImageZoom(context, imageUrls, index),
+                borderRadius: BorderRadius.circular(12),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Stack(
+                    children: [
+                      Image.network(
+                        imageUrl,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            height: 300,
+                            color: AppColors.cardBackground,
+                            child: const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            height: 200,
+                            color: AppColors.cardBackground,
+                            child: const Center(
+                              child: Icon(
+                                Icons.broken_image,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    ),
-                  );
-                },
+                      if (imageUrl.isNotEmpty)
+                        Positioned(
+                          right: 8,
+                          bottom: 8,
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.55),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.zoom_in_rounded,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
               ),
             ),
           );
@@ -2364,6 +2401,238 @@ class MenuPopup extends StatelessWidget {
         style: AppTypography.body.copyWith(
           fontSize: 14,
           color: AppColors.textSecondary,
+        ),
+      ),
+    );
+  }
+
+  void _openImageZoom(
+    BuildContext context,
+    List<String> imageUrls,
+    int initialIndex,
+  ) {
+    final urls = imageUrls.where((url) => url.isNotEmpty).toList();
+    if (urls.isEmpty) return;
+
+    var index = 0;
+    final tappedUrl = imageUrls[initialIndex];
+    if (tappedUrl.isNotEmpty) {
+      final matched = urls.indexOf(tappedUrl);
+      if (matched >= 0) index = matched;
+    }
+
+    Navigator.of(context, rootNavigator: true).push(
+      PageRouteBuilder(
+        opaque: true,
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return _MenuImageZoomViewer(
+            imageUrls: urls,
+            initialIndex: index,
+          );
+        },
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+      ),
+    );
+  }
+}
+
+/// Fullscreen pinch / double-tap zoom viewer for image-type menus.
+class _MenuImageZoomViewer extends StatefulWidget {
+  final List<String> imageUrls;
+  final int initialIndex;
+
+  const _MenuImageZoomViewer({
+    required this.imageUrls,
+    required this.initialIndex,
+  });
+
+  @override
+  State<_MenuImageZoomViewer> createState() => _MenuImageZoomViewerState();
+}
+
+class _MenuImageZoomViewerState extends State<_MenuImageZoomViewer> {
+  late final PageController _pageController;
+  late int _currentIndex;
+  bool _isZoomed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+    _pageController = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pageCount = widget.imageUrls.length;
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          PageView.builder(
+            controller: _pageController,
+            physics: _isZoomed
+                ? const NeverScrollableScrollPhysics()
+                : const BouncingScrollPhysics(),
+            itemCount: pageCount,
+            onPageChanged: (index) {
+              setState(() {
+                _currentIndex = index;
+                _isZoomed = false;
+              });
+            },
+            itemBuilder: (context, index) {
+              return _ZoomableNetworkImage(
+                imageUrl: widget.imageUrls[index],
+                onZoomChanged: (zoomed) {
+                  if (_isZoomed != zoomed) {
+                    setState(() => _isZoomed = zoomed);
+                  }
+                },
+              );
+            },
+          ),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, color: Colors.white),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                  const Spacer(),
+                  if (pageCount > 1)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.45),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        '${_currentIndex + 1} / $pageCount',
+                        style: AppTypography.bodySmall.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ZoomableNetworkImage extends StatefulWidget {
+  final String imageUrl;
+  final ValueChanged<bool>? onZoomChanged;
+
+  const _ZoomableNetworkImage({
+    required this.imageUrl,
+    this.onZoomChanged,
+  });
+
+  @override
+  State<_ZoomableNetworkImage> createState() => _ZoomableNetworkImageState();
+}
+
+class _ZoomableNetworkImageState extends State<_ZoomableNetworkImage>
+    with SingleTickerProviderStateMixin {
+  final TransformationController _transformationController =
+      TransformationController();
+  late final AnimationController _animationController;
+  Animation<Matrix4>? _animation;
+  TapDownDetails? _doubleTapDetails;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200),
+    )..addListener(() {
+        final animation = _animation;
+        if (animation != null) {
+          _transformationController.value = animation.value;
+        }
+      });
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    _transformationController.dispose();
+    super.dispose();
+  }
+
+  void _notifyZoomChanged() {
+    final zoomed = _transformationController.value.getMaxScaleOnAxis() > 1.01;
+    widget.onZoomChanged?.call(zoomed);
+  }
+
+  Matrix4 _zoomInAt(Offset position, double scale) {
+    final x = -position.dx * (scale - 1);
+    final y = -position.dy * (scale - 1);
+    return Matrix4.identity()
+      ..translate(x, y)
+      ..scale(scale);
+  }
+
+  void _onDoubleTap() {
+    final position = _doubleTapDetails?.localPosition ?? Offset.zero;
+    final currentScale = _transformationController.value.getMaxScaleOnAxis();
+    final end = currentScale > 1.01
+        ? Matrix4.identity()
+        : _zoomInAt(position, 2.5);
+
+    _animation = Matrix4Tween(
+      begin: _transformationController.value,
+      end: end,
+    ).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+    _animationController.forward(from: 0).whenComplete(_notifyZoomChanged);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onDoubleTapDown: (details) => _doubleTapDetails = details,
+      onDoubleTap: _onDoubleTap,
+      child: InteractiveViewer(
+        transformationController: _transformationController,
+        minScale: 1,
+        maxScale: 4,
+        onInteractionEnd: (_) => _notifyZoomChanged(),
+        child: SizedBox.expand(
+          child: CachedNetworkImage(
+            imageUrl: widget.imageUrl,
+            fit: BoxFit.contain,
+            placeholder: (context, url) => const Center(
+              child: CircularProgressIndicator(color: Colors.white),
+            ),
+            errorWidget: (context, url, error) => const Icon(
+              Icons.broken_image,
+              color: Colors.white54,
+              size: 64,
+            ),
+          ),
         ),
       ),
     );

@@ -64,6 +64,10 @@ void main() async {
     debugPrint('⚠️ Initial initialization error: $e');
   }
 
+  // Must be set before any MapWidget is created. Doing this after permission
+  // dialogs races the Nearby tab and leaves the map stuck on the spinner.
+  MapboxOptions.setAccessToken(Environment.mapboxAccessToken);
+
   // Set up background message handler immediate0ly if Firebase is initialized
   if (Firebase.apps.isNotEmpty) {
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -108,8 +112,6 @@ Future<void> _runBackgroundInitializations() async {
   } finally {
     await permissionService.requestLocationAfterNotifications();
   }
-
-  MapboxOptions.setAccessToken(Environment.mapboxAccessToken);
 }
 
 class DiscountBuddyApp extends StatefulWidget {

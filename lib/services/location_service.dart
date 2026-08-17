@@ -70,13 +70,16 @@ class LocationService {
       throw LocationServiceDisabledException();
     }
 
+    const locationSettings = LocationSettings(
+      accuracy: LocationAccuracy.medium,
+      timeLimit: Duration(seconds: 8),
+    );
+
     // If we have a fairly recent last known position, return it immediately
     if (lastKnown != null) {
       // Background update the fresh position without waiting
       Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.medium,
-        ),
+        locationSettings: locationSettings,
       ).catchError((_) => lastKnown); // Fail silently
 
       return lastKnown;
@@ -84,9 +87,7 @@ class LocationService {
 
     // Otherwise, wait for a fresh fix but use medium accuracy (much faster than high)
     return await Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.medium,
-      ),
+      locationSettings: locationSettings,
     );
   }
 

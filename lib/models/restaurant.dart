@@ -387,9 +387,13 @@ class Restaurant {
       }
     }
 
+    final dynamic rawPrimaryImage =
+        json['primary_image'] ?? json['imageUrl'] ?? json['image'] ?? json['image_url'];
+    final String fallbackImageUrl = rawPrimaryImage is String ? rawPrimaryImage : '';
+
     final String primaryImageUrl = sortedImageUrls.isNotEmpty
         ? sortedImageUrls.first
-        : (json['imageUrl'] as String? ?? json['image'] as String? ?? '');
+        : fallbackImageUrl;
 
     return Restaurant(
       id: json['id']?.toString() ?? '',

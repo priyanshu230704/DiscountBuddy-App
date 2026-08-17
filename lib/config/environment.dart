@@ -11,7 +11,7 @@ class Environment {
   static const String currentEnvironment = production;
 
   // API Base URLs
-  static String get baseUrl => dotenv.env['API_BASE_URL'] ?? 'http://16.171.196.144';
+  static String get baseUrl => dotenv.env['API_BASE_URL'] ?? 'https://discountbuddy.markitupgroup.com';
 
   // API Timeout
   static const Duration apiTimeout = Duration(seconds: 30);

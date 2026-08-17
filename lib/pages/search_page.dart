@@ -26,7 +26,7 @@ class _SearchPageState extends State<SearchPage> {
   final TextEditingController _searchController = TextEditingController();
   List<Restaurant> _restaurants = [];
   List<Restaurant> _filteredRestaurants = [];
-  bool _isLoading = false;
+  bool _isLoading = true;
 
   double? _userLat;
   double? _userLon;
@@ -57,14 +57,18 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Future<void> _loadLocationAndRestaurants() async {
+    await _loadRestaurants();
     try {
-      final position = await _locationService.getCurrentLocation();
+      final position = await _locationService
+          .getCurrentLocation()
+          .timeout(const Duration(seconds: 8));
+      if (!mounted) return;
       _userLat = position.latitude;
       _userLon = position.longitude;
+      await _loadRestaurants();
     } catch (e) {
       debugPrint('Error getting location in SearchPage: $e');
     }
-    await _loadRestaurants();
   }
 
   @override

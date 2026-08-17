@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/services.dart' show rootBundle;
@@ -12,6 +13,7 @@ import '../../models/restaurant.dart';
 import '../../models/city.dart';
 import '../../services/restaurant_service.dart';
 import '../../services/location_service.dart';
+import '../../services/app_permission_service.dart';
 import '../../services/city_service.dart';
 import '../../routes/app_routes.dart';
 import '../../widgets/city_selector_modal.dart';
@@ -140,7 +142,11 @@ class _NearbyPageState extends State<NearbyPage>
   Future<void> _loadInitialCityAndData() async {
     if (!mounted) return;
 
-    setState(() => _isLoading = true);
+    try {
+      await AppPermissionService()
+          .waitForStartupLocationPrompt()
+          .timeout(const Duration(seconds: 8));
+    } catch (_) {}
 
     try {
       if (widget.initialLatitude != null && widget.initialLongitude != null) {
@@ -173,8 +179,9 @@ class _NearbyPageState extends State<NearbyPage>
             })
             .catchError((_) {});
       } else {
-        // Fast path: Get coordinates first
-        final position = await _locationService.getCurrentLocation();
+        final position = await _locationService
+            .getCurrentLocation()
+            .timeout(const Duration(seconds: 8));
         if (!mounted) return;
 
         final userPt = Point(
@@ -187,7 +194,6 @@ class _NearbyPageState extends State<NearbyPage>
             _userLocation = userPt;
           });
 
-          // Lazy path: Fetch city name AND sync with database ID
           try {
             final cityName = await _locationService.getCityName(
               position.latitude,
@@ -196,24 +202,22 @@ class _NearbyPageState extends State<NearbyPage>
             final cities = await _cityService.getCities();
 
             if (mounted && !_isManualCitySelected && cities.isNotEmpty) {
-              // Find matching city in our database list
-              final matchedCity = cities.firstWhere(
-                (c) =>
-                    c.name.toLowerCase().contains(cityName.toLowerCase()) ||
-                    cityName.toLowerCase().contains(c.name.toLowerCase()),
-                orElse: () => cities.firstWhere(
-                  (c) => c.id == 1,
-                  orElse: () => cities.first,
-                ),
-              );
+              City? matchedCity;
+              for (final city in cities) {
+                final name = city.name.toLowerCase();
+                final detected = cityName.toLowerCase();
+                if (name.contains(detected) || detected.contains(name)) {
+                  matchedCity = city;
+                  break;
+                }
+              }
 
               setState(() {
                 _cityName = cityName;
-                _selectedCityId = matchedCity.id;
+                if (matchedCity != null) {
+                  _selectedCityId = matchedCity.id;
+                }
               });
-
-              // Re-run restaurant load now that we have the proper city ID
-              await _loadCityRestaurants();
             }
           } catch (e) {
             debugPrint("Error detecting city: $e");
@@ -223,11 +227,7 @@ class _NearbyPageState extends State<NearbyPage>
 
       await _loadCityRestaurants();
     } catch (_) {
-      // Final fallback
-      setState(() {
-        _center ??= Point(coordinates: Position(-0.1278, 51.5074));
-        _cityName = 'London';
-      });
+      if (!mounted) return;
       await _loadCityRestaurants();
     }
   }
@@ -246,8 +246,14 @@ class _NearbyPageState extends State<NearbyPage>
     _cardController.reverse();
 
     try {
-      final double? queryLat = _isManualCitySelected ? _center?.coordinates.lat.toDouble() : _userLocation?.coordinates.lat.toDouble();
-      final double? queryLon = _isManualCitySelected ? _center?.coordinates.lng.toDouble() : _userLocation?.coordinates.lng.toDouble();
+      final double? queryLat = _isManualCitySelected
+          ? _center?.coordinates.lat.toDouble()
+          : (_userLocation?.coordinates.lat.toDouble() ??
+              _center?.coordinates.lat.toDouble());
+      final double? queryLon = _isManualCitySelected
+          ? _center?.coordinates.lng.toDouble()
+          : (_userLocation?.coordinates.lng.toDouble() ??
+              _center?.coordinates.lng.toDouble());
 
       final list = await _restaurantService.getRestaurants(
         cityId: _selectedCityId,
@@ -261,9 +267,24 @@ class _NearbyPageState extends State<NearbyPage>
 
       if (!mounted) return;
 
+      Point? inferredCenter;
+      if (_center == null) {
+        for (final restaurant in list) {
+          if (restaurant.latitude != 0.0 || restaurant.longitude != 0.0) {
+            inferredCenter = Point(
+              coordinates: Position(restaurant.longitude, restaurant.latitude),
+            );
+            break;
+          }
+        }
+      }
+
       setState(() {
         _cityRestaurants = list;
         _filteredRestaurants = list;
+        if (inferredCenter != null) {
+          _center = inferredCenter;
+        }
 
         _isLoading = false;
         _isCityListLoading = false;
@@ -288,7 +309,7 @@ class _NearbyPageState extends State<NearbyPage>
         await _bounceSelectedMarker(r.id);
         await _moveToRestaurant(r);
       } else {
-        await _moveCameraToCenter();
+        await _fitCameraToRestaurants(list);
       }
     } catch (_) {
       if (!mounted) return;
@@ -306,7 +327,7 @@ class _NearbyPageState extends State<NearbyPage>
   }
 
   Future<void> _moveCameraToCenter() async {
-    if (_mapboxMap == null) return;
+    if (_mapboxMap == null || _center == null) return;
 
     _isProgrammaticMove = true;
 
@@ -315,6 +336,59 @@ class _NearbyPageState extends State<NearbyPage>
       MapAnimationOptions(duration: 650),
     );
 
+    await Future.delayed(const Duration(milliseconds: 700));
+    _isProgrammaticMove = false;
+  }
+
+  Future<void> _fitCameraToRestaurants(List<Restaurant> list) async {
+    if (_mapboxMap == null) return;
+
+    final withCoords = list
+        .where((r) => r.latitude != 0.0 || r.longitude != 0.0)
+        .toList();
+
+    if (withCoords.isEmpty) {
+      await _moveCameraToCenter();
+      return;
+    }
+
+    double minLat = withCoords.first.latitude;
+    double maxLat = withCoords.first.latitude;
+    double minLng = withCoords.first.longitude;
+    double maxLng = withCoords.first.longitude;
+
+    for (final r in withCoords) {
+      minLat = math.min(minLat, r.latitude);
+      maxLat = math.max(maxLat, r.latitude);
+      minLng = math.min(minLng, r.longitude);
+      maxLng = math.max(maxLng, r.longitude);
+    }
+
+    final centerLat = (minLat + maxLat) / 2;
+    final centerLng = (minLng + maxLng) / 2;
+    final span = math.max(maxLat - minLat, maxLng - minLng);
+
+    double zoom = 12;
+    if (span < 0.02) {
+      zoom = 14;
+    } else if (span < 0.05) {
+      zoom = 13;
+    } else if (span < 0.15) {
+      zoom = 12;
+    } else if (span < 0.4) {
+      zoom = 11;
+    } else {
+      zoom = 10;
+    }
+
+    _isProgrammaticMove = true;
+    await _mapboxMap!.flyTo(
+      CameraOptions(
+        center: Point(coordinates: Position(centerLng, centerLat)),
+        zoom: zoom,
+      ),
+      MapAnimationOptions(duration: 650),
+    );
     await Future.delayed(const Duration(milliseconds: 700));
     _isProgrammaticMove = false;
   }
@@ -336,7 +410,9 @@ class _NearbyPageState extends State<NearbyPage>
       setState(() {
         _cityName = location.cityName;
         _center = userPoint;
-        _selectedCityId = null; // Reset ID when using GPS location
+        _userLocation = userPoint;
+        _selectedCityId = null;
+        _isManualCitySelected = false;
       });
 
       _isProgrammaticMove = true;
@@ -1062,12 +1138,7 @@ class _NearbyPageState extends State<NearbyPage>
             )
           : Stack(
               children: [
-                ColorFiltered(
-                  colorFilter: ColorFilter.mode(
-                    AppColors.primaryPurple.withValues(alpha: 0.12),
-                    BlendMode.srcATop,
-                  ),
-                  child: MapWidget(
+                MapWidget(
                     key: const ValueKey("mapWidget"),
                     cameraOptions: CameraOptions(center: _center!, zoom: _zoom),
                     styleUri: MapboxStyles.LIGHT,
@@ -1091,6 +1162,9 @@ class _NearbyPageState extends State<NearbyPage>
 
                     await _ensureMarkerBytes();
                     await _syncPinsWithList();
+                    if (_filteredRestaurants.isNotEmpty) {
+                      await _fitCameraToRestaurants(_filteredRestaurants);
+                    }
 
                     await Future.delayed(const Duration(milliseconds: 250));
                     await _setupOrnaments();
@@ -1158,7 +1232,6 @@ class _NearbyPageState extends State<NearbyPage>
                     // Update center
                     _center = cam.center;
                   },
-                ),
                 ),
 
                 if (!_isMapReady)

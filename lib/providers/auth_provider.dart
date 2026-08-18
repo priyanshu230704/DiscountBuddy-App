@@ -29,6 +29,12 @@ class AuthProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage.value;
   String get userRole => _userRole.value;
   bool get isGuestMode => _isGuestMode.value;
+  bool get isAdmin =>
+      _userRole.value == 'admin' ||
+      (_user.value != null &&
+          (_user.value!.isAdmin ||
+              _user.value!.isSuperuser ||
+              _user.value!.profile?.role == 'admin'));
   bool get isMerchant => _userRole.value == 'merchant';
   bool get isCustomer =>
       _userRole.value == 'customer' || _userRole.value == 'mystery_guest';
@@ -77,10 +83,11 @@ class AuthProvider extends ChangeNotifier {
 
         if (user != null) {
           _user.value = user;
-          _userRole.value = user.profile?.role ?? (user.isMerchant ? 'merchant' : 'customer');
+          final roleVal = user.profile?.role ?? (user.isAdmin || user.isSuperuser ? 'admin' : (user.isMerchant ? 'merchant' : 'customer'));
+          _userRole.value = (user.isAdmin || user.isSuperuser || roleVal == 'admin') ? 'admin' : roleVal;
           _isAuthenticated.value = true;
           debugPrint(
-            'DEBUG AuthProvider._initializeAuth: Logged in as user=${user.email}, _userRole=${_userRole.value}',
+            'DEBUG AuthProvider._initializeAuth: Logged in as user=${user.email}, _userRole=${_userRole.value}, isAdmin=$isAdmin',
           );
         } else {
           await _authService.logout();
@@ -232,9 +239,13 @@ class AuthProvider extends ChangeNotifier {
       );
 
       _user.value = loginResponse.user;
-      _userRole.value = loginResponse.role; // Store role from login response
+      if (loginResponse.isAdmin || loginResponse.role == 'admin') {
+        _userRole.value = 'admin';
+      } else {
+        _userRole.value = loginResponse.role;
+      }
       debugPrint(
-        'DEBUG AuthProvider.login: loginResponse.role="${loginResponse.role}", _userRole="${_userRole.value}", isMysteryGuest=$isMysteryGuest',
+        'DEBUG AuthProvider.login: loginResponse.role="${loginResponse.role}", _userRole="${_userRole.value}", isAdmin=$isAdmin',
       );
       _isAuthenticated.value = true;
       _isGuestMode.value = false;

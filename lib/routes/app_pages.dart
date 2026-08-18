@@ -44,6 +44,20 @@ import '../pages/merchant/merchant_loyalty_page.dart';
 import '../pages/bookings/bookings_page.dart';
 import '../pages/bookings/create_booking_page.dart';
 
+// Superadmin Pages
+import '../pages/admin/admin_home_page.dart';
+import '../pages/admin/banners/banners_list_page.dart';
+import '../pages/admin/banners/banner_form_page.dart';
+import '../pages/admin/spin_to_win/spin_campaigns_list_page.dart';
+import '../pages/admin/spin_to_win/spin_campaign_detail_page.dart';
+import '../pages/admin/spin_to_win/spin_campaign_form_page.dart';
+import '../pages/admin/spin_to_win/spin_item_form_page.dart';
+import '../pages/admin/spin_to_win/spin_history_page.dart';
+
+// Customer Spin to Win Pages
+import '../pages/spin_to_win/spin_wheel_screen.dart';
+import '../pages/spin_to_win/my_prizes_screen.dart';
+
 import '../models/app_version_info.dart';
 import '../models/user_interactions.dart';
 import '../providers/auth_provider.dart';
@@ -382,6 +396,58 @@ class AppPages {
     GetPage(
       name: AppRoutes.merchantLoyalty,
       page: () => const MerchantLoyaltyPage(),
+      transition: Transition.rightToLeft,
+    ),
+    // Superadmin Routes
+    GetPage(
+      name: AppRoutes.adminHome,
+      page: () => const AdminHomePage(),
+      transition: Transition.fadeIn,
+    ),
+    GetPage(
+      name: AppRoutes.adminBanners,
+      page: () => const BannersListPage(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.adminBannerForm,
+      page: () => const BannerFormPage(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.adminSpinCampaigns,
+      page: () => const SpinCampaignsListPage(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.adminSpinCampaignDetail,
+      page: () => const SpinCampaignDetailPage(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.adminSpinCampaignForm,
+      page: () => const SpinCampaignFormPage(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.adminSpinItemForm,
+      page: () => const SpinItemFormPage(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.adminSpinHistory,
+      page: () => const SpinHistoryPage(),
+      transition: Transition.rightToLeft,
+    ),
+    // Customer Spin to Win Routes
+    GetPage(
+      name: AppRoutes.spinToWin,
+      page: () => const SpinWheelScreen(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.myPrizes,
+      page: () => const MyPrizesScreen(),
       transition: Transition.rightToLeft,
     ),
   ];

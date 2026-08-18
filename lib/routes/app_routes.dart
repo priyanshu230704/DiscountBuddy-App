@@ -50,4 +50,17 @@ class AppRoutes {
   static const String merchantCalendar = '/merchant-calendar';
   static const String merchantReminders = '/merchant-reminders';
   static const String merchantLoyalty = '/merchant-loyalty';
+
+  // Superadmin Pages
+  static const String adminHome = '/admin-home';
+  static const String adminBanners = '/admin-banners';
+  static const String adminBannerForm = '/admin-banner-form';
+  static const String adminSpinCampaigns = '/admin-spin-campaigns';
+  static const String adminSpinCampaignDetail = '/admin-spin-campaign-detail';
+  static const String adminSpinCampaignForm = '/admin-spin-campaign-form';
+  static const String adminSpinItemForm = '/admin-spin-item-form';
+  static const String adminSpinHistory = '/admin-spin-history';
+  // Customer Spin to Win
+  static const String spinToWin = '/spin-to-win';
+  static const String myPrizes = '/my-prizes';
 }

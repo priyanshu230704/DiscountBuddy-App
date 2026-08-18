@@ -6,7 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:geolocator/geolocator.dart'
     hide LocationServiceDisabledException;
 import 'package:get/get.dart';
-
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/restaurant.dart';
 import '../../models/image_variants.dart';
 import '../../services/restaurant_service.dart';
@@ -20,6 +20,8 @@ import '../../widgets/city_selector_modal.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/app_gradient_button.dart';
 import '../../utils/distance_utils.dart';
+import '../../services/customer_spin_service.dart';
+import '../spin_to_win/spin_wheel_screen.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -61,17 +63,37 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   HomeFilter? _activeFilter = HomeFilter.offers;
 
+  bool _hasActiveSpinWheel = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initLocationAndLoadData();
+    _checkSpinWheelStatus();
     // Defer: fetchUnreadCount() notifies listeners; cannot run during build.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _notificationProvider.fetchUnreadCount(false);
     });
     _searchController.addListener(_onSearchChanged);
+  }
+
+  Future<void> _checkSpinWheelStatus() async {
+    try {
+      final wheel = await CustomerSpinService().getWheel();
+      if (mounted) {
+        setState(() {
+          _hasActiveSpinWheel = wheel.isActive && wheel.remainingSpinsToday > 0;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _hasActiveSpinWheel = false;
+        });
+      }
+    }
   }
 
   @override
@@ -480,6 +502,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         }
       },
       child: AppScaffold(
+        floatingActionButton: _hasActiveSpinWheel ? _buildFloatingSpinButton() : null,
         body: RefreshIndicator(
           onRefresh: _loadRestaurants,
           color: AppColors.discount,
@@ -754,6 +777,52 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     );
   }
 
+  void _handleBannerTap(String ctaUrl) async {
+    final trimmed = ctaUrl.trim();
+    if (trimmed.isEmpty) return;
+
+    // Check for restaurant deep link pattern e.g. https://.../restaurants/1 or /restaurants/1
+    final uri = Uri.tryParse(trimmed);
+    if (uri != null) {
+      final segments = uri.pathSegments;
+      if (segments.length >= 2 && segments[0].toLowerCase() == 'restaurants') {
+        final restaurantId = segments[1];
+        Get.toNamed(
+          AppRoutes.restaurantDetails,
+          arguments: {
+            'slug': restaurantId,
+            'latitude': _userLatitude,
+            'longitude': _userLongitude,
+          },
+        );
+        return;
+      }
+    }
+
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      final parsedUri = Uri.parse(trimmed);
+      try {
+        final launched = await launchUrl(
+          parsedUri,
+          mode: LaunchMode.externalApplication,
+        );
+        if (!launched) {
+          await launchUrl(parsedUri, mode: LaunchMode.platformDefault);
+        }
+      } catch (e) {
+        debugPrint('UrlLauncher error ($trimmed): $e');
+        Get.snackbar('Link Error', 'Could not open URL');
+      }
+    } else {
+      try {
+        final routeName = trimmed.startsWith('/') ? trimmed : '/$trimmed';
+        Get.toNamed(routeName);
+      } catch (e) {
+        debugPrint('Banner CTA route error ($trimmed): $e');
+      }
+    }
+  }
+
   Widget _buildBanners() {
     if (_banners.isEmpty) {
       return const SliverToBoxAdapter(child: SizedBox.shrink());
@@ -767,14 +836,30 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               final imageMap = banner['image'];
               String? url;
               if (imageMap is Map<String, dynamic>) {
-                url = ImageVariants.fromJson(imageMap).urlFor(fullScreen: false);
+                url = ImageVariants.fromJson(
+                  imageMap,
+                ).urlFor(fullScreen: false);
               } else if (imageMap is String) {
                 url = imageMap;
               }
-              return _GradientBanner(
-                title: banner['title'] as String? ?? '',
-                subtitle: banner['body'] as String? ?? '',
-                imageUrl: url,
+
+              final ctaUrl =
+                  banner['cta_url'] as String? ??
+                  banner['target_value'] as String? ??
+                  '';
+
+              return GestureDetector(
+                onTap: ctaUrl.isNotEmpty
+                    ? () => _handleBannerTap(ctaUrl)
+                    : null,
+                child: _GradientBanner(
+                  title: banner['title'] as String? ?? '',
+                  subtitle:
+                      banner['body'] as String? ??
+                      banner['subtitle'] as String? ??
+                      '',
+                  imageUrl: url,
+                ),
               );
             }).toList(),
             options: CarouselOptions(
@@ -809,6 +894,42 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             ),
           const SizedBox(height: 4),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFloatingSpinButton() {
+    return GestureDetector(
+      onTap: () => SpinWheelScreen.showModal(context),
+      child: Container(
+        width: 60,
+        height: 60,
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: const LinearGradient(
+            colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFEC4899).withValues(alpha: 0.45),
+              blurRadius: 18,
+              spreadRadius: 2,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Image.asset(
+          'assets/png/spin.png',
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) => const Icon(
+            Icons.stars_rounded,
+            color: Colors.amber,
+            size: 34,
+          ),
+        ),
       ),
     );
   }

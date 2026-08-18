@@ -100,6 +100,14 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       if (!_authProvider.isMerchant)
         _ProfileMenuItem(
+          icon: Icons.stars_rounded,
+          title: 'My Spin Prizes',
+          onTap: () {
+            Get.toNamed(AppRoutes.myPrizes);
+          },
+        ),
+      if (!_authProvider.isMerchant)
+        _ProfileMenuItem(
           icon: Icons.storefront_outlined,
           title: 'Join as restaurant partner',
           onTap: () {
@@ -212,6 +220,36 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
                     onTap: () => Navigator.push(context, LoyaltyCardsScreen.route()),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xxl),
+              ],
+
+              // My Spin Rewards Summary Card
+              if (!_authProvider.isMerchant) ...[
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: AppRadius.xLarge,
+                    border: Border.all(color: AppColors.cardBorder),
+                    boxShadow: AppShadows.card,
+                  ),
+                  child: ListTile(
+                    leading: const CircleAvatar(
+                      backgroundColor: Color(0xFFF3E8FF),
+                      child: Icon(Icons.stars_rounded, color: Color(0xFF9333EA)),
+                    ),
+                    title: Text(
+                      'My Spin Rewards 🎡',
+                      style: AppTypography.body.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      'View all claimed promo codes & prizes',
+                      style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+                    onTap: () => Get.toNamed(AppRoutes.myPrizes),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xxl),

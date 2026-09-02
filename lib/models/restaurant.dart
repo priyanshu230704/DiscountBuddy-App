@@ -56,84 +56,619 @@ class RestaurantCategory {
   }
 }
 
-/// Opening Slot model
+/// Google-Maps-style formatting for opening times.
+///
+/// Kept separate from the widgets so the customer detail page, merchant editor
+/// and booking modal all label windows identically.
+class OpeningHoursFormat {
+  OpeningHoursFormat._();
+
+  static const List<String> dayKeys = [
+    'monday',
+    'tuesday',
+    'wednesday',
+    'thursday',
+    'friday',
+    'saturday',
+    'sunday',
+  ];
+
+  static const List<String> dayNames = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ];
+
+  /// Parses `"19:00"` or `"19:00:00"` into minutes since midnight.
+  static int? minutesOf(String raw) {
+    final parts = raw.trim().split(':');
+    if (parts.length < 2) return null;
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+    if (hour == null || minute == null) return null;
+    if (hour < 0 || hour > 24 || minute < 0 || minute > 59) return null;
+    return hour * 60 + minute;
+  }
+
+  /// `15:00` -> `3 pm`, `22:45` -> `10:45 pm`. Minutes are dropped on the hour.
+  static String clockLabel(String raw) {
+    final minutes = minutesOf(raw);
+    if (minutes == null) return raw.trim();
+    return clockLabelFromMinutes(minutes);
+  }
+
+  static String clockLabelFromMinutes(int minutes) {
+    final normalized = minutes % (24 * 60);
+    final hour24 = normalized ~/ 60;
+    final minute = normalized % 60;
+    final hour = hour24 % 12 == 0 ? 12 : hour24 % 12;
+    final meridiem = hour24 < 12 ? 'am' : 'pm';
+    if (minute == 0) return '$hour $meridiem';
+    return '$hour:${minute.toString().padLeft(2, '0')} $meridiem';
+  }
+
+  /// `11 am–3 pm`, and `7–10:45 pm` when both ends share a meridiem.
+  static String rangeLabel(String opening, String closing) {
+    final openMinutes = minutesOf(opening);
+    final closeMinutes = minutesOf(closing);
+    if (openMinutes == null || closeMinutes == null) {
+      return '${opening.trim()} - ${closing.trim()}';
+    }
+    if (openMinutes == closeMinutes) return 'Open 24 hours';
+
+    var start = clockLabelFromMinutes(openMinutes);
+    final end = clockLabelFromMinutes(closeMinutes);
+
+    final sameMeridiem = (openMinutes < 12 * 60) == (closeMinutes < 12 * 60);
+    if (sameMeridiem) {
+      start = start.replaceAll(' am', '').replaceAll(' pm', '');
+    }
+    return '$start\u2013$end';
+  }
+
+  /// 24-hour clock label, e.g. `15:00`, `22:45`.
+  static String clockLabel24h(String raw) {
+    final minutes = minutesOf(raw);
+    if (minutes == null) return raw.trim();
+    return clockLabel24hFromMinutes(minutes);
+  }
+
+  static String clockLabel24hFromMinutes(int minutes) {
+    final normalized = minutes % (24 * 60);
+    final hour24 = normalized ~/ 60;
+    final minute = normalized % 60;
+    return '${hour24.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+  }
+
+  /// 24-hour range label, e.g. `11:00\u201315:00`.
+  static String rangeLabel24h(String opening, String closing) {
+    final openMinutes = minutesOf(opening);
+    final closeMinutes = minutesOf(closing);
+    if (openMinutes == null || closeMinutes == null) {
+      return '${opening.trim()}\u2013${closing.trim()}';
+    }
+    if (openMinutes == closeMinutes) return '24 hours';
+    return '${clockLabel24h(opening)}\u2013${clockLabel24h(closing)}';
+  }
+
+  /// Compact summary for a merchant day row, e.g. `11:00\u201315:00, 19:00\u201322:45`.
+  static String daySummary24h(List<String> ranges) {
+    if (ranges.isEmpty) return 'Closed';
+    return ranges
+        .map((range) {
+          final parts = range.split('-');
+          if (parts.length != 2) return range;
+          return rangeLabel24h(parts[0], parts[1]);
+        })
+        .join(', ');
+  }
+}
+
+/// One opening window for one weekday.
+///
+/// A weekday may have several slots, which is how split shifts such as
+/// `11 am–3 pm` plus `7–10:45 pm` are represented.
 class OpeningSlot {
+  final int? id;
+  final int? dayOfWeek;
   final String dayName;
   final String openingTime;
   final String closingTime;
   final bool isClosed;
 
-  OpeningSlot({
+  /// Server-rendered label. Falls back to local formatting when absent.
+  final String? _displayRange;
+
+  const OpeningSlot({
+    this.id,
+    this.dayOfWeek,
     required this.dayName,
     required this.openingTime,
     required this.closingTime,
     required this.isClosed,
-  });
+    String? displayRange,
+  }) : _displayRange = displayRange;
 
   factory OpeningSlot.fromJson(Map<String, dynamic> json) {
+    final dayOfWeek = _parseInt(json['day_of_week']);
+    final dayName =
+        json['day_name'] as String? ??
+        (dayOfWeek != null && dayOfWeek >= 0 && dayOfWeek < 7
+            ? OpeningHoursFormat.dayNames[dayOfWeek]
+            : '');
+
     return OpeningSlot(
-      dayName: json['day_name'] as String? ?? '',
+      id: _parseInt(json['id']),
+      dayOfWeek: dayOfWeek,
+      dayName: dayName,
       openingTime: json['opening_time'] as String? ?? '',
       closingTime: json['closing_time'] as String? ?? '',
       isClosed: json['is_closed'] as bool? ?? false,
+      displayRange: json['display_range'] as String?,
     );
   }
 
+  String get displayRange {
+    if (_displayRange != null && _displayRange.isNotEmpty) return _displayRange;
+    if (isClosed) return 'Closed';
+    return OpeningHoursFormat.rangeLabel(openingTime, closingTime);
+  }
+
+  /// True when the window runs past midnight, e.g. `22:00`-`02:00`.
+  bool get spansMidnight {
+    final open = OpeningHoursFormat.minutesOf(openingTime);
+    final close = OpeningHoursFormat.minutesOf(closingTime);
+    if (open == null || close == null) return false;
+    return close < open;
+  }
+
+  bool get isOpenAllDay {
+    final open = OpeningHoursFormat.minutesOf(openingTime);
+    final close = OpeningHoursFormat.minutesOf(closingTime);
+    return open != null && open == close;
+  }
+
+  /// Weekday index (Monday = 0), resolved from either field the API may send.
+  int? get dayIndex {
+    if (dayOfWeek != null && dayOfWeek! >= 0 && dayOfWeek! <= 6) {
+      return dayOfWeek;
+    }
+    final index = OpeningHoursFormat.dayNames.indexWhere(
+      (name) => name.toLowerCase() == dayName.toLowerCase(),
+    );
+    return index >= 0 ? index : null;
+  }
+
+  bool get isUsable =>
+      !isClosed &&
+      OpeningHoursFormat.minutesOf(openingTime) != null &&
+      OpeningHoursFormat.minutesOf(closingTime) != null &&
+      dayIndex != null;
+
+  /// Whether [minutes] past midnight falls inside this window.
+  ///
+  /// [startedYesterday] checks only the part of an overnight window that spills
+  /// past midnight, so a Tuesday 22:00-02:00 slot still counts at 00:30 Wednesday.
+  bool containsMinutes(int minutes, {bool startedYesterday = false}) {
+    final open = OpeningHoursFormat.minutesOf(openingTime);
+    final close = OpeningHoursFormat.minutesOf(closingTime);
+    if (open == null || close == null || isClosed) return false;
+
+    if (open == close) return !startedYesterday;
+    if (close < open) {
+      return startedYesterday ? minutes < close : minutes >= open;
+    }
+    return startedYesterday ? false : (minutes >= open && minutes < close);
+  }
+
+  /// Builds slots from the legacy `opening_hours` map.
+  ///
+  /// Each day accepts a single `"11:00-15:00"` string, a comma-separated list, or
+  /// a JSON array, so split shifts survive the fallback path too.
   static List<OpeningSlot> fromHoursMap(Map<String, dynamic>? hoursMap) {
     if (hoursMap == null || hoursMap.isEmpty) return [];
 
-    const dayOrder = [
-      'monday',
-      'tuesday',
-      'wednesday',
-      'thursday',
-      'friday',
-      'saturday',
-      'sunday',
-    ];
+    final slots = <OpeningSlot>[];
 
-    return dayOrder.map((dayKey) {
-      final dayName = '${dayKey[0].toUpperCase()}${dayKey.substring(1)}';
-      final value = hoursMap[dayKey]?.toString().trim() ?? '';
+    for (var dayIndex = 0; dayIndex < OpeningHoursFormat.dayKeys.length; dayIndex++) {
+      final dayKey = OpeningHoursFormat.dayKeys[dayIndex];
+      final dayName = OpeningHoursFormat.dayNames[dayIndex];
+      final ranges = parseDayRanges(hoursMap[dayKey]);
 
-      if (value.isEmpty) {
-        return OpeningSlot(
-          dayName: dayName,
-          openingTime: '',
-          closingTime: '',
-          isClosed: true,
+      if (ranges.isEmpty) {
+        slots.add(
+          OpeningSlot(
+            dayOfWeek: dayIndex,
+            dayName: dayName,
+            openingTime: '',
+            closingTime: '',
+            isClosed: true,
+          ),
         );
+        continue;
       }
 
-      if (value.contains('-')) {
-        final parts = value.split('-');
-        final openingTime = parts.first.trim();
-        final closingTime = parts.length > 1 ? parts[1].trim() : '';
-
-        return OpeningSlot(
-          dayName: dayName,
-          openingTime: openingTime,
-          closingTime: closingTime,
-          isClosed: openingTime.isEmpty || closingTime.isEmpty,
+      for (final range in ranges) {
+        slots.add(
+          OpeningSlot(
+            dayOfWeek: dayIndex,
+            dayName: dayName,
+            openingTime: range.$1,
+            closingTime: range.$2,
+            isClosed: false,
+          ),
         );
       }
+    }
 
-      return OpeningSlot(
-        dayName: dayName,
-        openingTime: '',
-        closingTime: '',
-        isClosed: true,
-      );
-    }).toList();
+    return slots;
+  }
+
+  /// Extracts every `(opening, closing)` window from one day's raw value.
+  static List<(String, String)> parseDayRanges(Object? dayValue) {
+    if (dayValue == null) return const [];
+
+    final candidates = <Object?>[];
+    if (dayValue is List) {
+      candidates.addAll(dayValue);
+    } else if (dayValue is String) {
+      candidates.addAll(dayValue.split(RegExp(r'[,;&|]')));
+    } else {
+      candidates.add(dayValue);
+    }
+
+    final ranges = <(String, String)>[];
+    for (final candidate in candidates) {
+      final range = _parseSingleRange(candidate);
+      if (range != null && !ranges.contains(range)) ranges.add(range);
+    }
+
+    ranges.sort(
+      (a, b) => (OpeningHoursFormat.minutesOf(a.$1) ?? 0)
+          .compareTo(OpeningHoursFormat.minutesOf(b.$1) ?? 0),
+    );
+    return ranges;
+  }
+
+  static (String, String)? _parseSingleRange(Object? candidate) {
+    String? opening;
+    String? closing;
+
+    if (candidate is Map) {
+      opening = (candidate['open'] ?? candidate['opening'])?.toString();
+      closing = (candidate['close'] ?? candidate['closing'])?.toString();
+    } else if (candidate is String) {
+      final value = candidate.trim();
+      if (!value.contains('-')) return null;
+      final separator = value.indexOf('-');
+      opening = value.substring(0, separator);
+      closing = value.substring(separator + 1);
+    } else {
+      return null;
+    }
+
+    final openTrimmed = opening?.trim() ?? '';
+    final closeTrimmed = closing?.trim() ?? '';
+    if (OpeningHoursFormat.minutesOf(openTrimmed) == null) return null;
+    if (OpeningHoursFormat.minutesOf(closeTrimmed) == null) return null;
+
+    return (openTrimmed, closeTrimmed);
   }
 
   Map<String, dynamic> toJson() {
     return {
+      if (id != null) 'id': id,
+      if (dayOfWeek != null) 'day_of_week': dayOfWeek,
       'day_name': dayName,
       'opening_time': openingTime,
       'closing_time': closingTime,
       'is_closed': isClosed,
     };
+  }
+}
+
+/// The status line shown next to a restaurant name, e.g. `Open · Closes 3 pm`.
+///
+/// Computed by the backend in the restaurant's timezone so every client agrees.
+class OpeningStatus {
+  final bool isOpen;
+
+  /// One of `open`, `closing_soon` or `closed`.
+  final String state;
+
+  /// `Open`, `Closes soon`, `Closed` or `Open 24 hours`.
+  final String shortLabel;
+
+  /// `Closes 3 pm` or `Opens 11 am Thu`. Empty when there is nothing to add.
+  final String detail;
+
+  /// The two parts already joined for display.
+  final String label;
+  final bool openTwentyFourHours;
+
+  /// When the restaurant next opens or closes, for callers that want a countdown.
+  final DateTime? nextChangeAt;
+
+  const OpeningStatus({
+    required this.isOpen,
+    required this.state,
+    required this.shortLabel,
+    required this.detail,
+    required this.label,
+    this.openTwentyFourHours = false,
+    this.nextChangeAt,
+  });
+
+  bool get isClosingSoon => state == 'closing_soon';
+
+  /// Status line in 24-hour format, e.g. `Open · Closes 15:00`.
+  ///
+  /// Uses [detail] (restaurant-local wall clock from the API or slots) and
+  /// never converts [nextChangeAt] to the device timezone — that would show
+  /// the wrong time for users outside the UK (e.g. 17:30 IST instead of 13:00).
+  String get label24h {
+    if (openTwentyFourHours) return 'Open 24 hours';
+
+    if (detail.startsWith('Closes ')) {
+      final head = isClosingSoon ? 'Closes soon' : (isOpen ? 'Open' : shortLabel);
+      final time = _to24hTimeToken(detail.substring('Closes '.length));
+      return '$head · Closes $time';
+    }
+    if (detail.startsWith('Opens ')) {
+      final rest = detail.substring('Opens '.length);
+      final parts = rest.split(' ');
+      final time = _to24hTimeToken(parts.first);
+      final suffix = parts.length > 1 ? ' ${parts.sublist(1).join(' ')}' : '';
+      return 'Closed · Opens $time$suffix';
+    }
+
+    return label;
+  }
+
+  /// Normalises `"13:00"`, `"1 pm"`, or `"13:00:00"` to `HH:MM`.
+  static String _to24hTimeToken(String raw) {
+    final trimmed = raw.trim();
+    if (RegExp(r'^\d{1,2}:\d{2}$').hasMatch(trimmed)) return trimmed;
+    if (RegExp(r'^\d{1,2}:\d{2}:\d{2}$').hasMatch(trimmed)) {
+      final parts = trimmed.split(':');
+      return '${parts[0].padLeft(2, '0')}:${parts[1]}';
+    }
+    return _tryConvertClockLabelTo24h(trimmed);
+  }
+
+  static String _tryConvertClockLabelTo24h(String raw) {
+    final normalized = raw.trim().toLowerCase();
+    final match = RegExp(r'^(\d{1,2})(?::(\d{2}))?\s*(am|pm)$').firstMatch(normalized);
+    if (match == null) return raw;
+
+    var hour = int.parse(match.group(1)!);
+    final minute = int.parse(match.group(2) ?? '0');
+    final meridiem = match.group(3)!;
+
+    if (meridiem == 'pm' && hour != 12) hour += 12;
+    if (meridiem == 'am' && hour == 12) hour = 0;
+
+    return OpeningHoursFormat.clockLabel24hFromMinutes(hour * 60 + minute);
+  }
+
+  factory OpeningStatus.fromJson(Map<String, dynamic> json) {
+    final shortLabel = json['short_label'] as String? ?? '';
+    final detail = json['detail'] as String? ?? '';
+    final label = json['label'] as String? ??
+        [shortLabel, detail].where((part) => part.isNotEmpty).join(' \u00b7 ');
+
+    return OpeningStatus(
+      isOpen: json['is_open'] as bool? ?? false,
+      state: json['state'] as String? ?? 'closed',
+      shortLabel: shortLabel,
+      detail: detail,
+      label: label,
+      openTwentyFourHours: json['open_24_hours'] as bool? ?? false,
+      nextChangeAt: DateTime.tryParse(json['next_change_at']?.toString() ?? ''),
+    );
+  }
+
+  /// Local fallback for backends that do not yet send `opening_status`.
+  ///
+  /// Mirrors the server rules, including split shifts and overnight windows.
+  /// Returns null when no usable hours exist so the caller can hide the status.
+  static OpeningStatus? fromSlots(
+    List<OpeningSlot> slots,
+    DateTime now, {
+    bool use24Hour = false,
+  }) {
+    final usable = slots.where((slot) => slot.isUsable).toList();
+    if (usable.isEmpty) return null;
+
+    String clock(String raw) => use24Hour
+        ? OpeningHoursFormat.clockLabel24h(raw)
+        : OpeningHoursFormat.clockLabel(raw);
+
+    final today = now.weekday - 1;
+    final yesterday = (today + 6) % 7;
+    final nowMinutes = now.hour * 60 + now.minute;
+
+    List<OpeningSlot> slotsFor(int day) {
+      final daySlots = usable.where((slot) => slot.dayIndex == day).toList();
+      daySlots.sort(
+        (a, b) => OpeningHoursFormat.minutesOf(a.openingTime)!.compareTo(
+          OpeningHoursFormat.minutesOf(b.openingTime)!,
+        ),
+      );
+      return daySlots;
+    }
+
+    for (final slot in slotsFor(today)) {
+      if (slot.containsMinutes(nowMinutes)) {
+        if (slot.isOpenAllDay) {
+          return const OpeningStatus(
+            isOpen: true,
+            state: 'open',
+            shortLabel: 'Open 24 hours',
+            detail: '',
+            label: 'Open 24 hours',
+            openTwentyFourHours: true,
+          );
+        }
+        final detail = 'Closes ${clock(slot.closingTime)}';
+        return OpeningStatus(
+          isOpen: true,
+          state: 'open',
+          shortLabel: 'Open',
+          detail: detail,
+          label: 'Open \u00b7 $detail',
+        );
+      }
+    }
+
+    for (final slot in slotsFor(yesterday)) {
+      if (slot.containsMinutes(nowMinutes, startedYesterday: true)) {
+        final detail = 'Closes ${clock(slot.closingTime)}';
+        return OpeningStatus(
+          isOpen: true,
+          state: 'open',
+          shortLabel: 'Open',
+          detail: detail,
+          label: 'Open \u00b7 $detail',
+        );
+      }
+    }
+
+    for (final slot in slotsFor(today)) {
+      if (OpeningHoursFormat.minutesOf(slot.openingTime)! > nowMinutes) {
+        final detail = 'Opens ${clock(slot.openingTime)}';
+        return OpeningStatus(
+          isOpen: false,
+          state: 'closed',
+          shortLabel: 'Closed',
+          detail: detail,
+          label: 'Closed \u00b7 $detail',
+        );
+      }
+    }
+
+    for (var offset = 1; offset <= 7; offset++) {
+      final daySlots = slotsFor((today + offset) % 7);
+      if (daySlots.isEmpty) continue;
+      final slot = daySlots.first;
+      final weekday = OpeningHoursFormat.dayNames[slot.dayIndex!].substring(0, 3);
+      final detail = 'Opens ${clock(slot.openingTime)} $weekday';
+      return OpeningStatus(
+        isOpen: false,
+        state: 'closed',
+        shortLabel: 'Closed',
+        detail: detail,
+        label: 'Closed \u00b7 $detail',
+      );
+    }
+
+    return const OpeningStatus(
+      isOpen: false,
+      state: 'closed',
+      shortLabel: 'Closed',
+      detail: '',
+      label: 'Closed',
+    );
+  }
+}
+
+/// One weekday's opening windows, ready for the detail screen.
+class OpeningDay {
+  final int dayOfWeek;
+  final String dayName;
+  final String dayShort;
+  final bool isToday;
+  final bool isClosed;
+
+  /// Formatted windows, e.g. `['11 am–3 pm', '7–10:45 pm']`.
+  final List<String> ranges;
+
+  /// The same windows joined, or `Closed`.
+  final String label;
+
+  const OpeningDay({
+    required this.dayOfWeek,
+    required this.dayName,
+    required this.dayShort,
+    required this.isToday,
+    required this.isClosed,
+    required this.ranges,
+    required this.label,
+  });
+
+  factory OpeningDay.fromJson(Map<String, dynamic> json) {
+    final ranges =
+        (json['ranges'] as List<dynamic>?)?.map((e) => e.toString()).toList() ??
+        const <String>[];
+
+    return OpeningDay(
+      dayOfWeek: _parseInt(json['day_of_week']) ?? 0,
+      dayName: json['day_name'] as String? ?? '',
+      dayShort: json['day_short'] as String? ?? '',
+      isToday: json['is_today'] as bool? ?? false,
+      isClosed: json['is_closed'] as bool? ?? ranges.isEmpty,
+      ranges: ranges,
+      label: json['label'] as String? ??
+          (ranges.isEmpty ? 'Closed' : ranges.join(', ')),
+    );
+  }
+
+  /// Groups slots per weekday when the backend did not send a weekly breakdown.
+  ///
+  /// Ordered from [todayIndex] so the current day leads, matching the API.
+  static List<OpeningDay> fromSlots(
+    List<OpeningSlot> slots,
+    int todayIndex, {
+    bool use24Hour = false,
+  }) {
+    if (slots.isEmpty) return const [];
+
+    final byDay = <int, List<OpeningSlot>>{};
+    for (final slot in slots) {
+      if (slot.isClosed) continue;
+      final day = slot.dayIndex;
+      if (day == null || day < 0 || day > 6) continue;
+      byDay.putIfAbsent(day, () => []).add(slot);
+    }
+
+    final week = <OpeningDay>[];
+    for (var offset = 0; offset < 7; offset++) {
+      final day = (todayIndex + offset) % 7;
+      final daySlots = List<OpeningSlot>.from(byDay[day] ?? const <OpeningSlot>[]);
+      daySlots.sort(
+        (a, b) => (OpeningHoursFormat.minutesOf(a.openingTime) ?? 0)
+            .compareTo(OpeningHoursFormat.minutesOf(b.openingTime) ?? 0),
+      );
+
+      final ranges = daySlots
+          .map(
+            (slot) => use24Hour
+                ? OpeningHoursFormat.rangeLabel24h(
+                    slot.openingTime,
+                    slot.closingTime,
+                  )
+                : slot.displayRange,
+          )
+          .toList();
+
+      week.add(
+        OpeningDay(
+          dayOfWeek: day,
+          dayName: OpeningHoursFormat.dayNames[day],
+          dayShort: OpeningHoursFormat.dayNames[day].substring(0, 3),
+          isToday: offset == 0,
+          isClosed: ranges.isEmpty,
+          ranges: ranges,
+          label: ranges.isEmpty ? 'Closed' : ranges.join(', '),
+        ),
+      );
+    }
+
+    return week;
   }
 }
 
@@ -275,6 +810,13 @@ class Restaurant {
   final bool isFavourite;
   final bool hasUserReviewed;
   final List<OpeningSlot> openingSlots;
+
+  /// Server-computed `Open · Closes 3 pm` line. Null when no hours are set,
+  /// in which case the UI should omit the status entirely.
+  final OpeningStatus? openingStatus;
+
+  /// Per-weekday windows starting from today.
+  final List<OpeningDay> openingHoursDisplay;
   final List<Discount> activeDeals;
   final List<Facility> facilities;
   final String menuType; // structured, image
@@ -317,6 +859,8 @@ class Restaurant {
     this.isFavourite = false,
     this.hasUserReviewed = false,
     this.openingSlots = const [],
+    this.openingStatus,
+    this.openingHoursDisplay = const [],
     this.activeDeals = const [],
     this.facilities = const [],
     this.leaderboardScore = 0.0,
@@ -444,7 +988,18 @@ class Restaurant {
           (json['opening_slots'] as List<dynamic>?)
               ?.map((e) => OpeningSlot.fromJson(e as Map<String, dynamic>))
               .toList() ??
-          [],
+          OpeningSlot.fromHoursMap(
+            json['opening_hours'] as Map<String, dynamic>?,
+          ),
+      openingStatus: json['opening_status'] is Map<String, dynamic>
+          ? OpeningStatus.fromJson(json['opening_status'] as Map<String, dynamic>)
+          : null,
+      openingHoursDisplay:
+          (json['opening_hours_display'] as List<dynamic>?)
+              ?.whereType<Map<String, dynamic>>()
+              .map((e) => OpeningDay.fromJson(e))
+              .toList() ??
+          const [],
       facilities:
           (json['facilities'] as List<dynamic>?)
               ?.whereType<Map<String, dynamic>>()

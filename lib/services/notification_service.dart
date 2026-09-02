@@ -11,14 +11,9 @@ import '../utils/date_time_utils.dart';
 import '../utils/navigator_key.dart';
 import 'device_id_service.dart';
 
-/// API / FCM [booking_date] is UTC ISO-8601; show in the user's local zone.
+/// Booking [booking_date] from API/FCM — wall clock from ISO, not device timezone.
 String _formatNotificationBookingDate(Object? value) {
-  if (value == null) return 'N/A';
-  final s = value.toString().trim();
-  if (s.isEmpty || s == 'N/A') return 'N/A';
-  final parsed = DateTimeUtils.tryParseBookingInstant(s);
-  if (parsed == null) return s;
-  return DateTimeUtils.formatDateTime24h(parsed);
+  return DateTimeUtils.formatBookingDateTimeFromIso(value);
 }
 
 /// Service for managing notifications and device tokens
@@ -203,6 +198,31 @@ class NotificationService {
     }
   }
 
+  /// Get notification icon data based on type
+  IconData getNotificationIconData(String notificationType) {
+    switch (notificationType) {
+      case NotificationType.bookingConfirmed:
+        return Icons.event_available_rounded;
+      case NotificationType.favDeal:
+        return Icons.local_fire_department_rounded;
+      case NotificationType.dealRedeemed:
+        return Icons.confirmation_number_rounded;
+      case NotificationType.system:
+        return Icons.campaign_rounded;
+      case NotificationType.newBooking:
+        return Icons.calendar_today_rounded;
+      case NotificationType.newReview:
+        return Icons.rate_review_rounded;
+      case NotificationType.milestoneEarnings:
+        return Icons.emoji_events_rounded;
+      case NotificationType.merchantDealRedeemed:
+        return Icons.receipt_long_rounded;
+      default:
+        return Icons.notifications_rounded;
+    }
+  }
+
+
   /// Get notification color based on type
   String getNotificationColor(String notificationType) {
     switch (notificationType) {
@@ -273,7 +293,7 @@ class NotificationService {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(

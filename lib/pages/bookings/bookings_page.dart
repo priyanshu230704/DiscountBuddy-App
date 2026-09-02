@@ -152,9 +152,12 @@ class _BookingsPageState extends State<BookingsPage>
     final TextEditingController requestController = 
         TextEditingController(text: booking.specialRequests);
     
-    final localBooking = booking.bookingDate.toLocal();
-    DateTime selectedDate = localBooking;
-    TimeOfDay selectedTime = TimeOfDay.fromDateTime(localBooking);
+    final wallBooking =
+        DateTimeUtils.wallClockFromBookingIso(booking.bookingDateIso);
+    if (wallBooking == null) return;
+
+    DateTime selectedDate = wallBooking;
+    TimeOfDay selectedTime = TimeOfDay.fromDateTime(wallBooking);
     
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
@@ -229,12 +232,12 @@ class _BookingsPageState extends State<BookingsPage>
           ElevatedButton(
             onPressed: () => Navigator.pop(context, {
               'update': true,
-              'date': DateTime(
-                selectedDate.year,
-                selectedDate.month,
-                selectedDate.day,
-                selectedTime.hour,
-                selectedTime.minute,
+              'date': DateTimeUtils.utcInstantFromRestaurantWallClock(
+                year: selectedDate.year,
+                month: selectedDate.month,
+                day: selectedDate.day,
+                hour: selectedTime.hour,
+                minute: selectedTime.minute,
               ),
             }),
             style: ElevatedButton.styleFrom(
@@ -934,7 +937,8 @@ class _BookingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final whenLabel = DateTimeUtils.formatDateTime24h(booking.bookingDate);
+    final whenLabel =
+        DateTimeUtils.formatBookingDateTimeFromIso(booking.bookingDateIso);
 
     return AppCard(
       margin: const EdgeInsets.only(bottom: AppSpacing.lg),

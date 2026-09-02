@@ -61,7 +61,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   bool _isFetchingLocation = false;
   bool _isLoadingRestaurants = false;
 
-  HomeFilter? _activeFilter = HomeFilter.offers;
+  HomeFilter? _activeFilter = HomeFilter.nearest;
 
   bool _hasActiveSpinWheel = false;
 
@@ -363,8 +363,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         // Parse sections
         final List<int> allIds = List<int>.from(
           sections['all_restaurants'] ??
-              sections['top_10'] ??
-              sections['featured'] ??
               (restaurantsData.keys
                   .map((k) => int.tryParse(k))
                   .whereType<int>()
@@ -942,17 +940,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           children: [
             Expanded(
               child: _FilterChipX(
-                text: "All",
-                active: _activeFilter == HomeFilter.offers,
-                onTap: () => _toggleFilter(HomeFilter.offers),
+                text: "Nearest",
+                active: _activeFilter == HomeFilter.nearest,
+                onTap: () => _toggleFilter(HomeFilter.nearest),
               ),
             ),
             const SizedBox(width: 8),
             Expanded(
               child: _FilterChipX(
-                text: "Nearest",
-                active: _activeFilter == HomeFilter.nearest,
-                onTap: () => _toggleFilter(HomeFilter.nearest),
+                text: "All",
+                active: _activeFilter == HomeFilter.offers,
+                onTap: () => _toggleFilter(HomeFilter.offers),
               ),
             ),
             const SizedBox(width: 8),

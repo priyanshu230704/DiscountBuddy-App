@@ -98,16 +98,15 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
     setState(() => _isLoading = true);
 
     try {
-      final now = DateTime.now();
-      final bookingDateTime = DateTime(
-        _selectedDate.year,
-        _selectedDate.month,
-        _selectedDate.day,
-        _selectedTime.hour,
-        _selectedTime.minute,
+      final now = DateTime.now().toUtc();
+      final bookingDateTime = DateTimeUtils.utcInstantFromRestaurantWallClock(
+        year: _selectedDate.year,
+        month: _selectedDate.month,
+        day: _selectedDate.day,
+        hour: _selectedTime.hour,
+        minute: _selectedTime.minute,
       );
 
-      // Basic validation for past dates
       if (bookingDateTime.isBefore(now)) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Cannot book for a past time')),

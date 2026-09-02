@@ -12,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../models/restaurant.dart' as model;
 import '../../routes/app_routes.dart';
+import '../../widgets/merchant/opening_hours_day_sheet.dart';
 
 /// Add/Edit Restaurant Page for Merchants
 class AddRestaurantPage extends StatefulWidget {
@@ -22,6 +23,8 @@ class AddRestaurantPage extends StatefulWidget {
   @override
   State<AddRestaurantPage> createState() => _AddRestaurantPageState();
 }
+
+enum _UnsavedFormAction { save, discard, cancel }
 
 class _AddRestaurantPageState extends State<AddRestaurantPage> {
   final MerchantService _merchantService = MerchantService();
@@ -42,6 +45,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
   bool _bookingsEnabled = true;
   bool _isUpdatingBookings = false;
   bool _bookingStatusDirty = false;
+  bool _isFormDirty = false;
   final _loyaltyRequiredRedemptionsController = TextEditingController();
   final _loyaltyRewardDescriptionController = TextEditingController();
 
@@ -66,14 +70,18 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
   final LayerLink _cityLayerLink = LayerLink();
   OverlayEntry? _cityOverlayEntry;
   final GlobalKey _cityFieldKey = GlobalKey();
-  final Map<String, String> _openingHours = {
-    'monday': '',
-    'tuesday': '',
-    'wednesday': '',
-    'thursday': '',
-    'friday': '',
-    'saturday': '',
-    'sunday': '',
+  /// Opening windows per weekday as `"HH:MM-HH:MM"` strings.
+  ///
+  /// A day holds a list so split shifts (lunch plus dinner) can be entered; an
+  /// empty list means closed.
+  final Map<String, List<String>> _openingHours = {
+    'monday': <String>[],
+    'tuesday': <String>[],
+    'wednesday': <String>[],
+    'thursday': <String>[],
+    'friday': <String>[],
+    'saturday': <String>[],
+    'sunday': <String>[],
   };
 
   Future<void> _fetchCurrentLocation() async {
@@ -462,15 +470,52 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
     _loyaltyRewardDescriptionController.text = restaurant['loyalty_reward_description'] as String? ?? '';
     _bookingsEnabled = restaurant['bookings_enabled'] as bool? ?? true;
 
-    // Load opening hours
-    if (restaurant['opening_hours'] != null) {
-      final hours = restaurant['opening_hours'] as Map<String, dynamic>;
-      hours.forEach((key, value) {
-        if (_openingHours.containsKey(key.toLowerCase())) {
-          _openingHours[key.toLowerCase()] = value.toString();
-        }
-      });
+    // Load opening hours from slots (preferred) or the legacy JSON map.
+    _loadOpeningHoursFromRestaurant(restaurant);
+  }
+
+  void _loadOpeningHoursFromRestaurant(Map<String, dynamic> restaurant) {
+    final slots = restaurant['opening_slots'];
+    if (slots is List && slots.isNotEmpty) {
+      final byDay = {
+        for (final key in model.OpeningHoursFormat.dayKeys) key: <String>[],
+      };
+
+      for (final raw in slots) {
+        if (raw is! Map) continue;
+        final slot = model.OpeningSlot.fromJson(
+          Map<String, dynamic>.from(raw),
+        );
+        final dayIndex = slot.dayIndex;
+        if (slot.isClosed || dayIndex == null) continue;
+
+        final dayKey = model.OpeningHoursFormat.dayKeys[dayIndex];
+        byDay[dayKey]!.add('${slot.openingTime}-${slot.closingTime}');
+      }
+
+      for (final entry in byDay.entries) {
+        entry.value.sort(
+          (a, b) =>
+              (model.OpeningHoursFormat.minutesOf(a.split('-').first) ?? 0)
+                  .compareTo(
+                model.OpeningHoursFormat.minutesOf(b.split('-').first) ?? 0,
+              ),
+        );
+        _openingHours[entry.key] = entry.value;
+      }
+      return;
     }
+
+    final rawHours = restaurant['opening_hours'];
+    if (rawHours is! Map) return;
+
+    rawHours.forEach((key, value) {
+      final day = key.toString().toLowerCase();
+      if (!_openingHours.containsKey(day)) return;
+      _openingHours[day] = model.OpeningSlot.parseDayRanges(value)
+          .map((range) => '${range.$1}-${range.$2}')
+          .toList();
+    });
   }
 
   int? _restaurantId() {
@@ -664,11 +709,11 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
     });
 
     try {
-      // Build opening hours object (only include non-empty values)
-      final openingHours = <String, String>{};
+      // Send a list of windows per day so split shifts survive the round trip.
+      final openingHours = <String, List<String>>{};
       _openingHours.forEach((key, value) {
         if (value.isNotEmpty) {
-          openingHours[key] = value;
+          openingHours[key] = List<String>.from(value);
         }
       });
 
@@ -926,85 +971,149 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
     }
   }
 
-  Future<void> _selectTimeRange(String day) async {
-    FocusManager.instance.primaryFocus?.unfocus();
-    FocusScope.of(context).requestFocus(FocusNode());
-    final TimeOfDay? pickedStart = await showTimePicker(
-      context: context,
-      initialTime: const TimeOfDay(hour: 9, minute: 0),
-      helpText: 'Opening Time for ${day[0].toUpperCase()}${day.substring(1)}',
-    );
-    if (pickedStart == null) return;
-    
-    if (!mounted) return;
-    
-    final TimeOfDay? pickedEnd = await showTimePicker(
-      context: context,
-      initialTime: const TimeOfDay(hour: 22, minute: 0),
-      helpText: 'Closing Time for ${day[0].toUpperCase()}${day.substring(1)}',
-    );
-    if (pickedEnd == null) return;
-    
-    setState(() {
-      final startStr = '${pickedStart.hour.toString().padLeft(2, '0')}:${pickedStart.minute.toString().padLeft(2, '0')}';
-      final endStr = '${pickedEnd.hour.toString().padLeft(2, '0')}:${pickedEnd.minute.toString().padLeft(2, '0')}';
-      final timeString = '$startStr-$endStr';
-      _openingHours[day] = timeString;
+  Future<void> _handleBackPress() async {
+    if (!_isFormDirty && !_bookingStatusDirty) {
+      Navigator.of(context).pop(_bookingStatusDirty);
+      return;
+    }
 
-      // Autofill other days if monday is selected and others are empty
-      if (day == 'monday') {
-        final allOtherEmpty = _openingHours.entries
-            .where((e) => e.key != 'monday')
-            .every((e) => e.value.isEmpty);
-        if (allOtherEmpty) {
-          _openingHours.forEach((key, value) {
-            if (key != 'monday' && value.isEmpty) {
-              _openingHours[key] = timeString;
-            }
-          });
-        }
-      }
-    });
-  }
-
-  Future<void> _selectTime(String day, bool isStart) async {
-    FocusManager.instance.primaryFocus?.unfocus();
-    FocusScope.of(context).requestFocus(FocusNode());
-    final currentVal = _openingHours[day] ?? '';
-    if (currentVal.isEmpty) return;
-    
-    final parts = currentVal.split('-');
-    if (parts.length != 2) return;
-    
-    final timeString = isStart ? parts[0] : parts[1];
-    final timeParts = timeString.split(':');
-    final initialTime = TimeOfDay(hour: int.parse(timeParts[0]), minute: int.parse(timeParts[1]));
-    
-    final TimeOfDay? picked = await showTimePicker(
+    final action = await showModalBottomSheet<_UnsavedFormAction>(
       context: context,
-      initialTime: initialTime,
-      helpText: isStart ? 'Opening Time for ${day[0].toUpperCase()}${day.substring(1)}' : 'Closing Time for ${day[0].toUpperCase()}${day.substring(1)}',
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.textDisabled.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.merchantIndigo.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.warning_amber_rounded,
+                      color: AppColors.merchantIndigo,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Unsaved Changes',
+                          style: AppTypography.title.copyWith(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'You have unsaved changes to this restaurant.',
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Would you like to save your changes before leaving?',
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 24),
+              AppGradientButton(
+                width: double.infinity,
+                onPressed: () => Navigator.pop(ctx, _UnsavedFormAction.save),
+                child: Text(
+                  'Save Changes',
+                  style: AppTypography.button.copyWith(fontWeight: FontWeight.w700),
+                ),
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx, _UnsavedFormAction.discard),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.error,
+                    side: BorderSide(color: AppColors.error.withValues(alpha: 0.4)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: AppRadius.medium,
+                    ),
+                  ),
+                  child: Text(
+                    'Discard Changes',
+                    style: AppTypography.bodySmall.copyWith(
+                      color: AppColors.error,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Center(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx, _UnsavedFormAction.cancel),
+                  child: Text(
+                    'Keep Editing',
+                    style: AppTypography.bodySmall.copyWith(
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
-    
-    if (picked == null) return;
-    
-    setState(() {
-      final pickedStr = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
-      if (isStart) {
-        _openingHours[day] = '$pickedStr-${parts[1]}';
-      } else {
-        _openingHours[day] = '${parts[0]}-$pickedStr';
+
+    if (action == _UnsavedFormAction.save) {
+      await _saveRestaurant();
+    } else if (action == _UnsavedFormAction.discard) {
+      if (mounted) {
+        Navigator.of(context).pop(_bookingStatusDirty);
       }
-    });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: !_bookingStatusDirty,
-      onPopInvokedWithResult: (didPop, result) {
+      canPop: !_isFormDirty && !_bookingStatusDirty,
+      onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-        Navigator.of(context).pop(true);
+        await _handleBackPress();
       },
       child: AppScaffold(
       appBar: AppAppBar(
@@ -1470,98 +1579,30 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                     _buildSectionHeader('Opening Hours (Optional)', Icons.access_time_rounded),
                     const SizedBox(height: AppSpacing.md),
                     _buildFormSection(
-                      padding: const EdgeInsets.only(top: 8, bottom: 8, left: 24, right: 24),
-                      children: _openingHours.entries.map((entry) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: 90,
-                                child: Text(
-                                  entry.key[0].toUpperCase() + entry.key.substring(1),
-                                  style: AppTypography.bodySmall.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.textPrimary,
-                                  ),
-                                ),
-                              ),
-                              if (entry.value.isEmpty)
-                                Expanded(
-                                  child: InkWell(
-                                    onTap: () => _selectTimeRange(entry.key),
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 10),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.background,
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(color: AppColors.cardBorder),
-                                      ),
-                                      alignment: Alignment.center,
-                                      child: Text('Closed', style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary)),
-                                    ),
-                                  ),
-                                )
-                              else ...[
-                                Expanded(
-                                  child: InkWell(
-                                    onTap: () => _selectTime(entry.key, true),
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 10),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.merchantIndigo.withValues(alpha: 0.05),
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(color: AppColors.merchantIndigo.withValues(alpha: 0.3)),
-                                      ),
-                                      alignment: Alignment.center,
-                                      child: Text(
-                                        entry.value.split('-')[0],
-                                        style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600, color: AppColors.merchantIndigo),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 12),
-                                  child: Text('-', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
-                                ),
-                                Expanded(
-                                  child: InkWell(
-                                    onTap: () => _selectTime(entry.key, false),
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 10),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.merchantIndigo.withValues(alpha: 0.05),
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(color: AppColors.merchantIndigo.withValues(alpha: 0.3)),
-                                      ),
-                                      alignment: Alignment.center,
-                                      child: Text(
-                                        entry.value.split('-').length > 1 ? entry.value.split('-')[1] : '',
-                                        style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600, color: AppColors.merchantIndigo),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                IconButton(
-                                  icon: const Icon(Icons.close_rounded, size: 20, color: AppColors.textSecondary),
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                                  onPressed: () {
-                                    setState(() {
-                                      _openingHours[entry.key] = '';
-                                    });
-                                  },
-                                ),
-                              ],
-                            ],
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 4,
+                      ),
+                      children: [
+                        Text(
+                          'Tap a day to set hours. Use multiple shifts for a lunch break.',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: AppColors.textSecondary,
                           ),
-                        );
-                      }).toList(),
+                        ),
+                        const SizedBox(height: 4),
+                        OpeningHoursMerchantList(
+                          hours: _openingHours,
+                          onChanged: (updated) {
+                            setState(() {
+                              for (final entry in updated.entries) {
+                                _openingHours[entry.key] = entry.value;
+                              }
+                              _isFormDirty = true;
+                            });
+                          },
+                        ),
+                      ],
                     ),
                      const SizedBox(height: AppSpacing.xl),
                      _buildSectionHeader('Booking Settings', Icons.event_available_rounded),

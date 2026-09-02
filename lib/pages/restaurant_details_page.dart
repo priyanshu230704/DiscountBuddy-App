@@ -23,7 +23,6 @@ import 'package:discount_buddy/design/app_radius.dart';
 import 'package:discount_buddy/design/app_shadows.dart';
 import 'dart:async';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import '../widgets/generic_bottom_sheet.dart';
 import 'deals/redeem_offer_modal.dart';
@@ -375,124 +374,48 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     );
   }
 
-  String _formatTimeWithoutSeconds(String timeStr) {
-    timeStr = timeStr.trim();
-    // Check if there is an AM/PM designator
-    final amPmMatch = RegExp(r'\s*(AM|PM|am|pm)\s*$').firstMatch(timeStr);
-    String suffix = '';
-    String timePart = timeStr;
-    if (amPmMatch != null) {
-      suffix = ' ${amPmMatch.group(1)}';
-      timePart = timeStr.substring(0, amPmMatch.start).trim();
+  /// Google-style status line, e.g. `Open · Closes 3 pm`.
+  ///
+  /// Prefers the backend value, which is computed in the restaurant's timezone
+  /// and already accounts for split shifts; falls back to local evaluation for
+  /// responses that predate `opening_status`.
+  OpeningStatus? _openingStatusOf(Restaurant restaurant) {
+    // Derive from raw slot times so closing shows 13:00, not the device-local
+    // misread of next_change_at (e.g. 17:30 in IST).
+    if (restaurant.openingSlots.any((slot) => slot.isUsable)) {
+      return OpeningStatus.fromSlots(
+        restaurant.openingSlots,
+        DateTime.now(),
+        use24Hour: true,
+      );
     }
-
-    final parts = timePart.split(':');
-    if (parts.length >= 2) {
-      return '${parts[0]}:${parts[1]}$suffix';
-    }
-    return timeStr;
+    return restaurant.openingStatus;
   }
 
-  // Get opening hours (using restaurant opening hours or default)
   String _getOpeningHours(Restaurant restaurant) {
-    if (restaurant.openingSlots.isNotEmpty) {
-      final now = DateTime.now();
-      final currentDay = DateFormat('EEEE').format(now);
-      final currentTime = TimeOfDay.now();
+    return _openingStatusOf(restaurant)?.label24h ?? '';
+  }
 
-      // Find today's slot
-      final todaySlot = restaurant.openingSlots.firstWhere(
-        (slot) => slot.dayName.toLowerCase() == currentDay.toLowerCase(),
-        orElse: () => null as dynamic,
+  Color _openingStatusColor(OpeningStatus? status) {
+    if (status == null) return AppColors.textSecondary;
+    if (status.isClosingSoon) return Colors.orange.shade800;
+    if (status.isOpen) return AppColors.success;
+    return Colors.red.shade700;
+  }
+
+  /// Weekday breakdown in 24-hour format, built from slots when available.
+  List<OpeningDay> _weeklyHoursOf(Restaurant restaurant) {
+    if (restaurant.openingSlots.any((slot) => slot.isUsable)) {
+      return OpeningDay.fromSlots(
+        restaurant.openingSlots,
+        DateTime.now().weekday - 1,
+        use24Hour: true,
       );
-
-      final slot = todaySlot;
-      if (slot.isClosed) {
-        return 'Closed';
-      }
-
-      try {
-        final closingParts = slot.closingTime.split(':');
-        final closingHour = int.parse(closingParts[0]);
-        final closingMinute = closingParts.length > 1
-            ? int.parse(closingParts[1])
-            : 0;
-        final closingTime = TimeOfDay(hour: closingHour, minute: closingMinute);
-
-        final isClosed =
-            currentTime.hour > closingTime.hour ||
-            (currentTime.hour == closingTime.hour &&
-                currentTime.minute >= closingMinute);
-
-        if (isClosed) {
-          return 'Closed';
-        }
-
-        return 'Open until ${_formatTimeWithoutSeconds(slot.closingTime)}';
-      } catch (_) {
-        // Fallback if parsing fails
-      }
     }
-
-    // Check if opening_hours is a Map (from API) with day names as keys
-    try {
-      final now = DateTime.now();
-      final currentDay = DateFormat('EEEE').format(now).toLowerCase();
-      final currentTime = TimeOfDay.now();
-
-      // The opening_hours from API is typically a Map<String, String> with day names
-      if (restaurant.openingHours is Map) {
-        final hoursMap = restaurant.openingHours as Map;
-        if (hoursMap.isNotEmpty) {
-          final todayHours = hoursMap[currentDay];
-
-          if (todayHours != null &&
-              todayHours is String &&
-              todayHours.contains('-')) {
-            final parts = todayHours.split('-');
-            if (parts.length > 1) {
-              final closingTime = parts[1].trim();
-              final closingParts = closingTime.split(':');
-              final closingHour = int.parse(closingParts[0]);
-              final closingMinute = closingParts.length > 1
-                  ? int.parse(closingParts[1])
-                  : 0;
-              final closing = TimeOfDay(
-                hour: closingHour,
-                minute: closingMinute,
-              );
-
-              final isClosed =
-                  currentTime.hour > closing.hour ||
-                  (currentTime.hour == closing.hour &&
-                      currentTime.minute >= closingMinute);
-
-              if (isClosed) {
-                return 'Closed';
-              }
-
-              return 'Open until ${_formatTimeWithoutSeconds(closingTime)}';
-            }
-          }
-        }
-      }
-    } catch (_) {
-      // Continue to fallback
+    if (restaurant.openingHoursDisplay.isNotEmpty) {
+      return restaurant.openingHoursDisplay;
     }
-
-    // Legacy fallback for List format
-    if ((restaurant.openingHours as List).isNotEmpty) {
-      final firstHour = (restaurant.openingHours as List)[0];
-      if (firstHour is String && firstHour.contains('-')) {
-        final parts = firstHour.split('-');
-        if (parts.length > 1) {
-          return 'Open until ${_formatTimeWithoutSeconds(parts[1].trim())}';
-        }
-      }
-      return firstHour.toString();
-    }
-
-    return '';
+    return const [];
   }
 
   // Get price range widget
@@ -904,10 +827,9 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         ],
                       ),
                       const SizedBox(height: 6),
-                      // Row 2: Address, Price, and Timing
+                      // Row 2: address and miles on left, price (value) next to it, open/closed status on right
                       Row(
                         children: [
-                          // Address & Distance
                           Flexible(
                             child: Text(
                               () {
@@ -929,6 +851,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                 fontSize: 13,
                                 color: AppColors.textSecondary,
                               ),
+                              maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -939,7 +862,6 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             color: AppColors.textDisabled,
                           ),
                           const SizedBox(width: 6),
-                          // Specific Price logic inline for compactness
                           RichText(
                             text: TextSpan(
                               children: List.generate(4, (i) {
@@ -962,21 +884,19 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                               }),
                             ),
                           ),
-                          const SizedBox(width: 6),
-                          const Icon(
-                            Icons.circle,
-                            size: 3,
-                            color: AppColors.textDisabled,
-                          ),
-                          const SizedBox(width: 6),
-                          // Opening Hours
-                          Text(
-                            _getOpeningHours(restaurant),
-                            style: AppTypography.bodySmall.copyWith(
-                              fontSize: 13,
-                              color: AppColors.textSecondary,
+                          if (_getOpeningHours(restaurant).isNotEmpty) ...[
+                            const Spacer(),
+                            Text(
+                              _getOpeningHours(restaurant),
+                              style: AppTypography.bodySmall.copyWith(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: _openingStatusColor(
+                                  _openingStatusOf(restaurant),
+                                ),
+                              ),
                             ),
-                          ),
+                          ],
                         ],
                       ),
                     ],
@@ -1408,12 +1328,13 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
               ),
             ),
           // Opening Hours Section
-          if (restaurant.openingSlots.isNotEmpty)
+          if (_weeklyHoursOf(restaurant).isNotEmpty)
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: _OpeningHoursSection(
-                  openingSlots: restaurant.openingSlots,
+                  days: _weeklyHoursOf(restaurant),
+                  status: _openingStatusOf(restaurant),
                 ),
               ),
             ),
@@ -2823,209 +2744,181 @@ class _VegetarianSymbol extends StatelessWidget {
   }
 }
 
-/// Opening Hours Section Widget
-class _OpeningHoursSection extends StatefulWidget {
-  final List<OpeningSlot> openingSlots;
+/// Weekly opening hours in 24-hour format, starting from today.
+class _OpeningHoursSection extends StatelessWidget {
+  final List<OpeningDay> days;
+  final OpeningStatus? status;
 
-  const _OpeningHoursSection({required this.openingSlots});
-
-  @override
-  State<_OpeningHoursSection> createState() => _OpeningHoursSectionState();
-}
-
-class _OpeningHoursSectionState extends State<_OpeningHoursSection> {
-  final ScrollController _scrollController = ScrollController();
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToToday());
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _scrollToToday() {
-    if (!_scrollController.hasClients) return;
-
-    final currentDay = DateFormat('EEEE').format(DateTime.now());
-    final todayIndex = widget.openingSlots.indexWhere(
-      (slot) => slot.dayName.toLowerCase() == currentDay.toLowerCase(),
-    );
-
-    if (todayIndex < 0) return;
-
-    const itemWidth = 112.0; // 100 width + 12 right margin
-    final targetOffset = (todayIndex * itemWidth).clamp(
-      0.0,
-      _scrollController.position.maxScrollExtent,
-    );
-
-    _scrollController.animateTo(
-      targetOffset,
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeOut,
-    );
-  }
-
-  bool _isRestaurantClosed(List<OpeningSlot> slots) {
-    final now = DateTime.now();
-    final currentDay = DateFormat('EEEE').format(now);
-    final currentTime = TimeOfDay.now();
-
-    // Find today's slot
-    final todaySlot = slots.firstWhere(
-      (slot) => slot.dayName.toLowerCase() == currentDay.toLowerCase(),
-      orElse: () => null as dynamic,
-    );
-
-    if ((todaySlot).isClosed) return true;
-
-    // Parse closing time and compare
-    try {
-      final closingParts = todaySlot.closingTime.split(':');
-      final closingHour = int.parse(closingParts[0]);
-      final closingMinute = closingParts.length > 1
-          ? int.parse(closingParts[1])
-          : 0;
-      final closingTime = TimeOfDay(hour: closingHour, minute: closingMinute);
-
-      return currentTime.hour > closingTime.hour ||
-          (currentTime.hour == closingTime.hour &&
-              currentTime.minute >= closingMinute);
-    } catch (_) {
-      return false;
-    }
-  }
+  const _OpeningHoursSection({required this.days, this.status});
 
   @override
   Widget build(BuildContext context) {
-    final currentDay = DateFormat('EEEE').format(DateTime.now());
-    final isClosed = _isRestaurantClosed(widget.openingSlots);
+    final currentStatus = status;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const Icon(
-              Icons.access_time_filled,
-              color: AppColors.textPrimary,
-              size: 20,
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.merchantIndigo.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.access_time_filled,
+                color: AppColors.merchantIndigo,
+                size: 18,
+              ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'Opening Hours',
+                'Opening hours',
                 style: AppTypography.body.copyWith(
-                  fontSize: 18,
+                  fontSize: 17,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary,
                 ),
               ),
             ),
-            if (isClosed)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red.shade200),
-                ),
-                child: Text(
-                  'Closed',
-                  style: AppTypography.bodySmall.copyWith(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.red.shade700,
-                  ),
-                ),
-              ),
+            if (currentStatus != null) _StatusBadge(status: currentStatus),
           ],
         ),
-        const SizedBox(height: 16),
-        SizedBox(
-          height: 110,
-          child: ListView.builder(
-            controller: _scrollController,
-            scrollDirection: Axis.horizontal,
-            itemCount: widget.openingSlots.length,
-            itemBuilder: (context, index) {
-              final slot = widget.openingSlots[index];
-              final isToday =
-                  slot.dayName.toLowerCase() == currentDay.toLowerCase();
-
-              return Container(
-                width: 100,
-                margin: const EdgeInsets.only(right: 12),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: isToday
-                      ? AppColors.success.withValues(alpha: 0.05)
-                      : const Color(0xFFF8F9FA),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: isToday
-                        ? AppColors.success.withValues(alpha: 0.3)
-                        : AppColors.textDisabled.withValues(alpha: 0.1),
-                    width: 1.5,
+        const SizedBox(height: 14),
+        Container(
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.cardBorder),
+            boxShadow: AppShadows.card,
+          ),
+          child: Column(
+            children: [
+              for (var i = 0; i < days.length; i++) ...[
+                _OpeningDayRow(day: days[i]),
+                if (i < days.length - 1)
+                  Divider(
+                    height: 1,
+                    indent: 16,
+                    endIndent: 16,
+                    color: AppColors.cardBorder.withValues(alpha: 0.7),
                   ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      slot.dayName.substring(0, 3), // Mon, Tue, etc.
-                      style: AppTypography.body.copyWith(
-                        fontSize: 14,
-                        fontWeight: isToday ? FontWeight.bold : FontWeight.w600,
-                        color: isToday
-                            ? AppColors.success
-                            : AppColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    if (slot.isClosed)
-                      Text(
-                        'Closed',
-                        style: AppTypography.body.copyWith(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.red.shade400,
-                        ),
-                      )
-                    else ...[
-                      Text(
-                        slot.openingTime,
-                        style: AppTypography.bodySmall.copyWith(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        slot.closingTime,
-                        style: AppTypography.bodySmall.copyWith(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              );
-            },
+              ],
+            ],
           ),
         ),
       ],
+    );
+  }
+}
+
+class _StatusBadge extends StatelessWidget {
+  final OpeningStatus status;
+
+  const _StatusBadge({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final Color foreground;
+    final Color background;
+
+    if (status.isClosingSoon) {
+      foreground = Colors.orange.shade800;
+      background = Colors.orange.shade50;
+    } else if (status.isOpen) {
+      foreground = AppColors.success;
+      background = AppColors.success.withValues(alpha: 0.1);
+    } else {
+      foreground = Colors.red.shade700;
+      background = Colors.red.shade50;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: foreground.withValues(alpha: 0.3)),
+      ),
+      child: Text(
+        status.shortLabel,
+        style: AppTypography.bodySmall.copyWith(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: foreground,
+        ),
+      ),
+    );
+  }
+}
+
+class _OpeningDayRow extends StatelessWidget {
+  final OpeningDay day;
+
+  const _OpeningDayRow({required this.day});
+
+  @override
+  Widget build(BuildContext context) {
+    final weight = day.isToday ? FontWeight.w700 : FontWeight.w500;
+    final dayColor = day.isToday
+        ? AppColors.merchantIndigo
+        : AppColors.textPrimary;
+    final timeColor = day.isToday
+        ? AppColors.textPrimary
+        : AppColors.textSecondary;
+
+    return Container(
+      color: day.isToday
+          ? AppColors.merchantIndigo.withValues(alpha: 0.04)
+          : Colors.transparent,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 44,
+            child: Text(
+              day.dayShort,
+              style: AppTypography.body.copyWith(
+                fontSize: 14,
+                fontWeight: weight,
+                color: dayColor,
+              ),
+            ),
+          ),
+          Expanded(
+            child: day.isClosed
+                ? Text(
+                    'Closed',
+                    style: AppTypography.body.copyWith(
+                      fontSize: 14,
+                      fontWeight: weight,
+                      color: Colors.red.shade400,
+                    ),
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      for (final range in day.ranges)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 2),
+                          child: Text(
+                            range,
+                            style: AppTypography.body.copyWith(
+                              fontSize: 14,
+                              fontWeight: weight,
+                              color: timeColor,
+                              fontFeatures: const [FontFeature.tabularFigures()],
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+          ),
+        ],
+      ),
     );
   }
 }

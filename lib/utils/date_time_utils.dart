@@ -1,15 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 /// Single place for **display** formatting (intl). Avoid ad-hoc [DateFormat] in widgets.
 ///
-/// **API** → [DateTime] is usually UTC; use [format24h] / [formatDateTime24h] (they call
-/// [DateTime.toLocal] before formatting).
+/// **Booking appointments** → [formatBookingDateTimeFromIso] reads wall-clock
+/// digits from the API string (e.g. `17:00` from `…T17:00:00+01:00`). Never
+/// [DateTime.toLocal] — that shows 21:30 IST for a 17:00 London table.
+///
+/// **Other API instants** (redemptions, timestamps) → [formatDateTime24h] uses
+/// [DateTime.toLocal] before formatting.
 ///
 /// **Pickers** → [DateTime] / [TimeOfDay] is already local; use [formatDateOnly],
 /// [formatTimeOfDay24h], or [formatShortWeekday] — they do **not** call [toLocal].
 class DateTimeUtils {
   DateTimeUtils._();
+
+  /// Default restaurant timezone while the product is UK-only.
+  static const restaurantTimeZoneId = 'Europe/London';
+
+  static bool _timeZonesInitialized = false;
+
+  /// Call once at app startup before any booking UTC conversion.
+  static void ensureTimeZonesInitialized() {
+    if (_timeZonesInitialized) return;
+    tz.initializeTimeZones();
+    _timeZonesInitialized = true;
+  }
 
   /// Pinned for stable month/weekday output; [initializeDateFormatting] in [main] must run first.
   static const _appLocale = 'en_US';
@@ -19,10 +37,17 @@ class DateTimeUtils {
   static final DateFormat _fDateOnly = DateFormat('dd MMM yyyy', _appLocale);
   static final DateFormat _fShortWeekday = DateFormat('E', _appLocale);
 
+  static final RegExp _bookingIsoWallClock = RegExp(
+    r'^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})',
+  );
+
   /// Tries ISO-8601 first, then common English **push/FCM** strings (e.g. "April 24, 2026 at 07:30 AM").
   ///
-  /// Our API stores `booking_date` as **UTC**; the REST payload uses a `Z` suffix so [DateTime.tryParse]
-  /// is correct. Preformatted FCM text usually repeats that **same UTC clock** (7:30) in 12h English.
+  /// Our API stores `booking_date` as **UTC** and now always sends it with a `Z` suffix in both REST
+  /// responses and FCM `data`, so [DateTime.tryParse] handles the normal case.
+  ///
+  /// The English patterns remain for notifications queued by older backends, which put preformatted
+  /// text in `data.booking_date` repeating that **same UTC clock** (7:30) in 12h form.
   /// [DateFormat.parseStrict] without `utc: true` would treat that as **7:30 in the device zone** and
   /// skip the conversion [formatDateTime24h] does for UTC, so a 13:00 local reservation would show as
   /// 07:30 on the merchant side — hence we use [parseStrict] with `utc: true` for these patterns.
@@ -52,6 +77,46 @@ class DateTimeUtils {
     return null;
   }
 
+  /// Wall-clock [DateTime] from a booking ISO string — no device-TZ conversion.
+  ///
+  /// `2026-09-09T17:00:00+01:00` → 17:00 on every device.
+  /// `2026-09-09T16:00:00Z` → 16:00 (legacy UTC-only payloads).
+  static DateTime? wallClockFromBookingIso(Object? value) {
+    if (value == null) return null;
+    final match = _bookingIsoWallClock.firstMatch(value.toString().trim());
+    if (match == null) return null;
+    return DateTime(
+      int.parse(match.group(1)!),
+      int.parse(match.group(2)!),
+      int.parse(match.group(3)!),
+      int.parse(match.group(4)!),
+      int.parse(match.group(5)!),
+    );
+  }
+
+  /// Booking label for UI — same wall clock on India, UK, or any device.
+  static String formatBookingDateTimeFromIso(Object? value) {
+    if (value == null) return 'N/A';
+    final raw = value.toString().trim();
+    if (raw.isEmpty || raw == 'N/A') return 'N/A';
+
+    final wall = wallClockFromBookingIso(raw);
+    if (wall != null) return _fDateTime24h.format(wall);
+
+    final parsed = tryParseBookingInstant(raw);
+    if (parsed == null) return raw;
+    return formatDateTime24h(parsed);
+  }
+
+  /// Time portion only for booking ISO strings (calendar chips, etc.).
+  static String formatBookingTimeFromIso(Object? value) {
+    final wall = wallClockFromBookingIso(value);
+    if (wall != null) return _f24h.format(wall);
+    final parsed = tryParseBookingInstant(value);
+    if (parsed == null) return value?.toString() ?? 'N/A';
+    return format24h(parsed);
+  }
+
   /// 24-hour time for an **instant** (e.g. from API / [DateTime.parse] with `Z`).
   static String format24h(DateTime instant) {
     final local = instant.isUtc ? instant.toLocal() : instant;
@@ -79,9 +144,50 @@ class DateTimeUtils {
     return _fShortWeekday.format(localTime);
   }
 
+  /// Converts a restaurant-local wall-clock slot to a UTC [DateTime] instant.
+  ///
+  /// `09:00` on 2026-09-09 London (BST) → `2026-09-09 08:00 UTC`.
+  /// `09:00` on 2026-01-15 London (GMT) → `2026-01-15 09:00 UTC`.
+  /// Device timezone is never used.
+  static DateTime utcInstantFromRestaurantWallClock({
+    required int year,
+    required int month,
+    required int day,
+    required int hour,
+    required int minute,
+    String timeZoneId = restaurantTimeZoneId,
+  }) {
+    ensureTimeZonesInitialized();
+    final location = tz.getLocation(timeZoneId);
+    final local = tz.TZDateTime(location, year, month, day, hour, minute);
+    return local.toUtc();
+  }
+
+  /// API body: UTC ISO-8601 with `Z` from a restaurant wall-clock slot.
+  static String restaurantWallClockToApiUtcIso({
+    required int year,
+    required int month,
+    required int day,
+    required int hour,
+    required int minute,
+    String timeZoneId = restaurantTimeZoneId,
+  }) {
+    return toApiUtcIso(
+      utcInstantFromRestaurantWallClock(
+        year: year,
+        month: month,
+        day: day,
+        hour: hour,
+        minute: minute,
+        timeZoneId: timeZoneId,
+      ),
+    );
+  }
+
   /// Request body: UTC ISO-8601 with `Z`.
   static String toApiUtcIso(DateTime instant) {
-    return instant.toUtc().toIso8601String();
+    final utc = instant.isUtc ? instant : instant.toUtc();
+    return utc.toIso8601String();
   }
 
   static Future<TimeOfDay?> showTimePicker24h({

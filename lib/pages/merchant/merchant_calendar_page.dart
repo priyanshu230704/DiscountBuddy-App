@@ -440,12 +440,7 @@ class _MerchantCalendarPageState extends State<MerchantCalendarPage> {
 
 
   String _getBookingTime(String? dateStr) {
-    if (dateStr == null) return 'N/A';
-    final parsed = DateTime.tryParse(dateStr);
-    if (parsed == null) return dateStr;
-    final hour = parsed.hour.toString().padLeft(2, '0');
-    final minute = parsed.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
+    return DateTimeUtils.formatBookingTimeFromIso(dateStr);
   }
 
   void _showBookingDetails(BuildContext context, Map<String, dynamic> booking) {
@@ -461,16 +456,7 @@ class _MerchantCalendarPageState extends State<MerchantCalendarPage> {
     final srRaw = booking['special_requests']?.toString().trim() ?? '';
     final specialRequests = srRaw.isEmpty ? 'None' : srRaw;
 
-    DateTime? date;
-    if (dateStr != null) {
-      date = DateTimeUtils.tryParseBookingInstant(dateStr);
-    }
-
-    DateTime? arrivedDate;
     final arrivedTimeStr = booking['arrived_time'];
-    if (arrivedTimeStr != null) {
-      arrivedDate = DateTimeUtils.tryParseBookingInstant(arrivedTimeStr);
-    }
 
     showDialog(
       context: context,
@@ -498,9 +484,7 @@ class _MerchantCalendarPageState extends State<MerchantCalendarPage> {
               const SizedBox(height: 12),
               _DetailRow(
                 label: 'Date & Time',
-                value: date != null
-                    ? DateTimeUtils.formatDateTime24h(date)
-                    : 'N/A',
+                value: DateTimeUtils.formatBookingDateTimeFromIso(dateStr),
               ),
               const SizedBox(height: 12),
               _DetailRow(label: 'Guests', value: guests.toString()),
@@ -514,9 +498,9 @@ class _MerchantCalendarPageState extends State<MerchantCalendarPage> {
                 const SizedBox(height: 12),
                 _DetailRow(
                   label: 'Arrival Time',
-                  value: arrivedDate != null
-                      ? DateTimeUtils.formatDateTime24h(arrivedDate)
-                      : booking['arrived_time'].toString(),
+                  value: DateTimeUtils.formatBookingDateTimeFromIso(
+                    arrivedTimeStr,
+                  ),
                 ),
               ],
               if (status.toLowerCase() == 'no_show') ...[

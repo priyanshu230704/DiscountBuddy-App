@@ -16,7 +16,8 @@ class NotificationsPage extends StatefulWidget {
   State<NotificationsPage> createState() => _NotificationsPageState();
 }
 
-class _NotificationsPageState extends State<NotificationsPage> with WidgetsBindingObserver {
+class _NotificationsPageState extends State<NotificationsPage>
+    with WidgetsBindingObserver {
   final NotificationService _notificationService = NotificationService();
   final ScrollController _scrollController = ScrollController();
   final NotificationProvider _notificationProvider = NotificationProvider();
@@ -284,7 +285,7 @@ class _NotificationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final icon = notificationService.getNotificationIcon(
+    final iconData = notificationService.getNotificationIconData(
       notification.notificationType,
     );
     final colorHex = notificationService.getNotificationColor(
@@ -293,6 +294,17 @@ class _NotificationTile extends StatelessWidget {
     final color = Color(
       int.parse(colorHex.substring(1), radix: 16) + 0xFF000000,
     );
+
+    // Clean title by removing trailing/embedded emojis if present
+    final cleanTitle = notification.title
+        .replaceAll(
+          RegExp(
+            r'[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}]',
+            unicode: true,
+          ),
+          '',
+        )
+        .trim();
 
     return GestureDetector(
       onTap: onTap,
@@ -317,15 +329,13 @@ class _NotificationTile extends StatelessWidget {
           children: [
             // Icon
             Container(
-              width: 48,
-              height: 48,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
+                color: color.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Center(
-                child: Text(icon, style: const TextStyle(fontSize: 24)),
-              ),
+              child: Center(child: Icon(iconData, color: color, size: 22)),
             ),
             const SizedBox(width: 12),
             // Content
@@ -369,7 +379,9 @@ class _NotificationTile extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          notification.title,
+                          cleanTitle.isNotEmpty
+                              ? cleanTitle
+                              : notification.title,
                           style: AppTypography.body.copyWith(
                             fontWeight: FontWeight.w700,
                           ),

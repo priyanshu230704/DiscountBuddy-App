@@ -545,16 +545,7 @@ class _BookingCard extends StatelessWidget {
     final srRaw = booking['special_requests']?.toString().trim() ?? '';
     final specialRequests = srRaw.isEmpty ? 'None' : srRaw;
 
-    DateTime? date;
-    if (dateStr != null) {
-      date = DateTimeUtils.tryParseBookingInstant(dateStr);
-    }
-
-    DateTime? arrivedDate;
     final arrivedTimeStr = booking['arrived_time'];
-    if (arrivedTimeStr != null) {
-      arrivedDate = DateTimeUtils.tryParseBookingInstant(arrivedTimeStr);
-    }
 
     showDialog(
       context: context,
@@ -582,9 +573,7 @@ class _BookingCard extends StatelessWidget {
               const SizedBox(height: 12),
               _DetailRow(
                 label: 'Date & Time',
-                value: date != null
-                    ? DateTimeUtils.formatDateTime24h(date)
-                    : 'N/A',
+                value: DateTimeUtils.formatBookingDateTimeFromIso(dateStr),
               ),
               const SizedBox(height: 12),
               _DetailRow(label: 'Guests', value: guests.toString()),
@@ -598,9 +587,9 @@ class _BookingCard extends StatelessWidget {
                 const SizedBox(height: 12),
                 _DetailRow(
                   label: 'Arrival Time',
-                  value: arrivedDate != null
-                      ? DateTimeUtils.formatDateTime24h(arrivedDate)
-                      : booking['arrived_time'].toString(),
+                  value: DateTimeUtils.formatBookingDateTimeFromIso(
+                    arrivedTimeStr,
+                  ),
                 ),
               ],
               if (status.toLowerCase() == 'no_show') ...[
@@ -642,11 +631,6 @@ class _BookingCard extends StatelessWidget {
     final dateStr = booking['booking_date'];
     final guests = booking['number_of_guests'] ?? 0;
     final status = booking['status'] ?? 'pending';
-
-    DateTime? date;
-    if (dateStr != null) {
-      date = DateTimeUtils.tryParseBookingInstant(dateStr);
-    }
 
     final isPending = status.toLowerCase() == 'pending';
     final isConfirmed = status.toLowerCase() == 'confirmed';
@@ -720,9 +704,9 @@ class _BookingCard extends StatelessWidget {
                       Expanded(
                         child: _InfoChip(
                           icon: Icons.calendar_today_rounded,
-                          label: date != null
-                              ? DateTimeUtils.formatDateTime24h(date)
-                              : 'No date',
+                          label: DateTimeUtils.formatBookingDateTimeFromIso(
+                            dateStr,
+                          ),
                         ),
                       ),
                       const SizedBox(width: AppSpacing.md),

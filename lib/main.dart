@@ -15,6 +15,7 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:discount_buddy/utils/date_time_utils.dart';
 import 'package:get/get.dart';
 import 'routes/app_routes.dart';
 import 'routes/app_pages.dart';
@@ -54,6 +55,7 @@ void main() async {
     dotenv.load(fileName: ".env"),
     Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),
     initializeDateFormatting('en_US'),
+    Future<void>.sync(DateTimeUtils.ensureTimeZonesInitialized),
   ];
 
   try {

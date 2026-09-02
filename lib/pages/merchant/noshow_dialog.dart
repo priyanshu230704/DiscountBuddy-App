@@ -41,15 +41,9 @@ class _NoShowDialogState extends State<NoShowDialog> {
         : 'Guest';
     final guests = widget.booking['number_of_guests'] ?? 0;
     
-    DateTime? date;
     final dateStr = widget.booking['booking_date'];
-    if (dateStr != null) {
-      date = DateTimeUtils.tryParseBookingInstant(dateStr);
-    }
-    
-    final formattedDate = date != null 
-        ? DateTimeUtils.formatDateTime24h(date)
-        : 'N/A';
+    final formattedDate =
+        DateTimeUtils.formatBookingDateTimeFromIso(dateStr);
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),

@@ -27,13 +27,12 @@ class _AdminHomePageState extends State<AdminHomePage> {
 
   void _checkAdminGuard() {
     if (!_authProvider.isAuthenticated || !_authProvider.isAdmin) {
-      Get.snackbar(
-        'Access Denied',
-        'Admin access required to view this section.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red.shade700,
-        colorText: Colors.white,
-        margin: const EdgeInsets.all(16),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Access Denied: Admin access required to view this section.'),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       Get.offAllNamed(AppRoutes.login);
     }
@@ -45,10 +44,14 @@ class _AdminHomePageState extends State<AdminHomePage> {
       if (await canLaunchUrl(url)) {
         await launchUrl(url, mode: LaunchMode.externalApplication);
       } else {
-        Get.snackbar('Error', 'Could not open $url');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: Could not open $url')),
+        );
       }
     } catch (e) {
-      Get.snackbar('Error', 'Failed to launch Django Admin: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: Failed to launch Django Admin: $e')),
+      );
     }
   }
 

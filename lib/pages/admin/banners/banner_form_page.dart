@@ -66,7 +66,9 @@ class _BannerFormPageState extends State<BannerFormPage> {
         });
       }
     } catch (e) {
-      Get.snackbar('Image Error', 'Could not pick image: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not pick image: $e')),
+      );
     }
   }
 
@@ -95,7 +97,9 @@ class _BannerFormPageState extends State<BannerFormPage> {
           imageFile: _selectedImageFile,
         );
         Get.back(result: true);
-        Get.snackbar('Success', 'Banner updated successfully.');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Banner updated successfully.')),
+        );
       } else {
         await _adminService.createBanner(
           title: title.isNotEmpty ? title : null,
@@ -106,7 +110,9 @@ class _BannerFormPageState extends State<BannerFormPage> {
           imageFile: _selectedImageFile,
         );
         Get.back(result: true);
-        Get.snackbar('Success', 'Banner created successfully.');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Banner created successfully.')),
+        );
       }
     } catch (e) {
       setState(() {

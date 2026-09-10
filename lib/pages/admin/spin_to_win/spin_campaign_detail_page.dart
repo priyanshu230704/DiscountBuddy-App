@@ -96,9 +96,16 @@ class _SpinCampaignDetailPageState extends State<SpinCampaignDetailPage> {
         setState(() {
           _items.removeAt(index);
         });
-        Get.snackbar('Deleted', 'Wheel slice deleted.', snackPosition: SnackPosition.BOTTOM);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Wheel slice deleted.')),
+        );
       } catch (e) {
-        Get.snackbar('Delete Failed', 'Could not delete slice: $e', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not delete slice: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }

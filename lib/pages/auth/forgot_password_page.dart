@@ -18,7 +18,8 @@ class ForgotPasswordPage extends StatefulWidget {
 }
 
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
-  final _formKey = GlobalKey<FormState>();
+  final _emailFormKey = GlobalKey<FormState>();
+  final _otpFormKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _otpController = TextEditingController();
 
@@ -80,24 +81,26 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       });
     }
 
-    if (_authProvider.errorMessage != null) {
+    final errorMessage = _authProvider.errorMessage;
+    if (errorMessage != null) {
+      _authProvider.clearError();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_authProvider.errorMessage!),
+            content: Text(errorMessage),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: AppRadius.medium),
           ),
         );
-        _authProvider.clearError();
       });
     }
   }
 
   Future<void> _handleSubmit() async {
-    if (!_formKey.currentState!.validate()) return;
+    final currentFormKey = _currentStep == 0 ? _emailFormKey : _otpFormKey;
+    if (!currentFormKey.currentState!.validate()) return;
 
     if (_currentStep == 0) {
       final success = await _authProvider.requestPasswordResetOtp(
@@ -126,7 +129,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
       if (success && mounted) {
         // Navigate to the third page for password creation
-        final wasReset = await Get.toNamed<bool>(
+        final wasReset = await Get.toNamed(
           AppRoutes.resetPassword,
           arguments: {
             'email': _emailController.text.trim(),
@@ -191,7 +194,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             child: SingleChildScrollView(
               padding: EdgeInsets.fromLTRB(24, 20, 24, 24 + bottomInset),
               child: Form(
-                key: _formKey,
+                key: _currentStep == 0 ? _emailFormKey : _otpFormKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [

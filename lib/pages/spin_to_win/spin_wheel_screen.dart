@@ -88,12 +88,11 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
   Future<void> _triggerSpin() async {
     if (_isSpinning || _wheelData == null || !_wheelData!.isActive) return;
     if (_wheelData!.remainingSpinsToday <= 0) {
-      Get.snackbar(
-        'Limit Reached',
-        'You have reached your daily spin limit of ${_wheelData!.maxSpinsPerDay}. Try again tomorrow!',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Limit Reached: You have reached your daily spin limit of ${_wheelData!.maxSpinsPerDay}. Try again tomorrow!'),
+          backgroundColor: Colors.orange,
+        ),
       );
       return;
     }
@@ -109,12 +108,11 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
       setState(() {
         _isSpinning = false;
       });
-      Get.snackbar(
-        'Spin Failed',
-        e.toString().replaceAll('Exception: ', ''),
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Spin Failed: ${e.toString().replaceAll('Exception: ', '')}'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -127,7 +125,17 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
     }
 
     final totalSlices = slices.length;
-    final targetSliceIndex = slices.indexWhere((s) => s.sliceIndex == result.sliceIndex);
+    int targetSliceIndex = slices.indexWhere((s) => s.sliceIndex == result.sliceIndex);
+    
+    // Fallback: If sliceIndex doesn't match the actual item title
+    // (e.g. backend returned array index instead of db slice_index), match by title.
+    if (targetSliceIndex == -1 || slices[targetSliceIndex].title != result.title) {
+      final titleMatchIdx = slices.indexWhere((s) => s.title == result.title);
+      if (titleMatchIdx >= 0) {
+        targetSliceIndex = titleMatchIdx;
+      }
+    }
+
     final sliceIdx = targetSliceIndex >= 0 ? targetSliceIndex : 0;
 
     // Pointer is at the top (-pi/2)
@@ -213,7 +221,9 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
                         icon: const Icon(Icons.copy_rounded, color: Color(0xFF9333EA)),
                         onPressed: () {
                           Clipboard.setData(ClipboardData(text: result.promoCode));
-                          Get.snackbar('Copied', 'Promo code copied to clipboard!', snackPosition: SnackPosition.BOTTOM);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Promo code copied to clipboard!')),
+                          );
                         },
                       ),
                     ],

@@ -68,7 +68,9 @@ class _SpinCampaignFormPageState extends State<SpinCampaignFormPage> {
           maxSpinsPerUserPerDay: maxSpins,
         );
         Get.back(result: true);
-        Get.snackbar('Success', 'Campaign updated successfully.');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Campaign updated successfully.')),
+        );
       } else {
         await _adminService.createCampaign(
           title: _titleController.text.trim(),
@@ -77,7 +79,9 @@ class _SpinCampaignFormPageState extends State<SpinCampaignFormPage> {
           maxSpinsPerUserPerDay: maxSpins,
         );
         Get.back(result: true);
-        Get.snackbar('Success', 'Campaign created successfully.');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Campaign created successfully.')),
+        );
       }
     } catch (e) {
       setState(() {

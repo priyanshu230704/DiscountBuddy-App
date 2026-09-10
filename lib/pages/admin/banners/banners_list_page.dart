@@ -102,23 +102,22 @@ class _BannersListPageState extends State<BannersListPage> {
 
     try {
       final newStatus = await _adminService.toggleBannerVisible(banner.id);
-      Get.snackbar(
-        'Status Updated',
-        'Banner is now ${newStatus ? "Visible" : "Hidden"}.',
-        snackPosition: SnackPosition.BOTTOM,
-        duration: const Duration(seconds: 2),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Banner is now ${newStatus ? "Visible" : "Hidden"}.'),
+          duration: const Duration(seconds: 2),
+        ),
       );
     } catch (e) {
       // Rollback on error
       setState(() {
         _banners[index] = banner;
       });
-      Get.snackbar(
-        'Toggle Failed',
-        'Could not toggle visibility: ${e.toString()}',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not toggle visibility: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -149,18 +148,15 @@ class _BannersListPageState extends State<BannersListPage> {
         setState(() {
           _banners.removeAt(index);
         });
-        Get.snackbar(
-          'Deleted',
-          'Banner deleted successfully.',
-          snackPosition: SnackPosition.BOTTOM,
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Banner deleted successfully.')),
         );
       } catch (e) {
-        Get.snackbar(
-          'Delete Failed',
-          'Could not delete banner: $e',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not delete banner: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }

@@ -23,7 +23,6 @@ class _LivePageState extends State<LivePage> {
   final LocationService _locationService = LocationService();
   double? _userLat;
   double? _userLon;
-  bool _isLocating = false;
 
   final List<LiveOffer> _liveOffers = [];
   bool _isLoading = true;
@@ -54,19 +53,16 @@ class _LivePageState extends State<LivePage> {
   }
 
   Future<void> _loadLocation() async {
-    setState(() => _isLocating = true);
     try {
       final pos = await _locationService.getCurrentLocation();
       if (mounted) {
         setState(() {
           _userLat = pos.latitude;
           _userLon = pos.longitude;
-          _isLocating = false;
         });
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isLocating = false);
       }
     }
   }

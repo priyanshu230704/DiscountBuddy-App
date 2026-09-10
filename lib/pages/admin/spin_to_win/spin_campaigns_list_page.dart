@@ -108,9 +108,16 @@ class _SpinCampaignsListPageState extends State<SpinCampaignsListPage> {
         setState(() {
           _campaigns.removeAt(index);
         });
-        Get.snackbar('Deleted', 'Campaign deleted successfully.', snackPosition: SnackPosition.BOTTOM);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Campaign deleted successfully.')),
+        );
       } catch (e) {
-        Get.snackbar('Delete Failed', 'Could not delete campaign: $e', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not delete campaign: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }

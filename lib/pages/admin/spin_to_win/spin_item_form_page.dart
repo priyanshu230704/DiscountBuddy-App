@@ -86,7 +86,9 @@ class _SpinItemFormPageState extends State<SpinItemFormPage> {
         });
       }
     } catch (e) {
-      Get.snackbar('Image Error', 'Could not pick image: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not pick image: $e')),
+      );
     }
   }
 
@@ -123,7 +125,9 @@ class _SpinItemFormPageState extends State<SpinItemFormPage> {
           isActive: _isActive,
         );
         Get.back(result: true);
-        Get.snackbar('Success', 'Wheel slice item updated.');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Wheel slice item updated.')),
+        );
       } else {
         await _adminService.createItem(
           campaignId: _campaignId,
@@ -141,7 +145,9 @@ class _SpinItemFormPageState extends State<SpinItemFormPage> {
           isActive: _isActive,
         );
         Get.back(result: true);
-        Get.snackbar('Success', 'Wheel slice item added.');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Wheel slice item added.')),
+        );
       }
     } catch (e) {
       setState(() {

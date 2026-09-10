@@ -231,7 +231,9 @@ class _MyPrizesScreenState extends State<MyPrizesScreen> {
                         InkWell(
                           onTap: () {
                             Clipboard.setData(ClipboardData(text: prize.promoCode));
-                            Get.snackbar('Copied', 'Promo code copied to clipboard!', snackPosition: SnackPosition.BOTTOM);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Promo code copied to clipboard!')),
+                            );
                           },
                           child: const Padding(
                             padding: EdgeInsets.all(4.0),

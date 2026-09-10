@@ -63,6 +63,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   HomeFilter? _activeFilter = HomeFilter.nearest;
 
+  static bool _hasAutoOpenedSpinThisSession = false;
   bool _hasActiveSpinWheel = false;
 
   @override
@@ -83,9 +84,19 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     try {
       final wheel = await CustomerSpinService().getWheel();
       if (mounted) {
+        final isActiveWithSpins = wheel.isActive && wheel.remainingSpinsToday > 0;
         setState(() {
-          _hasActiveSpinWheel = wheel.isActive && wheel.remainingSpinsToday > 0;
+          _hasActiveSpinWheel = isActiveWithSpins;
         });
+
+        if (isActiveWithSpins && !_hasAutoOpenedSpinThisSession) {
+          _hasAutoOpenedSpinThisSession = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              SpinWheelScreen.showModal(context);
+            }
+          });
+        }
       }
     } catch (_) {
       if (mounted) {
@@ -809,7 +820,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         }
       } catch (e) {
         debugPrint('UrlLauncher error ($trimmed): $e');
-        Get.snackbar('Link Error', 'Could not open URL');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Link Error: Could not open URL')),
+        );
       }
     } else {
       try {

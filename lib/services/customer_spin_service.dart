@@ -26,11 +26,11 @@ class CustomerSpinService {
   }
 
   /// POST /api/v1/user/user/spin-to-win/spin
-  Future<SpinResultResponse> spinWheel() async {
+  Future<SpinResultResponse> spinWheel({required int campaignId}) async {
     try {
       final response = await _apiService.post(
         '/user/spin-to-win/spin',
-        body: {},
+        body: {'campaign_id': campaignId},
         type: ApiType.customerV1,
         withAuth: true,
       );

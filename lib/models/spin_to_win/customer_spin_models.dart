@@ -1,4 +1,22 @@
 import '../../config/environment.dart';
+import '../image_variants.dart';
+
+int _parseJsonInt(dynamic value, {int fallback = 0}) {
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  if (value is String) return int.tryParse(value) ?? fallback;
+  return fallback;
+}
+
+List<CustomerSpinSlice> _parseSlices(dynamic rawSlices) {
+  if (rawSlices is! List) return [];
+  final parsed = rawSlices
+      .whereType<Map<String, dynamic>>()
+      .map(CustomerSpinSlice.fromJson)
+      .toList();
+  parsed.sort((a, b) => a.sliceIndex.compareTo(b.sliceIndex));
+  return parsed;
+}
 
 class CustomerSpinSlice {
   final int id;
@@ -31,66 +49,85 @@ class CustomerSpinSlice {
 
   factory CustomerSpinSlice.fromJson(Map<String, dynamic> json) {
     return CustomerSpinSlice(
-      id: json['id'] as int? ?? 0,
+      id: _parseJsonInt(json['id']),
       title: json['title'] as String? ?? '',
       itemType: json['item_type'] as String? ?? 'empty',
-      sliceIndex: json['slice_index'] as int? ?? 0,
+      sliceIndex: _parseJsonInt(json['slice_index']),
       icon: json['icon'] as String? ?? '',
-      image: json['image'] as String?,
+      image: parseApiImageUrl(json['image'] ?? json['image_url']),
       promoCodeValue: json['promo_code_value'] as String? ?? '',
     );
   }
 }
 
-class SpinWheelResponse {
-  final bool isActive;
-  final String? message;
-  final int? campaignId;
-  final String? title;
-  final String? description;
+class SpinCampaignWheel {
+  final int campaignId;
+  final String title;
+  final String description;
   final int maxSpinsPerDay;
   final int remainingSpinsToday;
   final List<CustomerSpinSlice> slices;
 
-  SpinWheelResponse({
-    required this.isActive,
-    this.message,
-    this.campaignId,
-    this.title,
-    this.description,
+  SpinCampaignWheel({
+    required this.campaignId,
+    this.title = '',
+    this.description = '',
     this.maxSpinsPerDay = 0,
     this.remainingSpinsToday = 0,
     this.slices = const [],
   });
 
+  factory SpinCampaignWheel.fromJson(Map<String, dynamic> json) {
+    return SpinCampaignWheel(
+      campaignId: _parseJsonInt(json['campaign_id'] ?? json['id']),
+      title: json['title'] as String? ?? 'Spin to Win',
+      description: json['description'] as String? ?? '',
+      maxSpinsPerDay: _parseJsonInt(json['max_spins_per_day'], fallback: 1),
+      remainingSpinsToday: _parseJsonInt(json['remaining_spins_today']),
+      slices: _parseSlices(json['slices']),
+    );
+  }
+}
+
+class SpinWheelResponse {
+  final List<SpinCampaignWheel> campaigns;
+  final String? message;
+
+  SpinWheelResponse({
+    this.campaigns = const [],
+    this.message,
+  });
+
+  bool get isActive => campaigns.isNotEmpty;
+
+  bool get hasSpinsRemaining =>
+      campaigns.any((campaign) => campaign.remainingSpinsToday > 0);
+
   factory SpinWheelResponse.fromJson(Map<String, dynamic> json) {
-    final isActive = json['is_active'] as bool? ?? false;
-    if (!isActive) {
+    final rawCampaigns = json['campaigns'];
+    if (rawCampaigns is List) {
       return SpinWheelResponse(
-        isActive: false,
-        message: json['message'] as String? ?? 'No active Spin to Win campaign currently available.',
+        campaigns: rawCampaigns
+            .whereType<Map<String, dynamic>>()
+            .map(SpinCampaignWheel.fromJson)
+            .toList(),
+        message: json['message'] as String?,
       );
     }
 
-    final rawSlices = json['slices'];
-    List<CustomerSpinSlice> parsedSlices = [];
-    if (rawSlices is List) {
-      parsedSlices = rawSlices
-          .whereType<Map<String, dynamic>>()
-          .map((s) => CustomerSpinSlice.fromJson(s))
-          .toList();
-      // Sort by slice_index
-      parsedSlices.sort((a, b) => a.sliceIndex.compareTo(b.sliceIndex));
+    // Legacy single-campaign payload
+    final isActive = json['is_active'] as bool? ?? json['campaign_id'] != null;
+    if (!isActive) {
+      return SpinWheelResponse(
+        campaigns: const [],
+        message: json['message'] as String? ??
+            'No active Spin to Win campaigns currently available.',
+      );
     }
 
     return SpinWheelResponse(
-      isActive: true,
-      campaignId: json['campaign_id'] as int?,
-      title: json['title'] as String? ?? 'Spin to Win',
-      description: json['description'] as String? ?? '',
-      maxSpinsPerDay: json['max_spins_per_day'] as int? ?? 1,
-      remainingSpinsToday: json['remaining_spins_today'] as int? ?? 0,
-      slices: parsedSlices,
+      campaigns: [SpinCampaignWheel.fromJson(json)],
+      message: json['message'] as String?,
     );
   }
 }
@@ -102,6 +139,7 @@ class SpinResultResponse {
   final String title;
   final String itemType;
   final String promoCode;
+  final String? image;
   final DateTime spunAt;
 
   SpinResultResponse({
@@ -111,8 +149,17 @@ class SpinResultResponse {
     required this.title,
     required this.itemType,
     required this.promoCode,
+    this.image,
     required this.spunAt,
   });
+
+  String? get displayImage {
+    if (image == null || image!.isEmpty) return null;
+    if (image!.startsWith('http://') || image!.startsWith('https://')) {
+      return image;
+    }
+    return '${Environment.baseUrl}$image';
+  }
 
   factory SpinResultResponse.fromJson(Map<String, dynamic> json) {
     DateTime parseDate(dynamic val) {
@@ -128,6 +175,7 @@ class SpinResultResponse {
       title: json['title'] as String? ?? json['item_title'] as String? ?? '',
       itemType: json['item_type'] as String? ?? 'empty',
       promoCode: json['promo_code'] as String? ?? '',
+      image: parseApiImageUrl(json['image'] ?? json['image_url']),
       spunAt: parseDate(json['spun_at']),
     );
   }

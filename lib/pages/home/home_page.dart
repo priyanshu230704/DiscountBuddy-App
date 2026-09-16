@@ -84,7 +84,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     try {
       final wheel = await CustomerSpinService().getWheel();
       if (mounted) {
-        final isActiveWithSpins = wheel.isActive && wheel.remainingSpinsToday > 0;
+        final isActiveWithSpins = wheel.hasSpinsRemaining;
         setState(() {
           _hasActiveSpinWheel = isActiveWithSpins;
         });
@@ -315,7 +315,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         final Map<int, String> cuisineMap = {};
         cuisinesData.forEach((key, value) {
           if (value is Map<String, dynamic>) {
-            final id = value['id'] as int?;
+            final id = _parseHomeId(value['id']) ?? _parseHomeId(key);
             final name = value['name'] as String?;
             if (id != null && name != null) {
               cuisineMap[id] = name;
@@ -336,8 +336,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
           // Resolve ALL cuisine names
           List<String> cuisineNameList = [];
-          for (final cId in cuisineIds) {
-            final name = cuisineMap[cId as int];
+          for (final cIdRaw in cuisineIds) {
+            final cId = _parseHomeId(cIdRaw);
+            if (cId == null) continue;
+            final name = cuisineMap[cId];
             if (name != null) cuisineNameList.add(name);
           }
           String resolvedCuisine = 'Restaurant';
@@ -371,28 +373,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           );
         }
 
-        // Parse sections
-        final List<int> allIds = List<int>.from(
+        // Keep section order from the API (string or int IDs).
+        final List<int> allIds = _parseHomeIdList(
           sections['all_restaurants'] ??
-              (restaurantsData.keys
-                  .map((k) => int.tryParse(k))
-                  .whereType<int>()
-                  .toList()),
+              restaurantsData.keys.toList(),
         );
-        final List<int> nearbyIds = List<int>.from(sections['nearby'] ?? []);
+        final List<int> nearbyIds = _parseHomeIdList(sections['nearby']);
 
         final allRestaurants = allIds.map((id) => parseRestaurant(id)).toList();
         final nearbyRestaurants = nearbyIds
             .map((id) => parseRestaurant(id))
             .toList();
-
-        // Sort by leaderboard score (highest first)
-        allRestaurants.sort(
-          (a, b) => b.leaderboardScore.compareTo(a.leaderboardScore),
-        );
-        nearbyRestaurants.sort(
-          (a, b) => b.leaderboardScore.compareTo(a.leaderboardScore),
-        );
 
         if (!mounted) return;
         setState(() {
@@ -425,6 +416,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   double _kmToMiles(double km) => km * 0.621371;
+
+  int? _parseHomeId(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value);
+    return null;
+  }
+
+  List<int> _parseHomeIdList(dynamic raw) {
+    if (raw is! List) return [];
+    return raw.map(_parseHomeId).whereType<int>().toList();
+  }
 
   List<String> _getOfferTags(Restaurant restaurant) {
     final tags = <String>[];
@@ -462,17 +465,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   List<Restaurant> _applyFilter(List<Restaurant> list) {
     if (_activeFilter == HomeFilter.nearest) {
-      // For Best Near You, always map to the nearby list instead
-      final copy = [..._nearbyRestaurants];
-      copy.sort((a, b) => b.leaderboardScore.compareTo(a.leaderboardScore));
-      return copy;
+      // Nearby section is already distance-sorted by the API.
+      return [..._nearbyRestaurants];
     }
 
     final copy = [...list];
 
     switch (_activeFilter) {
-      case HomeFilter.offers: // Now acts as All Restaurants
-        copy.sort((a, b) => b.leaderboardScore.compareTo(a.leaderboardScore));
+      case HomeFilter.offers:
+        // All restaurants — keep API order (deals, claims, rating, featured).
         return copy;
       case HomeFilter.rating: // Top Rated
         copy.sort((a, b) {

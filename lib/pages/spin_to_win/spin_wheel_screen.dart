@@ -1,4 +1,9 @@
+import 'dart:async';
 import 'dart:math' as math;
+import 'dart:ui' as ui;
+
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -36,7 +41,8 @@ class SpinWheelScreen extends StatefulWidget {
 class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProviderStateMixin {
   final CustomerSpinService _spinService = CustomerSpinService();
 
-  SpinWheelResponse? _wheelData;
+  SpinWheelResponse? _wheelResponse;
+  int _selectedCampaignIndex = 0;
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -44,6 +50,14 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
   late Animation<double> _wheelAnimation;
   double _currentRotation = 0.0;
   bool _isSpinning = false;
+  final Map<int, ui.Image> _sliceImages = {};
+
+  SpinCampaignWheel? get _selectedCampaign {
+    final campaigns = _wheelResponse?.campaigns ?? const <SpinCampaignWheel>[];
+    if (campaigns.isEmpty) return null;
+    final index = _selectedCampaignIndex.clamp(0, campaigns.length - 1);
+    return campaigns[index];
+  }
 
   @override
   void initState() {
@@ -73,10 +87,23 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
 
     try {
       final response = await _spinService.getWheel();
+      if (!mounted) return;
+      final previousId = _selectedCampaign?.campaignId;
+      int nextIndex = 0;
+      if (previousId != null) {
+        final found = response.campaigns.indexWhere((c) => c.campaignId == previousId);
+        if (found >= 0) nextIndex = found;
+      }
       setState(() {
-        _wheelData = response;
+        _wheelResponse = response;
+        _selectedCampaignIndex = nextIndex;
         _isLoading = false;
+        _sliceImages.clear();
       });
+      final selected = _selectedCampaign;
+      if (selected != null) {
+        _preloadSliceImages(selected.slices);
+      }
     } catch (e) {
       setState(() {
         _errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -85,12 +112,76 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
     }
   }
 
+  Future<void> _preloadSliceImages(List<CustomerSpinSlice> slices) async {
+    for (final slice in slices) {
+      final url = slice.displayImage;
+      if (url == null || _sliceImages.containsKey(slice.id)) continue;
+      try {
+        final image = await _loadUiImage(url);
+        if (!mounted) return;
+        setState(() {
+          _sliceImages[slice.id] = image;
+        });
+      } catch (_) {
+        // Title/icon fallback remains if the image cannot load.
+      }
+    }
+  }
+
+  Future<ui.Image> _loadUiImage(String url) {
+    final completer = Completer<ui.Image>();
+    final stream = CachedNetworkImageProvider(url).resolve(const ImageConfiguration());
+    late final ImageStreamListener listener;
+    listener = ImageStreamListener(
+      (info, _) {
+        if (!completer.isCompleted) completer.complete(info.image);
+        stream.removeListener(listener);
+      },
+      onError: (error, stackTrace) {
+        if (!completer.isCompleted) completer.completeError(error, stackTrace);
+        stream.removeListener(listener);
+      },
+    );
+    stream.addListener(listener);
+    return completer.future;
+  }
+
+  void _selectCampaign(int index) {
+    if (_isSpinning || index == _selectedCampaignIndex) return;
+    final campaigns = _wheelResponse?.campaigns ?? const <SpinCampaignWheel>[];
+    if (index < 0 || index >= campaigns.length) return;
+    setState(() {
+      _selectedCampaignIndex = index;
+      _currentRotation = 0.0;
+      _sliceImages.clear();
+    });
+    _preloadSliceImages(campaigns[index].slices);
+  }
+
+  CustomerSpinSlice? _matchingSlice(SpinResultResponse result) {
+    final slices = _selectedCampaign?.slices ?? [];
+    if (slices.isEmpty) return null;
+
+    for (final slice in slices) {
+      if (slice.sliceIndex == result.sliceIndex && slice.title == result.title) {
+        return slice;
+      }
+    }
+    for (final slice in slices) {
+      if (slice.title == result.title) return slice;
+    }
+    for (final slice in slices) {
+      if (slice.sliceIndex == result.sliceIndex) return slice;
+    }
+    return null;
+  }
+
   Future<void> _triggerSpin() async {
-    if (_isSpinning || _wheelData == null || !_wheelData!.isActive) return;
-    if (_wheelData!.remainingSpinsToday <= 0) {
+    if (_isSpinning || _selectedCampaign == null) return;
+    if (_selectedCampaign!.remainingSpinsToday <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Limit Reached: You have reached your daily spin limit of ${_wheelData!.maxSpinsPerDay}. Try again tomorrow!'),
+          content: Text('Limit Reached: You have reached your daily spin limit of ${_selectedCampaign!.maxSpinsPerDay}. Try again tomorrow!'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -102,9 +193,10 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
     });
 
     try {
-      final result = await _spinService.spinWheel();
+      final result = await _spinService.spinWheel(campaignId: _selectedCampaign!.campaignId);
       _animateWheelToSlice(result);
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _isSpinning = false;
       });
@@ -118,7 +210,7 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
   }
 
   void _animateWheelToSlice(SpinResultResponse result) {
-    final slices = _wheelData?.slices ?? [];
+    final slices = _selectedCampaign?.slices ?? [];
     if (slices.isEmpty) {
       setState(() => _isSpinning = false);
       return;
@@ -159,13 +251,15 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
         _isSpinning = false;
       });
 
+      final matchingSlice = _matchingSlice(result);
       _loadWheelData();
-      _showResultDialog(result);
+      _showResultDialog(result, matchingSlice);
     });
   }
 
-  void _showResultDialog(SpinResultResponse result) {
+  void _showResultDialog(SpinResultResponse result, CustomerSpinSlice? matchingSlice) {
     final isWin = result.isWin;
+    final imageUrl = result.displayImage ?? matchingSlice?.displayImage;
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -185,11 +279,32 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
                 ),
               ),
               const SizedBox(height: 16),
-              Icon(
-                isWin ? Icons.card_giftcard_rounded : Icons.sentiment_neutral_rounded,
-                size: 64,
-                color: isWin ? Colors.amber : Colors.grey,
-              ),
+              if (imageUrl != null)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    width: 96,
+                    height: 96,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => const SizedBox(
+                      width: 96,
+                      height: 96,
+                      child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                    ),
+                    errorWidget: (context, url, error) => Icon(
+                      isWin ? Icons.card_giftcard_rounded : Icons.sentiment_neutral_rounded,
+                      size: 64,
+                      color: isWin ? Colors.amber : Colors.grey,
+                    ),
+                  ),
+                )
+              else
+                Icon(
+                  isWin ? Icons.card_giftcard_rounded : Icons.sentiment_neutral_rounded,
+                  size: 64,
+                  color: isWin ? Colors.amber : Colors.grey,
+                ),
               const SizedBox(height: 12),
               Text(
                 result.title,
@@ -259,7 +374,7 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
           children: [
             _buildTopBar(context),
             Expanded(child: _buildBody()),
-            if (_wheelData != null && _wheelData!.isActive) _buildBottomButton(),
+            if (_selectedCampaign != null) _buildBottomButton(),
           ],
         ),
       ),
@@ -334,7 +449,7 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
       );
     }
 
-    if (_wheelData == null || !_wheelData!.isActive) {
+    if (_wheelResponse == null || !_wheelResponse!.isActive || _selectedCampaign == null) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -349,7 +464,7 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
               ),
               const SizedBox(height: 8),
               Text(
-                _wheelData?.message ?? 'No Spin to Win campaign currently active. Check back soon for rewards!',
+                _wheelResponse?.message ?? 'No Spin to Win campaign currently active. Check back soon for rewards!',
                 textAlign: TextAlign.center,
                 style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
               ),
@@ -359,7 +474,8 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
       );
     }
 
-    final slices = _wheelData!.slices;
+    final campaign = _selectedCampaign!;
+    final slices = campaign.slices;
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
@@ -369,8 +485,8 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
 
           // Main Header Title
           Text(
-            (_wheelData?.title != null && _wheelData!.title!.isNotEmpty)
-                ? _wheelData!.title!
+            campaign.title.isNotEmpty
+                ? campaign.title
                 : 'Spin to Unlock\nExclusive Discount',
             textAlign: TextAlign.center,
             style: const TextStyle(
@@ -386,8 +502,8 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Text(
-              (_wheelData?.description != null && _wheelData!.description!.isNotEmpty)
-                  ? _wheelData!.description!
+              campaign.description.isNotEmpty
+                  ? campaign.description
                   : 'Get 95% OFF on your first spin and unlock smarter, faster scanning today!',
               textAlign: TextAlign.center,
               style: const TextStyle(
@@ -398,6 +514,11 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
             ),
           ),
 
+          if (_wheelResponse!.campaigns.length > 1) ...[
+            const SizedBox(height: 16),
+            _buildCampaignPicker(),
+          ],
+
           const SizedBox(height: 24),
 
           // Wheel & Stand Graphic Container
@@ -405,6 +526,43 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
 
           const SizedBox(height: 16),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCampaignPicker() {
+    final campaigns = _wheelResponse?.campaigns ?? const <SpinCampaignWheel>[];
+    return SizedBox(
+      height: 42,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        itemCount: campaigns.length,
+        separatorBuilder: (context, index) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final campaign = campaigns[index];
+          final selected = index == _selectedCampaignIndex;
+          return ChoiceChip(
+            selected: selected,
+            label: Text(
+              '${campaign.title}  ${campaign.remainingSpinsToday}/${campaign.maxSpinsPerDay}',
+            ),
+            onSelected: _isSpinning ? null : (_) => _selectCampaign(index),
+            selectedColor: const Color(0xFF9333EA),
+            backgroundColor: Colors.grey.shade100,
+            labelStyle: TextStyle(
+              color: selected ? Colors.white : const Color(0xFF1E1B4B),
+              fontWeight: FontWeight.w700,
+              fontSize: 12,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: BorderSide(
+                color: selected ? const Color(0xFF9333EA) : Colors.grey.shade300,
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -473,7 +631,10 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
                     angle: rotationAngle,
                     child: CustomPaint(
                       size: const Size(270, 270),
-                      painter: _ReferenceWheelPainter(slices: slices),
+                      painter: _ReferenceWheelPainter(
+                        slices: slices,
+                        sliceImages: Map<int, ui.Image>.from(_sliceImages),
+                      ),
                     ),
                   );
                 },
@@ -518,8 +679,8 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
   }
 
   Widget _buildBottomButton() {
-    final remaining = _wheelData?.remainingSpinsToday ?? 0;
-    final total = _wheelData?.maxSpinsPerDay ?? 1;
+    final remaining = _selectedCampaign?.remainingSpinsToday ?? 0;
+    final total = _selectedCampaign?.maxSpinsPerDay ?? 1;
 
     String btnText = 'Spin $remaining/$total';
     if (remaining <= 0) {
@@ -585,8 +746,12 @@ class _CircleIconButton extends StatelessWidget {
 
 class _ReferenceWheelPainter extends CustomPainter {
   final List<CustomerSpinSlice> slices;
+  final Map<int, ui.Image> sliceImages;
 
-  _ReferenceWheelPainter({required this.slices});
+  _ReferenceWheelPainter({
+    required this.slices,
+    this.sliceImages = const {},
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -599,6 +764,7 @@ class _ReferenceWheelPainter extends CustomPainter {
 
     final totalSlices = slices.length;
     final sweepAngle = (2 * math.pi) / totalSlices;
+    final imageSize = totalSlices <= 4 ? 48.0 : (totalSlices <= 6 ? 40.0 : 32.0);
 
     // 1. Draw Outer Dark Frame/Rim
     final rimPaint = Paint()
@@ -631,43 +797,79 @@ class _ReferenceWheelPainter extends CustomPainter {
       final lineY = center.dy + innerRadius * math.sin(startAngle);
       canvas.drawLine(center, Offset(lineX, lineY), linePaint);
 
-      // 3. Radial Text inside slice
+      // 3. Radial image + text inside slice
       canvas.save();
+      final item = slices[i];
+      final sliceImage = sliceImages[item.id];
+      final hasImage = sliceImage != null;
       final textAngle = startAngle + (sweepAngle / 2);
-      final textDistance = innerRadius * 0.62;
-      final textX = center.dx + textDistance * math.cos(textAngle);
-      final textY = center.dy + textDistance * math.sin(textAngle);
+      final contentDistance = innerRadius * (hasImage ? 0.58 : 0.62);
+      final textX = center.dx + contentDistance * math.cos(textAngle);
+      final textY = center.dy + contentDistance * math.sin(textAngle);
 
       canvas.translate(textX, textY);
       canvas.rotate(textAngle + (math.pi / 2));
 
-      final item = slices[i];
-      final titleText = item.title.isNotEmpty ? item.title : (item.icon.isNotEmpty ? item.icon : '🎁');
+      if (hasImage) {
+        final imageRect = Rect.fromCenter(
+          center: Offset(0, item.title.isNotEmpty ? -10 : 0),
+          width: imageSize,
+          height: imageSize,
+        );
+        final bgPaint = Paint()..color = Colors.white;
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(imageRect.inflate(2), const Radius.circular(10)),
+          bgPaint,
+        );
+        canvas.save();
+        canvas.clipRRect(
+          RRect.fromRectAndRadius(imageRect, const Radius.circular(8)),
+        );
+        paintImage(
+          canvas: canvas,
+          rect: imageRect,
+          image: sliceImage,
+          fit: BoxFit.cover,
+          filterQuality: FilterQuality.medium,
+        );
+        canvas.restore();
+      }
 
-      final textSpan = TextSpan(
-        text: titleText,
-        style: TextStyle(
-          color: isPurple ? Colors.white : const Color(0xFF18181B),
-          fontSize: 13,
-          fontWeight: FontWeight.w800,
-        ),
-      );
+      final titleText = item.title.isNotEmpty
+          ? item.title
+          : (hasImage ? '' : (item.icon.isNotEmpty ? item.icon : '🎁'));
 
-      final textPainter = TextPainter(
-        text: textSpan,
-        textAlign: TextAlign.center,
-        textDirection: TextDirection.ltr,
-      );
+      if (titleText.isNotEmpty) {
+        final textSpan = TextSpan(
+          text: titleText,
+          style: TextStyle(
+            color: isPurple ? Colors.white : const Color(0xFF18181B),
+            fontSize: hasImage ? 10 : 13,
+            fontWeight: FontWeight.w800,
+          ),
+        );
 
-      textPainter.layout(maxWidth: 80);
-      textPainter.paint(canvas, Offset(-textPainter.width / 2, -textPainter.height / 2));
+        final textPainter = TextPainter(
+          text: textSpan,
+          textAlign: TextAlign.center,
+          textDirection: TextDirection.ltr,
+          maxLines: 2,
+          ellipsis: '…',
+        );
+
+        textPainter.layout(maxWidth: hasImage ? 64 : 80);
+        final textYOffset = hasImage ? (imageSize / 2) - 4 : -textPainter.height / 2;
+        textPainter.paint(canvas, Offset(-textPainter.width / 2, textYOffset));
+      }
 
       canvas.restore();
     }
   }
 
   @override
-  bool shouldRepaint(covariant _ReferenceWheelPainter oldDelegate) => oldDelegate.slices != slices;
+  bool shouldRepaint(covariant _ReferenceWheelPainter oldDelegate) {
+    return oldDelegate.slices != slices || !mapEquals(oldDelegate.sliceImages, sliceImages);
+  }
 }
 
 class _TeardropPointerPainter extends CustomPainter {

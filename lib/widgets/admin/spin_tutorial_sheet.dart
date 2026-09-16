@@ -97,8 +97,8 @@ class SpinToWinTutorialSheet extends StatelessWidget {
                       ),
                       SizedBox(height: 6),
                       _GuideBullet(
-                        boldText: '1 Active Campaign Rule: ',
-                        normalText: 'Customers always see the first active campaign. Keep only 1 campaign ACTIVE at a time.',
+                        boldText: 'Multiple Active Campaigns: ',
+                        normalText: 'You can keep several campaigns ACTIVE at once. Customers see every active wheel and spin the one they pick.',
                       ),
                     ],
                   ),
@@ -117,7 +117,7 @@ class SpinToWinTutorialSheet extends StatelessWidget {
                       _StepItem(
                         step: '1',
                         title: 'Create Campaign',
-                        subtitle: 'Tap "+ New Campaign". Enter title, description, max spins/user/day (e.g. 1), and turn is_active ON.',
+                        subtitle: 'Tap "+ New Campaign". Enter title, description, max spins/user/day (e.g. 1), and turn is_active ON. Multiple campaigns can be active at once — the customer app shows every active wheel.',
                       ),
                       SizedBox(height: 10),
                       _StepItem(
@@ -194,8 +194,13 @@ class SpinToWinTutorialSheet extends StatelessWidget {
                       ),
                       SizedBox(height: 6),
                       _GuideBullet(
+                        boldText: 'Multiple Wheels: ',
+                        normalText: 'Leave several campaigns is_active ON to run them at the same time. Customers pick a wheel, and each spin sends that campaign_id.',
+                      ),
+                      SizedBox(height: 6),
+                      _GuideBullet(
                         boldText: 'New Month / Wheel: ',
-                        normalText: 'Deactivate old campaign, then create a new active campaign with fresh slices.',
+                        normalText: 'Deactivate old campaign, or keep it on and add another active campaign with fresh slices.',
                       ),
                       SizedBox(height: 6),
                       _GuideBullet(

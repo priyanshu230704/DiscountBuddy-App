@@ -124,8 +124,6 @@ class _SpinCampaignsListPageState extends State<SpinCampaignsListPage> {
 
   @override
   Widget build(BuildContext context) {
-    final activeCount = _campaigns.where((c) => c.isActive).length;
-
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -165,31 +163,7 @@ class _SpinCampaignsListPageState extends State<SpinCampaignsListPage> {
       ),
       body: RefreshIndicator(
         onRefresh: () => _loadCampaigns(refresh: true),
-        child: Column(
-          children: [
-            // Warning Banner if multiple active campaigns
-            if (activeCount > 1)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                color: Colors.amber.shade100,
-                child: Row(
-                  children: [
-                    Icon(Icons.warning_amber_rounded, color: Colors.amber.shade900),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Warning: $activeCount campaigns are active. Backend only uses the first active campaign.',
-                        style: TextStyle(color: Colors.amber.shade900, fontSize: 12, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-            Expanded(child: _buildBody()),
-          ],
-        ),
+        child: _buildBody(),
       ),
     );
   }

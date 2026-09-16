@@ -23,3 +23,15 @@ class ImageVariants {
   String? urlFor({required bool fullScreen}) =>
       fullScreen ? (large ?? medium) : (medium ?? large);
 }
+
+/// Reads a media URL from either a plain string or nested `{ medium, large }`.
+String? parseApiImageUrl(dynamic raw) {
+  if (raw is String && raw.trim().isNotEmpty) return raw.trim();
+  if (raw is Map) {
+    final medium = raw['medium'];
+    final large = raw['large'];
+    if (medium is String && medium.trim().isNotEmpty) return medium.trim();
+    if (large is String && large.trim().isNotEmpty) return large.trim();
+  }
+  return null;
+}

@@ -1,4 +1,5 @@
 import '../../config/environment.dart';
+import '../image_variants.dart';
 
 enum SpinItemType {
   promocode, // "promocode"
@@ -103,7 +104,7 @@ class SpinItem {
       title: json['title'] as String? ?? '',
       description: json['description'] as String? ?? '',
       icon: json['icon'] as String? ?? '🎁',
-      image: json['image'] as String?,
+      image: parseApiImageUrl(json['image'] ?? json['image_url']),
       itemType: SpinItemTypeExtension.fromValue(json['item_type'] as String?),
       promoCodeValue: json['promo_code_value'] as String? ?? '',
       discountPercentage: parseDouble(json['discount_percentage']),

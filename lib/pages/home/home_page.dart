@@ -1278,7 +1278,7 @@ class _GradientBanner extends StatelessWidget {
                 width: 130,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => Image.asset(
-                  "assets/png/banner-sm.png",
+                  "assets/png/db_logo.png",
                   width: 130,
                   fit: BoxFit.cover,
                 ),

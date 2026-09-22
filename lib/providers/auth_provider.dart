@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
+import '../core/analytics/analytics_service.dart';
 import '../services/auth_service.dart';
 import '../services/firebase_messaging_service.dart';
 import '../models/api_user.dart';
@@ -130,6 +131,7 @@ class AuthProvider extends ChangeNotifier {
         password: password,
         role: role,
       );
+      AnalyticsService.instance.logSignUp(method: 'email');
 
       // After successful registration, login the user
       return await login(email: email, password: password);
@@ -210,6 +212,7 @@ class AuthProvider extends ChangeNotifier {
         password: password,
         username: username,
       );
+      AnalyticsService.instance.logSignUp(method: 'email');
 
       // After successful registration, login the user
       return await login(email: email, password: password);
@@ -251,6 +254,7 @@ class AuthProvider extends ChangeNotifier {
       _isGuestMode.value = false;
       _isLoading.value = false;
       notifyListeners();
+      _trackLogin('email');
 
       // Register FCM token with backend after successful login
       try {
@@ -291,6 +295,7 @@ class AuthProvider extends ChangeNotifier {
         'DEBUG: AuthProvider.loginWithGoogle -> Success: authenticated as ${_user.value?.email}',
       );
       notifyListeners();
+      _trackLogin('google');
 
       // Register FCM token with backend after successful login
       try {
@@ -340,6 +345,7 @@ class AuthProvider extends ChangeNotifier {
         'DEBUG: AuthProvider.loginWithApple -> Success: authenticated as ${_user.value?.email}',
       );
       notifyListeners();
+      _trackLogin('apple');
 
       // Register FCM token with backend after successful login
       try {
@@ -392,7 +398,18 @@ class AuthProvider extends ChangeNotifier {
       _errorMessage.value = null;
       _isLoading.value = false;
       notifyListeners();
+      AnalyticsService.instance.setUserId(null);
+      AnalyticsService.instance.setUserType(null);
     }
+  }
+
+  /// Log the `login` event and attach the internal user id / role to
+  /// Analytics. Never uses email or other PII.
+  void _trackLogin(String method) {
+    final analytics = AnalyticsService.instance;
+    analytics.logLogin(method: method);
+    analytics.setUserId(_user.value?.id);
+    analytics.setUserType(_userRole.value);
   }
 
   /// Clear error message

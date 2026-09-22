@@ -10,6 +10,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:discount_buddy/design/app_typography.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'main_navigation.dart';
+import '../core/analytics/analytics_events.dart';
+import '../core/analytics/analytics_service.dart';
 import '../models/restaurant.dart';
 import '../models/restaurant_detail.dart';
 import '../models/review.dart';
@@ -290,6 +292,16 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
         _isLoading = false;
       });
 
+      final analytics = AnalyticsService.instance;
+      analytics.logScreenView(
+        AnalyticsScreens.restaurantDetails,
+        screenClass: 'RestaurantDetailsPage',
+      );
+      analytics.restaurantViewed(
+        restaurantId: restaurantDetail.restaurant.id,
+        restaurantName: restaurantDetail.restaurant.name,
+      );
+
       _startCarouselTimer();
 
       // Check for mystery visit if user is a mystery guest
@@ -441,6 +453,11 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
         slug,
         currentStatus,
       );
+      if (newStatus && !currentStatus) {
+        AnalyticsService.instance.restaurantFavorited(
+          restaurantId: _restaurantDetail!.restaurant.id,
+        );
+      }
       if (mounted) {
         setState(() {
           _isFavorite = newStatus;
@@ -1755,6 +1772,10 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             LoginRequiredSheet.show(context);
                             return;
                           }
+                          AnalyticsService.instance.bookingStarted(
+                            restaurantId: restaurant.id,
+                            source: 'book_table_button',
+                          );
                           Get.toNamed(
                             AppRoutes.createBooking,
                             arguments: {
@@ -1783,8 +1804,19 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                           LoginRequiredSheet.show(context);
                           return;
                         }
+                        final hasDeal =
+                            restaurant.activeDeals.any((d) => d.type != 'none');
+                        AnalyticsService.instance.redeemStarted(
+                          restaurantId: restaurant.id,
+                          type: hasDeal ? 'deal' : 'loyalty_visit',
+                          source: 'details_button',
+                        );
                         if (restaurant.requiresBooking &&
                             restaurant.bookingsEnabled) {
+                          AnalyticsService.instance.bookingStarted(
+                            restaurantId: restaurant.id,
+                            source: 'redeem_requires_booking',
+                          );
                           showModalBottomSheet(
                             context: context,
                             isScrollControlled: true,
@@ -3083,6 +3115,10 @@ class _LoyaltyCardSectionState extends State<_LoyaltyCardSection> {
   bool _loadingCard = false;
 
   void _showRewardQrDialog(BuildContext context) {
+    AnalyticsService.instance.loyaltyCardViewed(
+      restaurantId: widget.restaurantId.toString(),
+      source: 'restaurant_details',
+    );
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,

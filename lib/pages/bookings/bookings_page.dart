@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import '../../components/app_app_bar.dart';
 import '../../components/layout.dart';
 import '../../components/buttons.dart';
+import '../../core/analytics/analytics_service.dart';
 import '../../models/deal_redemption.dart';
 import '../../models/user_interactions.dart';
 import '../../services/restaurant_service.dart';
@@ -126,8 +127,15 @@ class _BookingsPageState extends State<BookingsPage>
 
     if (confirmed == true) {
       setState(() => _isLoading = true);
+      final restaurantId = _bookings
+          .firstWhereOrNull((b) => b.id == bookingId)
+          ?.restaurantId;
       try {
         await _restaurantService.deleteBooking(bookingId);
+        AnalyticsService.instance.bookingCancelled(
+          bookingId: bookingId,
+          restaurantId: restaurantId?.toString(),
+        );
         await _loadData();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

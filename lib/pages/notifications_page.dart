@@ -3,6 +3,8 @@ import 'package:discount_buddy/design/app_design.dart';
 import 'package:intl/intl.dart';
 import '../../models/notification.dart';
 import '../../services/notification_service.dart';
+import '../core/analytics/analytics_events.dart';
+import '../core/analytics/analytics_service.dart';
 import '../widgets/app_scaffold.dart';
 import '../components/app_app_bar.dart';
 import '../widgets/empty_state_widget.dart';
@@ -34,6 +36,10 @@ class _NotificationsPageState extends State<NotificationsPage>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    AnalyticsService.instance.logScreenView(
+      AnalyticsScreens.notifications,
+      screenClass: 'NotificationsPage',
+    );
     _initPage();
     _scrollController.addListener(_onScroll);
   }
@@ -256,6 +262,10 @@ class _NotificationsPageState extends State<NotificationsPage>
         return _NotificationTile(
           notification: notification,
           onTap: () {
+            AnalyticsService.instance.notificationOpen(
+              source: 'in_app',
+              notificationType: notification.notificationType,
+            );
             NotificationService.handleNotificationNavigation(
               context,
               notification.notificationType,

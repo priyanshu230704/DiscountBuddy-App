@@ -3,6 +3,7 @@ import 'package:discount_buddy/design/app_design.dart';
 import 'package:discount_buddy/components/app_app_bar.dart';
 import 'package:discount_buddy/components/layout.dart';
 import 'package:discount_buddy/utils/date_time_utils.dart';
+import '../../core/analytics/analytics_service.dart';
 import '../../services/booking_service.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/app_gradient_button.dart';
@@ -128,6 +129,12 @@ class _CreateBookingPageState extends State<CreateBookingPage> {
         contactPhone: _phoneController.text.isNotEmpty
             ? _phoneController.text
             : null,
+      );
+
+      AnalyticsService.instance.bookingCreated(
+        restaurantId: widget.restaurantId.toString(),
+        guests: int.tryParse(_guestsController.text),
+        source: 'create_booking_page',
       );
 
       if (mounted) {

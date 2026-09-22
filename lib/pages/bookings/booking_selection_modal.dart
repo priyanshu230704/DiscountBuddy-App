@@ -8,6 +8,7 @@ import '../../design/app_spacing.dart';
 import '../../design/app_typography.dart';
 import '../../components/buttons.dart';
 import '../../components/inputs.dart';
+import '../../core/analytics/analytics_service.dart';
 import '../../providers/auth_provider.dart';
 import '../deals/redeem_offer_modal.dart';
 import '../../widgets/generic_bottom_sheet.dart';
@@ -114,6 +115,12 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
         specialRequests: _requestsController.text,
         contactName: AuthProvider().user?.email ?? 'Guest',
         contactPhone: '',
+      );
+
+      AnalyticsService.instance.bookingCreated(
+        restaurantId: widget.restaurant.id,
+        guests: _guestCount,
+        source: 'redeem_booking_modal',
       );
 
       if (mounted) {

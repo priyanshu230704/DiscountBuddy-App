@@ -5,6 +5,8 @@ import 'package:get/get.dart';
 import 'dart:math' as math;
 
 import 'package:discount_buddy/theme/app_colors.dart';
+import '../core/analytics/analytics_events.dart';
+import '../core/analytics/analytics_service.dart';
 import '../providers/auth_provider.dart';
 import '../routes/app_routes.dart';
 import 'home/home_page.dart';
@@ -41,8 +43,33 @@ class MainNavigationState extends State<MainNavigation> {
     setState(() {
       _currentIndex = index;
     });
+    _logTabScreen(index);
   }
   late int _currentIndex;
+
+  /// Tabs live inside an IndexedStack, so Firebase's route observer never
+  /// sees them. Log a screen_view manually on every tab change.
+  void _logTabScreen(int index) {
+    final String? name;
+    if (_authProvider.isMerchant) {
+      name = switch (index) {
+        0 => 'MerchantDashboard',
+        1 => 'MerchantRestaurants',
+        2 => 'MerchantMenu',
+        3 => AnalyticsScreens.profile,
+        _ => null,
+      };
+    } else {
+      name = switch (index) {
+        0 => AnalyticsScreens.home,
+        1 => AnalyticsScreens.nearby,
+        2 => AnalyticsScreens.bookings,
+        3 => AnalyticsScreens.profile,
+        _ => null,
+      };
+    }
+    if (name != null) AnalyticsService.instance.logScreenView(name);
+  }
   final AuthProvider _authProvider = AuthProvider();
   final Map<int, Widget> _pageCache = {};
   DateTime? _lastPressedAt;
@@ -57,6 +84,7 @@ class MainNavigationState extends State<MainNavigation> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _onAuthStateChanged();
+        _logTabScreen(_currentIndex);
       }
     });
   }
@@ -149,6 +177,7 @@ class MainNavigationState extends State<MainNavigation> {
             setState(() {
               _currentIndex = 0;
             });
+            _logTabScreen(0);
             return;
           }
 
@@ -221,6 +250,7 @@ class MainNavigationState extends State<MainNavigation> {
                           setState(() {
                             _currentIndex = 0;
                           });
+                          _logTabScreen(0);
                         },
                       );
                       return;
@@ -228,6 +258,7 @@ class MainNavigationState extends State<MainNavigation> {
                     setState(() {
                       _currentIndex = index;
                     });
+                    _logTabScreen(index);
                     if (index == 3) {
                       ProfilePage.onTabActivated.add(null);
                     }

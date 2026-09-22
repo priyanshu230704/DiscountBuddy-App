@@ -9,6 +9,8 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../design/app_colors.dart';
 import '../../design/app_typography.dart';
+import '../../core/analytics/analytics_events.dart';
+import '../../core/analytics/analytics_service.dart';
 import '../../models/spin_to_win/customer_spin_models.dart';
 import '../../routes/app_routes.dart';
 import '../../services/customer_spin_service.dart';
@@ -69,6 +71,10 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
     _wheelAnimation = CurvedAnimation(
       parent: _animationController,
       curve: Curves.decelerate,
+    );
+    AnalyticsService.instance.logScreenView(
+      AnalyticsScreens.spinToWin,
+      screenClass: 'SpinWheelScreen',
     );
     _loadWheelData();
   }
@@ -192,8 +198,16 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
       _isSpinning = true;
     });
 
+    final campaignId = _selectedCampaign!.campaignId;
+    AnalyticsService.instance.spinStarted(campaignId: campaignId);
+
     try {
-      final result = await _spinService.spinWheel(campaignId: _selectedCampaign!.campaignId);
+      final result = await _spinService.spinWheel(campaignId: campaignId);
+      AnalyticsService.instance.spinCompleted(
+        campaignId: campaignId,
+        isWin: result.isWin,
+        prizeTitle: result.title,
+      );
       _animateWheelToSlice(result);
     } catch (e) {
       if (!mounted) return;

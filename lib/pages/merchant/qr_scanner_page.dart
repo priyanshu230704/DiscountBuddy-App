@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../../core/analytics/analytics_service.dart';
 import '../../services/qr_scanner_service.dart';
 import '../../services/merchant_service.dart';
 import '../../models/deal_redemption.dart';
@@ -321,6 +322,15 @@ class _QRScannerPageState extends State<QRScannerPage> {
             ? LoyaltyProgram.fromJson(response['loyalty'] as Map<String, dynamic>)
             : null;
         final loyaltyRewardJustEarned = response['loyalty_reward_just_earned'] as bool? ?? false;
+        // Stamps are confirmed here on the merchant device, so this is the
+        // only place that can reliably record stamp_collected.
+        if (loyaltyData != null && loyaltyData.loyaltyCardEnabled) {
+          AnalyticsService.instance.stampCollected(
+            restaurantId: dealRedemption.restaurantId.toString(),
+            isLoyaltyOnly: dealRedemption.isLoyaltyOnly,
+            rewardJustEarned: loyaltyRewardJustEarned,
+          );
+        }
         _showSuccessDialog(dealRedemption, loyaltyData, loyaltyRewardJustEarned);
       } else {
         final reason = _cleanErrorMessage(response['reason'] ?? 'Redemption failed');
@@ -354,6 +364,10 @@ class _QRScannerPageState extends State<QRScannerPage> {
 
       final success = response['success'] ?? false;
       if (success) {
+        AnalyticsService.instance.rewardRedeemed(
+          restaurantId:
+              (response['restaurant_id'] ?? _selectedRestaurantId)?.toString(),
+        );
         _showLoyaltyRewardSuccessDialog(response);
       } else {
         final reason = _cleanErrorMessage(response['reason'] ?? 'Claim failed');

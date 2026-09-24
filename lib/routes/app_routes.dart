@@ -60,6 +60,8 @@ class AppRoutes {
   static const String adminSpinCampaignForm = '/admin-spin-campaign-form';
   static const String adminSpinItemForm = '/admin-spin-item-form';
   static const String adminSpinHistory = '/admin-spin-history';
+  static const String adminNotifications = '/admin-notifications';
+  static const String adminNotificationCompose = '/admin-notification-compose';
   // Customer Spin to Win
   static const String spinToWin = '/spin-to-win';
   static const String myPrizes = '/my-prizes';

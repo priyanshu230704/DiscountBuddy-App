@@ -185,6 +185,8 @@ class NotificationService {
         return '✅';
       case NotificationType.system:
         return '📢';
+      case NotificationType.promo:
+        return '🎁';
       case NotificationType.newBooking:
         return '📅';
       case NotificationType.newReview:
@@ -209,6 +211,8 @@ class NotificationService {
         return Icons.confirmation_number_rounded;
       case NotificationType.system:
         return Icons.campaign_rounded;
+      case NotificationType.promo:
+        return Icons.card_giftcard_rounded;
       case NotificationType.newBooking:
         return Icons.calendar_today_rounded;
       case NotificationType.newReview:
@@ -234,6 +238,8 @@ class NotificationService {
         return '#7C3AED'; // Purple
       case NotificationType.system:
         return '#3B82F6'; // Blue
+      case NotificationType.promo:
+        return '#F59E0B'; // Amber
       case NotificationType.newBooking:
         return '#F59E0B'; // Amber/Gold
       case NotificationType.newReview:
@@ -390,12 +396,16 @@ class NotificationService {
 
       // Customer specific notifications
       case NotificationType.favDeal:
-        final id = data?['restaurant_id'] ?? '';
-        if (id.toString().isNotEmpty) {
+      case NotificationType.promo:
+      case NotificationType.system:
+        final slug = data?['restaurant_slug'] ?? data?['restaurant_id'] ?? '';
+        if (slug.toString().isNotEmpty) {
           Get.toNamed(
             AppRoutes.restaurantDetails,
-            arguments: {'slug': id.toString()},
+            arguments: {'slug': slug.toString()},
           );
+        } else if (type == NotificationType.promo || type == NotificationType.system) {
+          Get.toNamed(AppRoutes.notifications);
         }
         break;
 

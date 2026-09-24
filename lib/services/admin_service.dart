@@ -6,6 +6,7 @@ import '../models/admin/app_banner.dart';
 import '../models/admin/spin_campaign.dart';
 import '../models/admin/spin_item.dart';
 import '../models/admin/spin_history.dart';
+import '../models/admin/notification_campaign.dart';
 
 class PaginatedResult<T> {
   final int count;
@@ -425,5 +426,81 @@ class AdminService {
       debugPrint('AdminService.getSpinHistory error: $e');
       rethrow;
     }
+  }
+
+  // ==================== PROMO NOTIFICATIONS ====================
+
+  Future<PaginatedResult<AdminNotificationCampaign>> getNotificationCampaigns({int page = 1}) async {
+    final response = await _apiService.get(
+      '/admin/notifications/campaigns',
+      queryParameters: {'page': page.toString()},
+      type: ApiType.admin,
+    );
+    return _extractPaginated(response, AdminNotificationCampaign.fromJson);
+  }
+
+  Future<Map<String, String>> generateNotificationCopy({
+    required String prompt,
+    String audience = 'all_customers',
+    int? restaurantId,
+  }) async {
+    final body = <String, dynamic>{
+      'prompt': prompt,
+      'audience': audience,
+      if (restaurantId != null) 'restaurant': restaurantId,
+    };
+    final response = await _apiService.post(
+      '/admin/notifications/campaigns/generate',
+      body: body,
+      type: ApiType.admin,
+    );
+    return {
+      'title': response['title'] as String? ?? '',
+      'body': response['body'] as String? ?? '',
+    };
+  }
+
+  Future<AdminNotificationCampaign> sendNotificationCampaign({
+    required String title,
+    required String message,
+    required String audience,
+    int? restaurantId,
+    File? imageFile,
+    DateTime? scheduledAt,
+  }) async {
+    final scheduledIso = scheduledAt?.toUtc().toIso8601String();
+    final fields = <String, String>{
+      'title': title,
+      'message': message,
+      'audience': audience,
+      if (restaurantId != null) 'restaurant': restaurantId.toString(),
+      if (scheduledIso != null) 'scheduled_at': scheduledIso,
+    };
+
+    Map<String, dynamic> response;
+    if (imageFile != null) {
+      final files = <String, http.MultipartFile>{
+        'image': await http.MultipartFile.fromPath('image', imageFile.path),
+      };
+      response = await _apiService.postMultipart(
+        '/admin/notifications/campaigns',
+        fields: fields,
+        files: files,
+        type: ApiType.admin,
+      );
+    } else {
+      response = await _apiService.post(
+        '/admin/notifications/campaigns',
+        body: {
+          'title': title,
+          'message': message,
+          'audience': audience,
+          if (restaurantId != null) 'restaurant': restaurantId,
+          if (scheduledIso != null) 'scheduled_at': scheduledIso,
+        },
+        type: ApiType.admin,
+      );
+    }
+    return AdminNotificationCampaign.fromJson(response);
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import 'package:intl/intl.dart';
 import '../../models/notification.dart';
@@ -418,6 +419,18 @@ class _NotificationTile extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  if (notification.image != null && notification.image!.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: CachedNetworkImage(
+                        imageUrl: notification.image!,
+                        height: 96,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   Text(
                     formatTime(notification.createdAt),

@@ -255,6 +255,14 @@ class _AdminHomePageState extends State<AdminHomePage> {
                   onTap: () => Get.toNamed(AppRoutes.adminSpinHistory),
                 ),
                 _AdminTile(
+                  title: 'Notifications',
+                  subtitle: 'Send promos to all or restaurant fans',
+                  icon: Icons.campaign_rounded,
+                  color: const Color(0xFFF59E0B),
+                  badge: 'PUSH',
+                  onTap: () => Get.toNamed(AppRoutes.adminNotifications),
+                ),
+                _AdminTile(
                   title: 'Django Admin',
                   subtitle: 'Restaurant approval & DB',
                   icon: Icons.open_in_new_rounded,

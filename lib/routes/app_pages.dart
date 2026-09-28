@@ -55,6 +55,7 @@ import '../pages/admin/spin_to_win/spin_item_form_page.dart';
 import '../pages/admin/spin_to_win/spin_history_page.dart';
 import '../pages/admin/notifications/notification_campaigns_list_page.dart';
 import '../pages/admin/notifications/notification_compose_page.dart';
+import '../pages/admin/analytics/admin_analytics_page.dart';
 
 // Customer Spin to Win Pages
 import '../pages/spin_to_win/spin_wheel_screen.dart';
@@ -449,6 +450,11 @@ class AppPages {
     GetPage(
       name: AppRoutes.adminNotificationCompose,
       page: () => const NotificationComposePage(),
+      transition: Transition.rightToLeft,
+    ),
+    GetPage(
+      name: AppRoutes.adminAnalytics,
+      page: () => const AdminAnalyticsPage(),
       transition: Transition.rightToLeft,
     ),
     // Customer Spin to Win Routes

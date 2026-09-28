@@ -7,6 +7,7 @@ import '../models/admin/spin_campaign.dart';
 import '../models/admin/spin_item.dart';
 import '../models/admin/spin_history.dart';
 import '../models/admin/notification_campaign.dart';
+import '../models/admin/analytics_dashboard.dart';
 
 class PaginatedResult<T> {
   final int count;
@@ -502,5 +503,20 @@ class AdminService {
       );
     }
     return AdminNotificationCampaign.fromJson(response);
+  }
+
+  Future<AdminAnalyticsDashboard> getAnalyticsDashboard({
+    String startDate = '30daysAgo',
+    String endDate = 'today',
+  }) async {
+    final response = await _apiService.get(
+      '/analytics/dashboard',
+      queryParameters: {
+        'start_date': startDate,
+        'end_date': endDate,
+      },
+      type: ApiType.admin,
+    );
+    return AdminAnalyticsDashboard.fromJson(response);
   }
 }

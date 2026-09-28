@@ -255,6 +255,14 @@ class _AdminHomePageState extends State<AdminHomePage> {
                   onTap: () => Get.toNamed(AppRoutes.adminSpinHistory),
                 ),
                 _AdminTile(
+                  title: 'Analytics',
+                  subtitle: 'Users, bookings, redemptions',
+                  icon: Icons.insights_rounded,
+                  color: const Color(0xFF0EA5E9),
+                  badge: 'GA4',
+                  onTap: () => Get.toNamed(AppRoutes.adminAnalytics),
+                ),
+                _AdminTile(
                   title: 'Notifications',
                   subtitle: 'Send promos to all or restaurant fans',
                   icon: Icons.campaign_rounded,

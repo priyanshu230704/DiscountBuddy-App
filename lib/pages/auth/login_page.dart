@@ -69,7 +69,11 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
 
       if (_authProvider.isAuthenticated) {
-        Get.offAllNamed(AppRoutes.home);
+        if (_authProvider.isAdmin) {
+          Get.offAllNamed(AppRoutes.adminHome);
+        } else {
+          Get.offAllNamed(AppRoutes.home);
+        }
         return;
       }
 

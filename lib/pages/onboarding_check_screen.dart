@@ -43,7 +43,11 @@ class _OnboardingCheckScreenState extends State<OnboardingCheckScreen> {
       if (!hasCompletedOnboarding) {
         Get.offNamed(AppRoutes.onboarding);
       } else if (isAuthenticated) {
-        Get.offNamed(AppRoutes.home);
+        if (_authProvider.isAdmin) {
+          Get.offNamed(AppRoutes.adminHome);
+        } else {
+          Get.offNamed(AppRoutes.home);
+        }
       } else {
         Get.offNamed(AppRoutes.login);
       }

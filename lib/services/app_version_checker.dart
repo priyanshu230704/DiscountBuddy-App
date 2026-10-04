@@ -6,7 +6,7 @@ import '../utils/navigator_key.dart';
 import '../widgets/optional_update_sheet.dart';
 import 'app_config_service.dart';
 
-/// Version checks at startup and on resume.
+/// Version check runs once at cold start (splash), not on resume or polling.
 ///
 /// - **Force / critical** → full-screen [AppUpdatePage]
 /// - **Optional** → popup once per app session (resets on cold start)
@@ -64,25 +64,6 @@ class AppVersionChecker {
 
       await OptionalUpdateSheet.show(context, versionInfo);
     });
-  }
-
-  /// Re-run on app resume — force/critical only (not optional popup again).
-  static Future<void> checkOnResume({String continueRoute = AppRoutes.home}) async {
-    if (_isShowingUpdatePage || _isChecking) return;
-
-    _isChecking = true;
-    try {
-      final versionInfo = await AppConfigService().checkVersion();
-      if (versionInfo == null || !versionInfo.isUpdateAvailable) return;
-      if (!_isForceOrCritical(versionInfo)) return;
-
-      _navigateToForceUpdatePage(versionInfo, continueRoute: continueRoute);
-    } catch (e) {
-      debugPrint('APP_VERSION_CHECK: Resume error: $e');
-      _isShowingUpdatePage = false;
-    } finally {
-      _isChecking = false;
-    }
   }
 
   static bool _isForceOrCritical(AppVersionInfo info) =>

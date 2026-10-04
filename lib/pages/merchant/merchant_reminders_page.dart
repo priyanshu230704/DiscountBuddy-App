@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:discount_buddy/design/app_design.dart';
+import 'package:discount_buddy/utils/date_time_utils.dart';
 import 'package:discount_buddy/widgets/app_scaffold.dart';
 import 'package:discount_buddy/components/app_app_bar.dart';
 import 'package:discount_buddy/services/merchant_service.dart';
@@ -152,16 +153,14 @@ class _MerchantRemindersPageState extends State<MerchantRemindersPage> {
     final dateStr = reminder['booking_date'];
     final initial = customer.toString().substring(0, 1).toUpperCase();
 
-    DateTime? date;
-    if (dateStr != null) {
-      date = DateTime.tryParse(dateStr);
-    }
-    
-    final formattedTime = date != null
-        ? '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}'
+    final wall = DateTimeUtils.wallClockFromBookingIso(dateStr);
+    final formattedTime = wall != null
+        ? DateTimeUtils.formatTimeOfDay24h(
+            TimeOfDay(hour: wall.hour, minute: wall.minute),
+          )
         : 'N/A';
-    final formattedDate = date != null
-        ? '${date.day.toString().padLeft(2, '0')} ${_getMonthShort(date.month)} ${date.year}'
+    final formattedDate = wall != null
+        ? '${wall.day.toString().padLeft(2, '0')} ${_getMonthShort(wall.month)} ${wall.year}'
         : 'N/A';
 
     final countdownText = _getCountdownText(dateStr);

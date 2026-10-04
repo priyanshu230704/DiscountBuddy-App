@@ -116,10 +116,9 @@ class Booking {
   final String restaurantName;
   final String restaurantSlug;
   final String? restaurantCityName;
-  /// `booking_date` from JSON: typically a UTC instant. For UI, use
-  /// [DateTimeUtils] formatters that call [DateTime.toLocal] on API instants; for
-  /// picker values use [DateTimeUtils.formatDateOnly] / [DateTimeUtils.formatTimeOfDay24h] only.
+  /// `booking_date` from JSON: UTC instant for sorting; use [bookingDateIso] for display.
   final DateTime bookingDate;
+  final String bookingDateIso;
 
   final int numberOfGuests;
   final BookingStatus status;
@@ -136,6 +135,7 @@ class Booking {
     required this.restaurantSlug,
     this.restaurantCityName,
     required this.bookingDate,
+    required this.bookingDateIso,
 
     required this.numberOfGuests,
     required this.status,
@@ -153,6 +153,7 @@ class Booking {
       restaurantName: json['restaurant_name'] as String? ?? '',
       restaurantSlug: json['restaurant_slug'] as String? ?? '',
       restaurantCityName: json['restaurant_city_name'] as String?,
+      bookingDateIso: json['booking_date'] as String,
       bookingDate: DateTime.parse(json['booking_date'] as String),
 
       numberOfGuests: json['number_of_guests'] as int? ?? 1,

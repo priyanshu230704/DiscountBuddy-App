@@ -32,6 +32,9 @@ class ApiUser {
   final String username;
   final bool isMerchant;
   final bool isCustomer;
+  final bool isAdmin;
+  final bool isSuperuser;
+  final bool isStaff;
   final UserProfile? profile;
   final UserLoyaltyStats? loyaltyStats;
 
@@ -41,6 +44,9 @@ class ApiUser {
     required this.username,
     required this.isMerchant,
     required this.isCustomer,
+    this.isAdmin = false,
+    this.isSuperuser = false,
+    this.isStaff = false,
     this.profile,
     this.loyaltyStats,
   });
@@ -51,6 +57,9 @@ class ApiUser {
     String? username,
     bool? isMerchant,
     bool? isCustomer,
+    bool? isAdmin,
+    bool? isSuperuser,
+    bool? isStaff,
     UserProfile? profile,
     UserLoyaltyStats? loyaltyStats,
   }) {
@@ -60,6 +69,9 @@ class ApiUser {
       username: username ?? this.username,
       isMerchant: isMerchant ?? this.isMerchant,
       isCustomer: isCustomer ?? this.isCustomer,
+      isAdmin: isAdmin ?? this.isAdmin,
+      isSuperuser: isSuperuser ?? this.isSuperuser,
+      isStaff: isStaff ?? this.isStaff,
       profile: profile ?? this.profile,
       loyaltyStats: loyaltyStats ?? this.loyaltyStats,
     );
@@ -69,12 +81,18 @@ class ApiUser {
   String? get profilePicture => profile?.profilePicture.urlFor(fullScreen: false);
 
   factory ApiUser.fromJson(Map<String, dynamic> json) {
+    final roleStr = json['role'] as String? ?? (json['profile'] != null && json['profile'] is Map ? json['profile']['role'] as String? : null);
+    final isAdminVal = json['is_admin'] as bool? ?? (roleStr == 'admin' || json['is_superuser'] == true);
+
     return ApiUser(
       id: json['id'] as int? ?? 0,
       email: json['email'] as String? ?? '',
       username: json['username'] as String? ?? '',
       isMerchant: json['is_merchant'] as bool? ?? false,
       isCustomer: json['is_customer'] as bool? ?? true,
+      isAdmin: isAdminVal,
+      isSuperuser: json['is_superuser'] as bool? ?? false,
+      isStaff: json['is_staff'] as bool? ?? false,
       profile:
           json['profile'] != null && json['profile'] is Map<String, dynamic>
           ? UserProfile.fromJson(json['profile'] as Map<String, dynamic>)
@@ -96,6 +114,9 @@ class ApiUser {
       'username': username,
       'is_merchant': isMerchant,
       'is_customer': isCustomer,
+      'is_admin': isAdmin,
+      'is_superuser': isSuperuser,
+      'is_staff': isStaff,
       'profile': profile?.toJson(),
       if (loyaltyStats != null) 'loyalty_stats': loyaltyStats!.toJson(),
     };
@@ -169,7 +190,10 @@ class LoginResponse {
   final String accessToken;
   final String refreshToken;
   final String username;
-  final String role; // 'customer' or 'merchant'
+  final String role; // 'customer', 'merchant', 'admin'
+  final bool isAdmin;
+  final bool isSuperuser;
+  final bool isStaff;
   final ApiUser? user;
 
   LoginResponse({
@@ -177,6 +201,9 @@ class LoginResponse {
     required this.refreshToken,
     required this.username,
     required this.role,
+    this.isAdmin = false,
+    this.isSuperuser = false,
+    this.isStaff = false,
     this.user,
   });
 
@@ -184,6 +211,9 @@ class LoginResponse {
     // Extract role from response
     final role = json['role'] as String? ?? 'customer';
     final username = json['username'] as String? ?? '';
+    final isAdmin = json['is_admin'] == true || role == 'admin' || json['is_superuser'] == true;
+    final isSuperuser = json['is_superuser'] == true;
+    final isStaff = json['is_staff'] == true;
 
     // Handle case where 'user' might be null or missing
     ApiUser? user;
@@ -191,8 +221,8 @@ class LoginResponse {
       user = ApiUser.fromJson(json['user'] as Map<String, dynamic>);
     } else {
       // Construct user from available fields
-      final isMerchant = role == 'merchant';
-      final isCustomer = role == 'customer';
+      final isMerchant = role == 'merchant' || json['is_merchant'] == true;
+      final isCustomer = role == 'customer' || json['is_customer'] == true;
 
       user = ApiUser(
         id: json['id'] as int? ?? 0,
@@ -200,6 +230,9 @@ class LoginResponse {
         username: username,
         isMerchant: isMerchant,
         isCustomer: isCustomer,
+        isAdmin: isAdmin,
+        isSuperuser: isSuperuser,
+        isStaff: isStaff,
         profile: UserProfile(
           role: role,
           phoneNumber: json['phone_number'] as String?,
@@ -215,6 +248,9 @@ class LoginResponse {
           json['refresh'] as String? ?? json['refresh_token'] as String? ?? '',
       username: username,
       role: role,
+      isAdmin: isAdmin,
+      isSuperuser: isSuperuser,
+      isStaff: isStaff,
       user: user,
     );
   }
@@ -225,6 +261,9 @@ class LoginResponse {
       'refresh': refreshToken,
       'username': username,
       'role': role,
+      'is_admin': isAdmin,
+      'is_superuser': isSuperuser,
+      'is_staff': isStaff,
       'user': user?.toJson(),
     };
   }

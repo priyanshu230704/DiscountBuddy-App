@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:discount_buddy/design/app_design.dart';
 import 'package:get/get.dart';
 
+import '../core/analytics/analytics_events.dart';
+import '../core/analytics/analytics_service.dart';
 import '../models/restaurant.dart';
 import '../services/restaurant_service.dart';
 import '../services/location_service.dart';
@@ -36,6 +38,10 @@ class _SearchPageState extends State<SearchPage> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.instance.logScreenView(
+      AnalyticsScreens.search,
+      screenClass: 'SearchPage',
+    );
     _loadInitialData();
     _searchController.addListener(_onSearchChanged);
   }
@@ -96,6 +102,13 @@ class _SearchPageState extends State<SearchPage> {
         results = await _restaurantService.getRestaurants(
           latitude: _userLat,
           longitude: _userLon,
+        );
+      }
+
+      if (query.isNotEmpty) {
+        AnalyticsService.instance.search(
+          term: query,
+          resultCount: results.length,
         );
       }
 

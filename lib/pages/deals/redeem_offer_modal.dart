@@ -5,6 +5,7 @@ import '../../design/app_shadows.dart';
 import '../../design/app_spacing.dart';
 import '../../design/app_typography.dart';
 import '../../components/buttons.dart';
+import '../../core/analytics/analytics_service.dart';
 import '../../models/restaurant.dart';
 import '../../services/restaurant_service.dart';
 import '../../widgets/generic_bottom_sheet.dart';
@@ -38,17 +39,34 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
     } else {
       _selectedOption = widget.restaurant.discount;
     }
+
+    AnalyticsService.instance.dealViewed(
+      restaurantId: widget.restaurant.id,
+      dealId: _selectedOption is Discount
+          ? (_selectedOption as Discount).id
+          : null,
+    );
   }
 
   Future<void> _confirmRedemption() async {
     setState(() => _isRedeeming = true);
+    final isLoyalty = _selectedOption == 'loyalty';
+    final int? selectedDealId =
+        _selectedOption is Discount ? (_selectedOption as Discount).id : null;
+    final analytics = AnalyticsService.instance;
+    analytics.redeemStarted(
+      restaurantId: widget.restaurant.id,
+      dealId: selectedDealId,
+      type: isLoyalty ? 'loyalty_visit' : 'deal',
+      source: 'confirm',
+    );
     try {
       Map<String, dynamic> result;
-      if (_selectedOption == 'loyalty') {
+      if (isLoyalty) {
         final slug = widget.restaurant.slug ?? widget.restaurant.id;
         result = await RestaurantService().createLoyaltyOnlyVisit(slug);
       } else if (_selectedOption is Discount) {
-        final dealId = (_selectedOption as Discount).id;
+        final dealId = selectedDealId;
         if (dealId == null) {
           throw Exception('Please select a valid offer');
         }
@@ -56,6 +74,12 @@ class _RedeemOfferModalState extends State<RedeemOfferModal> {
       } else {
         throw Exception('Please select a valid option');
       }
+
+      analytics.dealRedeemed(
+        restaurantId: widget.restaurant.id,
+        dealId: selectedDealId,
+        type: isLoyalty ? 'loyalty_visit' : 'deal',
+      );
 
       if (mounted) {
         setState(() {

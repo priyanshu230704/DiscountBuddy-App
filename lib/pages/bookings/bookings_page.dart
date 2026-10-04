@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import '../../components/app_app_bar.dart';
 import '../../components/layout.dart';
 import '../../components/buttons.dart';
+import '../../core/analytics/analytics_service.dart';
 import '../../models/deal_redemption.dart';
 import '../../models/user_interactions.dart';
 import '../../services/restaurant_service.dart';
@@ -126,8 +127,15 @@ class _BookingsPageState extends State<BookingsPage>
 
     if (confirmed == true) {
       setState(() => _isLoading = true);
+      final restaurantId = _bookings
+          .firstWhereOrNull((b) => b.id == bookingId)
+          ?.restaurantId;
       try {
         await _restaurantService.deleteBooking(bookingId);
+        AnalyticsService.instance.bookingCancelled(
+          bookingId: bookingId,
+          restaurantId: restaurantId?.toString(),
+        );
         await _loadData();
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -152,9 +160,12 @@ class _BookingsPageState extends State<BookingsPage>
     final TextEditingController requestController = 
         TextEditingController(text: booking.specialRequests);
     
-    final localBooking = booking.bookingDate.toLocal();
-    DateTime selectedDate = localBooking;
-    TimeOfDay selectedTime = TimeOfDay.fromDateTime(localBooking);
+    final wallBooking =
+        DateTimeUtils.wallClockFromBookingIso(booking.bookingDateIso);
+    if (wallBooking == null) return;
+
+    DateTime selectedDate = wallBooking;
+    TimeOfDay selectedTime = TimeOfDay.fromDateTime(wallBooking);
     
     final result = await showDialog<Map<String, dynamic>>(
       context: context,
@@ -229,12 +240,12 @@ class _BookingsPageState extends State<BookingsPage>
           ElevatedButton(
             onPressed: () => Navigator.pop(context, {
               'update': true,
-              'date': DateTime(
-                selectedDate.year,
-                selectedDate.month,
-                selectedDate.day,
-                selectedTime.hour,
-                selectedTime.minute,
+              'date': DateTimeUtils.utcInstantFromRestaurantWallClock(
+                year: selectedDate.year,
+                month: selectedDate.month,
+                day: selectedDate.day,
+                hour: selectedTime.hour,
+                minute: selectedTime.minute,
               ),
             }),
             style: ElevatedButton.styleFrom(
@@ -934,7 +945,8 @@ class _BookingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final whenLabel = DateTimeUtils.formatDateTime24h(booking.bookingDate);
+    final whenLabel =
+        DateTimeUtils.formatBookingDateTimeFromIso(booking.bookingDateIso);
 
     return AppCard(
       margin: const EdgeInsets.only(bottom: AppSpacing.lg),

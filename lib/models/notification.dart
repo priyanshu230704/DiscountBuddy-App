@@ -7,6 +7,7 @@ class NotificationModel {
   final Map<String, dynamic>? payload;
   final String? sourceId;
   final String? sourceType;
+  final String? image;
   final DateTime createdAt;
 
   NotificationModel({
@@ -18,6 +19,7 @@ class NotificationModel {
     this.payload,
     this.sourceId,
     this.sourceType,
+    this.image,
     required this.createdAt,
   });
 
@@ -31,6 +33,10 @@ class NotificationModel {
       payload: json['payload'] as Map<String, dynamic>?,
       sourceId: json['source_id'] as String?,
       sourceType: json['source_type'] as String?,
+      image: json['image'] as String? ??
+          ((json['payload'] is Map<String, dynamic>)
+              ? (json['payload'] as Map<String, dynamic>)['image'] as String?
+              : null),
       createdAt: DateTime.parse(json['created_at'] as String),
     );
   }
@@ -58,6 +64,7 @@ class NotificationModel {
     Map<String, dynamic>? payload,
     String? sourceId,
     String? sourceType,
+    String? image,
     DateTime? createdAt,
   }) {
     return NotificationModel(
@@ -69,6 +76,7 @@ class NotificationModel {
       payload: payload ?? this.payload,
       sourceId: sourceId ?? this.sourceId,
       sourceType: sourceType ?? this.sourceType,
+      image: image ?? this.image,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -146,6 +154,7 @@ class NotificationType {
   static const String favDeal = 'FAV_DEAL';
   static const String dealRedeemed = 'DEAL_REDEEMED';
   static const String system = 'SYSTEM';
+  static const String promo = 'PROMO';
 
   // Merchant specific types
   static const String newBooking = 'NEW_BOOKING';

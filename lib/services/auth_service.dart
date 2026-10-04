@@ -343,11 +343,7 @@ class AuthService {
         _isGoogleSignInInitialized = true;
       }
 
-      final GoogleSignInAccount? googleUser = await _googleSignIn.authenticate();
-
-      if (googleUser == null) {
-        throw ApiException('Google login cancelled');
-      }
+      final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
 
       final GoogleSignInAuthentication googleAuth = googleUser.authentication;
       final idToken = googleAuth.idToken;

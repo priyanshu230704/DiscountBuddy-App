@@ -17,7 +17,7 @@ class ApiException implements Exception {
 }
 
 /// Types of APIs available
-enum ApiType { user, merchant, common }
+enum ApiType { user, merchant, common, admin, customerV1 }
 
 /// Common API Service for handling HTTP requests
 class ApiService {
@@ -123,6 +123,10 @@ class ApiService {
         return Environment.merchantApiUrl;
       case ApiType.common:
         return Environment.apiUrl;
+      case ApiType.admin:
+        return Environment.adminApiUrl;
+      case ApiType.customerV1:
+        return Environment.customerV1ApiUrl;
     }
   }
 

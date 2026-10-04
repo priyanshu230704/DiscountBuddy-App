@@ -850,12 +850,35 @@ class RestaurantService {
       );
     }
 
-    final openingHours = openingSlotsList.map((slot) {
-      if (slot.isClosed) {
-        return '${slot.dayName}: Closed';
-      }
-      return '${slot.dayName}: ${slot.openingTime} - ${slot.closingTime}';
-    }).toList();
+    final openingStatus = json['opening_status'] is Map<String, dynamic>
+        ? OpeningStatus.fromJson(json['opening_status'] as Map<String, dynamic>)
+        : null;
+
+    var openingHoursDisplay =
+        (json['opening_hours_display'] as List<dynamic>?)
+            ?.whereType<Map<String, dynamic>>()
+            .map((e) => OpeningDay.fromJson(e))
+            .toList() ??
+        <OpeningDay>[];
+
+    // Older backends only return the flat slot list, so derive the weekly
+    // breakdown locally to keep the detail screen working.
+    if (openingHoursDisplay.isEmpty && openingSlotsList.isNotEmpty) {
+      openingHoursDisplay = OpeningDay.fromSlots(
+        openingSlotsList,
+        DateTime.now().weekday - 1,
+      );
+    }
+
+    final openingHours = openingHoursDisplay.isNotEmpty
+        ? openingHoursDisplay.map((day) => '${day.dayName}: ${day.label}').toList()
+        : openingSlotsList
+              .map(
+                (slot) => slot.isClosed
+                    ? '${slot.dayName}: Closed'
+                    : '${slot.dayName}: ${slot.displayRange}',
+              )
+              .toList();
 
     return Restaurant(
       id: restaurantId.toString(),
@@ -884,6 +907,8 @@ class RestaurantService {
       email: _asString(json['email']),
       isFavourite: json['is_favourite'] as bool? ?? false,
       openingSlots: openingSlotsList,
+      openingStatus: openingStatus,
+      openingHoursDisplay: openingHoursDisplay,
       activeDeals: activeDeals,
       facilities:
           (json['facilities'] as List<dynamic>?)

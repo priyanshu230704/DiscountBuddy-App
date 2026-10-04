@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'notification_service.dart';
 import 'auth_service.dart';
+import '../core/analytics/analytics_service.dart';
 import '../models/notification.dart';
 import '../providers/notification_provider.dart';
 import '../utils/navigator_key.dart';
@@ -181,6 +182,10 @@ class FirebaseMessagingService {
     
     // Backend sends 'notification_type', not 'type'
     final type = message.data['notification_type'] ?? message.data['type'] ?? '';
+    AnalyticsService.instance.notificationOpen(
+      source: 'push',
+      notificationType: type.toString().isEmpty ? null : type.toString(),
+    );
     _navigateToCorrectScreen(type, message.data);
   }
 

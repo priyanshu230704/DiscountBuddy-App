@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
+import '../core/analytics/analytics_service.dart';
 import '../services/auth_service.dart';
 import '../services/firebase_messaging_service.dart';
 import '../models/api_user.dart';
@@ -29,6 +30,12 @@ class AuthProvider extends ChangeNotifier {
   String? get errorMessage => _errorMessage.value;
   String get userRole => _userRole.value;
   bool get isGuestMode => _isGuestMode.value;
+  bool get isAdmin =>
+      _userRole.value == 'admin' ||
+      (_user.value != null &&
+          (_user.value!.isAdmin ||
+              _user.value!.isSuperuser ||
+              _user.value!.profile?.role == 'admin'));
   bool get isMerchant => _userRole.value == 'merchant';
   bool get isCustomer =>
       _userRole.value == 'customer' || _userRole.value == 'mystery_guest';
@@ -77,10 +84,11 @@ class AuthProvider extends ChangeNotifier {
 
         if (user != null) {
           _user.value = user;
-          _userRole.value = user.profile?.role ?? (user.isMerchant ? 'merchant' : 'customer');
+          final roleVal = user.profile?.role ?? (user.isAdmin || user.isSuperuser ? 'admin' : (user.isMerchant ? 'merchant' : 'customer'));
+          _userRole.value = (user.isAdmin || user.isSuperuser || roleVal == 'admin') ? 'admin' : roleVal;
           _isAuthenticated.value = true;
           debugPrint(
-            'DEBUG AuthProvider._initializeAuth: Logged in as user=${user.email}, _userRole=${_userRole.value}',
+            'DEBUG AuthProvider._initializeAuth: Logged in as user=${user.email}, _userRole=${_userRole.value}, isAdmin=$isAdmin',
           );
         } else {
           await _authService.logout();
@@ -123,6 +131,7 @@ class AuthProvider extends ChangeNotifier {
         password: password,
         role: role,
       );
+      AnalyticsService.instance.logSignUp(method: 'email');
 
       // After successful registration, login the user
       return await login(email: email, password: password);
@@ -203,6 +212,7 @@ class AuthProvider extends ChangeNotifier {
         password: password,
         username: username,
       );
+      AnalyticsService.instance.logSignUp(method: 'email');
 
       // After successful registration, login the user
       return await login(email: email, password: password);
@@ -232,14 +242,19 @@ class AuthProvider extends ChangeNotifier {
       );
 
       _user.value = loginResponse.user;
-      _userRole.value = loginResponse.role; // Store role from login response
+      if (loginResponse.isAdmin || loginResponse.role == 'admin') {
+        _userRole.value = 'admin';
+      } else {
+        _userRole.value = loginResponse.role;
+      }
       debugPrint(
-        'DEBUG AuthProvider.login: loginResponse.role="${loginResponse.role}", _userRole="${_userRole.value}", isMysteryGuest=$isMysteryGuest',
+        'DEBUG AuthProvider.login: loginResponse.role="${loginResponse.role}", _userRole="${_userRole.value}", isAdmin=$isAdmin',
       );
       _isAuthenticated.value = true;
       _isGuestMode.value = false;
       _isLoading.value = false;
       notifyListeners();
+      _trackLogin('email');
 
       // Register FCM token with backend after successful login
       try {
@@ -280,6 +295,7 @@ class AuthProvider extends ChangeNotifier {
         'DEBUG: AuthProvider.loginWithGoogle -> Success: authenticated as ${_user.value?.email}',
       );
       notifyListeners();
+      _trackLogin('google');
 
       // Register FCM token with backend after successful login
       try {
@@ -329,6 +345,7 @@ class AuthProvider extends ChangeNotifier {
         'DEBUG: AuthProvider.loginWithApple -> Success: authenticated as ${_user.value?.email}',
       );
       notifyListeners();
+      _trackLogin('apple');
 
       // Register FCM token with backend after successful login
       try {
@@ -381,7 +398,18 @@ class AuthProvider extends ChangeNotifier {
       _errorMessage.value = null;
       _isLoading.value = false;
       notifyListeners();
+      AnalyticsService.instance.setUserId(null);
+      AnalyticsService.instance.setUserType(null);
     }
+  }
+
+  /// Log the `login` event and attach the internal user id / role to
+  /// Analytics. Never uses email or other PII.
+  void _trackLogin(String method) {
+    final analytics = AnalyticsService.instance;
+    analytics.logLogin(method: method);
+    analytics.setUserId(_user.value?.id);
+    analytics.setUserType(_userRole.value);
   }
 
   /// Clear error message

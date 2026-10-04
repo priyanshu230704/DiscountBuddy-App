@@ -6,6 +6,8 @@ import '../../design/app_radius.dart';
 import '../../design/app_shadows.dart';
 import '../../design/app_spacing.dart';
 import '../../design/app_typography.dart';
+import '../../core/analytics/analytics_events.dart';
+import '../../core/analytics/analytics_service.dart';
 import '../../models/loyalty_card.dart';
 import '../../services/restaurant_service.dart';
 import '../../routes/app_routes.dart';
@@ -35,6 +37,10 @@ class _LoyaltyCardsScreenState extends State<LoyaltyCardsScreen> {
   @override
   void initState() {
     super.initState();
+    AnalyticsService.instance.logScreenView(
+      AnalyticsScreens.loyaltyWallet,
+      screenClass: 'LoyaltyCardsScreen',
+    );
     _loadLoyaltyCards();
   }
 
@@ -46,9 +52,15 @@ class _LoyaltyCardsScreenState extends State<LoyaltyCardsScreen> {
 
     try {
       final cards = await _restaurantService.getLoyaltyCards();
+      final enabledCards =
+          cards.where((c) => c.restaurant.loyaltyCardEnabled).toList();
+      AnalyticsService.instance.loyaltyCardViewed(
+        cardCount: enabledCards.length,
+        source: 'loyalty_wallet',
+      );
       if (mounted) {
         setState(() {
-          _cards = cards.where((c) => c.restaurant.loyaltyCardEnabled).toList();
+          _cards = enabledCards;
           _isLoading = false;
         });
       }

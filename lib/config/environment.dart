@@ -11,7 +11,12 @@ class Environment {
   static const String currentEnvironment = production;
 
   // API Base URLs
+  //production
   static String get baseUrl => dotenv.env['API_BASE_URL'] ?? 'https://discountbuddy.markitupgroup.com';
+
+  //development
+  // static String get baseUrl =>
+  //     dotenv.env['API_BASE_URL'] ?? 'http://192.168.29.221:8000';
 
   // API Timeout
   static const Duration apiTimeout = Duration(seconds: 30);
@@ -25,6 +30,8 @@ class Environment {
   // Specific API URLs based on documentation
   static String get userApiUrl => '$baseUrl/user/api';
   static String get merchantApiUrl => '$baseUrl/merchant/api';
+  static String get adminApiUrl => '$baseUrl/api/v1/admin';
+  static String get customerV1ApiUrl => '$baseUrl/api/v1/user';
 
   // App Configuration
   static const String appName = 'DiscountBuddy';

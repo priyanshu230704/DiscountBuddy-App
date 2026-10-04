@@ -8,6 +8,7 @@ import '../../design/app_spacing.dart';
 import '../../design/app_typography.dart';
 import '../../components/buttons.dart';
 import '../../components/inputs.dart';
+import '../../core/analytics/analytics_service.dart';
 import '../../providers/auth_provider.dart';
 import '../deals/redeem_offer_modal.dart';
 import '../../widgets/generic_bottom_sheet.dart';
@@ -29,64 +30,49 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
   bool _isBooking = false;
   final TextEditingController _requestsController = TextEditingController();
 
+  /// Bookable times every 30 minutes across all of the day's opening windows.
+  ///
+  /// A day with a split shift contributes a block per window, so lunch and
+  /// dinner times both appear without the gap between them being bookable.
   List<String> _getAvailableTimes() {
-    // Current logic: Find slots for the day of the week
-    final dayNames = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
-    ];
-    final selectedDayName = dayNames[_selectedDate.weekday - 1];
+    final selectedDayIndex = _selectedDate.weekday - 1;
 
-    final slot = widget.restaurant.openingSlots.firstWhere(
-      (s) => s.dayName.toLowerCase() == selectedDayName.toLowerCase(),
-      orElse: () => OpeningSlot(
-        dayName: '',
-        openingTime: '',
-        closingTime: '',
-        isClosed: true,
+    final daySlots = widget.restaurant.openingSlots
+        .where((slot) => !slot.isClosed && slot.dayIndex == selectedDayIndex)
+        .toList();
+
+    if (daySlots.isEmpty) return [];
+
+    daySlots.sort(
+      (a, b) => (OpeningHoursFormat.minutesOf(a.openingTime) ?? 0).compareTo(
+        OpeningHoursFormat.minutesOf(b.openingTime) ?? 0,
       ),
     );
 
-    if (slot.isClosed || slot.openingTime.isEmpty) return [];
-
-    // Generate slots every 30 mins
     final times = <String>[];
-    try {
-      final start = _parseTime(slot.openingTime);
-      final end = _parseTime(slot.closingTime);
+    for (final slot in daySlots) {
+      final start = OpeningHoursFormat.minutesOf(slot.openingTime);
+      final close = OpeningHoursFormat.minutesOf(slot.closingTime);
+      if (start == null || close == null) continue;
 
-      var current = start;
-      while (current.isBefore(end)) {
-        times.add(
-          DateTimeUtils.formatTimeOfDay24h(
-            TimeOfDay(hour: current.hour, minute: current.minute),
-          ),
+      // An overnight window runs past midnight, and an all-day window covers
+      // the whole day, so both need the end pushed beyond the start.
+      final end = close <= start ? close + 24 * 60 : close;
+
+      for (var minutes = start; minutes < end; minutes += 30) {
+        final normalized = minutes % (24 * 60);
+        final label = DateTimeUtils.formatTimeOfDay24h(
+          TimeOfDay(hour: normalized ~/ 60, minute: normalized % 60),
         );
-        current = current.add(const Duration(minutes: 30));
+        if (!times.contains(label)) times.add(label);
       }
-    } catch (e) {
-      // Fallback
+    }
+
+    if (times.isEmpty) {
       return ['12:00', '13:00', '14:00', '18:00', '19:00', '20:00', '21:00'];
     }
 
     return times;
-  }
-
-  DateTime _parseTime(String timeStr) {
-    final parts = timeStr.split(':');
-    final now = DateTime.now();
-    return DateTime(
-      now.year,
-      now.month,
-      now.day,
-      int.parse(parts[0]),
-      int.parse(parts[1]),
-    );
   }
 
   Future<void> _createBooking() async {
@@ -114,12 +100,12 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
 
     try {
       final timeParts = _selectedTime!.split(':');
-      final bookingDateTime = DateTime(
-        _selectedDate.year,
-        _selectedDate.month,
-        _selectedDate.day,
-        int.parse(timeParts[0]),
-        int.parse(timeParts[1]),
+      final bookingDateTime = DateTimeUtils.utcInstantFromRestaurantWallClock(
+        year: _selectedDate.year,
+        month: _selectedDate.month,
+        day: _selectedDate.day,
+        hour: int.parse(timeParts[0]),
+        minute: int.parse(timeParts[1]),
       );
 
       await _restaurantService.createBooking(
@@ -129,6 +115,12 @@ class _BookingSelectionModalState extends State<BookingSelectionModal> {
         specialRequests: _requestsController.text,
         contactName: AuthProvider().user?.email ?? 'Guest',
         contactPhone: '',
+      );
+
+      AnalyticsService.instance.bookingCreated(
+        restaurantId: widget.restaurant.id,
+        guests: _guestCount,
+        source: 'redeem_booking_modal',
       );
 
       if (mounted) {

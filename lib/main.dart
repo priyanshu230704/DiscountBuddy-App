@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'config/environment.dart';
-import 'services/app_version_checker.dart';
 import 'providers/theme_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/connectivity_provider.dart';
@@ -15,8 +14,8 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:discount_buddy/utils/date_time_utils.dart';
 import 'package:get/get.dart';
-import 'routes/app_routes.dart';
 import 'routes/app_pages.dart';
 import 'routes/bindings/initial_binding.dart';
 import 'utils/navigator_key.dart';
@@ -54,6 +53,7 @@ void main() async {
     dotenv.load(fileName: ".env"),
     Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform),
     initializeDateFormatting('en_US'),
+    Future<void>.sync(DateTimeUtils.ensureTimeZonesInitialized),
   ];
 
   try {
@@ -121,36 +121,20 @@ class DiscountBuddyApp extends StatefulWidget {
   State<DiscountBuddyApp> createState() => _DiscountBuddyAppState();
 }
 
-class _DiscountBuddyAppState extends State<DiscountBuddyApp>
-    with WidgetsBindingObserver {
+class _DiscountBuddyAppState extends State<DiscountBuddyApp> {
   final ThemeProvider _themeProvider = ThemeProvider();
   final AuthProvider _authProvider = AuthProvider();
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
     _authProvider.addListener(_authStateChanged);
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
     _authProvider.removeListener(_authStateChanged);
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        AppVersionChecker.checkOnResume(
-          continueRoute: _authProvider.isAuthenticated
-              ? AppRoutes.home
-              : AppRoutes.login,
-        );
-      });
-    }
   }
 
   void _authStateChanged() {

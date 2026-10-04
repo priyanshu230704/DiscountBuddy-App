@@ -6,7 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:geolocator/geolocator.dart'
     hide LocationServiceDisabledException;
 import 'package:get/get.dart';
-
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/restaurant.dart';
 import '../../models/image_variants.dart';
 import '../../services/restaurant_service.dart';
@@ -20,6 +20,8 @@ import '../../widgets/city_selector_modal.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/app_gradient_button.dart';
 import '../../utils/distance_utils.dart';
+import '../../services/customer_spin_service.dart';
+import '../spin_to_win/spin_wheel_screen.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -59,19 +61,50 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   bool _isFetchingLocation = false;
   bool _isLoadingRestaurants = false;
 
-  HomeFilter? _activeFilter = HomeFilter.offers;
+  HomeFilter? _activeFilter = HomeFilter.nearest;
+
+  static bool _hasAutoOpenedSpinThisSession = false;
+  bool _hasActiveSpinWheel = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _initLocationAndLoadData();
+    _checkSpinWheelStatus();
     // Defer: fetchUnreadCount() notifies listeners; cannot run during build.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _notificationProvider.fetchUnreadCount(false);
     });
     _searchController.addListener(_onSearchChanged);
+  }
+
+  Future<void> _checkSpinWheelStatus() async {
+    try {
+      final wheel = await CustomerSpinService().getWheel();
+      if (mounted) {
+        final isActiveWithSpins = wheel.hasSpinsRemaining;
+        setState(() {
+          _hasActiveSpinWheel = isActiveWithSpins;
+        });
+
+        if (isActiveWithSpins && !_hasAutoOpenedSpinThisSession) {
+          _hasAutoOpenedSpinThisSession = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              SpinWheelScreen.showModal(context);
+            }
+          });
+        }
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _hasActiveSpinWheel = false;
+        });
+      }
+    }
   }
 
   @override
@@ -282,7 +315,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         final Map<int, String> cuisineMap = {};
         cuisinesData.forEach((key, value) {
           if (value is Map<String, dynamic>) {
-            final id = value['id'] as int?;
+            final id = _parseHomeId(value['id']) ?? _parseHomeId(key);
             final name = value['name'] as String?;
             if (id != null && name != null) {
               cuisineMap[id] = name;
@@ -303,8 +336,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
           // Resolve ALL cuisine names
           List<String> cuisineNameList = [];
-          for (final cId in cuisineIds) {
-            final name = cuisineMap[cId as int];
+          for (final cIdRaw in cuisineIds) {
+            final cId = _parseHomeId(cIdRaw);
+            if (cId == null) continue;
+            final name = cuisineMap[cId];
             if (name != null) cuisineNameList.add(name);
           }
           String resolvedCuisine = 'Restaurant';
@@ -338,30 +373,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           );
         }
 
-        // Parse sections
-        final List<int> allIds = List<int>.from(
+        // Keep section order from the API (string or int IDs).
+        final List<int> allIds = _parseHomeIdList(
           sections['all_restaurants'] ??
-              sections['top_10'] ??
-              sections['featured'] ??
-              (restaurantsData.keys
-                  .map((k) => int.tryParse(k))
-                  .whereType<int>()
-                  .toList()),
+              restaurantsData.keys.toList(),
         );
-        final List<int> nearbyIds = List<int>.from(sections['nearby'] ?? []);
+        final List<int> nearbyIds = _parseHomeIdList(sections['nearby']);
 
         final allRestaurants = allIds.map((id) => parseRestaurant(id)).toList();
         final nearbyRestaurants = nearbyIds
             .map((id) => parseRestaurant(id))
             .toList();
-
-        // Sort by leaderboard score (highest first)
-        allRestaurants.sort(
-          (a, b) => b.leaderboardScore.compareTo(a.leaderboardScore),
-        );
-        nearbyRestaurants.sort(
-          (a, b) => b.leaderboardScore.compareTo(a.leaderboardScore),
-        );
 
         if (!mounted) return;
         setState(() {
@@ -394,6 +416,18 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   double _kmToMiles(double km) => km * 0.621371;
+
+  int? _parseHomeId(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    if (value is String) return int.tryParse(value);
+    return null;
+  }
+
+  List<int> _parseHomeIdList(dynamic raw) {
+    if (raw is! List) return [];
+    return raw.map(_parseHomeId).whereType<int>().toList();
+  }
 
   List<String> _getOfferTags(Restaurant restaurant) {
     final tags = <String>[];
@@ -431,17 +465,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   List<Restaurant> _applyFilter(List<Restaurant> list) {
     if (_activeFilter == HomeFilter.nearest) {
-      // For Best Near You, always map to the nearby list instead
-      final copy = [..._nearbyRestaurants];
-      copy.sort((a, b) => b.leaderboardScore.compareTo(a.leaderboardScore));
-      return copy;
+      // Nearby section is already distance-sorted by the API.
+      return [..._nearbyRestaurants];
     }
 
     final copy = [...list];
 
     switch (_activeFilter) {
-      case HomeFilter.offers: // Now acts as All Restaurants
-        copy.sort((a, b) => b.leaderboardScore.compareTo(a.leaderboardScore));
+      case HomeFilter.offers:
+        // All restaurants — keep API order (deals, claims, rating, featured).
         return copy;
       case HomeFilter.rating: // Top Rated
         copy.sort((a, b) {
@@ -480,6 +512,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         }
       },
       child: AppScaffold(
+        floatingActionButton: _hasActiveSpinWheel ? _buildFloatingSpinButton() : null,
         body: RefreshIndicator(
           onRefresh: _loadRestaurants,
           color: AppColors.discount,
@@ -754,6 +787,54 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     );
   }
 
+  void _handleBannerTap(String ctaUrl) async {
+    final trimmed = ctaUrl.trim();
+    if (trimmed.isEmpty) return;
+
+    // Check for restaurant deep link pattern e.g. https://.../restaurants/1 or /restaurants/1
+    final uri = Uri.tryParse(trimmed);
+    if (uri != null) {
+      final segments = uri.pathSegments;
+      if (segments.length >= 2 && segments[0].toLowerCase() == 'restaurants') {
+        final restaurantId = segments[1];
+        Get.toNamed(
+          AppRoutes.restaurantDetails,
+          arguments: {
+            'slug': restaurantId,
+            'latitude': _userLatitude,
+            'longitude': _userLongitude,
+          },
+        );
+        return;
+      }
+    }
+
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+      final parsedUri = Uri.parse(trimmed);
+      try {
+        final launched = await launchUrl(
+          parsedUri,
+          mode: LaunchMode.externalApplication,
+        );
+        if (!launched) {
+          await launchUrl(parsedUri, mode: LaunchMode.platformDefault);
+        }
+      } catch (e) {
+        debugPrint('UrlLauncher error ($trimmed): $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Link Error: Could not open URL')),
+        );
+      }
+    } else {
+      try {
+        final routeName = trimmed.startsWith('/') ? trimmed : '/$trimmed';
+        Get.toNamed(routeName);
+      } catch (e) {
+        debugPrint('Banner CTA route error ($trimmed): $e');
+      }
+    }
+  }
+
   Widget _buildBanners() {
     if (_banners.isEmpty) {
       return const SliverToBoxAdapter(child: SizedBox.shrink());
@@ -767,14 +848,30 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               final imageMap = banner['image'];
               String? url;
               if (imageMap is Map<String, dynamic>) {
-                url = ImageVariants.fromJson(imageMap).urlFor(fullScreen: false);
+                url = ImageVariants.fromJson(
+                  imageMap,
+                ).urlFor(fullScreen: false);
               } else if (imageMap is String) {
                 url = imageMap;
               }
-              return _GradientBanner(
-                title: banner['title'] as String? ?? '',
-                subtitle: banner['body'] as String? ?? '',
-                imageUrl: url,
+
+              final ctaUrl =
+                  banner['cta_url'] as String? ??
+                  banner['target_value'] as String? ??
+                  '';
+
+              return GestureDetector(
+                onTap: ctaUrl.isNotEmpty
+                    ? () => _handleBannerTap(ctaUrl)
+                    : null,
+                child: _GradientBanner(
+                  title: banner['title'] as String? ?? '',
+                  subtitle:
+                      banner['body'] as String? ??
+                      banner['subtitle'] as String? ??
+                      '',
+                  imageUrl: url,
+                ),
               );
             }).toList(),
             options: CarouselOptions(
@@ -813,6 +910,42 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     );
   }
 
+  Widget _buildFloatingSpinButton() {
+    return GestureDetector(
+      onTap: () => SpinWheelScreen.showModal(context),
+      child: Container(
+        width: 60,
+        height: 60,
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: const LinearGradient(
+            colors: [Color(0xFF8B5CF6), Color(0xFFEC4899)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFEC4899).withValues(alpha: 0.45),
+              blurRadius: 18,
+              spreadRadius: 2,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Image.asset(
+          'assets/png/spin.png',
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) => const Icon(
+            Icons.stars_rounded,
+            color: Colors.amber,
+            size: 34,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildFilterTabs() {
     return SliverToBoxAdapter(
       child: Padding(
@@ -821,17 +954,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           children: [
             Expanded(
               child: _FilterChipX(
-                text: "All",
-                active: _activeFilter == HomeFilter.offers,
-                onTap: () => _toggleFilter(HomeFilter.offers),
+                text: "Nearest",
+                active: _activeFilter == HomeFilter.nearest,
+                onTap: () => _toggleFilter(HomeFilter.nearest),
               ),
             ),
             const SizedBox(width: 8),
             Expanded(
               child: _FilterChipX(
-                text: "Nearest",
-                active: _activeFilter == HomeFilter.nearest,
-                onTap: () => _toggleFilter(HomeFilter.nearest),
+                text: "All",
+                active: _activeFilter == HomeFilter.offers,
+                onTap: () => _toggleFilter(HomeFilter.offers),
               ),
             ),
             const SizedBox(width: 8),
@@ -1145,7 +1278,7 @@ class _GradientBanner extends StatelessWidget {
                 width: 130,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) => Image.asset(
-                  "assets/png/banner-sm.png",
+                  "assets/png/db_logo.png",
                   width: 130,
                   fit: BoxFit.cover,
                 ),

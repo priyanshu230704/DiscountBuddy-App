@@ -43,6 +43,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+android/build/
 
 # Security - API keys and secrets
 *.key
@@ -54,3 +55,11 @@ secrets.json
 .env.*.local
 config/secrets.dart
 lib/config/secrets.dart
+# android/app/google-services.json
+
+# Keystore and secrets
+android/app/*.jks
+android/key.properties
+.metadata
+pubspec.lock
+.metadata

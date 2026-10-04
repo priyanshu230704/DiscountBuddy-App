@@ -1,13 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import '../../providers/theme_provider.dart';
-import '../../widgets/auth/auth_text_field.dart';
+import 'package:get/get.dart';
+import 'package:geolocator/geolocator.dart' show Geolocator;
+import 'package:discount_buddy/design/app_design.dart';
+import '../../widgets/app_scaffold.dart';
+import '../../widgets/app_gradient_button.dart';
+import '../../components/app_app_bar.dart';
+import '../../components/inputs.dart';
 import '../../services/merchant_service.dart';
+import '../../services/location_service.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import '../../models/restaurant.dart' as model;
+import '../../routes/app_routes.dart';
+import '../../widgets/merchant/opening_hours_day_sheet.dart';
 
 /// Add/Edit Restaurant Page for Merchants
 class AddRestaurantPage extends StatefulWidget {
-  final Map<String, dynamic>?
-  restaurant; // If provided, edit mode; otherwise, create mode
+  final Map<String, dynamic>? restaurant; // If provided, edit mode; otherwise, create mode
 
   const AddRestaurantPage({super.key, this.restaurant});
 
@@ -15,9 +24,13 @@ class AddRestaurantPage extends StatefulWidget {
   State<AddRestaurantPage> createState() => _AddRestaurantPageState();
 }
 
+enum _UnsavedFormAction { save, discard, cancel }
+
 class _AddRestaurantPageState extends State<AddRestaurantPage> {
   final MerchantService _merchantService = MerchantService();
+  final LocationService _locationService = LocationService();
   final _formKey = GlobalKey<FormState>();
+  final GlobalKey _loyaltySectionKey = GlobalKey();
   final _nameController = TextEditingController();
   final _slugController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -28,30 +41,157 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _websiteController = TextEditingController();
+  bool _loyaltyCardEnabled = false;
+  bool _bookingsEnabled = true;
+  bool _isUpdatingBookings = false;
+  bool _bookingStatusDirty = false;
+  bool _isFormDirty = false;
+  final _loyaltyRequiredRedemptionsController = TextEditingController();
+  final _loyaltyRewardDescriptionController = TextEditingController();
 
   List<Map<String, dynamic>> _cities = [];
   List<Map<String, dynamic>> _categories = [];
+  List<Map<String, dynamic>> _cuisines = [];
   int? _selectedCityId;
   String _selectedCityName = '';
   final _cityController = TextEditingController();
   final _cityFocusNode = FocusNode();
   List<Map<String, dynamic>> _filteredCities = [];
   List<int> _selectedCategoryIds = [];
+  List<int> _selectedCuisineIds = [];
+  List<Map<String, dynamic>> _facilities = [];
+  List<int> _selectedFacilityIds = [];
   int _priceRange = 2;
+  String _menuType = 'structured'; // Default to structured
+  List<model.RestaurantImage> _restaurantImages = [];
+  final ImagePicker _picker = ImagePicker();
   bool _isLoading = false;
   bool _isLoadingData = true;
   final LayerLink _cityLayerLink = LayerLink();
   OverlayEntry? _cityOverlayEntry;
   final GlobalKey _cityFieldKey = GlobalKey();
-  Map<String, String> _openingHours = {
-    'monday': '',
-    'tuesday': '',
-    'wednesday': '',
-    'thursday': '',
-    'friday': '',
-    'saturday': '',
-    'sunday': '',
+  /// Opening windows per weekday as `"HH:MM-HH:MM"` strings.
+  ///
+  /// A day holds a list so split shifts (lunch plus dinner) can be entered; an
+  /// empty list means closed.
+  final Map<String, List<String>> _openingHours = {
+    'monday': <String>[],
+    'tuesday': <String>[],
+    'wednesday': <String>[],
+    'thursday': <String>[],
+    'friday': <String>[],
+    'saturday': <String>[],
+    'sunday': <String>[],
   };
+
+  Future<void> _fetchCurrentLocation() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final position = await _locationService.getCurrentLocation();
+      setState(() {
+        _latitudeController.text = position.latitude.toString();
+        _longitudeController.text = position.longitude.toString();
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Location updated successfully'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } on LocationServiceDisabledException {
+      if (mounted) {
+        _showLocationHelpSnackBar(
+          'Location (GPS) is turned off. Turn it on in system settings, then try again.',
+          isSystemLocationOff: true,
+        );
+      }
+    } on LocationPermissionDeniedException {
+      if (mounted) {
+        _showLocationHelpSnackBar(
+          'Location access is required. Allow it in app settings, then try again.',
+          isSystemLocationOff: false,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _locationErrorUserMessage(e),
+              style: const TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.black,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            shape: RoundedRectangleBorder(borderRadius: AppRadius.medium),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _showLocationHelpSnackBar(String message, {required bool isSystemLocationOff}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(color: Colors.white),
+        ),
+        action: SnackBarAction(
+          label: 'Settings',
+          textColor: Colors.white,
+          onPressed: () async {
+            if (isSystemLocationOff) {
+              await Geolocator.openLocationSettings();
+            } else {
+              await Geolocator.openAppSettings();
+            }
+          },
+        ),
+        backgroundColor: Colors.black,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.medium),
+        duration: const Duration(seconds: 6),
+      ),
+    );
+  }
+
+  String _locationErrorUserMessage(Object e) {
+    var s = e.toString();
+    if (s.startsWith('Exception: ')) s = s.substring(11);
+    return "Couldn't get your current location. $s";
+  }
+
+  String? _validateLatitude(String? value) {
+    final trimmed = value?.trim() ?? '';
+    if (trimmed.isEmpty) return null;
+    final parsed = double.tryParse(trimmed);
+    if (parsed == null) return 'Enter a valid latitude';
+    if (parsed < -90 || parsed > 90) return 'Latitude must be between -90 and 90';
+    return null;
+  }
+
+  String? _validateLongitude(String? value) {
+    final trimmed = value?.trim() ?? '';
+    if (trimmed.isEmpty) return null;
+    final parsed = double.tryParse(trimmed);
+    if (parsed == null) return 'Enter a valid longitude';
+    if (parsed < -180 || parsed > 180) {
+      return 'Longitude must be between -180 and 180';
+    }
+    return null;
+  }
 
   @override
   void initState() {
@@ -82,14 +222,10 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
   void _hideOverlay() {
     _cityOverlayEntry?.remove();
     _cityOverlayEntry = null;
-    if (mounted) {
-      setState(() {});
-    }
   }
 
   OverlayEntry _createOverlayEntry() {
-    RenderBox? renderBox =
-        _cityFieldKey.currentContext?.findRenderObject() as RenderBox?;
+    RenderBox? renderBox = _cityFieldKey.currentContext?.findRenderObject() as RenderBox?;
     var size = renderBox?.size ?? Size.zero;
 
     return OverlayEntry(
@@ -104,17 +240,24 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
               followerAnchor: Alignment.topLeft,
               offset: const Offset(0, 4.0),
               child: Material(
-                elevation: 8,
+                elevation: 0,
                 borderRadius: BorderRadius.circular(12),
-                shadowColor: Colors.black.withOpacity(0.3),
+                shadowColor: Colors.black.withValues(alpha: 0.3),
                 child: Container(
                   constraints: const BoxConstraints(maxHeight: 250),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: NeoTasteColors.textDisabled.withOpacity(0.2),
+                      color: AppColors.textDisabled.withValues(alpha: 0.2),
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -126,7 +269,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                             children: [
                               Icon(
                                 Icons.search_off,
-                                color: NeoTasteColors.textDisabled,
+                                color: AppColors.textDisabled,
                                 size: 32,
                               ),
                               const SizedBox(height: 8),
@@ -135,10 +278,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                                     ? 'Loading cities...'
                                     : 'No cities found for "${_cityController.text}"',
                                 textAlign: TextAlign.center,
-                                style: GoogleFonts.inter(
-                                  color: NeoTasteColors.textSecondary,
-                                  fontSize: 14,
-                                ),
+                                style: AppTypography.bodySmall,
                               ),
                             ],
                           ),
@@ -151,28 +291,23 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                             itemCount: _filteredCities.length,
                             separatorBuilder: (context, index) => Divider(
                               height: 1,
-                              color: NeoTasteColors.textDisabled.withOpacity(
-                                0.1,
-                              ),
+                              color: AppColors.textDisabled.withValues(alpha: 0.1),
                             ),
                             itemBuilder: (context, index) {
                               final city = _filteredCities[index];
-                              final cityName =
-                                  city['name'] as String? ?? 'Unknown';
+                              final cityName = city['name'] as String? ?? 'Unknown';
                               return ListTile(
                                 leading: const Icon(
-                                  Icons.location_city,
+                                  Icons.location_city_rounded,
                                   size: 20,
-                                  color: NeoTasteColors.accent,
+                                  color: AppColors.merchantIndigo,
                                 ),
                                 title: Text(
                                   cityName,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w500,
-                                    color: NeoTasteColors.textPrimary,
+                                  style: AppTypography.body.copyWith(
+                                    fontWeight: FontWeight.w600,
                                   ),
-                                ),              
+                                ),
                                 onTap: () {
                                   setState(() {
                                     _cityController.text = cityName;
@@ -210,10 +345,23 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
     _emailController.dispose();
     _websiteController.dispose();
     _cityController.dispose();
+    _loyaltyRequiredRedemptionsController.dispose();
+    _loyaltyRewardDescriptionController.dispose();
     _cityFocusNode.removeListener(_onCityFocusChange);
     _cityFocusNode.dispose();
     _hideOverlay();
     super.dispose();
+  }
+
+  void _scrollToLoyaltySection() {
+    final context = _loyaltySectionKey.currentContext;
+    if (context != null) {
+      Scrollable.ensureVisible(
+        context,
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+      );
+    }
   }
 
   Future<void> _loadReferenceData() async {
@@ -221,15 +369,29 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
       final results = await Future.wait([
         _merchantService.getCities(),
         _merchantService.getCategories(),
+        _merchantService.getFacilities(),
+        _merchantService.getCuisines(),
       ]);
 
       if (mounted) {
         setState(() {
           _cities = results[0];
           _categories = results[1];
+          _facilities = results[2];
+          _cuisines = results[3];
           _filteredCities = _cities;
           _isLoadingData = false;
         });
+
+        if (widget.restaurant != null && widget.restaurant!['scrollToLoyalty'] == true) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Future.delayed(const Duration(milliseconds: 350), () {
+              if (mounted) {
+                _scrollToLoyaltySection();
+              }
+            });
+          });
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -239,7 +401,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to load reference data: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -259,6 +421,13 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
     _emailController.text = restaurant['email'] as String? ?? '';
     _websiteController.text = restaurant['website'] as String? ?? '';
     _priceRange = restaurant['price_range'] as int? ?? 2;
+    _menuType = restaurant['menu_type'] as String? ?? 'structured';
+
+    // Load images
+    if (restaurant['images'] != null) {
+      final imagesData = restaurant['images'] as List;
+      _restaurantImages = imagesData.map((img) => model.RestaurantImage.fromJson(img)).toList();
+    }
 
     // Load city
     if (restaurant['city'] != null) {
@@ -269,22 +438,251 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
     }
 
     // Load categories
-    if (restaurant['categories'] != null) {
-      final categories = restaurant['categories'] as List;
-      _selectedCategoryIds = categories.map((c) {
+    final categoriesData = restaurant['categories'] ?? restaurant['category_ids'];
+    if (categoriesData != null && categoriesData is List) {
+      _selectedCategoryIds = categoriesData.map((c) {
         if (c is Map) return c['id'] as int;
         return c as int;
       }).toList();
     }
 
-    // Load opening hours
-    if (restaurant['opening_hours'] != null) {
-      final hours = restaurant['opening_hours'] as Map<String, dynamic>;
-      hours.forEach((key, value) {
-        if (_openingHours.containsKey(key.toLowerCase())) {
-          _openingHours[key.toLowerCase()] = value.toString();
-        }
+    // Load cuisines
+    final cuisinesData = restaurant['cuisines'] ?? restaurant['cuisine_ids'];
+    if (cuisinesData != null && cuisinesData is List) {
+      _selectedCuisineIds = cuisinesData.map((c) {
+        if (c is Map) return c['id'] as int;
+        return c as int;
+      }).toList();
+    }
+
+    // Load facilities
+    final facilitiesData = restaurant['facilities'] ?? restaurant['facility_ids'];
+    if (facilitiesData != null && facilitiesData is List) {
+      _selectedFacilityIds = facilitiesData.map((f) {
+        if (f is Map) return f['id'] as int;
+        return f as int;
+      }).toList();
+    }
+
+    // Load loyalty details
+    _loyaltyCardEnabled = restaurant['loyalty_card_enabled'] as bool? ?? false;
+    _loyaltyRequiredRedemptionsController.text = restaurant['loyalty_required_redemptions']?.toString() ?? '';
+    _loyaltyRewardDescriptionController.text = restaurant['loyalty_reward_description'] as String? ?? '';
+    _bookingsEnabled = restaurant['bookings_enabled'] as bool? ?? true;
+
+    // Load opening hours from slots (preferred) or the legacy JSON map.
+    _loadOpeningHoursFromRestaurant(restaurant);
+  }
+
+  void _loadOpeningHoursFromRestaurant(Map<String, dynamic> restaurant) {
+    final slots = restaurant['opening_slots'];
+    if (slots is List && slots.isNotEmpty) {
+      final byDay = {
+        for (final key in model.OpeningHoursFormat.dayKeys) key: <String>[],
+      };
+
+      for (final raw in slots) {
+        if (raw is! Map) continue;
+        final slot = model.OpeningSlot.fromJson(
+          Map<String, dynamic>.from(raw),
+        );
+        final dayIndex = slot.dayIndex;
+        if (slot.isClosed || dayIndex == null) continue;
+
+        final dayKey = model.OpeningHoursFormat.dayKeys[dayIndex];
+        byDay[dayKey]!.add('${slot.openingTime}-${slot.closingTime}');
+      }
+
+      for (final entry in byDay.entries) {
+        entry.value.sort(
+          (a, b) =>
+              (model.OpeningHoursFormat.minutesOf(a.split('-').first) ?? 0)
+                  .compareTo(
+                model.OpeningHoursFormat.minutesOf(b.split('-').first) ?? 0,
+              ),
+        );
+        _openingHours[entry.key] = entry.value;
+      }
+      return;
+    }
+
+    final rawHours = restaurant['opening_hours'];
+    if (rawHours is! Map) return;
+
+    rawHours.forEach((key, value) {
+      final day = key.toString().toLowerCase();
+      if (!_openingHours.containsKey(day)) return;
+      _openingHours[day] = model.OpeningSlot.parseDayRanges(value)
+          .map((range) => '${range.$1}-${range.$2}')
+          .toList();
+    });
+  }
+
+  int? _restaurantId() {
+    final restaurantId = widget.restaurant?['id'];
+    if (restaurantId == null) return null;
+    if (restaurantId is int) return restaurantId;
+    return int.tryParse(restaurantId.toString());
+  }
+
+  Future<int> _pendingBookingsCount() async {
+    final id = _restaurantId();
+    if (id == null) return 0;
+    try {
+      final results = await Future.wait([
+        _merchantService.getMerchantBookings(
+          restaurantId: id,
+          status: 'pending',
+        ),
+        _merchantService.getMerchantBookings(
+          restaurantId: id,
+          status: 'confirmed',
+        ),
+      ]);
+      return results[0].length + results[1].length;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  Future<bool> _confirmDisableBookings() async {
+    final pendingCount = await _pendingBookingsCount();
+    if (!mounted) return false;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(
+          'Disable Bookings?',
+          style: AppTypography.title.copyWith(fontSize: 18),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Customers will no longer see the Book Table button. Existing bookings will not be cancelled.',
+              style: AppTypography.body,
+            ),
+            if (pendingCount > 0) ...[
+              const SizedBox(height: 12),
+              Text(
+                'Warning: You have $pendingCount pending or confirmed booking${pendingCount == 1 ? '' : 's'}. Disabling bookings will not cancel them.',
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.merchantAmber,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ],
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(
+              'Cancel',
+              style: AppTypography.bodySmall.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+          AppGradientButton(
+            onPressed: () => Navigator.pop(context, true),
+            width: 120,
+            height: 48,
+            gradient: LinearGradient(
+              colors: [AppColors.error, AppColors.error.withValues(alpha: 0.8)],
+            ),
+            child: const Text(
+              'Disable',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    return confirmed == true;
+  }
+
+  Future<void> _onBookingsEnabledChanged(bool value) async {
+    if (!value) {
+      setState(() {
+        _isUpdatingBookings = true;
       });
+      final confirmed = await _confirmDisableBookings();
+      if (!mounted) return;
+      if (!confirmed) {
+        setState(() {
+          _isUpdatingBookings = false;
+        });
+        return;
+      }
+    }
+
+    if (widget.restaurant == null) {
+      setState(() {
+        _bookingsEnabled = value;
+        _isUpdatingBookings = false;
+      });
+      return;
+    }
+
+    final id = _restaurantId();
+    if (id == null) {
+      setState(() {
+        _bookingsEnabled = value;
+        _isUpdatingBookings = false;
+      });
+      return;
+    }
+
+    setState(() {
+      _bookingsEnabled = value;
+      _isUpdatingBookings = true;
+    });
+
+    try {
+      await _merchantService.updateRestaurant(id, {
+        'bookings_enabled': value,
+      });
+      if (mounted) {
+        setState(() {
+          _bookingStatusDirty = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              value
+                  ? 'Bookings enabled. Customers can book tables.'
+                  : 'Bookings disabled. The booking button is now hidden.',
+            ),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _bookingsEnabled = !value;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update booking status: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUpdatingBookings = false;
+        });
+      }
     }
   }
 
@@ -297,6 +695,12 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
 
   Future<void> _saveRestaurant() async {
     if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fill out all required fields.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
       return;
     }
 
@@ -305,11 +709,11 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
     });
 
     try {
-      // Build opening hours object (only include non-empty values)
-      final openingHours = <String, String>{};
+      // Send a list of windows per day so split shifts survive the round trip.
+      final openingHours = <String, List<String>>{};
       _openingHours.forEach((key, value) {
         if (value.isNotEmpty) {
-          openingHours[key] = value;
+          openingHours[key] = List<String>.from(value);
         }
       });
 
@@ -326,20 +730,34 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
         'longitude': _longitudeController.text.trim(),
         'phone': _phoneController.text.trim(),
         'email': _emailController.text.trim(),
-        'website': _websiteController.text.trim(),
-        'categories': _selectedCategoryIds,
+        'category_ids': _selectedCategoryIds,
+        'cuisine_ids': _selectedCuisineIds,
+        'facility_ids': _selectedFacilityIds,
         'price_range': _priceRange,
+        'menu_type': _menuType,
         if (openingHours.isNotEmpty) 'opening_hours': openingHours,
+        'loyalty_card_enabled': _loyaltyCardEnabled,
+        'bookings_enabled': _bookingsEnabled,
+        if (_loyaltyCardEnabled) ...{
+          'loyalty_required_redemptions': int.tryParse(_loyaltyRequiredRedemptionsController.text.trim()) ?? 0,
+          'loyalty_reward_description': _loyaltyRewardDescriptionController.text.trim(),
+        }
       };
 
-      // Remove empty optional fields
+      if (_websiteController.text.trim().isNotEmpty) {
+        restaurantData['website'] = _websiteController.text.trim();
+      }
+
+      // Remove empty optional fields but keep IDs and lists that might be empty if intended
       restaurantData.removeWhere(
         (key, value) =>
             (value == null ||
                 value == '' ||
                 (value is List && value.isEmpty)) &&
             key != 'city_id' &&
-            key != 'categories' &&
+            key != 'category_ids' &&
+            key != 'facility_ids' &&
+            key != 'cuisine_ids' &&
             key != 'price_range',
       );
 
@@ -358,7 +776,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Restaurant updated successfully'),
-              backgroundColor: Colors.green,
+              backgroundColor: AppColors.success,
             ),
           );
           Navigator.pop(context, true);
@@ -370,7 +788,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Restaurant created successfully'),
-              backgroundColor: Colors.green,
+              backgroundColor: AppColors.success,
             ),
           );
           Navigator.pop(context, true);
@@ -381,7 +799,7 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to save restaurant: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -394,40 +812,360 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
     }
   }
 
+  Future<void> _pickAndUploadImage(String type) async {
+    final XFile? image = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 85,
+    );
+    if (image == null) return;
+
+    if (widget.restaurant == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please save the restaurant first before uploading images.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final restaurantId = widget.restaurant!['id'];
+      final id = restaurantId is int ? restaurantId : int.parse(restaurantId.toString());
+
+      await _merchantService.uploadRestaurantImage(
+        restaurantId: id,
+        imagePath: image.path,
+        imageType: type,
+        isPrimary: type == 'gallery' &&
+            _restaurantImages
+                .where((img) => img.imageType == 'gallery')
+                .isEmpty,
+      );
+
+      // Reload restaurant data to get updated images list
+      final updatedRestaurant = await _merchantService.getRestaurantDetail(id);
+      if (mounted) {
+        setState(() {
+          if (updatedRestaurant['images'] != null) {
+            final imagesData = updatedRestaurant['images'] as List;
+            _restaurantImages = imagesData
+                .map((img) => model.RestaurantImage.fromJson(img))
+                .toList();
+          }
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Image uploaded successfully'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to upload image: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _deleteImage(int imageId) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _merchantService.deleteRestaurantImage(imageId);
+      if (mounted) {
+        setState(() {
+          _restaurantImages.removeWhere((img) => img.id == imageId);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Image deleted successfully'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete image: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _setPrimaryImage(int imageId) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _merchantService.setPrimaryImage(imageId);
+      if (mounted) {
+        setState(() {
+          _restaurantImages = _restaurantImages.map((img) {
+            if (img.imageType == 'gallery') {
+              return model.RestaurantImage(
+                id: img.id,
+                image: img.image,
+                altText: img.altText,
+                imageType: img.imageType,
+                isPrimary: img.id == imageId,
+                order: img.order,
+              );
+            }
+            return img;
+          }).toList();
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Primary image updated successfully'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update primary image: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleBackPress() async {
+    if (!_isFormDirty && !_bookingStatusDirty) {
+      Navigator.of(context).pop(_bookingStatusDirty);
+      return;
+    }
+
+    final action = await showModalBottomSheet<_UnsavedFormAction>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => Container(
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.textDisabled.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.merchantIndigo.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.warning_amber_rounded,
+                      color: AppColors.merchantIndigo,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Unsaved Changes',
+                          style: AppTypography.title.copyWith(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'You have unsaved changes to this restaurant.',
+                          style: AppTypography.caption.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Would you like to save your changes before leaving?',
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 24),
+              AppGradientButton(
+                width: double.infinity,
+                onPressed: () => Navigator.pop(ctx, _UnsavedFormAction.save),
+                child: Text(
+                  'Save Changes',
+                  style: AppTypography.button.copyWith(fontWeight: FontWeight.w700),
+                ),
+              ),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx, _UnsavedFormAction.discard),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.error,
+                    side: BorderSide(color: AppColors.error.withValues(alpha: 0.4)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: AppRadius.medium,
+                    ),
+                  ),
+                  child: Text(
+                    'Discard Changes',
+                    style: AppTypography.bodySmall.copyWith(
+                      color: AppColors.error,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Center(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx, _UnsavedFormAction.cancel),
+                  child: Text(
+                    'Keep Editing',
+                    style: AppTypography.bodySmall.copyWith(
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (action == _UnsavedFormAction.save) {
+      await _saveRestaurant();
+    } else if (action == _UnsavedFormAction.discard) {
+      if (mounted) {
+        Navigator.of(context).pop(_bookingStatusDirty);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: NeoTasteColors.background,
-      appBar: AppBar(
-        title: Text(
-          widget.restaurant != null ? 'Edit Restaurant' : 'Add Restaurant',
-          style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: NeoTasteColors.white,
-        elevation: 0,
+    return PopScope(
+      canPop: !_isFormDirty && !_bookingStatusDirty,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        await _handleBackPress();
+      },
+      child: AppScaffold(
+      appBar: AppAppBar(
+        titleText: widget.restaurant != null ? 'Edit Restaurant' : 'Add Restaurant',
+        backgroundColor: Colors.transparent,
         actions: widget.restaurant != null
             ? [
                 IconButton(
-                  icon: const Icon(Icons.delete),
+                  icon: const Icon(Icons.restaurant_menu_rounded, color: AppColors.merchantIndigo),
+                  tooltip: 'Manage menu',
+                  onPressed: () {
+                    final restaurantId = widget.restaurant!['id'];
+                    final id = restaurantId is int
+                        ? restaurantId
+                        : int.parse(restaurantId.toString());
+                    Get.toNamed(
+                      AppRoutes.merchantMenu,
+                      arguments: {
+                        'restaurantId': id,
+                        'restaurantName': widget.restaurant!['name'],
+                      },
+                    );
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
                   onPressed: () async {
                     final confirm = await showDialog<bool>(
                       context: context,
                       builder: (context) => AlertDialog(
-                        title: const Text('Delete Restaurant'),
-                        content: const Text(
-                          'Are you sure you want to delete this restaurant?',
+                        backgroundColor: AppColors.surface,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                        title: Text('Delete Restaurant?', style: AppTypography.title.copyWith(fontSize: 18)),
+                        content: Text(
+                          'Are you sure you want to delete this restaurant? This action cannot be undone.',
+                          style: AppTypography.body,
                         ),
+                        actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context, false),
-                            child: const Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () => Navigator.pop(context, true),
-                            style: TextButton.styleFrom(
-                              foregroundColor: Colors.red,
+                            child: Text(
+                              'Cancel',
+                              style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700, color: AppColors.textSecondary),
                             ),
-                            child: const Text('Delete'),
+                          ),
+                          AppGradientButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            width: 120,
+                            height: 48,
+                            gradient: LinearGradient(colors: [AppColors.error, AppColors.error.withValues(alpha: 0.8)]),
+                            child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.w700)),
                           ),
                         ],
                       ),
@@ -436,21 +1174,17 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
                     if (confirm == true) {
                       try {
                         final restaurantId = widget.restaurant!['id'];
-                        final id = restaurantId is int
-                            ? restaurantId
-                            : int.parse(restaurantId.toString());
+                        final id = restaurantId is int ? restaurantId : int.parse(restaurantId.toString());
                         await _merchantService.deleteRestaurant(id);
-                        if (mounted) {
+                        if (context.mounted) {
                           Navigator.pop(context, true);
                         }
                       } catch (e) {
-                        if (mounted) {
+                        if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(
-                                'Failed to delete: ${e.toString()}',
-                              ),
-                              backgroundColor: Colors.red,
+                              content: Text('Failed to delete: ${e.toString()}'),
+                              backgroundColor: AppColors.error,
                             ),
                           );
                         }
@@ -462,322 +1196,807 @@ class _AddRestaurantPageState extends State<AddRestaurantPage> {
             : null,
       ),
       body: _isLoadingData
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: AppColors.merchantIndigo))
           : Form(
               key: _formKey,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.xl,
+                ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Basic Information
-                    _buildSectionTitle('Basic Information'),
-                    AuthTextField(
-                      controller: _nameController,
-                      placeholder: 'Restaurant Name *',
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Restaurant name is required';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    AuthTextField(
-                      controller: _slugController,
-                      placeholder: 'Slug (auto-generated if empty)',
-                    ),
-                    const SizedBox(height: 16),
-                    AuthTextField(
-                      controller: _descriptionController,
-                      placeholder: 'Description',
-                    ),
-                    const SizedBox(height: 24),
-
-                    _buildSectionTitle('Location'),
-                    CompositedTransformTarget(
-                      link: _cityLayerLink,
-                      child: AuthTextField(
-                        key: _cityFieldKey,
-                        controller: _cityController,
-                        focusNode: _cityFocusNode,
-                        placeholder: 'Search City *',
-                        readOnly: true,
-                        onTap: () {
-                          if (!_cityFocusNode.hasFocus) {
-                            _cityFocusNode.requestFocus();
-                          } else {
-                            _showOverlay();
-                          }
-                        },
-                        onChanged: (value) {
-                          setState(() {
-                            if (value.isEmpty) {
-                              _filteredCities = _cities;
-                              _selectedCityId = null;
-                            } else {
-                              _filteredCities = _cities.where((city) {
-                                final cityName = (city['name'] as String? ?? '')
-                                    .toLowerCase();
-                                return cityName.contains(value.toLowerCase());
-                              }).toList();
+                    _buildSectionHeader('Basic Information', Icons.storefront_rounded),
+                    const SizedBox(height: AppSpacing.md),
+                    _buildFormSection(
+                      children: [
+                        AppTextField(
+                          controller: _nameController,
+                          label: 'Restaurant Name *',
+                          hintText: 'e.g. Burger King',
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Restaurant name is required';
                             }
-                            // Rebuild overlay with filtered list
-                            _cityOverlayEntry?.markNeedsBuild();
-                          });
-                        },
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'City is required';
-                          }
-                          if (_selectedCityId == null) {
-                            return 'Please select a city from the dropdown';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    AuthTextField(
-                      controller: _addressController,
-                      placeholder: 'Address *',
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Address is required';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    AuthTextField(
-                      controller: _postcodeController,
-                      placeholder: 'Postcode',
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: AuthTextField(
-                            controller: _latitudeController,
-                            placeholder: 'Latitude',
-                            keyboardType: TextInputType.number,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: AuthTextField(
-                            controller: _longitudeController,
-                            placeholder: 'Longitude',
-                            keyboardType: TextInputType.number,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Contact Information
-                    _buildSectionTitle('Contact Information'),
-                    AuthTextField(
-                      controller: _phoneController,
-                      placeholder: 'Phone Number',
-                      keyboardType: TextInputType.phone,
-                    ),
-                    const SizedBox(height: 16),
-                    AuthTextField(
-                      controller: _emailController,
-                      placeholder: 'Email',
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (value) {
-                        if (value != null &&
-                            value.isNotEmpty &&
-                            !value.contains('@')) {
-                          return 'Invalid email address';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    AuthTextField(
-                      controller: _websiteController,
-                      placeholder: 'Website URL',
-                      keyboardType: TextInputType.url,
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Categories
-                    _buildSectionTitle('Categories'),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _categories.map((category) {
-                        final categoryId = category['id'] as int;
-                        final isSelected = _selectedCategoryIds.contains(
-                          categoryId,
-                        );
-                        return FilterChip(
-                          label: Text(category['name'] as String),
-                          selected: isSelected,
-                          onSelected: (selected) {
-                            setState(() {
-                              if (selected) {
-                                _selectedCategoryIds.add(categoryId);
-                              } else {
-                                _selectedCategoryIds.remove(categoryId);
-                              }
-                            });
+                            return null;
                           },
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Price Range
-                    _buildSectionTitle('Price Range'),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: RadioListTile<int>(
-                            title: const Text('£'),
-                            value: 1,
-                            groupValue: _priceRange,
-                            onChanged: (value) {
-                              setState(() {
-                                _priceRange = value!;
-                              });
-                            },
-                          ),
                         ),
-                        Expanded(
-                          child: RadioListTile<int>(
-                            title: const Text('££'),
-                            value: 2,
-                            groupValue: _priceRange,
-                            onChanged: (value) {
-                              setState(() {
-                                _priceRange = value!;
-                              });
-                            },
-                          ),
+                        const SizedBox(height: AppSpacing.lg),
+                        AppTextField(
+                          controller: _slugController,
+                          label: 'Slug URL (Optional)',
+                          hintText: 'e.g. burger-king (Auto-generated if empty)',
                         ),
-                        Expanded(
-                          child: RadioListTile<int>(
-                            title: const Text('£££'),
-                            value: 3,
-                            groupValue: _priceRange,
-                            onChanged: (value) {
-                              setState(() {
-                                _priceRange = value!;
-                              });
-                            },
-                          ),
-                        ),
-                        Expanded(
-                          child: RadioListTile<int>(
-                            title: const Text('££££'),
-                            value: 4,
-                            groupValue: _priceRange,
-                            onChanged: (value) {
-                              setState(() {
-                                _priceRange = value!;
-                              });
-                            },
-                          ),
+                        const SizedBox(height: AppSpacing.lg),
+                        AppTextField(
+                          controller: _descriptionController,
+                          label: 'Description',
+                          hintText: 'Tell customers about your restaurant...',
+                          maxLines: 3,
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
 
-                    // Opening Hours
-                    _buildSectionTitle('Opening Hours (Optional)'),
-                    ..._openingHours.entries.map((entry) {
-                      final controller = TextEditingController(
-                        text: entry.value,
-                      );
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Row(
+                    const SizedBox(height: AppSpacing.xl),
+                    _buildSectionHeader('Location', Icons.location_on_rounded),
+                    const SizedBox(height: AppSpacing.md),
+                    _buildFormSection(
+                      children: [
+                        CompositedTransformTarget(
+                          link: _cityLayerLink,
+                          child: AppTextField(
+                            key: _cityFieldKey,
+                            controller: _cityController,
+                            focusNode: _cityFocusNode,
+                            label: 'City *',
+                            readOnly: true,
+                            hintText: 'Select a city',
+                            onTap: () {
+                              if (!_cityFocusNode.hasFocus) {
+                                _cityFocusNode.requestFocus();
+                              } else {
+                                _showOverlay();
+                              }
+                            },
+                            onChanged: (_) {},
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'City is required';
+                              }
+                              if (_selectedCityId == null) {
+                                return 'Please select a city from the dropdown';
+                              }
+                              return null;
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        AppTextField(
+                          controller: _addressController,
+                          label: 'Full Address *',
+                          hintText: 'e.g. 123 High Street',
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Address is required';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        AppTextField(
+                          controller: _postcodeController,
+                          label: 'Postcode',
+                          hintText: 'e.g. W1D 1AA',
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        Row(
                           children: [
-                            SizedBox(
-                              width: 100,
-                              child: Text(
-                                entry.key[0].toUpperCase() +
-                                    entry.key.substring(1),
-                                style: GoogleFonts.inter(
-                                  fontWeight: FontWeight.w600,
+                            Expanded(
+                              child: AppTextField(
+                                controller: _latitudeController,
+                                label: 'Latitude',
+                                hintText: 'e.g. 51.5074',
+                                keyboardType: const TextInputType.numberWithOptions(
+                                  decimal: true,
+                                  signed: true,
                                 ),
+                                validator: _validateLatitude,
                               ),
                             ),
+                            const SizedBox(width: AppSpacing.lg),
                             Expanded(
-                              child: AuthTextField(
-                                controller: controller,
-                                placeholder: 'e.g., 10:00-22:00',
-                                onChanged: (value) {
-                                  setState(() {
-                                    _openingHours[entry.key] = value;
-                                  });
-                                },
+                              child: AppTextField(
+                                controller: _longitudeController,
+                                label: 'Longitude',
+                                hintText: 'e.g. -0.1278',
+                                keyboardType: const TextInputType.numberWithOptions(
+                                  decimal: true,
+                                  signed: true,
+                                ),
+                                validator: _validateLongitude,
                               ),
                             ),
                           ],
                         ),
-                      );
-                    }),
-                    const SizedBox(height: 32),
-
-                    // Save Button
-                    SizedBox(
-                      width: double.infinity,
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed: _isLoading ? null : _saveRestaurant,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: NeoTasteColors.accent,
-                          foregroundColor: NeoTasteColors.primary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                        const SizedBox(height: AppSpacing.md),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: _isLoading ? null : _fetchCurrentLocation,
+                            icon: const Icon(Icons.my_location),
+                            label: const Text('Update Restaurant Location'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.merchantIndigo,
+                              side: const BorderSide(color: AppColors.merchantIndigo),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                            ),
                           ),
                         ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    NeoTasteColors.primary,
-                                  ),
-                                ),
-                              )
-                            : Text(
-                                widget.restaurant != null
-                                    ? 'Update Restaurant'
-                                    : 'Create Restaurant',
-                                style: GoogleFonts.inter(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                      ],
+                    ),
+
+                    const SizedBox(height: AppSpacing.xl),
+                    _buildSectionHeader('Contact Information', Icons.contact_phone_rounded),
+                    const SizedBox(height: AppSpacing.md),
+                    _buildFormSection(
+                      children: [
+                        AppTextField(
+                          controller: _phoneController,
+                          label: 'Phone Number',
+                          keyboardType: TextInputType.phone,
+                          hintText: 'e.g. +44 20 7123 4567',
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        AppTextField(
+                          controller: _emailController,
+                          label: 'Email Address',
+                          keyboardType: TextInputType.emailAddress,
+                          hintText: 'e.g. contact@restaurant.com',
+                          validator: (value) {
+                            if (value != null && value.isNotEmpty && !value.contains('@')) {
+                              return 'Invalid email address';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        AppTextField(
+                          controller: _websiteController,
+                          label: 'Website URL',
+                          keyboardType: TextInputType.url,
+                          hintText: 'e.g. https://www.restaurant.com',
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: AppSpacing.xl),
+                    _buildSectionHeader('Categories', Icons.category_rounded),
+                    const SizedBox(height: AppSpacing.md),
+                    _buildFormSection(
+                      children: [
+                        Text(
+                          'Select the types of cuisine and offerings that best describe your restaurant.',
+                          style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: _categories.map((category) {
+                            final categoryId = category['id'] as int;
+                            final isSelected = _selectedCategoryIds.contains(categoryId);
+                            return FilterChip(
+                              label: Text(category['name'] as String),
+                              selected: isSelected,
+                              showCheckmark: false,
+                              selectedColor: AppColors.merchantIndigo,
+                              backgroundColor: AppColors.background,
+                              labelStyle: AppTypography.bodySmall.copyWith(
+                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                                color: isSelected ? AppColors.white : AppColors.textPrimary,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                side: BorderSide(
+                                  color: isSelected
+                                      ? AppColors.merchantIndigo
+                                      : AppColors.cardBorder,
                                 ),
                               ),
-                      ),
+                              onSelected: (selected) {
+                                setState(() {
+                                  if (selected) {
+                                    _selectedCategoryIds.add(categoryId);
+                                  } else {
+                                    _selectedCategoryIds.remove(categoryId);
+                                  }
+                                });
+                              },
+                            );
+                          }).toList(),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 24),
+
+                    const SizedBox(height: AppSpacing.xl),
+                    _buildSectionHeader('Cuisines', Icons.restaurant_rounded),
+                    const SizedBox(height: AppSpacing.md),
+                    _buildFormSection(
+                      children: [
+                        Text(
+                          'Select the specific cuisines your restaurant serves.',
+                          style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: _cuisines.map((cuisine) {
+                            final cuisineId = cuisine['id'] as int;
+                            final isSelected = _selectedCuisineIds.contains(cuisineId);
+                            return FilterChip(
+                              label: Text(cuisine['name'] as String),
+                              selected: isSelected,
+                              showCheckmark: false,
+                              selectedColor: AppColors.merchantIndigo,
+                              backgroundColor: AppColors.background,
+                              labelStyle: AppTypography.bodySmall.copyWith(
+                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                                color: isSelected ? AppColors.white : AppColors.textPrimary,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                side: BorderSide(
+                                  color: isSelected
+                                      ? AppColors.merchantIndigo
+                                      : AppColors.cardBorder,
+                                ),
+                              ),
+                              onSelected: (selected) {
+                                setState(() {
+                                  if (selected) {
+                                    _selectedCuisineIds.add(cuisineId);
+                                  } else {
+                                    _selectedCuisineIds.remove(cuisineId);
+                                  }
+                                });
+                              },
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: AppSpacing.xl),
+                    _buildSectionHeader('Facilities', Icons.featured_play_list_rounded),
+                    const SizedBox(height: AppSpacing.md),
+                    _buildFormSection(
+                      children: [
+                        Text(
+                          'Select the amenities and facilities available at your restaurant.',
+                          style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: _facilities.map((facility) {
+                            final facilityId = facility['id'] as int;
+                            final isSelected = _selectedFacilityIds.contains(facilityId);
+                            return FilterChip(
+                              label: Text(facility['name'] as String),
+                              selected: isSelected,
+                              showCheckmark: false,
+                              selectedColor: AppColors.merchantIndigo,
+                              backgroundColor: AppColors.background,
+                              labelStyle: AppTypography.bodySmall.copyWith(
+                                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                                color: isSelected ? AppColors.white : AppColors.textPrimary,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                side: BorderSide(
+                                  color: isSelected
+                                      ? AppColors.merchantIndigo
+                                      : AppColors.cardBorder,
+                                ),
+                              ),
+                              onSelected: (selected) {
+                                setState(() {
+                                  if (selected) {
+                                    _selectedFacilityIds.add(facilityId);
+                                  } else {
+                                    _selectedFacilityIds.remove(facilityId);
+                                  }
+                                });
+                              },
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: AppSpacing.xl),
+                    _buildSectionHeader('Menu Type', Icons.restaurant_menu_rounded),
+                    const SizedBox(height: AppSpacing.md),
+                    _buildFormSection(
+                      children: [
+                        Text(
+                          'Choose how you want to display your menu to users.',
+                          style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        RadioGroup<String>(
+                          groupValue: _menuType,
+                          onChanged: (value) {
+                            setState(() {
+                              _menuType = value!;
+                            });
+                          },
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: RadioListTile<String>(
+                                  title: Text('Structured', style: AppTypography.bodySmall),
+                                  value: 'structured',
+                                  activeColor: AppColors.merchantIndigo,
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                              ),
+                              Expanded(
+                                child: RadioListTile<String>(
+                                  title: Text('Images', style: AppTypography.bodySmall),
+                                  value: 'image',
+                                  activeColor: AppColors.merchantIndigo,
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: AppSpacing.xl),
+                    _buildSectionHeader('Price Range', Icons.attach_money_rounded),
+                    const SizedBox(height: AppSpacing.md),
+                    _buildFormSection(
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      children: [
+                        Row(
+                          children: [
+                            _buildPriceTier(1, '£', 'Cheap Eats'),
+                            _buildPriceTier(2, '££', 'Moderate'),
+                            _buildPriceTier(3, '£££', 'Expensive'),
+                            _buildPriceTier(4, '££££', 'Fine Dining'),
+                          ],
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: AppSpacing.xl),
+                    _buildSectionHeader('Opening Hours (Optional)', Icons.access_time_rounded),
+                    const SizedBox(height: AppSpacing.md),
+                    _buildFormSection(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 4,
+                      ),
+                      children: [
+                        Text(
+                          'Tap a day to set hours. Use multiple shifts for a lunch break.',
+                          style: AppTypography.bodySmall.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        OpeningHoursMerchantList(
+                          hours: _openingHours,
+                          onChanged: (updated) {
+                            setState(() {
+                              for (final entry in updated.entries) {
+                                _openingHours[entry.key] = entry.value;
+                              }
+                              _isFormDirty = true;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                     const SizedBox(height: AppSpacing.xl),
+                     _buildSectionHeader('Booking Settings', Icons.event_available_rounded),
+                     const SizedBox(height: AppSpacing.md),
+                     _buildFormSection(
+                       children: [
+                         SwitchListTile(
+                           title: Text(
+                             'Accept Bookings',
+                             style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold),
+                           ),
+                           subtitle: Text(
+                             'Allow customers to book tables at your restaurant',
+                             style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
+                           ),
+                           value: _bookingsEnabled,
+                           activeTrackColor: AppColors.merchantIndigo,
+                           contentPadding: EdgeInsets.zero,
+                           onChanged: _isUpdatingBookings ? null : _onBookingsEnabledChanged,
+                         ),
+                         const SizedBox(height: AppSpacing.md),
+                         Container(
+                           width: double.infinity,
+                           padding: const EdgeInsets.all(12),
+                           decoration: BoxDecoration(
+                             color: AppColors.merchantIndigo.withValues(alpha: 0.08),
+                             borderRadius: BorderRadius.circular(12),
+                           ),
+                           child: Row(
+                             crossAxisAlignment: CrossAxisAlignment.start,
+                             children: [
+                               Icon(
+                                 Icons.info_outline_rounded,
+                                 size: 20,
+                                 color: AppColors.merchantIndigo,
+                               ),
+                               const SizedBox(width: 10),
+                               Expanded(
+                                 child: Column(
+                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                   children: [
+                                     Text(
+                                       _bookingsEnabled
+                                           ? 'Booking button visible'
+                                           : 'Booking button hidden',
+                                       style: AppTypography.bodySmall.copyWith(
+                                         fontWeight: FontWeight.w700,
+                                         color: AppColors.merchantIndigo,
+                                       ),
+                                     ),
+                                     const SizedBox(height: 2),
+                                     Text(
+                                       _bookingsEnabled
+                                           ? 'Customers can book tables'
+                                           : 'New bookings cannot be made',
+                                       style: AppTypography.caption.copyWith(
+                                         color: AppColors.textSecondary,
+                                       ),
+                                     ),
+                                   ],
+                                 ),
+                               ),
+                             ],
+                           ),
+                         ),
+                       ],
+                     ),
+                     const SizedBox(height: AppSpacing.xl),
+                     _buildSectionHeader('Loyalty Card Program', Icons.card_membership_rounded, key: _loyaltySectionKey),
+                     const SizedBox(height: AppSpacing.md),
+                     _buildFormSection(
+                       children: [
+                         SwitchListTile(
+                           title: Text(
+                             'Enable Loyalty Card',
+                             style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold),
+                           ),
+                           subtitle: Text(
+                             'Reward repeat customers after a set number of redemptions',
+                             style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
+                           ),
+                           value: _loyaltyCardEnabled,
+                           activeTrackColor: AppColors.merchantIndigo,
+                           contentPadding: EdgeInsets.zero,
+                           onChanged: (bool value) {
+                             setState(() {
+                               _loyaltyCardEnabled = value;
+                             });
+                           },
+                         ),
+                         if (_loyaltyCardEnabled) ...[
+                           const SizedBox(height: AppSpacing.lg),
+                           AppTextField(
+                             controller: _loyaltyRequiredRedemptionsController,
+                             label: 'Required Redemptions *',
+                             hintText: 'e.g. 10',
+                             keyboardType: TextInputType.number,
+                             validator: (value) {
+                               if (!_loyaltyCardEnabled) return null;
+                               if (value == null || value.trim().isEmpty) {
+                                 return 'Required redemptions is required';
+                               }
+                               final val = int.tryParse(value.trim());
+                               if (val == null || val < 1) {
+                                 return 'Must be a number greater than 0';
+                               }
+                               return null;
+                             },
+                           ),
+                           const SizedBox(height: AppSpacing.lg),
+                           AppTextField(
+                             controller: _loyaltyRewardDescriptionController,
+                             label: 'Reward Description *',
+                             hintText: 'e.g. Free main course or dessert',
+                             validator: (value) {
+                               if (!_loyaltyCardEnabled) return null;
+                               if (value == null || value.trim().isEmpty) {
+                                 return 'Reward description is required';
+                               }
+                               return null;
+                             },
+                           ),
+                         ],
+                       ],
+                     ),
+
+                     const SizedBox(height: AppSpacing.xl),
+                     _buildSectionHeader('Restaurant Gallery', Icons.image_rounded),
+                    const SizedBox(height: AppSpacing.md),
+                    _buildFormSection(
+                      children: [
+                        Text(
+                          'Upload photos of your restaurant, ambiance, and popular dishes.',
+                          style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        _buildImageGrid('gallery'),
+                        const SizedBox(height: AppSpacing.md),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () => _pickAndUploadImage('gallery'),
+                            icon: const Icon(Icons.add_a_photo_rounded),
+                            label: const Text('Add Gallery Image'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.merchantIndigo,
+                              side: const BorderSide(color: AppColors.merchantIndigo),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    if (_menuType == 'image') ...[
+                      const SizedBox(height: AppSpacing.xl),
+                      _buildSectionHeader('Menu Images', Icons.menu_book_rounded),
+                      const SizedBox(height: AppSpacing.md),
+                      _buildFormSection(
+                        children: [
+                          Text(
+                            'Upload clear photos of your physical menu.',
+                            style: AppTypography.bodySmall.copyWith(color: AppColors.textSecondary),
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          _buildImageGrid('menu'),
+                          const SizedBox(height: AppSpacing.md),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: () => _pickAndUploadImage('menu'),
+                              icon: const Icon(Icons.add_photo_alternate_rounded),
+                              label: const Text('Add Menu Image'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.merchantIndigo,
+                                side: const BorderSide(color: AppColors.merchantIndigo),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+
+                    const SizedBox(height: AppSpacing.xxxl),
+                    AppGradientButton(
+                      onPressed: _isLoading ? null : _saveRestaurant,
+                      isLoading: _isLoading,
+                      child: Text(widget.restaurant != null ? 'Save Changes' : 'Create Restaurant'),
+                    ),
+                    const SizedBox(height: 100), // Bottom padding
                   ],
                 ),
               ),
             ),
+      ),
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Text(
-        title,
-        style: GoogleFonts.inter(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: NeoTasteColors.textPrimary,
+  Widget _buildSectionHeader(String title, IconData icon, {Key? key}) {
+    return Row(
+      key: key,
+      children: [
+        Icon(icon, size: 20, color: AppColors.merchantIndigo),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: AppTypography.title.copyWith(fontSize: 18),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFormSection({
+    required List<Widget> children,
+    EdgeInsets padding = const EdgeInsets.all(AppSpacing.xl),
+  }) {
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.cardBorder),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.textDarkest.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      ),
+    );
+  }
+
+  Widget _buildPriceTier(int value, String label, String tooltip) {
+    final isSelected = _priceRange == value;
+    return Expanded(
+      child: InkWell(
+        onTap: () => setState(() => _priceRange = value),
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.merchantIndigo.withValues(alpha: 0.1) : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            children: [
+              Text(
+                label,
+                style: AppTypography.title.copyWith(
+                  color: isSelected ? AppColors.merchantIndigo : AppColors.textSecondary,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                tooltip,
+                style: AppTypography.caption.copyWith(
+                  color: isSelected ? AppColors.merchantIndigo : AppColors.textDisabled,
+                  fontSize: 10,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildImageGrid(String type) {
+    final images = _restaurantImages.where((img) => img.imageType == type).toList();
+
+    if (images.isEmpty) {
+      return Container(
+        height: 100,
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: AppColors.background,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.cardBorder, style: BorderStyle.solid),
+        ),
+        child: Center(
+          child: Text(
+            'No images uploaded yet',
+            style: AppTypography.bodySmall.copyWith(color: AppColors.textDisabled),
+          ),
+        ),
+      );
+    }
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 1,
+      ),
+      itemCount: images.length,
+      itemBuilder: (context, index) {
+        final image = images[index];
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: image.imageUrl.isNotEmpty
+                    ? CachedNetworkImage(
+                        imageUrl: image.imageUrl,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Container(
+                          color: AppColors.cardBorder,
+                          child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: AppColors.cardBorder,
+                          child: const Icon(Icons.error_outline),
+                        ),
+                      )
+                    : Container(
+                        color: AppColors.cardBorder,
+                        child: const Icon(Icons.image_not_supported_outlined),
+                      ),
+              ),
+            ),
+            if (type == 'gallery' && image.isPrimary)
+              Positioned(
+                top: 4,
+                left: 4,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.merchantIndigo,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'Primary',
+                    style: AppTypography.caption.copyWith(color: AppColors.white, fontSize: 8),
+                  ),
+                ),
+              ),
+            Positioned(
+              top: 0,
+              right: 0,
+              child: PopupMenuButton<String>(
+                icon: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: const BoxDecoration(
+                    color: Colors.black54,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.more_vert, size: 14, color: Colors.white),
+                ),
+                padding: EdgeInsets.zero,
+                onSelected: (value) {
+                  if (value == 'delete') {
+                    _deleteImage(image.id);
+                  } else if (value == 'primary') {
+                    _setPrimaryImage(image.id);
+                  }
+                },
+                itemBuilder: (context) => [
+                  if (type == 'gallery' && !image.isPrimary)
+                    const PopupMenuItem(
+                      value: 'primary',
+                      child: Row(
+                        children: [
+                          Icon(Icons.star_rounded, size: 18, color: Colors.amber),
+                          SizedBox(width: 8),
+                          Text('Set as Primary'),
+                        ],
+                      ),
+                    ),
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.error),
+                        SizedBox(width: 8),
+                        Text('Delete'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

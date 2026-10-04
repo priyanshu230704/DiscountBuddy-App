@@ -1,13 +1,22 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import '../providers/theme_provider.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
+import 'package:discount_buddy/design/app_design.dart';
+import '../routes/app_routes.dart';
+import '../widgets/app_scaffold.dart';
 import '../providers/auth_provider.dart';
-import '../services/wallet_service.dart';
-import '../models/wallet.dart';
-import 'edit_profile_page.dart';
+import '../services/restaurant_service.dart';
+import '../models/user_interactions.dart';
+import 'loyalty/loyalty_cards_screen.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import '../config/environment.dart';
 
 /// Profile Screen - NeoTaste style
 class ProfilePage extends StatefulWidget {
+  static final StreamController<void> onTabActivated = StreamController<void>.broadcast();
+
   const ProfilePage({super.key});
 
   @override
@@ -15,19 +24,27 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  final WalletService _walletService = WalletService();
+  final RestaurantService _restaurantService = RestaurantService();
   final AuthProvider _authProvider = AuthProvider();
-  Wallet? _wallet;
+  ProfileStats? _stats;
+  StreamSubscription<void>? _tabSub;
 
   @override
   void initState() {
     super.initState();
     _authProvider.addListener(_onAuthStateChanged);
-    _loadWallet();
+    _loadStats();
+    
+    _tabSub = ProfilePage.onTabActivated.stream.listen((_) {
+      if (mounted) {
+        _loadStats();
+      }
+    });
   }
 
   @override
   void dispose() {
+    _tabSub?.cancel();
     _authProvider.removeListener(_onAuthStateChanged);
     super.dispose();
   }
@@ -35,239 +52,236 @@ class _ProfilePageState extends State<ProfilePage> {
   void _onAuthStateChanged() {
     if (mounted) {
       setState(() {});
-      _loadWallet();
     }
   }
 
-  Future<void> _loadWallet() async {
+  Future<void> _loadStats() async {
     if (!_authProvider.isAuthenticated || _authProvider.isMerchant) {
       return;
     }
 
     try {
-      final wallet = await _walletService.getWallet();
-      if (mounted) {
-        setState(() {
-          _wallet = wallet;
-        });
-      }
+      await Future.wait([
+        _restaurantService.getProfileStats().then((stats) {
+          if (mounted) {
+            setState(() {
+              _stats = stats;
+            });
+          }
+        }),
+        _authProvider.refreshUser(),
+      ]);
     } catch (e) {
       // Silently fail
     }
   }
 
-  String _getInitials(String name) {
-    if (name.isEmpty) return '?';
-    final parts = name.trim().split(' ');
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-    } else if (parts.length == 1 && parts[0].isNotEmpty) {
-      return parts[0][0].toUpperCase();
-    }
-    return name[0].toUpperCase();
+  void _navigateToLevelDetails() {
+    if (_stats == null) return;
+    Get.toNamed(
+      AppRoutes.levelProgress,
+      arguments: _stats!,
+    );
+  }
+
+
+  void _navigateToEditProfile() {
+    Get.toNamed(AppRoutes.editProfile);
+  }
+
+  List<Widget> _buildMenuItems() {
+    final items = <_ProfileMenuItem>[
+      _ProfileMenuItem(
+        icon: Icons.help_outline,
+        title: 'Help & Support',
+        onTap: () {
+          Get.toNamed(AppRoutes.helpSupport);
+        },
+      ),
+      if (!_authProvider.isMerchant)
+        _ProfileMenuItem(
+          icon: Icons.stars_rounded,
+          title: 'My Spin Prizes',
+          onTap: () {
+            Get.toNamed(AppRoutes.myPrizes);
+          },
+        ),
+      if (!_authProvider.isMerchant)
+        _ProfileMenuItem(
+          icon: Icons.storefront_outlined,
+          title: 'Join as restaurant partner',
+          onTap: () {
+            Get.toNamed(AppRoutes.joinPartner);
+          },
+        ),
+      _ProfileMenuItem(
+        icon: Icons.privacy_tip_outlined,
+        title: 'Privacy Policy',
+        onTap: () {
+          Get.toNamed(AppRoutes.privacyPolicy);
+        },
+      ),
+      _ProfileMenuItem(
+        icon: Icons.logout_rounded,
+        title: 'Logout',
+        onTap: _showLogoutConfirmation,
+      ),
+      _ProfileMenuItem(
+        icon: Icons.delete_forever_rounded,
+        title: 'Delete Account',
+        isDestructive: true,
+        onTap: _showDeleteAccountConfirmation,
+      ),
+    ];
+
+    return [
+      for (var i = 0; i < items.length; i++) ...[
+        _MenuTile(
+          icon: items[i].icon,
+          title: items[i].title,
+          isDestructive: items[i].isDestructive,
+          onTap: items[i].onTap,
+        ),
+        if (i < items.length - 1)
+          const Divider(
+            height: 1,
+            thickness: 1,
+            indent: 56,
+            endIndent: AppSpacing.lg,
+            color: AppColors.divider,
+          ),
+      ],
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
     final user = _authProvider.user;
-    final displayName = user?.username ?? 'Guest';
-    final initials = _getInitials(displayName);
-    final walletBalance = _wallet?.balance ?? '0.00';
+    final displayName = user?.username ?? 'User';
 
-    return Scaffold(
-      backgroundColor: NeoTasteColors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
+      child: AppScaffold(
+        backgroundColor: AppColors.background,
+        body: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header with Profile title
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                child: Text(
-                  'Profile',
-                  style: GoogleFonts.inter(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: NeoTasteColors.textPrimary,
-                  ),
-                ),
+              _ProfileHeader(
+                displayName: displayName,
+                profilePicture: user?.profilePicture,
+                stats: _stats,
+                showStats: !_authProvider.isMerchant,
+                isLoadingStats: !_authProvider.isMerchant && _stats == null,
+                onEditProfile: _navigateToEditProfile,
+                onLevelTap: _navigateToLevelDetails,
+                onSavingsTap: () {
+                  Get.toNamed(AppRoutes.savingsHistory);
+                },
+                onFavouritesTap: () {
+                  Get.toNamed(AppRoutes.savedRestaurants);
+                },
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xxl),
 
-              // User Profile Section with Edit Profile
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const EditProfilePage(),
-                      ),
-                    );
-                  },
-                  child: Row(
-                    children: [
-                      // Avatar with green background
-                      Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          color: Colors.green,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Text(
-                            initials,
-                            style: GoogleFonts.inter(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: NeoTasteColors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      // Name and Edit profile
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              displayName,
-                              style: GoogleFonts.inter(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: NeoTasteColors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Edit profile',
-                              style: GoogleFonts.inter(
-                                fontSize: 14,
-                                color: NeoTasteColors.textSecondary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Icon(
-                        Icons.chevron_right,
-                        color: NeoTasteColors.textPrimary,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Statistics Cards Row
-              SizedBox(
-                height: 120,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: [
-                    _StatCard(
-                      icon: Icons.favorite,
-                      value: '0',
-                      label: 'Favourites',
-                    ),
-                    const SizedBox(width: 12),
-                    _StatCard(
-                      icon: Icons.account_balance_wallet,
-                      value: '£$walletBalance',
-                      label: 'Saved',
-                    ),
-                    const SizedBox(width: 12),
-                    _StatCard(
-                      icon: Icons.local_offer,
-                      value: '0',
-                      label: 'Deals',
-                    ),
-                    const SizedBox(width: 12),
-                    _StatCard(icon: Icons.star, value: '1', label: 'Loyalty'),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Invitation Banner
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Container(
-                  padding: const EdgeInsets.all(20),
+              // Loyalty Summary Chip/ListTile
+              if (!_authProvider.isMerchant &&
+                  user?.loyaltyStats != null &&
+                  user!.loyaltyStats!.activeRestaurantsCount > 0) ...[
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2E7D32), // Dark green
-                    borderRadius: BorderRadius.circular(16),
+                    color: AppColors.surface,
+                    borderRadius: AppRadius.xLarge,
+                    border: Border.all(color: AppColors.cardBorder),
+                    boxShadow: AppShadows.card,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Earn €10 for every friend you invite!',
-                        style: GoogleFonts.inter(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: NeoTasteColors.white,
-                        ),
+                  child: ListTile(
+                    leading: const CircleAvatar(
+                      backgroundColor: Color(0xFFFEE2E2),
+                      child: Icon(Icons.card_giftcard_rounded, color: AppColors.primary),
+                    ),
+                    title: Text(
+                      'My Loyalty Cards',
+                      style: AppTypography.body.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      user.loyaltyStats!.rewardEligibleCount > 0
+                          ? '${user.loyaltyStats!.rewardEligibleCount} reward${user.loyaltyStats!.rewardEligibleCount > 1 ? 's' : ''} ready!'
+                          : '${user.loyaltyStats!.activeRestaurantsCount} active card${user.loyaltyStats!.activeRestaurantsCount == 1 ? '' : 's'}',
+                      style: AppTypography.caption.copyWith(
+                        color: user.loyaltyStats!.rewardEligibleCount > 0 ? AppColors.success : AppColors.textSecondary,
+                        fontWeight: user.loyaltyStats!.rewardEligibleCount > 0 ? FontWeight.bold : FontWeight.normal,
                       ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            // Handle invite friends
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.lightGreen,
-                            foregroundColor: NeoTasteColors.textPrimary,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: Text(
-                            'Invite friends',
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+                    onTap: () => Navigator.push(context, LoyaltyCardsScreen.route()),
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.xxl),
+              ],
 
-              // Navigation List Items
+              // My Spin Rewards Summary Card
+              if (!_authProvider.isMerchant) ...[
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: AppRadius.xLarge,
+                    border: Border.all(color: AppColors.cardBorder),
+                    boxShadow: AppShadows.card,
+                  ),
+                  child: ListTile(
+                    leading: const CircleAvatar(
+                      backgroundColor: Color(0xFFF3E8FF),
+                      child: Icon(Icons.stars_rounded, color: Color(0xFF9333EA)),
+                    ),
+                    title: Text(
+                      'My Spin Rewards 🎡',
+                      style: AppTypography.body.copyWith(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      'View all claimed promo codes & prizes',
+                      style: AppTypography.caption.copyWith(color: AppColors.textSecondary),
+                    ),
+                    trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.textSecondary),
+                    onTap: () => Get.toNamed(AppRoutes.myPrizes),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xxl),
+              ],
+
+              // Menu Options
               Container(
-                color: NeoTasteColors.white,
+                margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: AppRadius.xLarge,
+                  border: Border.all(color: AppColors.cardBorder),
+                ),
+                clipBehavior: Clip.antiAlias,
                 child: Column(
-                  children: [
-                    _buildListTile(Icons.card_membership, 'Membership', () {
-                      // Navigate to membership
-                    }),
-                    const Divider(height: 1),
-                    _buildListTile(Icons.help_outline, 'Help & Support', () {
-                      // Navigate to help
-                    }),
-                    const Divider(height: 1),
-                    _buildListTile(Icons.settings, 'Settings', () {
-                      // Navigate to settings
-                    }),
-                    const Divider(height: 1),
-                    _buildListTile(Icons.logout, 'Logout', () {
-                      _showLogoutConfirmation();
-                    }, isDestructive: true),
-                  ],
+                  children: _buildMenuItems(),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: AppSpacing.xxl),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.xl),
+                  child: Text(
+                    'powered by Markitup Group Ltd.',
+                    style: AppTypography.body.copyWith(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textDisabled,
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -279,35 +293,37 @@ class _ProfilePageState extends State<ProfilePage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.xLarge),
         title: Text(
           'Logout',
-          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+          style: AppTypography.title.copyWith(fontWeight: FontWeight.w600),
         ),
         content: Text(
           'Are you sure you want to logout?',
-          style: GoogleFonts.inter(),
+          style: AppTypography.body.copyWith(fontWeight: FontWeight.w500),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
               'Cancel',
-              style: GoogleFonts.inter(color: NeoTasteColors.textSecondary),
+              style: AppTypography.body.copyWith(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
               await _authProvider.logout();
-              if (mounted) {
-                Navigator.of(context).pushReplacementNamed('/login');
-              }
+              // MainNavigation handles routing to login screen when auth state changes
             },
             child: Text(
               'Logout',
-              style: GoogleFonts.inter(
-                color: Colors.red,
-                fontWeight: FontWeight.bold,
+              style: AppTypography.body.copyWith(
+                color: AppColors.error,
+                fontWeight: FontWeight.w800,
               ),
             ),
           ),
@@ -316,82 +332,494 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildListTile(
-    IconData icon,
-    String title,
-    VoidCallback onTap, {
-    bool isDestructive = false,
-  }) {
-    return ListTile(
-      leading: Icon(
-        icon,
-        color: isDestructive ? Colors.red : NeoTasteColors.textPrimary,
-      ),
-      title: Text(
-        title,
-        style: GoogleFonts.inter(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          color: isDestructive ? Colors.red : NeoTasteColors.textPrimary,
+  void _showDeleteAccountConfirmation() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.xLarge),
+        title: Text(
+          'Delete Account',
+          style: AppTypography.title.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppColors.error,
+          ),
         ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'This action is permanent and cannot be undone.',
+              style: AppTypography.body.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'A verification code will be sent to your email to confirm this action.',
+              style: AppTypography.bodySmall,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: AppTypography.body.copyWith(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              _initDeleteAccount();
+            },
+            child: Text(
+              'Send Code',
+              style: AppTypography.body.copyWith(
+                color: AppColors.error,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ],
       ),
-      trailing: Icon(
-        Icons.chevron_right,
-        color: isDestructive ? Colors.red : NeoTasteColors.textPrimary,
-      ),
-      onTap: onTap,
     );
+  }
+
+  Future<void> _initDeleteAccount() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    try {
+      final success = await _authProvider.deleteAccountInit();
+      if (mounted) {
+        Navigator.pop(context); // Close loading
+        if (success) {
+          _showOtpVerificationDialog();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(_authProvider.errorMessage ?? 'Failed to send verification code')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Close loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
+  void _showOtpVerificationDialog() {
+    final otpController = TextEditingController();
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: AppRadius.xLarge),
+        title: Text(
+          'Verify Deletion',
+          style: AppTypography.title.copyWith(fontWeight: FontWeight.w600),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Enter the 4-digit code sent to your email to permanently delete your account.',
+              style: AppTypography.bodySmall,
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: otpController,
+              keyboardType: TextInputType.number,
+              maxLength: 4,
+              textAlign: TextAlign.center,
+              style: AppTypography.headline.copyWith(letterSpacing: 8),
+              decoration: InputDecoration(
+                hintText: '0000',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                counterText: '',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: AppTypography.body.copyWith(
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              final otp = otpController.text.trim();
+              if (otp.length == 4) {
+                Navigator.pop(context);
+                _performDeleteAccount(otp);
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter a 4-digit code')),
+                );
+              }
+            },
+            child: Text(
+              'Delete Account',
+              style: AppTypography.body.copyWith(
+                color: AppColors.error,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _performDeleteAccount(String otp) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    try {
+      final success = await _authProvider.deleteAccount(otp: otp);
+      if (success && mounted) {
+        Navigator.pop(context); // Close loading dialog
+        // MainNavigation handles routing to login screen when auth state changes
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Account deleted successfully')),
+        );
+      } else if (mounted) {
+        Navigator.pop(context); // Close loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_authProvider.errorMessage ?? 'Failed to delete account')),
+        );
+        // Reshow OTP dialog if verification failed
+        _showOtpVerificationDialog();
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Close loading
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete account: ${e.toString()}')),
+        );
+      }
+    }
   }
 }
 
-/// Statistics Card Widget
-class _StatCard extends StatelessWidget {
-  final IconData icon;
-  final String value;
-  final String label;
+class _ProfileHeader extends StatelessWidget {
+  final String displayName;
+  final String? profilePicture;
+  final ProfileStats? stats;
+  final bool showStats;
+  final bool isLoadingStats;
+  final VoidCallback onEditProfile;
+  final VoidCallback onLevelTap;
+  final VoidCallback onSavingsTap;
+  final VoidCallback onFavouritesTap;
 
-  const _StatCard({
-    required this.icon,
-    required this.value,
-    required this.label,
+  const _ProfileHeader({
+    required this.displayName,
+    required this.profilePicture,
+    required this.stats,
+    required this.showStats,
+    required this.isLoadingStats,
+    required this.onEditProfile,
+    required this.onLevelTap,
+    required this.onSavingsTap,
+    required this.onFavouritesTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 100,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: NeoTasteColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: NeoTasteColors.textDisabled.withOpacity(0.3),
-          width: 1,
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: AppColors.purpleGradient,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(40),
+          bottomRight: Radius.circular(40),
         ),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: NeoTasteColors.textPrimary, size: 24),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: GoogleFonts.inter(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: NeoTasteColors.textPrimary,
+      child: SafeArea(
+        bottom: false,
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.xxl,
+                AppSpacing.lg,
+                AppSpacing.xxl,
+                AppSpacing.xxl,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Center(child: _buildAvatar()),
+                  const SizedBox(height: AppSpacing.lg),
+                  SizedBox(
+                    width: double.infinity,
+                    child: Text(
+                      displayName.toUpperCase(),
+                      textAlign: TextAlign.center,
+                      style: AppTypography.title.copyWith(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.white,
+                        letterSpacing: 0.6,
+                      ),
+                    ),
+                  ),
+                  if (showStats) ...[
+                    const SizedBox(height: AppSpacing.xl),
+                    if (isLoadingStats)
+                      const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.white,
+                        ),
+                      )
+                    else
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _HeaderStatItem(
+                              value: stats?.progression.tier ?? 'Bronze',
+                              label: stats?.progression.rank ?? 'Level',
+                              onTap: stats == null ? null : onLevelTap,
+                            ),
+                          ),
+                          _headerDivider(),
+                          Expanded(
+                            child: _HeaderStatItem(
+                              value: '£${stats?.moneySaved.toStringAsFixed(0) ?? '0'}',
+                              label: 'Savings',
+                              onTap: onSavingsTap,
+                            ),
+                          ),
+                          _headerDivider(),
+                          Expanded(
+                            child: _HeaderStatItem(
+                              value: stats?.favouriteRestaurants.toString() ?? '0',
+                              label: 'Favourites',
+                              onTap: onFavouritesTap,
+                            ),
+                          ),
+                        ],
+                      ),
+                  ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              color: NeoTasteColors.textSecondary,
+            Positioned(
+              top: AppSpacing.sm,
+              right: AppSpacing.sm,
+              child: IconButton(
+                onPressed: onEditProfile,
+                tooltip: 'Edit profile',
+                icon: SvgPicture.asset(
+                  'assets/svg/edit.svg',
+                  width: 22,
+                  height: 22,
+                ),
+              ),
             ),
-            textAlign: TextAlign.center,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatar() {
+    return Container(
+      width: 96,
+      height: 96,
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
         ],
+      ),
+      child: ClipOval(
+        child: _buildAvatarImage(profilePicture),
+      ),
+    );
+  }
+
+  Widget _headerDivider() {
+    return Container(
+      width: 1,
+      height: 36,
+      color: AppColors.white.withValues(alpha: 0.25),
+    );
+  }
+
+  Widget _buildAvatarImage(String? profilePic) {
+    if (profilePic == null || profilePic.isEmpty) {
+      return Center(
+        child: Icon(
+          Icons.person,
+          size: 44,
+          color: AppColors.textDisabled.withValues(alpha: 0.5),
+        ),
+      );
+    }
+
+    if (profilePic.startsWith('assets/')) {
+      return Image.asset(profilePic, fit: BoxFit.cover);
+    }
+
+    return CachedNetworkImage(
+      imageUrl: profilePic.startsWith('http')
+          ? profilePic
+          : '${Environment.baseUrl}$profilePic',
+      fit: BoxFit.cover,
+    );
+  }
+}
+
+class _HeaderStatItem extends StatelessWidget {
+  final String value;
+  final String label;
+  final VoidCallback? onTap;
+
+  const _HeaderStatItem({
+    required this.value,
+    required this.label,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: AppTypography.title.copyWith(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppColors.white,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: AppTypography.body.copyWith(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.white.withValues(alpha: 0.8),
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileMenuItem {
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+  final bool isDestructive;
+
+  const _ProfileMenuItem({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.isDestructive = false,
+  });
+}
+
+class _MenuTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+  final bool isDestructive;
+
+  const _MenuTile({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+    this.isDestructive = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isDestructive ? AppColors.error : AppColors.textPrimary;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.lg,
+          ),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                color: color,
+                size: 22,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  title,
+                  style: AppTypography.body.copyWith(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: isDestructive
+                    ? AppColors.error.withValues(alpha: 0.5)
+                    : AppColors.textDisabled,
+                size: 20,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

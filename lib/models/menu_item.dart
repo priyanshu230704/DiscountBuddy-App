@@ -1,3 +1,5 @@
+import 'image_variants.dart';
+
 /// Helper to safely parse a value to int
 int? _parseInt(dynamic value) {
   if (value == null) return null;
@@ -16,7 +18,7 @@ class MenuItem {
   final bool isVegan;
   final bool isGlutenFree;
   final bool isAvailable;
-  final String? imageUrl;
+  final ImageVariants image;
   final int order;
 
   MenuItem({
@@ -28,11 +30,24 @@ class MenuItem {
     required this.isVegan,
     required this.isGlutenFree,
     required this.isAvailable,
-    this.imageUrl,
+    required this.image,
     required this.order,
   });
 
+  // Convenience getter for backward compatibility
+  String? get imageUrl => image.urlFor(fullScreen: false);
+
   factory MenuItem.fromJson(Map<String, dynamic> json) {
+    final rawImage = json['image'] ?? json['image_url'];
+    ImageVariants parsedImage;
+    if (rawImage is Map<String, dynamic>) {
+      parsedImage = ImageVariants.fromJson(rawImage);
+    } else if (rawImage is String) {
+      parsedImage = ImageVariants(medium: rawImage, large: rawImage);
+    } else {
+      parsedImage = const ImageVariants();
+    }
+
     return MenuItem(
       id: _parseInt(json['id']) ?? 0,
       name: json['name'] as String? ?? '',
@@ -42,7 +57,7 @@ class MenuItem {
       isVegan: json['is_vegan'] as bool? ?? false,
       isGlutenFree: json['is_gluten_free'] as bool? ?? false,
       isAvailable: json['is_available'] as bool? ?? true,
-      imageUrl: json['image_url'] as String?,
+      image: parsedImage,
       order: _parseInt(json['order']) ?? 0,
     );
   }

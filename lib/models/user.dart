@@ -31,7 +31,9 @@ class User {
       name: json['name'] as String,
       email: json['email'] as String,
       profileImageUrl: json['profileImageUrl'] as String?,
-      membership: Membership.fromJson(json['membership'] as Map<String, dynamic>),
+      membership: Membership.fromJson(
+        json['membership'] as Map<String, dynamic>,
+      ),
       totalSavings: (json['totalSavings'] as num?)?.toDouble() ?? 0.0,
       restaurantsVisited: json['restaurantsVisited'] as int? ?? 0,
       membershipExpiryDate: json['membershipExpiryDate'] != null
@@ -92,4 +94,3 @@ class Membership {
     };
   }
 }
-

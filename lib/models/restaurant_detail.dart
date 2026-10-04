@@ -13,4 +13,7 @@ class RestaurantDetail {
     required this.reviews,
     required this.menuCategories,
   });
+
+  /// Whether customers can book a table at this restaurant.
+  bool get bookingsEnabled => restaurant.bookingsEnabled;
 }

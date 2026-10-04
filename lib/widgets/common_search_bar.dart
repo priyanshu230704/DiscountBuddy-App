@@ -42,7 +42,7 @@ class _CommonSearchBarState extends State<CommonSearchBar> {
   @override
   Widget build(BuildContext context) {
     const double borderWidth = 0.5;
-    final borderRadius = BorderRadius.circular(20);
+    final borderRadius = BorderRadius.circular(14);
 
     return Container(
       decoration: BoxDecoration(
@@ -66,28 +66,14 @@ class _CommonSearchBarState extends State<CommonSearchBar> {
         child: TextField(
           controller: widget.controller,
           enabled: widget.enabled,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 14,
-          ),
+          style: const TextStyle(color: Colors.white, fontSize: 14),
           decoration: InputDecoration(
             hintText: widget.hintText,
-            hintStyle: TextStyle(
-              color: Colors.grey[500],
-              fontSize: 14,
-            ),
-            prefixIcon: const Icon(
-              Icons.search,
-              color: Colors.grey,
-              size: 20,
-            ),
+            hintStyle: TextStyle(color: Colors.grey[500], fontSize: 14),
+            prefixIcon: const Icon(Icons.search, color: Colors.grey, size: 20),
             suffixIcon: widget.controller.text.isNotEmpty
                 ? IconButton(
-                    icon: const Icon(
-                      Icons.clear,
-                      color: Colors.grey,
-                      size: 18,
-                    ),
+                    icon: const Icon(Icons.clear, color: Colors.grey, size: 18),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                     onPressed: () {
@@ -117,4 +103,3 @@ class _CommonSearchBarState extends State<CommonSearchBar> {
     );
   }
 }
-

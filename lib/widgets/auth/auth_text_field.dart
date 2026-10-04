@@ -1,6 +1,6 @@
+import 'package:discount_buddy/design/app_typography.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'auth_theme.dart';
 
 /// NeoTaste-style Auth Text Field - Minimal rounded input with placeholder only
@@ -18,6 +18,7 @@ class AuthTextField extends StatelessWidget {
   final VoidCallback? onTap;
   final List<TextInputFormatter>? inputFormatters;
   final int? maxLength;
+  final int? maxLines;
   final AutovalidateMode? autovalidateMode;
 
   const AuthTextField({
@@ -35,6 +36,7 @@ class AuthTextField extends StatelessWidget {
     this.onTap,
     this.inputFormatters,
     this.maxLength,
+    this.maxLines = 1,
     this.autovalidateMode = AutovalidateMode.onUserInteraction,
   });
 
@@ -44,6 +46,7 @@ class AuthTextField extends StatelessWidget {
       controller: controller,
       focusNode: focusNode,
       obscureText: obscureText,
+      maxLines: maxLines,
       keyboardType: keyboardType,
       onChanged: onChanged,
       readOnly: readOnly,
@@ -66,14 +69,14 @@ class AuthTextField extends StatelessWidget {
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AuthTheme.inputBorderRadius),
           borderSide: BorderSide(
-            color: AuthTheme.textGrey.withOpacity(0.5),
+            color: AuthTheme.textGrey.withValues(alpha: 0.5),
             width: AuthTheme.inputBorderWidth,
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AuthTheme.inputBorderRadius),
           borderSide: BorderSide(
-            color: AuthTheme.textGrey.withOpacity(0.5),
+            color: AuthTheme.textGrey.withValues(alpha: 0.5),
             width: AuthTheme.inputBorderWidth,
           ),
         ),
@@ -98,7 +101,7 @@ class AuthTextField extends StatelessWidget {
             width: AuthTheme.inputBorderWidth,
           ),
         ),
-        errorStyle: GoogleFonts.inter(color: Colors.red, fontSize: 12),
+        errorStyle: AppTypography.caption.copyWith(color: Colors.red, fontWeight: FontWeight.w500),
         suffixIcon: showToggle && onToggleVisibility != null
             ? IconButton(
                 icon: Icon(

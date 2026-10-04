@@ -1,21 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-
-// NeoTaste Design System Colors
-class NeoTasteColors {
-  static const Color primary = Color(0xFF000000); // Black
-  static const Color green = Color(0xFF00FF00); // Green
-  static const Color accent = Color(0xFFFFC83D); // Warm Yellow
-  static const Color background = Color(0xFFF6F6F6); // Light Grey
-  static const Color textPrimary = Color(0xFF000000);
-  static const Color textSecondary = Color(0xFF666666);
-  static const Color textDisabled = Color(0xFFBDBDBD);
-  static const Color white = Color(0xFFFFFFFF);
-}
+import '../theme/app_colors.dart';
 
 class ThemeProvider extends ChangeNotifier {
-  // NeoTaste uses light theme only
-  bool _isDarkMode = false;
+  final bool _isDarkMode = false;
 
   bool get isDarkMode => _isDarkMode;
 
@@ -23,150 +12,242 @@ class ThemeProvider extends ChangeNotifier {
     return ThemeData(
       brightness: Brightness.light,
       useMaterial3: true,
-      colorScheme: ColorScheme.light(
-        primary: NeoTasteColors.primary,
-        secondary: NeoTasteColors.accent,
-        surface: NeoTasteColors.white,
-        background: NeoTasteColors.background,
-        error: Colors.red,
-        onPrimary: NeoTasteColors.white,
-        onSecondary: NeoTasteColors.primary,
-        onSurface: NeoTasteColors.textPrimary,
-        onBackground: NeoTasteColors.textPrimary,
-        onError: NeoTasteColors.white,
+      dialogTheme: DialogThemeData(
+        backgroundColor: AppColors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
-      scaffoldBackgroundColor: NeoTasteColors.background,
+      colorScheme: const ColorScheme.light(
+        primary: AppColors.primary,
+        secondary: AppColors.secondary,
+        surface: AppColors.surface,
+        error: AppColors.error,
+        onPrimary: AppColors.white,
+        onSecondary: AppColors.white,
+        onSurface: AppColors.textPrimary,
+        onError: AppColors.white,
+      ),
+      scaffoldBackgroundColor: AppColors.background,
       appBarTheme: AppBarTheme(
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
         centerTitle: false,
         elevation: 0,
-        backgroundColor: NeoTasteColors.white,
-        foregroundColor: NeoTasteColors.textPrimary,
-        titleTextStyle: GoogleFonts.inter(
-          color: NeoTasteColors.textPrimary,
+        backgroundColor: AppColors.background,
+        foregroundColor: AppColors.textPrimary,
+        surfaceTintColor: Colors.transparent,
+        titleTextStyle: GoogleFonts.poppins(
+          color: AppColors.textPrimary,
           fontSize: 20,
-          fontWeight: FontWeight.bold,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.5,
         ),
       ),
-      cardColor: NeoTasteColors.white,
+      cardColor: AppColors.white,
       cardTheme: CardThemeData(
         elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        color: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shadowColor: AppColors.textPrimary.withValues(
+          alpha: 0.04,
+        ), // Minimal shadow
+        margin: EdgeInsets.zero,
       ),
-      dialogBackgroundColor: NeoTasteColors.white,
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: NeoTasteColors.white,
-        selectedItemColor: NeoTasteColors.accent,
-        unselectedItemColor: NeoTasteColors.textSecondary,
-        elevation: 8,
+        backgroundColor: AppColors.surface,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: AppColors.textDisabled,
+        elevation: 0,
         type: BottomNavigationBarType.fixed,
+        selectedLabelStyle: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
       ),
-      textTheme: GoogleFonts.interTextTheme().copyWith(
-        displayLarge: GoogleFonts.inter(
-          fontWeight: FontWeight.bold,
-          color: NeoTasteColors.textPrimary,
+      textTheme: TextTheme(
+        displayLarge: GoogleFonts.poppins(
+          fontWeight: FontWeight.w700,
+          color: AppColors.textPrimary,
         ),
-        displayMedium: GoogleFonts.inter(
-          fontWeight: FontWeight.bold,
-          color: NeoTasteColors.textPrimary,
+        displayMedium: GoogleFonts.poppins(
+          fontWeight: FontWeight.w700,
+          color: AppColors.textPrimary,
         ),
-        displaySmall: GoogleFonts.inter(
-          fontWeight: FontWeight.bold,
-          color: NeoTasteColors.textPrimary,
-        ),
-        headlineLarge: GoogleFonts.inter(
-          fontWeight: FontWeight.bold,
-          color: NeoTasteColors.textPrimary,
-        ),
-        headlineMedium: GoogleFonts.inter(
-          fontWeight: FontWeight.bold,
-          color: NeoTasteColors.textPrimary,
-        ),
-        headlineSmall: GoogleFonts.inter(
-          fontWeight: FontWeight.bold,
-          color: NeoTasteColors.textPrimary,
-        ),
-        titleLarge: GoogleFonts.inter(
-          fontWeight: FontWeight.bold,
-          color: NeoTasteColors.textPrimary,
-        ),
-        titleMedium: GoogleFonts.inter(
+        displaySmall: GoogleFonts.poppins(
           fontWeight: FontWeight.w600,
-          color: NeoTasteColors.textPrimary,
+          color: AppColors.textPrimary,
         ),
-        titleSmall: GoogleFonts.inter(
+        headlineLarge: GoogleFonts.poppins(
+          fontSize: 28,
+          fontWeight: FontWeight.w700,
+          color: AppColors.textPrimary,
+        ),
+        headlineMedium: GoogleFonts.poppins(
+          fontSize: 24,
           fontWeight: FontWeight.w600,
-          color: NeoTasteColors.textPrimary,
+          color: AppColors.textPrimary,
+        ),
+        headlineSmall: GoogleFonts.poppins(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
+        titleLarge: GoogleFonts.poppins(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
+        titleMedium: GoogleFonts.poppins(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
+        titleSmall: GoogleFonts.poppins(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
         ),
         bodyLarge: GoogleFonts.inter(
-          fontWeight: FontWeight.normal,
-          color: NeoTasteColors.textPrimary,
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+          color: AppColors.textPrimary,
+          height: 1.5, // 24px / 16px
         ),
         bodyMedium: GoogleFonts.inter(
-          fontWeight: FontWeight.normal,
-          color: NeoTasteColors.textPrimary,
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+          color: AppColors.textPrimary,
+          height: 1.5,
         ),
         bodySmall: GoogleFonts.inter(
-          fontWeight: FontWeight.normal,
-          color: NeoTasteColors.textSecondary,
+          fontSize: 14, // Helper Text
+          fontWeight: FontWeight.w400,
+          color: AppColors.textSecondary,
         ),
         labelLarge: GoogleFonts.inter(
-          fontWeight: FontWeight.w600,
-          color: NeoTasteColors.textPrimary,
+          fontSize: 16,
+          fontWeight: FontWeight.w500, // Medium for buttons
+          color: AppColors.textPrimary,
+          letterSpacing: 0.2,
         ),
         labelMedium: GoogleFonts.inter(
-          fontWeight: FontWeight.w600,
-          color: NeoTasteColors.textPrimary,
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: AppColors.textPrimary,
         ),
         labelSmall: GoogleFonts.inter(
-          fontWeight: FontWeight.normal,
-          color: NeoTasteColors.textSecondary,
+          fontSize: 12, // Caption
+          fontWeight: FontWeight.w400,
+          color: AppColors.textSecondary,
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: NeoTasteColors.accent,
-          foregroundColor: NeoTasteColors.primary,
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           textStyle: GoogleFonts.inter(
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w500, // Medium
             fontSize: 16,
+            letterSpacing: 0.2,
           ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: NeoTasteColors.primary,
-          side: const BorderSide(color: NeoTasteColors.accent, width: 2),
+          foregroundColor: AppColors.textPrimary,
+          side: BorderSide(
+            color: AppColors.textDisabled.withValues(alpha: 0.3),
+            width: 1,
+          ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           textStyle: GoogleFonts.inter(
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w500, // Medium
             fontSize: 16,
+            letterSpacing: 0.2,
           ),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          textStyle: GoogleFonts.inter(
+            fontWeight: FontWeight.w500, // Medium
+            fontSize: 14,
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: AppColors.white,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(
+            color: AppColors.textDisabled.withValues(alpha: 0.2),
+          ),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(
+            color: AppColors.textDisabled.withValues(alpha: 0.2),
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(
+            color: AppColors.primary,
+            width: 1.5,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.error, width: 1),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
+        ),
+        hintStyle: GoogleFonts.inter(
+          color: const Color(0xFF9CA3AF),
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+        ),
+        labelStyle: GoogleFonts.inter(
+          color: AppColors.textSecondary,
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+        ),
+        floatingLabelStyle: GoogleFonts.inter(
+          color: AppColors.primary,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
+        helperStyle: GoogleFonts.inter(
+          fontSize: 14,
+          color: AppColors.textSecondary,
         ),
       ),
     );
   }
 
-  ThemeData get darkTheme => lightTheme; // NeoTaste uses light theme only
-
+  ThemeData get darkTheme => lightTheme;
   ThemeData get currentTheme => lightTheme;
 
-  void toggleTheme() {
-    // NeoTaste doesn't support dark mode
-    // Keep it as light mode
-  }
-
-  void setTheme(bool isDark) {
-    // NeoTaste doesn't support dark mode
-    // Keep it as light mode
-  }
+  void toggleTheme() {}
+  void setTheme(bool isDark) {}
 }

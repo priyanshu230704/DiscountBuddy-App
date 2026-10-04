@@ -1,10 +1,9 @@
+import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import '../design/app_colors.dart';
 import '../providers/auth_provider.dart';
+import '../routes/app_routes.dart';
 import '../services/onboarding_service.dart';
-import 'onboarding_screen.dart';
-import 'auth/login_page.dart';
-import 'main_navigation.dart';
-import '../providers/theme_provider.dart';
 
 /// Screen that checks onboarding status and routes accordingly
 class OnboardingCheckScreen extends StatefulWidget {
@@ -32,32 +31,25 @@ class _OnboardingCheckScreenState extends State<OnboardingCheckScreen> {
       await Future.delayed(const Duration(milliseconds: 100));
       attempts++;
     }
-    
+
     // Check if user has completed onboarding
-    final hasCompletedOnboarding = await _onboardingService.hasCompletedOnboarding();
-    
+    final hasCompletedOnboarding = await _onboardingService
+        .hasCompletedOnboarding();
+
     // Check authentication status
     final isAuthenticated = _authProvider.isAuthenticated;
-    
+
     if (mounted) {
-      // Navigate based on onboarding and auth status
       if (!hasCompletedOnboarding) {
-        // Show onboarding if not completed
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const OnboardingScreen()),
-        );
+        Get.offNamed(AppRoutes.onboarding);
       } else if (isAuthenticated) {
-        // User is authenticated, go to home
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => MainNavigation(themeProvider: ThemeProvider()),
-          ),
-        );
+        if (_authProvider.isAdmin) {
+          Get.offNamed(AppRoutes.adminHome);
+        } else {
+          Get.offNamed(AppRoutes.home);
+        }
       } else {
-        // User has seen onboarding but not authenticated, go to login
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const LoginPage()),
-        );
+        Get.offNamed(AppRoutes.login);
       }
     }
   }
@@ -65,13 +57,31 @@ class _OnboardingCheckScreenState extends State<OnboardingCheckScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
-      body: const Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3E25F6)),
-        ),
+      backgroundColor: AppColors.surface,
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppColors.background,
+                    AppColors.surface,
+                    AppColors.background,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Center(
+            child: CircularProgressIndicator(
+              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primary),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
-

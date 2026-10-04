@@ -1,9 +1,18 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:discount_buddy/design/app_design.dart';
+import 'package:get/get.dart';
+
+import '../core/analytics/analytics_events.dart';
+import '../core/analytics/analytics_service.dart';
 import '../models/restaurant.dart';
 import '../services/restaurant_service.dart';
+import '../services/location_service.dart';
+import '../routes/app_routes.dart';
 import '../widgets/restaurant_card.dart';
+import '../widgets/app_scaffold.dart';
 import '../widgets/loading_widget.dart';
-import 'restaurant_details_page.dart';
+import '../widgets/empty_state_widget.dart';
 
 /// Search/Discover page for finding restaurants
 class SearchPage extends StatefulWidget {
@@ -13,37 +22,59 @@ class SearchPage extends StatefulWidget {
   State<SearchPage> createState() => _SearchPageState();
 }
 
-// Local constants for search page
-class _SearchConstants {
-  static const double paddingSmall = 8.0;
-  static const double paddingMedium = 16.0;
-  static const double radiusMedium = 12.0;
-}
-
 class _SearchPageState extends State<SearchPage> {
   final RestaurantService _restaurantService = RestaurantService();
+  final LocationService _locationService = LocationService();
   final TextEditingController _searchController = TextEditingController();
   List<Restaurant> _restaurants = [];
   List<Restaurant> _filteredRestaurants = [];
-  bool _isLoading = false;
-  String _selectedCuisine = 'All';
+  bool _isLoading = true;
 
-  final List<String> _cuisines = [
-    'All',
-    'Italian',
-    'American',
-    'Fast Food',
-    'Chinese',
-    'Indian',
-    'Mexican',
-    'Thai',
-  ];
+  double? _userLat;
+  double? _userLon;
+  List<Map<String, dynamic>> _cuisines = [];
+  int? _selectedCuisineId;
 
   @override
   void initState() {
     super.initState();
-    _loadRestaurants();
+    AnalyticsService.instance.logScreenView(
+      AnalyticsScreens.search,
+      screenClass: 'SearchPage',
+    );
+    _loadInitialData();
     _searchController.addListener(_onSearchChanged);
+  }
+
+  Future<void> _loadInitialData() async {
+    await Future.wait([
+      _loadLocationAndRestaurants(),
+      _loadCuisines(),
+    ]);
+  }
+
+  Future<void> _loadCuisines() async {
+    final cuisines = await _restaurantService.getCuisines();
+    if (mounted) {
+      setState(() {
+        _cuisines = cuisines;
+      });
+    }
+  }
+
+  Future<void> _loadLocationAndRestaurants() async {
+    await _loadRestaurants();
+    try {
+      final position = await _locationService
+          .getCurrentLocation()
+          .timeout(const Duration(seconds: 8));
+      if (!mounted) return;
+      _userLat = position.latitude;
+      _userLon = position.longitude;
+      await _loadRestaurants();
+    } catch (e) {
+      debugPrint('Error getting location in SearchPage: $e');
+    }
   }
 
   @override
@@ -58,93 +89,110 @@ class _SearchPageState extends State<SearchPage> {
     });
 
     try {
-      final restaurants = await _restaurantService.getNearbyRestaurants(
-        latitude: 51.5074,
-        longitude: -0.1278,
-      );
-      setState(() {
-        _restaurants = restaurants;
-        _filteredRestaurants = restaurants;
-        _isLoading = false;
-      });
+      final query = _searchController.text.trim();
+      List<Restaurant> results;
+
+      if (query.isNotEmpty) {
+        results = await _restaurantService.searchRestaurants(
+          query: query,
+          latitude: _userLat,
+          longitude: _userLon,
+        );
+      } else {
+        results = await _restaurantService.getRestaurants(
+          latitude: _userLat,
+          longitude: _userLon,
+        );
+      }
+
+      if (query.isNotEmpty) {
+        AnalyticsService.instance.search(
+          term: query,
+          resultCount: results.length,
+        );
+      }
+
+      if (mounted) {
+        setState(() {
+          _restaurants = results;
+          _filterRestaurants(); // Still apply local cuisine filter if needed
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
+  Timer? _searchDebounce;
   void _onSearchChanged() {
-    _filterRestaurants();
+    if (_searchDebounce?.isActive ?? false) _searchDebounce!.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 500), () {
+      _loadRestaurants();
+    });
   }
 
   void _filterRestaurants() {
-    final query = _searchController.text.toLowerCase();
     setState(() {
       _filteredRestaurants = _restaurants.where((restaurant) {
-        final matchesSearch = restaurant.name.toLowerCase().contains(query) ||
-            restaurant.cuisine.toLowerCase().contains(query) ||
-            restaurant.address.toLowerCase().contains(query);
-        final matchesCuisine = _selectedCuisine == 'All' ||
-            restaurant.cuisine == _selectedCuisine;
-        return matchesSearch && matchesCuisine;
+        if (_selectedCuisineId == null) return true;
+        return restaurant.cuisines.any((c) => c.id == _selectedCuisineId);
       }).toList();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      body: CustomScrollView(
-        slivers: [
+    return AppScaffold(
+      backgroundColor: Colors.transparent,
+        body: CustomScrollView(
+          slivers: [
           // Search App Bar
           SliverAppBar(
-            expandedHeight: 100,
+            expandedHeight: 120,
             floating: true,
             pinned: true,
-            backgroundColor: const Color(0xFF1A73E8),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
             flexibleSpace: FlexibleSpaceBar(
-              title: const Text(
+              title: Text(
                 'Discover',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: AppTypography.title.copyWith(color: AppColors.textPrimary),
               ),
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      const Color(0xFF1A73E8),
-                      const Color(0xFF1A73E8).withOpacity(0.8),
-                    ],
-                  ),
-                ),
-              ),
+              centerTitle: false,
             ),
           ),
           // Search Bar
           SliverToBoxAdapter(
             child: Container(
-              padding: const EdgeInsets.all(_SearchConstants.paddingMedium),
+              margin: const EdgeInsets.all(AppSpacing.lg),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: AppRadius.xLarge,
+                border: Border.all(color: AppColors.cardBorder),
+                boxShadow: AppShadows.card,
+              ),
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
                   hintText: 'Search restaurants...',
-                  prefixIcon: const Icon(Icons.search),
+                  prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(Icons.clear),
+                          icon: const Icon(Icons.clear, color: AppColors.textSecondary),
                           onPressed: () {
                             _searchController.clear();
                           },
                         )
                       : null,
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: Colors.transparent,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(_SearchConstants.radiusMedium),
+                    borderRadius: AppRadius.xLarge,
                     borderSide: BorderSide.none,
                   ),
                 ),
@@ -158,30 +206,67 @@ class _SearchPageState extends State<SearchPage> {
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: _SearchConstants.paddingMedium,
+                  horizontal: AppSpacing.lg,
                 ),
-                itemCount: _cuisines.length,
+                itemCount: _cuisines.length + 1,
                 itemBuilder: (context, index) {
-                  final cuisine = _cuisines[index];
-                  final isSelected = cuisine == _selectedCuisine;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: _SearchConstants.paddingSmall),
-                    child: FilterChip(
-                      label: Text(cuisine),
-                      selected: isSelected,
-                      onSelected: (selected) {
-                        setState(() {
-                          _selectedCuisine = cuisine;
-                          _filterRestaurants();
-                        });
-                      },
-                      selectedColor: const Color(0xFF1A73E8),
-                      labelStyle: TextStyle(
-                        color: isSelected ? Colors.white : Colors.black87,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  if (index == 0) {
+                    final isSelected = _selectedCuisineId == null;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: AppSpacing.sm),
+                      child: FilterChip(
+                        label: const Text('All'),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          setState(() {
+                            _selectedCuisineId = null;
+                            _filterRestaurants();
+                          });
+                        },
+                        selectedColor: AppColors.primary,
+                        backgroundColor: AppColors.surface,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          side: BorderSide(
+                            color: isSelected ? Colors.transparent : AppColors.cardBorder,
+                          ),
+                        ),
+                        labelStyle: AppTypography.body.copyWith(
+                          color: isSelected ? AppColors.white : AppColors.textPrimary,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
                       ),
-                    ),
-                  );
+                    );
+                  } else {
+                    final cuisine = _cuisines[index - 1];
+                    final cuisineId = cuisine['id'];
+                    final isSelected = cuisineId == _selectedCuisineId;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: AppSpacing.sm),
+                      child: FilterChip(
+                        label: Text(cuisine['name'] as String),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          setState(() {
+                            _selectedCuisineId = selected ? cuisineId : null;
+                            _filterRestaurants();
+                          });
+                        },
+                        selectedColor: AppColors.primary,
+                        backgroundColor: AppColors.surface,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          side: BorderSide(
+                            color: isSelected ? Colors.transparent : AppColors.cardBorder,
+                          ),
+                        ),
+                        labelStyle: AppTypography.body.copyWith(
+                          color: isSelected ? AppColors.white : AppColors.textPrimary,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                    );
+                  }
                 },
               ),
             ),
@@ -190,15 +275,12 @@ class _SearchPageState extends State<SearchPage> {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(
-                horizontal: _SearchConstants.paddingMedium,
-                vertical: _SearchConstants.paddingSmall,
+                horizontal: AppSpacing.lg,
+                vertical: AppSpacing.sm,
               ),
               child: Text(
                 '${_filteredRestaurants.length} restaurants found',
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 14,
-                ),
+                style: AppTypography.bodySmall,
               ),
             ),
           ),
@@ -209,64 +291,39 @@ class _SearchPageState extends State<SearchPage> {
             )
           else if (_filteredRestaurants.isEmpty)
             SliverFillRemaining(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.search_off,
-                      size: 64,
-                      color: Colors.grey[400],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No restaurants found',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Try a different search term',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[500],
-                      ),
-                    ),
-                  ],
-                ),
+              child: EmptyStateWidget(
+                icon: Icons.search_off,
+                title: 'No restaurants found',
+                message: 'Try a different search term',
               ),
             )
           else
             SliverPadding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: _SearchConstants.paddingMedium,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
               sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final restaurant = _filteredRestaurants[index];
-                    return RestaurantCard(
-                      restaurant: restaurant,
-                      onTap: () {
-                        final slug = restaurant.slug ?? restaurant.id;
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => RestaurantDetailsPage(slug: slug),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                  childCount: _filteredRestaurants.length,
-                ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final restaurant = _filteredRestaurants[index];
+                  return RestaurantCard(
+                    restaurant: restaurant,
+                    userLat: _userLat,
+                    userLon: _userLon,
+                    onTap: () {
+                      final slug = restaurant.slug ?? restaurant.id;
+                      Get.toNamed(
+                        AppRoutes.restaurantDetails,
+                        arguments: {
+                          'slug': slug,
+                          'latitude': _userLat,
+                          'longitude': _userLon,
+                        },
+                      );
+                    },
+                  );
+                }, childCount: _filteredRestaurants.length),
               ),
             ),
-        ],
-      ),
+          ],
+        ),
     );
   }
 }
-

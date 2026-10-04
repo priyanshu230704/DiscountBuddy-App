@@ -1,46 +1,130 @@
 import 'package:flutter/material.dart';
-import '../providers/theme_provider.dart';
-import '../providers/theme_provider.dart' as theme;
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
+import 'dart:math' as math;
+
+import 'package:discount_buddy/theme/app_colors.dart';
+import '../core/analytics/analytics_events.dart';
+import '../core/analytics/analytics_service.dart';
 import '../providers/auth_provider.dart';
+import '../routes/app_routes.dart';
 import 'home/home_page.dart';
 import 'nearby/nearby_page.dart';
 import 'bookings/bookings_page.dart';
-import 'profile_page.dart';
+import 'profile_page.dart' show ProfilePage;
 import 'merchant/merchant_restaurants_page.dart';
-import 'merchant/merchant_deals_page.dart';
+import 'merchant/merchant_dashboard_page.dart';
+import '../widgets/login_required_sheet.dart';
 
-/// Main navigation with bottom navigation bar (NeoTaste style)
+/// Main navigation with new floating bottom navigation bar
 class MainNavigation extends StatefulWidget {
-  final ThemeProvider? themeProvider;
+  final int initialIndex;
+  final double? initialLatitude;
+  final double? initialLongitude;
 
-  const MainNavigation({super.key, this.themeProvider});
+  const MainNavigation({
+    super.key,
+    this.initialIndex = 0,
+    this.initialLatitude,
+    this.initialLongitude,
+  });
 
   @override
-  State<MainNavigation> createState() => _MainNavigationState();
+  State<MainNavigation> createState() => MainNavigationState();
 }
 
-class _MainNavigationState extends State<MainNavigation> {
-  int _currentIndex = 0;
+class MainNavigationState extends State<MainNavigation> {
+  static MainNavigationState? of(BuildContext context) {
+    return context.findAncestorStateOfType<MainNavigationState>();
+  }
+
+  void changeIndex(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+    _logTabScreen(index);
+  }
+  late int _currentIndex;
+
+  /// Tabs live inside an IndexedStack, so Firebase's route observer never
+  /// sees them. Log a screen_view manually on every tab change.
+  void _logTabScreen(int index) {
+    final String? name;
+    if (_authProvider.isMerchant) {
+      name = switch (index) {
+        0 => 'MerchantDashboard',
+        1 => 'MerchantRestaurants',
+        2 => 'MerchantMenu',
+        3 => AnalyticsScreens.profile,
+        _ => null,
+      };
+    } else {
+      name = switch (index) {
+        0 => AnalyticsScreens.home,
+        1 => AnalyticsScreens.nearby,
+        2 => AnalyticsScreens.bookings,
+        3 => AnalyticsScreens.profile,
+        _ => null,
+      };
+    }
+    if (name != null) AnalyticsService.instance.logScreenView(name);
+  }
   final AuthProvider _authProvider = AuthProvider();
   final Map<int, Widget> _pageCache = {};
+  DateTime? _lastPressedAt;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+    _authProvider.addListener(_onAuthStateChanged);
+    
+    // Check initial state in case we were built while already logged out
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _onAuthStateChanged();
+        _logTabScreen(_currentIndex);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _authProvider.removeListener(_onAuthStateChanged);
+    super.dispose();
+  }
+
+  void _onAuthStateChanged() {
+    if (!mounted) return;
+    if (!_authProvider.isAuthenticated && !_authProvider.isGuestMode) {
+      // User logged out or session expired, forcibly return to login
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Get.offAllNamed(AppRoutes.login);
+        }
+      });
+    }
+  }
 
   Widget _getPage(int index) {
-    // Return cached page if exists
     if (_pageCache.containsKey(index)) {
       return _pageCache[index]!;
     }
 
-    // Create page lazily
     Widget page;
     if (_authProvider.isMerchant) {
       switch (index) {
         case 0:
-          page = const MerchantRestaurantsPage();
+          page = const MerchantDashboardPage();
           break;
         case 1:
-          page = const MerchantDealsPage();
+          page = const MerchantRestaurantsPage();
           break;
         case 2:
+          page = const MerchantRestaurantsPage(selectMenuMode: true);
+          break;
+        case 3:
           page = const ProfilePage();
           break;
         default:
@@ -52,7 +136,10 @@ class _MainNavigationState extends State<MainNavigation> {
           page = const HomePage();
           break;
         case 1:
-          page = const NearbyPage();
+          page = NearbyPage(
+            initialLatitude: widget.initialLatitude,
+            initialLongitude: widget.initialLongitude,
+          );
           break;
         case 2:
           page = const BookingsPage();
@@ -65,170 +152,245 @@ class _MainNavigationState extends State<MainNavigation> {
       }
     }
 
-    // Cache the page
     _pageCache[index] = page;
     return page;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: List.generate(_authProvider.isMerchant ? 3 : 4, (index) {
-          // Lazy load: only build if it's the current index or already cached
-          if (index == _currentIndex || _pageCache.containsKey(index)) {
-            return _getPage(index);
+    final isMerchant = _authProvider.isMerchant;
+    final bottomViewPadding = MediaQuery.viewPaddingOf(context).bottom;
+    // Keep a little breathing room above the home indicator, but avoid the huge gap.
+    final bottomNavInset = math.max(6.0, bottomViewPadding * 0.35);
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+      ),
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+
+          if (_currentIndex != 0) {
+            setState(() {
+              _currentIndex = 0;
+            });
+            _logTabScreen(0);
+            return;
           }
-          return const SizedBox.shrink();
-        }),
-      ),
-      bottomNavigationBar: _NeoTasteBottomNavBar(
-        currentIndex: _currentIndex,
-        isMerchant: _authProvider.isMerchant,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
+
+          final now = DateTime.now();
+          if (_lastPressedAt == null ||
+              now.difference(_lastPressedAt!) > const Duration(seconds: 2)) {
+            _lastPressedAt = now;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Press back again to exit'),
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+            return;
+          }
+
+          SystemNavigator.pop();
         },
-      ),
-    );
-  }
-}
-
-/// NeoTaste-style bottom navigation bar with rounded design and yellow underline
-class _NeoTasteBottomNavBar extends StatelessWidget {
-  final int currentIndex;
-  final Function(int) onTap;
-  final bool isMerchant;
-
-  const _NeoTasteBottomNavBar({
-    required this.currentIndex,
-    required this.onTap,
-    this.isMerchant = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.NeoTasteColors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
+        child: Scaffold(
+          body: IndexedStack(
+            index: _currentIndex,
+            children: List.generate(4, (index) {
+              if (index == _currentIndex || _pageCache.containsKey(index)) {
+                return _getPage(index);
+              }
+              return const SizedBox.shrink();
+            }),
           ),
-        ],
-      ),
-      child: SafeArea(
-        child: Container(
-          height: 70,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: isMerchant
-                ? [
-                    _buildNavItem(
-                      context,
-                      icon: Icons.restaurant_outlined,
-                      selectedIcon: Icons.restaurant,
-                      label: 'Restaurants',
-                      index: 0,
-                    ),
-                    _buildNavItem(
-                      context,
-                      icon: Icons.local_offer_outlined,
-                      selectedIcon: Icons.local_offer,
-                      label: 'Deals',
-                      index: 1,
-                    ),
-                    _buildNavItem(
-                      context,
-                      icon: Icons.person_outline,
-                      selectedIcon: Icons.person,
-                      label: 'Profile',
-                      index: 2,
-                    ),
-                  ]
-                : [
-                    _buildNavItem(
-                      context,
-                      icon: Icons.home_outlined,
-                      selectedIcon: Icons.home,
-                      label: 'Home',
-                      index: 0,
-                    ),
-                    _buildNavItem(
-                      context,
-                      icon: Icons.near_me_outlined,
-                      selectedIcon: Icons.near_me,
-                      label: 'Nearby',
-                      index: 1,
-                    ),
-                    _buildNavItem(
-                      context,
-                      icon: Icons.event_note_outlined,
-                      selectedIcon: Icons.event_note,
-                      label: 'Bookings',
-                      index: 2,
-                    ),
-                    _buildNavItem(
-                      context,
-                      icon: Icons.person_outline,
-                      selectedIcon: Icons.person,
-                      label: 'Profile',
-                      index: 3,
+          bottomNavigationBar: MediaQuery.removeViewPadding(
+            context: context,
+            removeBottom: true,
+            child: Padding(
+              padding: EdgeInsets.only(bottom: bottomNavInset),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 20,
+                      offset: const Offset(0, -4),
                     ),
                   ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(
-    BuildContext context, {
-    required IconData icon,
-    required IconData selectedIcon,
-    required String label,
-    required int index,
-  }) {
-    final isSelected = currentIndex == index;
-
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => onTap(index),
-        behavior: HitTestBehavior.opaque,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            color: isSelected
-                ? Colors.green.withOpacity(0.1)
-                : Colors.transparent,
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                isSelected ? selectedIcon : icon,
-                size: 24,
-                color: isSelected
-                    ? Colors.green
-                    : theme.NeoTasteColors.textSecondary,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                  color: isSelected
-                      ? Colors.green
-                      : theme.NeoTasteColors.textSecondary,
+                ),
+                child: BottomNavigationBar(
+                  elevation: 0,
+                  type: BottomNavigationBarType.fixed,
+                  backgroundColor: AppColors.surface,
+                  selectedItemColor: AppColors.primary,
+                  unselectedItemColor: const Color(0xFF9CA3AF),
+                  selectedLabelStyle: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                  unselectedLabelStyle: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 12,
+                  ),
+                  currentIndex: _currentIndex,
+                  onTap: (index) {
+                    if (_authProvider.isGuestMode &&
+                        (index == 2 || index == 3)) {
+                      LoginRequiredSheet.show(
+                        context,
+                        isClosable: false,
+                        onBackToHome: () {
+                          Navigator.pop(context);
+                          setState(() {
+                            _currentIndex = 0;
+                          });
+                          _logTabScreen(0);
+                        },
+                      );
+                      return;
+                    }
+                    setState(() {
+                      _currentIndex = index;
+                    });
+                    _logTabScreen(index);
+                    if (index == 3) {
+                      ProfilePage.onTabActivated.add(null);
+                    }
+                  },
+                  items: isMerchant
+                      ? [
+                          BottomNavigationBarItem(
+                            icon: SvgPicture.asset(
+                              'assets/svg/dashboard.svg',
+                              width: 24,
+                              height: 24,
+                              colorFilter: const ColorFilter.mode(
+                                Color(0xFF9CA3AF),
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                            activeIcon: SvgPicture.asset(
+                              'assets/svg/dashboard.svg',
+                              width: 24,
+                              height: 24,
+                              colorFilter: const ColorFilter.mode(
+                                AppColors.primary,
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                            label: 'Dashboard',
+                          ),
+                          BottomNavigationBarItem(
+                            icon: SvgPicture.asset(
+                              'assets/svg/restaurant.svg',
+                              width: 24,
+                              height: 24,
+                              colorFilter: const ColorFilter.mode(
+                                Color(0xFF9CA3AF),
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                            activeIcon: SvgPicture.asset(
+                              'assets/svg/restaurant.svg',
+                              width: 24,
+                              height: 24,
+                              colorFilter: const ColorFilter.mode(
+                                AppColors.primary,
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                            label: 'Restaurants',
+                          ),
+                          BottomNavigationBarItem(
+                            icon: SvgPicture.asset(
+                              'assets/svg/tray_701965.svg',
+                              width: 24,
+                              height: 24,
+                              colorFilter: const ColorFilter.mode(
+                                Color(0xFF9CA3AF),
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                            activeIcon: SvgPicture.asset(
+                              'assets/svg/tray_701965.svg',
+                              width: 24,
+                              height: 24,
+                              colorFilter: const ColorFilter.mode(
+                                AppColors.primary,
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                            label: 'Menu',
+                          ),
+                          BottomNavigationBarItem(
+                            icon: SvgPicture.asset(
+                              'assets/svg/profile.svg',
+                              width: 24,
+                              height: 24,
+                              colorFilter: const ColorFilter.mode(
+                                Color(0xFF9CA3AF),
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                            activeIcon: SvgPicture.asset(
+                              'assets/svg/profile.svg',
+                              width: 24,
+                              height: 24,
+                              colorFilter: const ColorFilter.mode(
+                                AppColors.primary,
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                            label: 'Profile',
+                          ),
+                        ]
+                      : [
+                          const BottomNavigationBarItem(
+                            icon: Icon(Icons.home_outlined),
+                            activeIcon: Icon(Icons.home),
+                            label: 'Home',
+                          ),
+                          const BottomNavigationBarItem(
+                            icon: Icon(Icons.search_outlined),
+                            activeIcon: Icon(Icons.search),
+                            label: 'Search',
+                          ),
+                          const BottomNavigationBarItem(
+                            icon: Icon(Icons.calendar_today_outlined),
+                            activeIcon: Icon(Icons.calendar_today),
+                            label: 'Bookings',
+                          ),
+                          BottomNavigationBarItem(
+                            icon: SvgPicture.asset(
+                              'assets/svg/profile.svg',
+                              width: 24,
+                              height: 24,
+                              colorFilter: const ColorFilter.mode(
+                                Color(0xFF9CA3AF),
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                            activeIcon: SvgPicture.asset(
+                              'assets/svg/profile.svg',
+                              width: 24,
+                              height: 24,
+                              colorFilter: const ColorFilter.mode(
+                                AppColors.primary,
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                            label: 'Profile',
+                          ),
+                        ],
                 ),
               ),
-            ],
+            ),
           ),
         ),
       ),

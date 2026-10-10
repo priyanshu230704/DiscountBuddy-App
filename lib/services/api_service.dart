@@ -24,10 +24,14 @@ class ApiService {
   // Singleton instance
   static final ApiService _instance = ApiService._internal();
   factory ApiService() => _instance;
-  ApiService._internal();
+  ApiService._internal() : _client = http.Client();
+
+  /// Test seam: build an isolated instance around a fake [http.Client].
+  @visibleForTesting
+  ApiService.forTesting(http.Client client) : _client = client;
 
   // HTTP Client
-  final http.Client _client = http.Client();
+  final http.Client _client;
 
   // Base headers - store as instance variable to persist auth token
   final Map<String, String> _headers = {
@@ -45,6 +49,21 @@ class ApiService {
 
   /// Queue for requests waiting for token refresh
   final List<Completer<bool>> _refreshWaiters = [];
+
+  /// Upper bound for a request waiting on someone else's refresh. Guarantees a
+  /// stuck refresh can never hang callers (or later 401s) forever.
+  @visibleForTesting
+  Duration refreshWaitTimeout = const Duration(seconds: 45);
+
+  /// Fires when the server definitively rejected the session (refresh token
+  /// invalid/expired). [AuthProvider] listens and routes the user to login.
+  final StreamController<void> _sessionExpired = StreamController<void>.broadcast();
+  Stream<void> get onSessionExpired => _sessionExpired.stream;
+
+  /// Called by [AuthService] after it has cleared local credentials.
+  void notifySessionExpired() {
+    if (!_sessionExpired.isClosed) _sessionExpired.add(null);
+  }
 
 
   /// Add authorization token to headers
@@ -375,7 +394,10 @@ class ApiService {
           }
           final completer = Completer<bool>();
           _refreshWaiters.add(completer);
-          refreshSuccess = await completer.future;
+          refreshSuccess = await completer.future.timeout(
+            refreshWaitTimeout,
+            onTimeout: () => false,
+          );
         } else {
           // Start refreshing
           _isRefreshing = true;
@@ -456,6 +478,14 @@ class ApiService {
         }
         return decoded as Map<String, dynamic>;
       } catch (e) {
+        // An HTML page on a 2xx is a proxy / captive-portal / CDN page, not our
+        // API. Reporting it as success makes callers show a bogus success state.
+        if (_looksLikeHtml(response.body)) {
+          throw ApiException(
+            'Unexpected response from server. Please try again.',
+            statusCode: statusCode,
+          );
+        }
         return {'data': response.body};
       }
     } else {
@@ -489,9 +519,8 @@ class ApiService {
           errorMessage = errorResponse.toString();
         }
       } catch (e) {
-        errorMessage = response.body.isNotEmpty
-            ? response.body
-            : 'Request failed with status: $statusCode';
+        // Never surface a raw (HTML / stack trace) body to the user.
+        errorMessage = _genericStatusMessage(statusCode);
       }
 
       throw ApiException(errorMessage, statusCode: statusCode, data: errorData);
@@ -502,13 +531,31 @@ class ApiService {
   ApiException _handleError(dynamic error) {
     if (error is ApiException) {
       return error;
+    } else if (error is TimeoutException) {
+      return ApiException(
+        'The request timed out. Please check your connection and try again.',
+      );
     } else if (error is http.ClientException) {
-      return ApiException('Network error: ${error.message}');
+      if (Environment.enableLogging) debugPrint('ClientException: ${error.message}');
+      return ApiException('Network error. Please check your connection.');
     } else if (error is FormatException) {
       return ApiException('Invalid response format');
     } else {
-      return ApiException('An unexpected error occurred: ${error.toString()}');
+      if (Environment.enableLogging) debugPrint('Unexpected API error: $error');
+      return ApiException('Something went wrong. Please try again.');
     }
+  }
+
+  bool _looksLikeHtml(String body) {
+    final t = body.trimLeft().toLowerCase();
+    return t.startsWith('<!doctype') || t.startsWith('<html');
+  }
+
+  String _genericStatusMessage(int statusCode) {
+    if (statusCode >= 500) {
+      return 'Server error. Please try again in a moment.';
+    }
+    return 'Request failed with status: $statusCode';
   }
 
   /// Dispose resources

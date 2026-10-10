@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -105,9 +106,22 @@ class FirebaseMessagingService {
       settings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         // Handle local notification tap
-        if (response.payload != null) {
-          // You could parse payload and navigate here if needed
-          debugPrint('Local notification tapped with payload: ${response.payload}');
+        final payload = response.payload;
+        if (payload == null || payload.isEmpty) return;
+        try {
+          final decoded = jsonDecode(payload);
+          if (decoded is Map) {
+            final data = Map<String, dynamic>.from(decoded);
+            final type =
+                (data['notification_type'] ?? data['type'] ?? '').toString();
+            AnalyticsService.instance.notificationOpen(
+              source: 'push_foreground',
+              notificationType: type.isEmpty ? null : type,
+            );
+            _navigateToCorrectScreen(type, data);
+          }
+        } catch (e) {
+          if (kDebugMode) debugPrint('Bad local notification payload: $e');
         }
       },
     );
@@ -121,10 +135,12 @@ class FirebaseMessagingService {
 
   /// Handle messages received while the app is in the FOREGROUND
   void _handleForegroundMessage(RemoteMessage message) {
-    debugPrint('🔔 Foreground message received!');
-    debugPrint('   Title: ${message.notification?.title}');
-    debugPrint('   Body: ${message.notification?.body}');
-    debugPrint('   Data: ${message.data}');
+    if (kDebugMode) {
+      debugPrint('🔔 Foreground message received!');
+      debugPrint('   Title: ${message.notification?.title}');
+      debugPrint('   Body: ${message.notification?.body}');
+      debugPrint('   Data: ${message.data}');
+    }
 
     final RemoteNotification? notification = message.notification;
     
@@ -160,7 +176,7 @@ class FirebaseMessagingService {
           ),
         ),
         // Pass the entire data map as payload for tap-to-navigate
-        payload: message.data.toString(),
+        payload: jsonEncode(message.data),
       );
 
       // 🚀 AUTOMATICALLY OPEN BOTTOM SHEET FOR NEW BOOKINGS
@@ -172,13 +188,13 @@ class FirebaseMessagingService {
       }
     } else {
       // Data-only message (no notification block) — still log it
-      debugPrint('⚠️ Data-only message received (no notification payload): ${message.data}');
+      if (kDebugMode) debugPrint('⚠️ Data-only message received (no notification payload)');
     }
   }
 
   /// Handle navigation when a notification is tapped
   void _handleMessageOpen(RemoteMessage message) {
-    debugPrint('📩 Notification Tapped: ${message.data}');
+    if (kDebugMode) debugPrint('📩 Notification Tapped: ${message.data}');
     
     // Backend sends 'notification_type', not 'type'
     final type = message.data['notification_type'] ?? message.data['type'] ?? '';
@@ -191,10 +207,26 @@ class FirebaseMessagingService {
 
   /// Navigates to the appropriate screen based on notification type
   void _navigateToCorrectScreen(String type, Map<String, dynamic> data) {
-    final context = navigatorKey.currentContext;
-    if (context == null) return;
+    unawaited(_navigateWhenReady(type, data));
+  }
 
-    NotificationService.handleNotificationNavigation(context, type, data);
+  /// On a cold start the notification tap is delivered before the navigator
+  /// exists; dropping it silently lost the deep link. Wait (bounded) for it.
+  Future<void> _navigateWhenReady(String type, Map<String, dynamic> data) async {
+    for (var i = 0; i < 40; i++) {
+      final context = navigatorKey.currentContext;
+      if (context != null && context.mounted) {
+        // Let splash/onboarding finish its own route replacement first.
+        if (i == 0) await Future<void>.delayed(const Duration(milliseconds: 300));
+        final ctx = navigatorKey.currentContext;
+        if (ctx != null && ctx.mounted) {
+          NotificationService.handleNotificationNavigation(ctx, type, data);
+          return;
+        }
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 250));
+    }
+    if (kDebugMode) debugPrint('❌ Notification navigation dropped: no navigator');
   }
 
   /// Get FCM token and register with backend
@@ -202,13 +234,13 @@ class FirebaseMessagingService {
     try {
       if (defaultTargetPlatform == TargetPlatform.iOS) {
         final apnsToken = await _messaging.getAPNSToken();
-        debugPrint('🍎 APNS Token: $apnsToken');
+        if (kDebugMode) debugPrint('🍎 APNS Token: $apnsToken');
       }
       
       _fcmToken = await _messaging.getToken();
       if (_fcmToken != null) {
         debugPrint('==============================================');
-        debugPrint('📱 FCM Token: $_fcmToken');
+        if (kDebugMode) debugPrint('📱 FCM Token: $_fcmToken');
         debugPrint('==============================================');
         await _registerTokenWithBackend(_fcmToken!);
       }
@@ -303,7 +335,7 @@ class FirebaseMessagingService {
 
   /// Handle token refresh
   Future<void> _onTokenRefresh(String newToken) async {
-    debugPrint('🔄 FCM token refreshed: $newToken');
+    if (kDebugMode) debugPrint('🔄 FCM token refreshed: $newToken');
     _fcmToken = newToken;
     await _registerTokenWithBackend(newToken);
   }

@@ -208,6 +208,10 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
         isWin: result.isWin,
         prizeTitle: result.title,
       );
+      // The spin is already consumed server-side. If the user closed the wheel
+      // while the request was in flight, there is nothing to animate (the
+      // controller is disposed); the prize is available under "My prizes".
+      if (!mounted) return;
       _animateWheelToSlice(result);
     } catch (e) {
       if (!mounted) return;
@@ -260,6 +264,7 @@ class _SpinWheelScreenState extends State<SpinWheelScreen> with SingleTickerProv
 
     _animationController.reset();
     _animationController.forward().then((_) {
+      if (!mounted) return;
       setState(() {
         _currentRotation = finalRotation;
         _isSpinning = false;

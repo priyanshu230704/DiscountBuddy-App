@@ -459,9 +459,12 @@ class AuthService {
     try {
       final refreshToken = await getRefreshToken();
       if (refreshToken != null && refreshToken.isNotEmpty) {
+        // The refresh token in the body is the credential; the access token is
+        // usually expired by now and must not trigger another refresh cycle.
         await _apiService.post(
           ApiEndpoints.logout,
           body: {'refresh': refreshToken},
+          withAuth: false,
         );
       }
     } catch (e) {
@@ -590,14 +593,34 @@ class AuthService {
       _apiService.setAuthToken(newAccessToken);
 
       return true;
+    } on ApiException catch (e) {
+      if (Environment.enableLogging) {
+        debugPrint('Refresh access token failed: $e');
+      }
+      // Only an explicit rejection of the refresh token (expired / blacklisted /
+      // malformed -> 401 or 400) ends the session. Timeouts, offline, 5xx must NOT
+      // log the user out: the refresh token is still valid.
+      if (e.statusCode == 400 || e.statusCode == 401) {
+        await _expireSession();
+      }
+      return false;
     } catch (e) {
       if (Environment.enableLogging) {
         debugPrint('Refresh access token failed: $e');
       }
-      // If refresh fails, it could be the 7-day limit or other issue
-      // Logout user to clean up local state
-      await logout();
       return false;
+    }
+  }
+
+  /// Local-only teardown for a dead session. Deliberately makes NO network call:
+  /// this runs while ApiService is mid-refresh, and any authenticated call here
+  /// that returned 401 used to wait on that same refresh forever (deadlock).
+  Future<void> _expireSession() async {
+    _apiService.removeAuthToken();
+    try {
+      await wipeLocalSessionAfterLogout();
+    } finally {
+      _apiService.notifySessionExpired();
     }
   }
 

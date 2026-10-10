@@ -135,6 +135,9 @@ class _QRScannerPageState extends State<QRScannerPage> {
 
   Future<void> _handleQRCode(String qrData) async {
     if (_isProcessing) return;
+    // Claim the scan synchronously: onDetect fires every frame and `stop()` is
+    // async, so without this the same QR opened several sheets / submissions.
+    _isProcessing = true;
 
     // Pause scanner to prevent multiple scans
     await _controller.stop();
@@ -149,6 +152,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
       if (mounted) {
         _showErrorDialog('Invalid QR code format', null);
       }
+      _isProcessing = false;
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) _controller.start();
       });
@@ -158,6 +162,8 @@ class _QRScannerPageState extends State<QRScannerPage> {
     // Deal QR — show price/people modal first
     if (mounted) {
       _showRedemptionDetailsModal(qrData: qrData);
+    } else {
+      _isProcessing = false;
     }
   }
 
@@ -166,6 +172,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
     final peopleController = TextEditingController();
     final formKey = GlobalKey<FormState>();
 
+    var submitted = false;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -233,7 +240,10 @@ class _QRScannerPageState extends State<QRScannerPage> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) return 'Required';
-                    if (double.tryParse(value) == null) return 'Invalid number';
+                    final v = double.tryParse(value);
+                    if (v == null || !v.isFinite) return 'Invalid number';
+                    if (v <= 0) return 'Must be greater than 0';
+                    if (v > 100000) return 'Amount too large';
                     return null;
                   },
                 ),
@@ -261,7 +271,9 @@ class _QRScannerPageState extends State<QRScannerPage> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) return 'Required';
-                    if (int.tryParse(value) == null) return 'Invalid number';
+                    final n = int.tryParse(value);
+                    if (n == null) return 'Invalid number';
+                    if (n < 1 || n > 1000) return 'Enter 1 to 1000';
                     return null;
                   },
                 ),
@@ -269,6 +281,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
                 AppGradientButton(
                   onPressed: () {
                     if (formKey.currentState!.validate()) {
+                      submitted = true;
                       final price = double.parse(priceController.text);
                       final peopleCount = int.parse(peopleController.text);
                       Navigator.of(context).pop();
@@ -294,7 +307,15 @@ class _QRScannerPageState extends State<QRScannerPage> {
           ),
         ),
       ),
-    );
+    ).whenComplete(() {
+      priceController.dispose();
+      peopleController.dispose();
+      if (!submitted && mounted) {
+        // Sheet dismissed without redeeming: release the scan lock and resume.
+        _isProcessing = false;
+        _controller.start().catchError((_) {});
+      }
+    });
   }
 
   Future<void> _processRedemption({
@@ -341,7 +362,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
       Navigator.of(context).pop(); // Hide loading
       _showErrorDialog(_cleanErrorMessage(e.toString()), null);
     } finally {
-      setState(() => _isProcessing = false);
+      if (mounted) setState(() => _isProcessing = false);
     }
   }
 
@@ -378,7 +399,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
       Navigator.of(context).pop(); // Hide loading
       _showErrorDialog(_cleanErrorMessage(e.toString()), null);
     } finally {
-      setState(() => _isProcessing = false);
+      if (mounted) setState(() => _isProcessing = false);
     }
   }
 

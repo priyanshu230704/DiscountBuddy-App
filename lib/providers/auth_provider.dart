@@ -1,7 +1,9 @@
 import 'package:get/get.dart';
 import 'package:flutter/foundation.dart';
+import 'dart:async';
 import 'dart:io';
 import '../core/analytics/analytics_service.dart';
+import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../services/firebase_messaging_service.dart';
 import '../models/api_user.dart';
@@ -12,7 +14,27 @@ class AuthProvider extends ChangeNotifier {
   static final AuthProvider _instance = AuthProvider._internal();
   factory AuthProvider() => _instance;
   AuthProvider._internal() {
+    // Refresh token rejected by the server: credentials are already wiped by
+    // AuthService; mirror that in UI state so MainNavigation routes to login.
+    _sessionExpiredSub = ApiService().onSessionExpired.listen((_) => _handleSessionExpired());
     _initializeAuth();
+  }
+
+  // Lives for the whole process (singleton); never cancelled.
+  // ignore: unused_field
+  StreamSubscription<void>? _sessionExpiredSub;
+
+  void _handleSessionExpired() {
+    if (!_isAuthenticated.value && _user.value == null) return;
+    _user.value = null;
+    _isAuthenticated.value = false;
+    _isGuestMode.value = false;
+    _userRole.value = 'customer';
+    _errorMessage.value = 'Your session has expired. Please log in again.';
+    _isLoading.value = false;
+    notifyListeners();
+    AnalyticsService.instance.setUserId(null);
+    AnalyticsService.instance.setUserType(null);
   }
 
   final AuthService _authService = AuthService();

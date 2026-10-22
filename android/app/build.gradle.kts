@@ -29,7 +29,9 @@ android {
 }
     namespace = "com.discountbuddy.app"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    // Explicitly set NDK r28+ to fix 16 KB page size alignment issue on Android 15+ devices.
+    // See: https://developer.android.com/guide/practices/page-sizes
+    ndkVersion = "28.0.13004108"
 
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
